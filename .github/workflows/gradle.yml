@@ -14,9 +14,8 @@ jobs:
           java-version: 1.8
           
       - name: Build with Gradle
-        uses: eskatos/gradle-command-action@v1.3.3
-        with:
-          arguments: build
+        run: |
+          ./gradlew build
       
       - name: Add Artifact
         uses: actions/upload-artifact@v2
