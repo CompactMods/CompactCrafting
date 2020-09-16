@@ -21,7 +21,7 @@ jobs:
       - name: Add Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: Package
+          name: libs
           path: build/libs/*.jar
   
   release:
@@ -31,13 +31,18 @@ jobs:
       - name: Download Build Results
         uses: actions/download-artifact@v2
         with:
+          name: libs
           path: buildfiles
       
+      - name: Write Tag Version
+        run: echo ${{ github.event.release.tag_name }}
+        
       - name: Create Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
+          title: Latest Release (${{ github.event.release.tag_name }})
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
             LICENSE.txt
-            buildfiles/*.jar
+            buildfiles/*
