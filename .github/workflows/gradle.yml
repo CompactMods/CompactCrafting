@@ -1,4 +1,4 @@
-name: Build Artifact
+name: Build with Gradle
 
 on: [push]
 
@@ -14,7 +14,9 @@ jobs:
           java-version: 1.8
           
       - name: Build with Gradle
-        run: ./gradlew build
+        uses: eskatos/gradle-command-action@v1.3.3
+        with:
+          arguments: build
       
       - name: Add Artifact
         uses: actions/upload-artifact@v2
