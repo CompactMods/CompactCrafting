@@ -21,6 +21,7 @@ jobs:
         with:
           name: Package
           path: build/libs/*.jar
+  
   release:
     runs-on: ubuntu-latest
     needs: build
@@ -29,24 +30,12 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: buildfiles
-        
+      
       - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          tag_name: ${{ github.sha }}
-          release_name: Release ${{ github.sha }}
-          draft: false
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          
-#       - name: Upload Release Asset
-#         id: upload-release-asset 
-#         uses: actions/upload-release-asset@v1
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#         with:
-#           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-#           asset_path: ./my-artifact.zip
-#           asset_name: my-artifact.zip
-#           asset_content_type: application/zip
+          files: |
+            LICENSE.txt
+            *.jar
