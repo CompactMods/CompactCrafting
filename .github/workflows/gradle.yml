@@ -33,16 +33,14 @@ jobs:
         with:
           name: libs
           path: buildfiles
-      
-      - name: Write Tag Version
-        run: echo ${{ github.event.release.tag_name }}
         
       - name: Create Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          title: Latest Release (${{ github.event.release.tag_name }})
+          title: "Release ${{ github.event.release.tag_name }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
+            CHANGELOG.txt
             LICENSE.txt
             buildfiles/*
