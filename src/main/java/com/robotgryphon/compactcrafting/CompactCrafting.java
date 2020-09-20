@@ -1,6 +1,10 @@
 package com.robotgryphon.compactcrafting;
 
+import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.block.Blocks;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -12,12 +16,21 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-// The value here should match an entry in the META-INF/mods.toml file
-@Mod("compactcrafting")
+@Mod(CompactCrafting.MOD_ID)
 public class CompactCrafting
 {
     // Directly reference a log4j logger.
     private static final Logger LOGGER = LogManager.getLogger();
+
+    public static final String MOD_ID = "compactcrafting";
+
+    public static ItemGroup ITEM_GROUP = new ItemGroup(MOD_ID) {
+        @Override
+        public ItemStack createIcon() {
+            // TODO: Change this to the crafter item
+            return new ItemStack(Items.ENDER_PEARL);
+        }
+    };
 
     public CompactCrafting() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -30,6 +43,8 @@ public class CompactCrafting
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+
+        Registration.init();
     }
 
     private void setup(final FMLCommonSetupEvent event)
