@@ -1,0 +1,8 @@
+{
+  "miniaturization_crafting": {
+    "category": "block",
+    "sounds": [
+      "compactcrafting:miniaturization_crafting"
+    ]
+  }
+}
