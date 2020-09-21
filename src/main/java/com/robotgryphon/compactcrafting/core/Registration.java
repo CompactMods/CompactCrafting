@@ -1,12 +1,14 @@
 package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -41,8 +43,10 @@ public class Registration {
     // ================================================================================================================
     //   BLOCKS
     // ================================================================================================================
-//    public static final RegistryObject<Block> MACHINE_BLOCK_TINY = BLOCKS.register("machine_tiny", () ->
-//            new BlockCompactMachine(EnumMachineSize.TINY, MACHINE_BLOCK_PROPS));
+    public static final RegistryObject<Block> PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
+            new FieldProjectorBlock(Block.Properties.create(Material.IRON)
+                .hardnessAndResistance(8, 20)
+            ));
 
     // ================================================================================================================
     //   TILE ENTITIES
