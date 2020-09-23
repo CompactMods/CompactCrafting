@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting;
 
+import com.robotgryphon.compactcrafting.client.ClientSetup;
+import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemGroup;
@@ -43,6 +45,12 @@ public class CompactCrafting
 
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+
+        MinecraftForge.EVENT_BUS.register(RenderTickCounter.class);
+
+        modBus.addListener(ClientSetup::init);
+        modBus.addListener(ClientSetup::registerSpecialModels);
+
 
         Registration.init();
     }

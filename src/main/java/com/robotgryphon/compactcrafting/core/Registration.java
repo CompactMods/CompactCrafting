@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
@@ -23,8 +24,7 @@ public class Registration {
     // ================================================================================================================
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
-    private static final DeferredRegister<TileEntityType<?>> TILES_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
-    // private static final DeferredRegister<Dimension> DIMENSIONS = DeferredRegister.create(ForgeRegistries.WORLD_CARVERS, MODID);;
+    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
 
     // ================================================================================================================
     //   PROPERTIES
@@ -43,7 +43,7 @@ public class Registration {
     // ================================================================================================================
     //   BLOCKS
     // ================================================================================================================
-    public static final RegistryObject<Block> PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
+    public static final RegistryObject<Block> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
             new FieldProjectorBlock(Block.Properties.create(Material.IRON)
                 .hardnessAndResistance(8, 20)
             ));
@@ -51,11 +51,10 @@ public class Registration {
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
-//    public static final RegistryObject<TileEntityType<CompactMachineTile>> MACHINE_TILE_ENTITY = TILES_ENTITIES.register("compact_machine", () ->
-//            TileEntityType.Builder.create(CompactMachineTile::new,
-//                    MACHINE_BLOCK_TINY.get(), MACHINE_BLOCK_SMALL.get(), MACHINE_BLOCK_NORMAL.get(),
-//                    MACHINE_BLOCK_NORMAL.get(), MACHINE_BLOCK_GIANT.get(), MACHINE_BLOCK_MAXIMUM.get())
-//                    .build(null));
+    public static final RegistryObject<TileEntityType<FieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
+            TileEntityType.Builder
+                    .create(FieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .build(null));
 
     // ================================================================================================================
     //   INITIALIZATION
@@ -65,6 +64,6 @@ public class Registration {
 
         BLOCKS.register(eventBus);
         ITEMS.register(eventBus);
-        TILES_ENTITIES.register(eventBus);
+        TILE_ENTITIES.register(eventBus);
     }
 }
