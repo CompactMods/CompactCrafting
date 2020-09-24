@@ -47,9 +47,7 @@ public class CompactCrafting
         MinecraftForge.EVENT_BUS.register(this);
 
         MinecraftForge.EVENT_BUS.register(RenderTickCounter.class);
-
-        modBus.addListener(ClientSetup::init);
-        modBus.addListener(ClientSetup::registerSpecialModels);
+        MinecraftForge.EVENT_BUS.register(ClientSetup.class);
 
 
         Registration.init();

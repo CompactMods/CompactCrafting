@@ -7,23 +7,21 @@ import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Constants;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.Atlases;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ModelManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 
 import java.awt.*;
+
+import static net.minecraft.client.renderer.RenderType.makeType;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
 
@@ -45,16 +43,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     private IBakedModel bakedModelCached;
 
-//    RenderType t = RenderType.makeType("my_type", DefaultVertexFormats.POSITION_COLOR, 7, 256,
-//            false, true, RenderType.State.getBuilder()
-//                    .transparency(TRANSLUCENT_TRANSPARENCY)
-//                    .writeMask(COLOR_DEPTH_WRITE)
-//                    .build(false));
-
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
-
-
     }
 
     @Override
@@ -79,21 +69,11 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         return bakedModelCached;
     }
 
-    /**
-     * Draw a coloured line from a starting vertex to an end vertex
-     *
-     * @param matrixPos    the current transformation matrix
-     * @param renderBuffer the vertex builder used to draw the line
-     * @param startVertex
-     * @param endVertex
-     */
-    private static void drawLine(Matrix4f matrixPos, IVertexBuilder renderBuffer, Color color,
-                                 Vector3d startVertex, Vector3d endVertex) {
-        renderBuffer.pos(matrixPos, (float) startVertex.x, (float) startVertex.y, (float) startVertex.z)
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())   // there is also a version for floats (0 -> 1)
-                .endVertex();
-        renderBuffer.pos(matrixPos, (float) endVertex.getX(), (float) endVertex.getY(), (float) endVertex.getZ())
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())   // there is also a version for floats (0 -> 1)
+    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
+        renderer.pos(stack.getLast().getMatrix(), position.getX(), position.getY(), position.getZ())
+                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
+                .lightmap(0, 240)
+                .normal(1, 0, 0)
                 .endVertex();
     }
 
@@ -138,33 +118,25 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     private void renderFaces(MatrixStack mx, IRenderTypeBuffer buffer, AxisAlignedBB cube, double extraLength) {
 
         try {
-            IVertexBuilder lines = buffer.getBuffer(RenderType.getLines());
+            IVertexBuilder builder = buffer.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
 
-            //region color and vertex positions
-            int color = 0xFF6A00;
-            float cR = (color >> 16 & 255) / 255.0f;
-            float cG = (color >> 8 & 255) / 255.0f;
-            float cB = (color & 255) / 255.0f;
-            float cA = 0.15f;
-
-            double x1 = cube.minX;
-            double x2 = cube.maxX;
-            double y1 = cube.minY;
-            double y2 = cube.maxY;
-            double z1 = cube.minZ;
-            double z2 = cube.maxZ;
-            double radius = (cube.maxY - cube.minY) / 2;
-
-            double y4 = cube.maxY - radius + 0.3d;
-            //endregion
+            int color = 0x88FF6A00;
+            Color fieldColor = new Color(color, true);
 
             // Draw the faces
             Vector3d start = new Vector3d(cube.minX, cube.minY, cube.minZ);
             Vector3d end = new Vector3d(cube.maxX, cube.maxY, cube.maxZ);
+            
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 1, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 1, .5f));
 
-            drawLine(mx.getLast().getMatrix(), lines, Color.orange, start, end);
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 1, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 1, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
+            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
 
-//            lines.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
 //            lines.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
 //            lines.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
 //            lines.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
@@ -178,7 +150,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 //            lines.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
 //            lines.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
 //            lines.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
+//            lines.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();w
 //            lines.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
 //
 //            lines.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
