@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Constants;
+import com.robotgryphon.compactcrafting.core.FieldProjectionSize;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
@@ -58,13 +59,16 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         Optional<BlockPos> c = tile.getCenter();
         if (c.isPresent()) {
             BlockPos center = c.get();
-            AxisAlignedBB cube = new AxisAlignedBB(center).grow(2);
+            FieldProjectionSize fieldProjectionSize = tile.getProjectionSize();
+            int fieldSize = fieldProjectionSize.getSize();
+
+            AxisAlignedBB cube = new AxisAlignedBB(center).grow(fieldSize);
 
             renderFaces(tile, matrixStack, buffers, cube, 0);
 
             if (tile.isMainProjector()) {
-                drawScanLines(tile, matrixStack, buffers, cube, 2);
-                renderProjectionCube(tile, matrixStack, buffers, cube, 2);
+                drawScanLines(tile, matrixStack, buffers, cube, fieldSize);
+                renderProjectionCube(tile, matrixStack, buffers, cube, fieldSize);
             }
         }
     }
