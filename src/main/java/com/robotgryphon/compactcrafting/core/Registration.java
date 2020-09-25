@@ -3,6 +3,7 @@ package com.robotgryphon.compactcrafting.core;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
@@ -47,6 +48,12 @@ public class Registration {
             new FieldProjectorBlock(Block.Properties.create(Material.IRON)
                 .hardnessAndResistance(8, 20)
             ));
+
+    // ================================================================================================================
+    //   ITEMS
+    // ================================================================================================================
+    public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
+            new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().group(CompactCrafting.ITEM_GROUP)));
 
     // ================================================================================================================
     //   TILE ENTITIES

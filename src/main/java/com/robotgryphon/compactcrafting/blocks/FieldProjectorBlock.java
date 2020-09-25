@@ -9,7 +9,9 @@ import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
@@ -63,5 +65,14 @@ public class FieldProjectorBlock extends Block implements IProbeInfoProvider  {
     @Override
     public void addProbeInfo(ProbeMode probeMode, IProbeInfo iProbeInfo, PlayerEntity playerEntity, World world, BlockState blockState, IProbeHitData iProbeHitData) {
 
+    }
+
+    @Override
+    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        Direction facing = placer.getHorizontalFacing();
+
+        worldIn.setBlockState(pos, state.with(FACING, facing));
+
+        // Add owner information to field projector
     }
 }
