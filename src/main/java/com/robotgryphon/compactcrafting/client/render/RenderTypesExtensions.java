@@ -34,4 +34,14 @@ public class RenderTypesExtensions extends RenderType {
                     .writeMask(COLOR_WRITE)
                     .depthTest(DepthTestState.DEPTH_LEQUAL) // Default, but let's make sure it stays that way
                     .build(false));
+
+    public static final RenderType FIELD_PROJECTION_ARC = makeType("projection_field_arc",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
+            RenderType.State.getBuilder()
+                    .transparency(PROJECTION_TRANSPARENCY)
+                    .target(RenderState.MAIN_TARGET)
+                    .cull(RenderState.CULL_DISABLED)
+                    .writeMask(COLOR_WRITE)
+                    .depthTest(DepthTestState.DEPTH_LEQUAL) // Default, but let's make sure it stays that way
+                    .build(false));
 }

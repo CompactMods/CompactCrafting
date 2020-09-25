@@ -14,12 +14,15 @@ import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 
 import java.awt.*;
+import java.util.Optional;
 
 import static net.minecraft.client.renderer.RenderType.makeType;
 
@@ -48,11 +51,21 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     @Override
-    public void render(FieldProjectorTile tileEntityIn, float partialTicks, MatrixStack matrixStackIn, IRenderTypeBuffer bufferIn, int combinedLightIn, int combinedOverlayIn) {
-        renderDish(tileEntityIn, matrixStackIn, bufferIn, combinedLightIn, combinedOverlayIn);
+    public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
+        renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
 
-        AxisAlignedBB cube = new AxisAlignedBB(tileEntityIn.getPos()).grow(3);
-        renderFaces(tileEntityIn, matrixStackIn, bufferIn, cube, 0);
+        Optional<BlockPos> c = tile.getCenter();
+        if(c.isPresent()) {
+            BlockPos center = c.get();
+            AxisAlignedBB cube = new AxisAlignedBB(center).grow(2);
+
+            renderFaces(tile, matrixStack, buffers, cube, 0);
+
+            if(tile.isMainProjector()) {
+                drawScanLines(tile, matrixStack, buffers, cube, 2);
+                renderProjectionCube(tile, matrixStack, buffers, cube, 2);
+            }
+        }
     }
 
     private IBakedModel getModel() {
@@ -124,38 +137,80 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * TODO - render projection arc connecting projector to large cube
      */
 
+    private void translateRendererToCube(FieldProjectorTile tile, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
+        Optional<BlockPos> c = tile.getCenter();
+        if(!c.isPresent())
+            return;
+
+        BlockPos center = c.get();
+
+        // Center on projector
+        mx.translate(-cube.minX, -cube.minY, -cube.minZ);
+        mx.translate(-cubeSize, -cubeSize, -cubeSize);
+
+        // Now move to actual center
+        BlockPos projectorPos = tile.getPos();
+        BlockPos offsetToCenter = center.subtract(projectorPos);
+
+        mx.translate(offsetToCenter.getX(), offsetToCenter.getY(), offsetToCenter.getZ());
+    }
     /**
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void renderProjectionCube() {
-        // Draw the faces
-//        buffer.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//
-//        buffer.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
-//
-//        buffer.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
+    private void renderProjectionCube(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+        mx.push();
+
+        translateRendererToCube(tile, mx, cube, cubeSize);
+
+        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
+
+        Color bounds = new Color(255, 106, 0, 100);
+
+        // Draw bounds of projection cube
+
+        // North face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
+
+        // South face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
+
+        // West face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
+
+        // East face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
+
+        // Top face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
+
+        // Bottom face
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
+        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
+
+
+
+
+
+
+        mx.pop();
     }
 
     /**
@@ -204,40 +259,41 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLines() {
-//        Tessellator tessellator = Tessellator.getInstance();
-//        BufferBuilder buffer = tessellator.getBuffer();
-//        buffer.begin(GL11.GL_LINES, DefaultVertexFormats.POSITION_COLOR);
-//
-//        int color = 0xFF6A00;
-//        float cR = (color >> 16 & 255) / 255.0f;
-//        float cG = (color >> 8 & 255) / 255.0f;
-//        float cB = (color & 255) / 255.0f;
-//        float cA = 0.5f;
-//
-//        double x1 = cube.minX;
-//        double x2 = cube.maxX;
-//        double y1 = cube.minY;
-//        double y2 = cube.maxY;
-//        double z1 = cube.minZ;
-//        double z2 = cube.maxZ;
-//
-//        // Draw the up and down bouncing lines on the sides
-//        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (y2 - y1);
-//        double y3 = y1 + zAngle;
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA).endVertex();
-//
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA).endVertex();
-//
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA).endVertex();
-//
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA).endVertex();
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA).endVertex();
-//
-//        tessellator.draw();
+    private void drawScanLines(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+        mx.push();
+
+        translateRendererToCube(tile, mx, cube, cubeSize);
+
+        IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
+        Color fieldColor = new Color(255, 106, 0, 200);
+
+        float x1 = (float) cube.minX;
+        float x2 = (float) cube.maxX;
+        float y1 = (float) cube.minY;
+        float y2 = (float) cube.maxY;
+        float z1 = (float) cube.minZ;
+        float z2 = (float) cube.maxZ;
+
+        // Draw the up and down bouncing lines on the sides
+        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (y2 - y1);
+        float y3 = (float) (y1 + zAngle);
+
+
+
+        // Scan Lines
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z1));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z1));
+
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z1));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z2));
+
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z2));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z1));
+
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z2));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z2));
+
+        mx.pop();
     }
 
     /**
@@ -255,8 +311,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         try {
             IVertexBuilder builder = buffer.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
 
-            int color = 0x88FF6A00;
-            Color fieldColor = new Color(color, true);
+            Color fieldColor = new Color(0x88FF6A00, true);
 
             // Draw the faces
             Vector3d start = new Vector3d(cube.minX, cube.minY, cube.minZ);
@@ -285,30 +340,30 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 //            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
 //            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
 
-//            lines.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
 //
-//            lines.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();w
-//            lines.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
+//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();w
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
 //
-//            lines.pos(x1, y1, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y1, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y2, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x1, y2, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y2, z1).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y2, z2).color(cR, cG, cB, cA).endVertex();
-//            lines.pos(x2, y1, z2).color(cR, cG, cB, cA).endVertex();
+//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
         } catch (Exception ex) {
         }
 
@@ -345,5 +400,10 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 //        buffer.pos(x1-(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
 
 //        GlStateManager.enableCull();
+    }
+
+    @Override
+    public boolean isGlobalRenderer(FieldProjectorTile te) {
+        return true;
     }
 }
