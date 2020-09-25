@@ -23,9 +23,9 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
@@ -53,35 +53,58 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         }
     }
 
+    public Optional<FieldProjectionSize> getFieldSize() {
+        BlockState bs = this.getBlockState();
+        Direction facing = bs.get(FieldProjectorBlock.FACING);
+
+        Optional<FieldProjectionSize> matchedSize = Arrays
+                .stream(FieldProjectionSize.values())
+                .sorted(Comparator.comparingInt(FieldProjectionSize::getOffset))
+                .filter(size -> {
+                    // check block exists in offset position
+                    BlockPos offsetInDirection = pos.offset(facing, size.getOffset() + 1);
+                    BlockState stateInPos = world.getBlockState(offsetInDirection);
+
+                    if (stateInPos.getBlock() instanceof FieldProjectorBlock) {
+                        // We have a field projector
+                        Direction otherFpDirection = stateInPos.get(FieldProjectorBlock.FACING);
+                        if (otherFpDirection == facing.getOpposite())
+                            return true;
+                    }
+
+                    return false;
+                })
+                .findFirst();
+
+        return matchedSize;
+    }
+
     /**
      * Gets the location of the opposite field projector.
      *
      * @return
      */
     public Optional<BlockPos> getOppositeProjector() {
-        BlockState bs = this.getBlockState();
-        Direction facing = bs.get(FieldProjectorBlock.FACING);
+        Optional<FieldProjectionSize> size = getFieldSize();
+        if(size.isPresent()) {
+            int offset = size.get().getOffset() + 1;
+            BlockPos opposite = getPos().offset(getFacing(), offset);
 
-        for (int i = 1; i <= 13; i++) {
-            // check block exists in offset position
-            BlockPos offsetInDirection = pos.offset(facing, i);
-            BlockState stateInPos = world.getBlockState(offsetInDirection);
-
-            if (stateInPos.getBlock() instanceof FieldProjectorBlock) {
-                // We have a field projector
-                Direction otherFpDirection = stateInPos.get(FieldProjectorBlock.FACING);
-                if (otherFpDirection == facing.getOpposite())
-                    return Optional.of(offsetInDirection);
-            }
+            return Optional.of(opposite);
         }
 
         return Optional.empty();
     }
 
-    public Direction getProjectorSide() {
+    public Direction getFacing() {
         BlockState bs = this.getBlockState();
         Direction facing = bs.get(FieldProjectorBlock.FACING);
 
+        return facing;
+    }
+
+    public Direction getProjectorSide() {
+        Direction facing = getFacing();
         return facing.getOpposite();
     }
 
@@ -92,30 +115,25 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         return side == Direction.NORTH;
     }
 
-    public FieldProjectionSize getProjectionSize() {
-        // TODO: Make this different depending on the spacing of the field projectors
-        return FieldProjectionSize.MEDIUM;
-    }
-
     @Override
     public void tick() {
         if (!isMainProjector())
             return;
 
         Optional<AxisAlignedBB> fieldBounds = getFieldBounds();
-        if(fieldBounds.isPresent()) {
+        if (fieldBounds.isPresent()) {
             // TODO: Check crafting state of projection field, update that state instead of doing manual work here
             boolean hasCatalyst = hasCatalystInBounds(fieldBounds.get(), Items.ENDER_PEARL);
 
-            if(hasCatalyst) {
+            if (hasCatalyst) {
                 List<ItemEntity> enderPearls = getCatalystsInField(fieldBounds.get(), Items.ENDER_PEARL);
 
                 // We dropped an ender pearl in - are there any blocks in the field?
                 // If so, we'll need to check the recipes -- but for now we just use it to
                 // not delete the item if there's nothing in here
-                if(CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
-                    CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
+                if (CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
                     CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
+                    CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
                 }
             }
         }
@@ -129,10 +147,15 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return Optional.empty();
 
         BlockPos centerPos = center.get();
-        FieldProjectionSize size = getProjectionSize();
-        AxisAlignedBB bounds = new AxisAlignedBB(centerPos).grow(size.getSize());
+        Optional<FieldProjectionSize> size = this.getFieldSize();
+        if(size.isPresent()) {
+            AxisAlignedBB bounds = new AxisAlignedBB(centerPos).grow(size.get().getSize());
 
-        return Optional.of(bounds);
+            return Optional.of(bounds);
+        }
+
+        // No valid field found
+        return Optional.empty();
     }
 
     private List<ItemEntity> getCatalystsInField(AxisAlignedBB fieldBounds, Item itemFilter) {
@@ -167,7 +190,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
         Optional<AxisAlignedBB> field = this.getFieldBounds();
-        if(field.isPresent()) {
+        if (field.isPresent()) {
             return field.get().grow(10);
         }
 
