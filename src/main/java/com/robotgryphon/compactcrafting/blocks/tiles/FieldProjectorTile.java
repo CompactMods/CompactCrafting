@@ -18,11 +18,14 @@ import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
@@ -99,42 +102,75 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if (!isMainProjector())
             return;
 
-        // TODO: Check crafting state of projection field, update that state instead of doing manual work here
-        searchForCatalyst();
+        Optional<AxisAlignedBB> fieldBounds = getFieldBounds();
+        if(fieldBounds.isPresent()) {
+            // TODO: Check crafting state of projection field, update that state instead of doing manual work here
+            boolean hasCatalyst = hasCatalystInBounds(fieldBounds.get(), Items.ENDER_PEARL);
+
+            if(hasCatalyst) {
+                List<ItemEntity> enderPearls = getCatalystsInField(fieldBounds.get(), Items.ENDER_PEARL);
+
+                // We dropped an ender pearl in - are there any blocks in the field?
+                // If so, we'll need to check the recipes -- but for now we just use it to
+                // not delete the item if there's nothing in here
+                if(CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
+                    CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
+                    CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
+                }
+            }
+        }
     }
 
-    private void searchForCatalyst() {
+    private Optional<AxisAlignedBB> getFieldBounds() {
         Optional<BlockPos> center = getCenter();
 
         // No center area - no other projector present
         if (!center.isPresent())
-            return;
+            return Optional.empty();
 
         BlockPos centerPos = center.get();
         FieldProjectionSize size = getProjectionSize();
-        AxisAlignedBB itemSuckBounds = new AxisAlignedBB(centerPos).grow(size.getSize());
+        AxisAlignedBB bounds = new AxisAlignedBB(centerPos).grow(size.getSize());
 
+        return Optional.of(bounds);
+    }
+
+    private List<ItemEntity> getCatalystsInField(AxisAlignedBB fieldBounds, Item itemFilter) {
+        List<ItemEntity> itemsInRange = world.getEntitiesWithinAABB(ItemEntity.class, fieldBounds);
+        return itemsInRange.stream()
+                .filter(ise -> ise.getItem().getItem() == itemFilter)
+                .collect(Collectors.toList());
+    }
+
+    private boolean hasCatalystInBounds(AxisAlignedBB bounds, Item itemFilter) {
         try {
-            List<ItemEntity> itemsInRange = world.getEntitiesWithinAABB(ItemEntity.class, itemSuckBounds);
-            collectItems(centerPos, itemsInRange);
+            List<ItemEntity> itemsInRange = getCatalystsInField(bounds, itemFilter);
+            int matchedCatalysts = collectItems(itemsInRange);
+
+            return matchedCatalysts > 0;
         } catch (NullPointerException npe) {
 
         }
+
+        return false;
     }
 
-    private void collectItems(BlockPos center, List<ItemEntity> itemsInRange) {
-        itemsInRange.forEach(item -> {
-            if (item.getItem().getItem() == Items.ENDER_PEARL) {
+    private int collectItems(List<ItemEntity> itemsInRange) {
+        return itemsInRange.stream()
+                // .filter(ise -> ise.getItem().getItem() == item)
+                .map(ItemEntity::getItem)
+                .map(ItemStack::getCount)
+                .mapToInt(Integer::intValue)
+                .sum();
+    }
 
-                boolean consumedCatalyst = CraftingHelper.consumeCatalystItem(item, 1);
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        Optional<AxisAlignedBB> field = this.getFieldBounds();
+        if(field.isPresent()) {
+            return field.get().grow(10);
+        }
 
-                if(consumedCatalyst) {
-                    PlayerEntity closestPlayer = world.getClosestPlayer(center.getX(), center.getY(), center.getZ(), 5, false);
-
-                    ItemStack output = new ItemStack(Items.DIAMOND, 1);
-                    closestPlayer.addItemStackToInventory(output);
-                }
-            }
-        });
+        return super.getRenderBoundingBox();
     }
 }

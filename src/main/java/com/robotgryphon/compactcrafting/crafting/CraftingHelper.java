@@ -12,14 +12,21 @@ import net.minecraft.world.server.ServerWorld;
 
 public abstract class CraftingHelper {
 
+    public static boolean hasBlocksInField(IWorld world, AxisAlignedBB area) {
+        // Remove blocks from the world
+        return BlockPos.getAllInBox(area)
+                .anyMatch(p -> !world.isAirBlock(p));
+    }
+
     public static void deleteCraftingBlocks(IWorld world, AxisAlignedBB area) {
         // Remove blocks from the world
         BlockPos.getAllInBox(area)
+                .filter(pos -> !world.isAirBlock(pos))
                 .forEach(blockPos -> {
-                    world.destroyBlock(blockPos, false);
-                    world.addParticle(ParticleTypes.LARGE_SMOKE,
-                            blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                            10.0d, 0.5D, 0.5D);
+                        world.destroyBlock(blockPos, false);
+                        world.addParticle(ParticleTypes.LARGE_SMOKE,
+                                blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
+                                0d, 0.05D, 0D);
                 });
     }
 
