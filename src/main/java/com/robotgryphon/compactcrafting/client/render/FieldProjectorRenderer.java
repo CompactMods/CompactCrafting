@@ -45,6 +45,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     private IBakedModel bakedModelCached;
     private final Color colorProjectionCube = new Color(255, 106, 0, 100);
+    private final Color colorScanLine = new Color(255, 106, 0, 200);
 
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
@@ -88,6 +89,20 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .lightmap(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
+    }
+
+    private void drawRing(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB bounds, Color color) {
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.minZ));
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.minZ));
+
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.minZ));
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.maxZ));
+
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.maxZ));
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.minZ));
+
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.maxZ));
+        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.maxZ));
     }
 
     /**
@@ -294,30 +309,19 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * where the projection arcs meet the main projection cube.
      */
     private void drawScanLines(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+        IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
+
         mx.push();
 
         translateRendererToCube(tile, mx, cube, cubeSize);
 
-        IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
-        Color fieldColor = new Color(255, 106, 0, 200);
-
-        // Draw the up and down bouncing lines on the sides
+        // Get the height of the scan line
         double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYSize());
-        float scanHeight = (float) (cube.minY + zAngle);
+        double scanHeight = (cube.minY + zAngle);
 
+        AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
 
-        // Scan Lines
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.minZ));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.minZ));
-
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.minZ));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.maxZ));
-
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.maxZ));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.minZ));
-
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.maxZ));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.maxZ));
+        drawRing(builder, mx, scanLineMain, colorScanLine);
 
         mx.pop();
     }
