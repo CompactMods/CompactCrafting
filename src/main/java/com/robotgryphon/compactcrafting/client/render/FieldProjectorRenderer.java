@@ -17,7 +17,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 
@@ -45,6 +44,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     private IBakedModel bakedModelCached;
+    private final Color colorProjectionCube = new Color(255, 106, 0, 100);
 
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
@@ -55,13 +55,13 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
 
         Optional<BlockPos> c = tile.getCenter();
-        if(c.isPresent()) {
+        if (c.isPresent()) {
             BlockPos center = c.get();
             AxisAlignedBB cube = new AxisAlignedBB(center).grow(2);
 
             renderFaces(tile, matrixStack, buffers, cube, 0);
 
-            if(tile.isMainProjector()) {
+            if (tile.isMainProjector()) {
                 drawScanLines(tile, matrixStack, buffers, cube, 2);
                 renderProjectionCube(tile, matrixStack, buffers, cube, 2);
             }
@@ -88,6 +88,82 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .lightmap(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
+    }
+
+    /**
+     * Draws a cube given a vertex builder, matrix, color, and cube bounds.
+     *
+     * @param builder
+     * @param mx
+     * @param cube
+     * @param color
+     */
+    private void drawCube(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, Color color) {
+        drawCubeFace(builder, mx, cube, color, Direction.NORTH);
+        drawCubeFace(builder, mx, cube, color, Direction.SOUTH);
+        drawCubeFace(builder, mx, cube, color, Direction.WEST);
+        drawCubeFace(builder, mx, cube, color, Direction.EAST);
+        drawCubeFace(builder, mx, cube, color, Direction.UP);
+        drawCubeFace(builder, mx, cube, color, Direction.DOWN);
+    }
+
+    private void drawCubeFace(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, Color color, Direction face) {
+        Vector3f BOTTOM_RIGHT = null,
+                TOP_RIGHT = null,
+                TOP_LEFT = null,
+                BOTTOM_LEFT = null;
+
+        switch (face) {
+            case NORTH:
+                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
+                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
+                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
+                break;
+
+            case SOUTH:
+                BOTTOM_RIGHT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
+                TOP_RIGHT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
+                TOP_LEFT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
+                break;
+
+            case WEST:
+                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
+                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
+                TOP_LEFT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
+                break;
+
+            case EAST:
+                BOTTOM_RIGHT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
+                TOP_RIGHT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
+                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
+                break;
+
+            case UP:
+                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
+                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
+                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
+                break;
+
+            case DOWN:
+                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
+                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
+                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
+                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
+                break;
+        }
+
+        if (BOTTOM_RIGHT == null)
+            return;
+
+        addColoredVertex(builder, mx, color, BOTTOM_RIGHT);
+        addColoredVertex(builder, mx, color, TOP_RIGHT);
+        addColoredVertex(builder, mx, color, TOP_LEFT);
+        addColoredVertex(builder, mx, color, BOTTOM_LEFT);
     }
 
     private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
@@ -132,14 +208,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * TODO - Main projector (single, NORTH projector)
      * TODO - render scan line animated over main crafting projection
      * TODO - render main crafting projection cube
-     *
+     * <p>
      * TODO - All projectors (individually)
      * TODO - render projection arc connecting projector to large cube
      */
 
     private void translateRendererToCube(FieldProjectorTile tile, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
         Optional<BlockPos> c = tile.getCenter();
-        if(!c.isPresent())
+        if (!c.isPresent())
             return;
 
         BlockPos center = c.get();
@@ -154,6 +230,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         mx.translate(offsetToCenter.getX(), offsetToCenter.getY(), offsetToCenter.getZ());
     }
+
     /**
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
@@ -165,50 +242,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
 
-        Color bounds = new Color(255, 106, 0, 100);
-
-        // Draw bounds of projection cube
-
-        // North face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
-
-        // South face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
-
-        // West face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
-
-        // East face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
-
-        // Top face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ));
-
-        // Bottom face
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ));
-        addColoredVertex(builder, mx, bounds, new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ));
-
-
-
-
-
+        drawCube(builder, mx, cube, colorProjectionCube);
 
         mx.pop();
     }
@@ -267,37 +301,28 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
         Color fieldColor = new Color(255, 106, 0, 200);
 
-        float x1 = (float) cube.minX;
-        float x2 = (float) cube.maxX;
-        float y1 = (float) cube.minY;
-        float y2 = (float) cube.maxY;
-        float z1 = (float) cube.minZ;
-        float z2 = (float) cube.maxZ;
-
         // Draw the up and down bouncing lines on the sides
-        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (y2 - y1);
-        float y3 = (float) (y1 + zAngle);
-
+        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYSize());
+        float scanHeight = (float) (cube.minY + zAngle);
 
 
         // Scan Lines
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z1));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z1));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.minZ));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.minZ));
 
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z1));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z2));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.minZ));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.maxZ));
 
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z2));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z1));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.maxZ));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.minZ));
 
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x1, y3, z2));
-        addColoredVertex(builder, mx, fieldColor, new Vector3f(x2, y3, z2));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.minX, scanHeight, (float) cube.maxZ));
+        addColoredVertex(builder, mx, fieldColor, new Vector3f((float) cube.maxX, scanHeight, (float) cube.maxZ));
 
         mx.pop();
     }
 
     /**
-     *
      * @param mx
      * @param buffer
      * @param cube
