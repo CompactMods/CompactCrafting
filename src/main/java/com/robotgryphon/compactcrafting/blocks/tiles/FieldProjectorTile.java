@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.blocks.tiles;
 
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.core.BlockUpdateType;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.core.Registration;
@@ -111,11 +112,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 return;
         }
 
-        if (fieldCheckTimeout > 0) {
-            fieldCheckTimeout--;
-        } else {
-            doFieldCheck();
-        }
+        tickCrafting();
     }
 
     /**
@@ -143,15 +140,20 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         Optional<AxisAlignedBB> fieldBounds = fp.getBounds();
 
         List<ItemEntity> enderPearls = getCatalystsInField(fieldBounds.get(), Items.ENDER_PEARL);
+        if(enderPearls.size() > 0) {
+            // We dropped an ender pearl in - are there any blocks in the field?
+            // If so, we'll need to check the recipes -- but for now we just use it to
+            // not delete the item if there's nothing in here
+            if (CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
+                this.isCrafting = true;
 
-        // We dropped an ender pearl in - are there any blocks in the field?
-        // If so, we'll need to check the recipes -- but for now we just use it to
-        // not delete the item if there's nothing in here
-        if (CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
-            CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
-            CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
+                if(!world.isRemote()) {
+                    CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
+                    CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
+                }
 
-            this.isCrafting = false;
+                this.isCrafting = false;
+            }
         }
     }
 
@@ -201,5 +203,16 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     public Optional<FieldProjection> getField() {
         return this.field;
+    }
+
+    /**
+     * Called whenever a nearby block is changed near the field.
+     * @param pos The position a block was updated at.
+     */
+    public void handleNearbyBlockUpdate(BlockPos pos, BlockUpdateType updateType) {
+        if(updateType == BlockUpdateType.UNKNOWN)
+            return;
+
+        doFieldCheck();
     }
 }

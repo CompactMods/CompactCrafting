@@ -42,4 +42,8 @@ public enum FieldProjectionSize {
     public String getName() {
         return this.name;
     }
+
+    public static FieldProjectionSize maximum() {
+        return LARGE;
+    }
 }
