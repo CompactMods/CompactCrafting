@@ -88,16 +88,16 @@ minecraft {
 
 repositories {
     // location of the maven that hosts JEI files
-    maven {
-        name "Progwml Repo"
-        url "http://dvs1.progwml6.com/files/maven"
-    }
+//    maven {
+//        name "Progwml Repo"
+//        url "http://dvs1.progwml6.com/files/maven"
+//    }
 
-    // TheOneProbe
-    maven {
-        name 'tterrag maven'
-        url "http://maven.tterrag.com/"
-    }
+//    // TheOneProbe
+//    maven {
+//        name 'tterrag maven'
+//        url "http://maven.tterrag.com/"
+//    }
 }
 
 dependencies {
@@ -107,12 +107,12 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+//    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
+//    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 
     // The One Probe
-    compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
-    runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+    // compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
+    // runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

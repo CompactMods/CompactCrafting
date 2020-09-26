@@ -3,10 +3,10 @@ package com.robotgryphon.compactcrafting.blocks;
 import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
-import mcjty.theoneprobe.api.IProbeHitData;
-import mcjty.theoneprobe.api.IProbeInfo;
-import mcjty.theoneprobe.api.IProbeInfoProvider;
-import mcjty.theoneprobe.api.ProbeMode;
+//import mcjty.theoneprobe.api.IProbeHitData;
+//import mcjty.theoneprobe.api.IProbeInfo;
+//import mcjty.theoneprobe.api.IProbeInfoProvider;
+//import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -32,7 +32,7 @@ import net.minecraft.world.server.ServerWorld;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class FieldProjectorBlock extends Block implements IProbeInfoProvider  {
+public class FieldProjectorBlock extends Block  {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
@@ -74,16 +74,6 @@ public class FieldProjectorBlock extends Block implements IProbeInfoProvider  {
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
         return new FieldProjectorTile();
-    }
-
-    @Override
-    public String getID() {
-        return Registration.FIELD_PROJECTOR_BLOCK.getId().toString();
-    }
-
-    @Override
-    public void addProbeInfo(ProbeMode probeMode, IProbeInfo iProbeInfo, PlayerEntity playerEntity, World world, BlockState blockState, IProbeHitData iProbeHitData) {
-
     }
 
     @Override
