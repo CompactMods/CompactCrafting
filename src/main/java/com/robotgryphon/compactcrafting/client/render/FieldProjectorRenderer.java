@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Constants;
-import com.robotgryphon.compactcrafting.core.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.FieldProjection;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -61,12 +61,13 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
 
-        Optional<FieldProjectionSize> fieldProjectionSize = tile.getFieldSize();
-        if (fieldProjectionSize.isPresent()) {
-            BlockPos center = tile.getCenter().get();
-            int fieldSize = fieldProjectionSize.get().getSize();
+        Optional<FieldProjection> fieldProjection = tile.getField();
+        if (fieldProjection.isPresent()) {
+            FieldProjection fp = fieldProjection.get();
+            BlockPos center = fp.getCenterPosition();
+            int fieldSize = fp.getFieldSize().getSize();
 
-            AxisAlignedBB cube = new AxisAlignedBB(center).grow(fieldSize);
+            AxisAlignedBB cube = fp.getBounds().get();
 
             renderFaces(tile, matrixStack, buffers, cube, 0);
 
@@ -240,11 +241,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      */
 
     private void translateRendererToCube(FieldProjectorTile tile, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
-        Optional<BlockPos> c = tile.getCenter();
-        if (!c.isPresent())
-            return;
-
-        BlockPos center = c.get();
+        BlockPos center = tile.getField().get().getCenterPosition();
 
         // Center on projector
         mx.translate(-cube.minX, -cube.minY, -cube.minZ);

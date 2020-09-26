@@ -1,82 +1,41 @@
 package com.robotgryphon.compactcrafting.blocks.tiles;
 
-import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.core.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraftforge.items.ItemHandlerHelper;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
-    private FieldProjectionSize projectionSize = FieldProjectionSize.MEDIUM;
+    private boolean isCrafting = false;
+    private Optional<FieldProjection> field = Optional.empty();
+    private int fieldCheckTimeout = 0;
 
     public FieldProjectorTile() {
         super(Registration.FIELD_PROJECTOR_TILE.get());
     }
 
-    public Optional<BlockPos> getCenter() {
-        BlockState bs = this.getBlockState();
-        Direction facing = bs.get(FieldProjectorBlock.FACING);
+    @Override
+    public void remove() {
+        super.remove();
 
-
-        Optional<BlockPos> location = getOppositeProjector();
-        if (location.isPresent()) {
-            BlockPos opp = location.get();
-            int centerOffset = opp.manhattanDistance(pos);
-
-            BlockPos center = pos.offset(facing, centerOffset / 2);
-            return Optional.of(center);
-        } else {
-            // No center -- no found opposite
-            return Optional.empty();
-        }
-    }
-
-    public Optional<FieldProjectionSize> getFieldSize() {
-        BlockState bs = this.getBlockState();
-        Direction facing = bs.get(FieldProjectorBlock.FACING);
-
-        Optional<FieldProjectionSize> matchedSize = Arrays
-                .stream(FieldProjectionSize.values())
-                .sorted(Comparator.comparingInt(FieldProjectionSize::getOffset))
-                .filter(size -> {
-                    // check block exists in offset position
-                    BlockPos offsetInDirection = pos.offset(facing, size.getOffset() + 1);
-                    BlockState stateInPos = world.getBlockState(offsetInDirection);
-
-                    if (stateInPos.getBlock() instanceof FieldProjectorBlock) {
-                        // We have a field projector
-                        Direction otherFpDirection = stateInPos.get(FieldProjectorBlock.FACING);
-                        if (otherFpDirection == facing.getOpposite())
-                            return true;
-                    }
-
-                    return false;
-                })
-                .findFirst();
-
-        return matchedSize;
+        // Invalidate field
+        invalidateField();
     }
 
     /**
@@ -85,15 +44,16 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
      * @return
      */
     public Optional<BlockPos> getOppositeProjector() {
-        Optional<FieldProjectionSize> size = getFieldSize();
-        if(size.isPresent()) {
-            int offset = size.get().getOffset() + 1;
-            BlockPos opposite = getPos().offset(getFacing(), offset);
+        if (!field.isPresent())
+            return Optional.empty();
 
-            return Optional.of(opposite);
-        }
+        FieldProjection field = this.field.get();
+        FieldProjectionSize size = field.getFieldSize();
 
-        return Optional.empty();
+        int offset = (size.getOffset() * 2) + 1;
+        BlockPos opposite = getPos().offset(getFacing(), offset);
+
+        return Optional.of(opposite);
     }
 
     public Direction getFacing() {
@@ -115,48 +75,86 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         return side == Direction.NORTH;
     }
 
-    @Override
-    public void tick() {
-        if (!isMainProjector())
-            return;
+    public Optional<BlockPos> getMainProjectorPosition() {
+        if (this.isMainProjector())
+            return Optional.of(this.pos);
 
-        Optional<AxisAlignedBB> fieldBounds = getFieldBounds();
-        if (fieldBounds.isPresent()) {
-            // TODO: Check crafting state of projection field, update that state instead of doing manual work here
-            boolean hasCatalyst = hasCatalystInBounds(fieldBounds.get(), Items.ENDER_PEARL);
+        if (this.field.isPresent()) {
+            FieldProjection fp = this.field.get();
+            BlockPos north = fp.getProjectorInDirection(Direction.NORTH);
 
-            if (hasCatalyst) {
-                List<ItemEntity> enderPearls = getCatalystsInField(fieldBounds.get(), Items.ENDER_PEARL);
-
-                // We dropped an ender pearl in - are there any blocks in the field?
-                // If so, we'll need to check the recipes -- but for now we just use it to
-                // not delete the item if there's nothing in here
-                if (CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
-                    CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
-                    CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
-                }
-            }
-        }
-    }
-
-    private Optional<AxisAlignedBB> getFieldBounds() {
-        Optional<BlockPos> center = getCenter();
-
-        // No center area - no other projector present
-        if (!center.isPresent())
-            return Optional.empty();
-
-        BlockPos centerPos = center.get();
-        Optional<FieldProjectionSize> size = this.getFieldSize();
-        if(size.isPresent()) {
-            AxisAlignedBB bounds = new AxisAlignedBB(centerPos).grow(size.get().getSize());
-
-            return Optional.of(bounds);
+            return Optional.of(north);
         }
 
-        // No valid field found
         return Optional.empty();
     }
+
+    public void invalidateField() {
+        this.field = Optional.empty();
+        this.fieldCheckTimeout = 20;
+    }
+
+    @Override
+    public void tick() {
+        // If we don't have a valid field, search again
+        if (!field.isPresent()) {
+            if (fieldCheckTimeout > 0) {
+                fieldCheckTimeout--;
+                return;
+            }
+
+            // Check timeout has elapsed, run field scan
+            doFieldCheck();
+
+            // If we still don't have a valid field, get out of tick logic
+            if (!field.isPresent())
+                return;
+        }
+
+        if (fieldCheckTimeout > 0) {
+            fieldCheckTimeout--;
+        } else {
+            doFieldCheck();
+        }
+    }
+
+    /**
+     * Invalidates the current field projection and attempts to rebuild it from this position as an initial.
+     */
+    private void doFieldCheck() {
+        Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(world, this.pos);
+        if (field.isPresent()) {
+            this.field = field;
+            return;
+        }
+
+        this.field = Optional.empty();
+
+        // If we didn't find a valid field, restart timer and keep looking
+        fieldCheckTimeout = 20;
+    }
+
+    private void beginCraft() {
+        this.isCrafting = true;
+    }
+
+    private void tickCrafting() {
+        FieldProjection fp = this.field.get();
+        Optional<AxisAlignedBB> fieldBounds = fp.getBounds();
+
+        List<ItemEntity> enderPearls = getCatalystsInField(fieldBounds.get(), Items.ENDER_PEARL);
+
+        // We dropped an ender pearl in - are there any blocks in the field?
+        // If so, we'll need to check the recipes -- but for now we just use it to
+        // not delete the item if there's nothing in here
+        if (CraftingHelper.hasBlocksInField(world, fieldBounds.get())) {
+            CraftingHelper.deleteCraftingBlocks(world, fieldBounds.get());
+            CraftingHelper.consumeCatalystItem(enderPearls.get(0), 1);
+
+            this.isCrafting = false;
+        }
+    }
+
 
     private List<ItemEntity> getCatalystsInField(AxisAlignedBB fieldBounds, Item itemFilter) {
         List<ItemEntity> itemsInRange = world.getEntitiesWithinAABB(ItemEntity.class, fieldBounds);
@@ -180,7 +178,6 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     private int collectItems(List<ItemEntity> itemsInRange) {
         return itemsInRange.stream()
-                // .filter(ise -> ise.getItem().getItem() == item)
                 .map(ItemEntity::getItem)
                 .map(ItemStack::getCount)
                 .mapToInt(Integer::intValue)
@@ -189,11 +186,20 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        Optional<AxisAlignedBB> field = this.getFieldBounds();
-        if (field.isPresent()) {
-            return field.get().grow(10);
+        // Check - if we have a valid field use the entire field plus space
+        // Otherwise just use the super implementation
+        if (this.field.isPresent()) {
+            FieldProjection fp = this.field.get();
+            if (!fp.getBounds().isPresent())
+                return super.getRenderBoundingBox();
+
+            return fp.getBounds().get().grow(10);
         }
 
         return super.getRenderBoundingBox();
+    }
+
+    public Optional<FieldProjection> getField() {
+        return this.field;
     }
 }

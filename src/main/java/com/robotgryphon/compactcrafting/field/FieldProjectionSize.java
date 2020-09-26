@@ -1,25 +1,25 @@
-package com.robotgryphon.compactcrafting.core;
+package com.robotgryphon.compactcrafting.field;
 
 public enum FieldProjectionSize {
     /**
      * 3x3x3 Crafting Field Size (Magnitude 1)
      */
-    SMALL(1, 7, "small"),
+    SMALL(1, 3, "small"),
 
     /**
      * 5x5x5 Crafting Field Size (Magnitude 2)
      */
-    MEDIUM(2, 11, "medium"),
+    MEDIUM(2, 5, "medium"),
 
     /**
      * 7x7x7 Crafting Field Size (Magnitude 3)
      */
-    LARGE(3, 15, "large");
+    LARGE(3, 7, "large");
 
     private int size;
 
     /**
-     * Number of blocks away from the opposite projector (exclusive).
+     * Number of blocks between two projectors.
      */
     private int offset;
 
