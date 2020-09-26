@@ -6,10 +6,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +32,7 @@ public abstract class ProjectorHelper {
 
         Direction fieldDirection = facing.get();
 
-        BlockPos center = initial.offset(fieldDirection, size.getOffset() + 1);
+        BlockPos center = initial.offset(fieldDirection, size.getProjectorDistance() + 1);
         return Optional.of(center);
     }
 
@@ -53,7 +50,7 @@ public abstract class ProjectorHelper {
     }
 
     public static BlockPos getProjectorLocationForDirection(IWorldReader world, BlockPos center, Direction direction, FieldProjectionSize size) {
-        BlockPos location = center.offset(direction, size.getOffset() + 1);
+        BlockPos location = center.offset(direction, size.getProjectorDistance() + 1);
         return location;
     }
 

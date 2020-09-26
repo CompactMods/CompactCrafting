@@ -4,15 +4,10 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.BlockUpdateType;
-import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.blockstateprovider.BlockStateProviderType;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Provides utilities to help with projector field management.
@@ -20,30 +15,42 @@ import java.util.stream.Collectors;
 public abstract class FieldHelper {
     public static void checkBlockPlacement(IWorld world, BlockPos pos) {
         // Scan all blocks in the maximum field projection range (trying to find projectors)
-        AxisAlignedBB scanBlocks = new AxisAlignedBB(pos).grow(FieldProjectionSize.maximum().getOffset());
+        AxisAlignedBB scanBlocks = new AxisAlignedBB(pos).grow(FieldProjectionSize.maximum().getProjectorDistance() + 1);
 
-        Set<BlockPos> projectors = BlockPos.getAllInBox(scanBlocks)
+        BlockPos[] potentials = BlockPos.getAllInBox(scanBlocks)
+                .map(BlockPos::toImmutable)
                 .filter(p -> !world.isAirBlock(p))
-                .filter(p -> {
-                    BlockState bs = world.getBlockState(p);
-                    return bs.getBlock() instanceof FieldProjectorBlock;
-                })
-                .collect(Collectors.toSet());
+                .filter(p -> world.getBlockState(p).getBlock() instanceof FieldProjectorBlock)
+                .toArray(BlockPos[]::new);
 
-        if(!projectors.isEmpty()) {
-            // We have projectors in the surrounding area, notify them to check their fields
-            for(BlockPos projectorPos : projectors) {
-                BlockState state = world.getBlockState(projectorPos);
-                FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(projectorPos);
+        for (BlockPos p : potentials) {
+            BlockState bs = world.getBlockState(p);
+            FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(p);
 
-                // Not a field projector tile. Somehow.
-                if(tile == null) {
-                    CompactCrafting.LOGGER.warn("Warning: Got a projector block but there was no field projector TE on the same position. Position: " + projectorPos.getCoordinatesAsString());
-                    continue;
-                }
+            CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());
 
-                tile.handleNearbyBlockUpdate(pos, BlockUpdateType.PLACE);
+            // Not a field projector tile. Somehow.
+            if (tile == null) {
+                CompactCrafting.LOGGER.warn("Warning: Got a projector block but there was no field projector TE on the same position. Position: " + p.getCoordinatesAsString());
+                continue;
             }
+
+            tile.handleNearbyBlockUpdate(p, BlockUpdateType.PLACE);
         }
+    }
+
+    public static AxisAlignedBB[] splitIntoLayers(FieldProjectionSize size, AxisAlignedBB full) {
+
+        int s = size.getSize();
+        BlockPos bottomCenter = new BlockPos(full.getCenter()).down(s);
+        AxisAlignedBB bottomLayerBounds = new AxisAlignedBB(bottomCenter).grow(s, 0, s);
+
+        AxisAlignedBB[] layers = new AxisAlignedBB[size.getDimensions()];
+        for(int layer = 0; layer <= size.getDimensions(); layer++) {
+            AxisAlignedBB layerBounds = bottomLayerBounds.offset(0, layer, 0);
+            layers[layer] = layerBounds;
+        }
+
+        return layers;
     }
 }

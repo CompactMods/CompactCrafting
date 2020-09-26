@@ -1,7 +1,6 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import net.minecraft.block.BlockState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -113,6 +112,6 @@ public class FieldProjection {
     }
 
     public BlockPos getProjectorInDirection(Direction direction) {
-        return center.offset(direction, size.getOffset());
+        return center.offset(direction, size.getProjectorDistance());
     }
 }

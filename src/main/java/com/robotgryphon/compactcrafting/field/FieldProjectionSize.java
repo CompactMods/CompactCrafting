@@ -14,25 +14,36 @@ public enum FieldProjectionSize {
     /**
      * 7x7x7 Crafting Field Size (Magnitude 3)
      */
-    LARGE(3, 7, "large");
+    LARGE(3, 7, "large"),
+
+    ABSURD(4, 9, "absurd");
 
     private int size;
 
     /**
      * Number of blocks between two projectors.
      */
-    private int offset;
+    private int projectorDistance;
 
     private String name;
 
-    FieldProjectionSize(int size, int offset, String name) {
+    FieldProjectionSize(int size, int distance, String name) {
         this.size = size;
-        this.offset = offset;
+        this.projectorDistance = distance;
         this.name = name;
     }
 
-    public int getOffset() {
-        return this.offset;
+    /**
+     * Gets the distance between the center of a field and a projector. (exclusive)
+     *
+     * @return
+     */
+    public int getProjectorDistance() {
+        return this.projectorDistance;
+    }
+
+    public int getDimensions() {
+        return (this.size * 2) + 1;
     }
 
     public int getSize() {
