@@ -2,35 +2,16 @@ package com.robotgryphon.compactcrafting.crafting;
 
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import net.minecraft.world.IWorldReader;
 
 public abstract class CraftingHelper {
 
-    public static boolean hasBlocksInField(IWorld world, AxisAlignedBB area) {
+    public static boolean hasBlocksInField(IWorldReader world, AxisAlignedBB area) {
         // Remove blocks from the world
         return BlockPos.getAllInBox(area)
                 .anyMatch(p -> !world.isAirBlock(p));
-    }
-
-    public static void deleteCraftingBlocks(IWorld world, AxisAlignedBB area) {
-        // Remove blocks from the world
-        BlockPos.getAllInBox(area)
-                .filter(pos -> !world.isAirBlock(pos))
-                .map(BlockPos::toImmutable)
-                .sorted(Comparator.comparingInt(BlockPos::getY).reversed())
-                .forEach(blockPos -> {
-                        world.destroyBlock(blockPos, false);
-                        world.addParticle(ParticleTypes.LARGE_SMOKE,
-                                blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                                0d, 0.05D, 0D);
-                });
     }
 
     /**

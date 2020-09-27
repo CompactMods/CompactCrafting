@@ -1,30 +1,25 @@
 package com.robotgryphon.compactcrafting.blocks;
 
-import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.core.BlockUpdateType;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
+import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -121,7 +116,9 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         }
 
         doFieldCheck();
-        tickCrafting();
+
+        if(this.currentRecipe != null)
+            tickCrafting();
     }
 
     /**
@@ -166,6 +163,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             Stream<MiniaturizationRecipe> matchedRecipes = entries
                     .stream()
                     .map(RegistryObject::get)
+                    .filter(recipe -> recipe.fitsInFieldSize(fieldSize))
                     .filter(recipe -> recipe.matches(world, fieldSize, fieldBounds));
 
             Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
@@ -174,37 +172,35 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     }
 
     private void tickCrafting() {
-        // We don't have a recipe -- get out early
-        if (this.currentRecipe == null)
-            return;
-
         if (this.field.isPresent()) {
-            FieldProjection fp = this.field.get();
-            AxisAlignedBB fieldBounds = fp.getBounds();
+            FieldProjection fieldProjection = this.field.get();
+            AxisAlignedBB fieldBounds = fieldProjection.getBounds();
+
+            // Get out, client worlds
+            if (world.isRemote())
+                return;
+
             List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds, currentRecipe.catalyst);
             if (catalystEntities.size() > 0) {
-                // We dropped a catalyst item in - are there any blocks in the field?
-                // If so, we'll need to check the recipes -- but for now we just use it to
-                // not delete the item if there's nothing in here
-                if (CraftingHelper.hasBlocksInField(world, fieldBounds)) {
-                    this.isCrafting = true;
+                // We dropped a catalyst item in
+                // At this point, we had a valid recipe and a valid catalyst entity
+                // Start crafting
+                this.isCrafting = true;
 
-                    if (!world.isRemote()) {
-                        CraftingHelper.deleteCraftingBlocks(world, fieldBounds);
-                        CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
+                // We know the "recipe" in the field is an exact match already, so wipe the field
+                fieldProjection.clearBlocks(world);
 
-                        BlockPos fieldCenter = field.get().getCenterPosition();
-                        for (ItemStack is : currentRecipe.getOutputs()) {
-                            ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
-                            ((ServerWorld) world).addEntity(itemEntity);
-                        }
+                CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                    }
-
-                    // We aren't crafting any more - recipe complete, reset for next one
-                    this.isCrafting = false;
-                    this.currentRecipe = null;
+                BlockPos fieldCenter = field.get().getCenterPosition();
+                for (ItemStack is : currentRecipe.getOutputs()) {
+                    ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
+                    world.addEntity(itemEntity);
                 }
+
+                // We aren't crafting any more - recipe complete, reset for next one
+                this.isCrafting = false;
+                this.currentRecipe = null;
             }
         }
     }

@@ -4,10 +4,11 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.BlockUpdateType;
-import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
+
+import java.util.stream.Stream;
 
 /**
  * Provides utilities to help with projector field management.
@@ -38,18 +39,18 @@ public abstract class FieldHelper {
         }
     }
 
-    public static AxisAlignedBB[] splitIntoLayers(FieldProjectionSize size, AxisAlignedBB full) {
+    public static Stream<AxisAlignedBB> splitIntoLayers(FieldProjectionSize size, AxisAlignedBB full) {
 
         int s = size.getSize();
         BlockPos bottomCenter = new BlockPos(full.getCenter()).down(s);
         AxisAlignedBB bottomLayerBounds = new AxisAlignedBB(bottomCenter).grow(s, 0, s);
 
         AxisAlignedBB[] layers = new AxisAlignedBB[size.getDimensions()];
-        for(int layer = 0; layer <= size.getDimensions(); layer++) {
+        for(int layer = 0; layer < size.getDimensions(); layer++) {
             AxisAlignedBB layerBounds = bottomLayerBounds.offset(0, layer, 0);
             layers[layer] = layerBounds;
         }
 
-        return layers;
+        return Stream.of(layers);
     }
 }

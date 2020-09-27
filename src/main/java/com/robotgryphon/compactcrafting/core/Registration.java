@@ -14,15 +14,17 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.*;
-import org.lwjgl.system.CallbackI;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryBuilder;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
@@ -79,18 +81,22 @@ public class Registration {
     public static final RegistryObject<MiniaturizationRecipe> SIMPLE_RECIPE = MINIATURIZATION_RECIPES.register("simple", () ->
     {
         MiniaturizationRecipe rec = new MiniaturizationRecipe();
+
+        Set<BlockPos> layerTemplate = Collections.singleton(new BlockPos(0, 0, 0));
+
+        // Example: One obsidian block anywhere in the field can turn into crying obsidian
         rec.layers = new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("I", new BlockPos[0]),
-                new SingleComponentRecipeLayer("R", new BlockPos[0])
+                new SingleComponentRecipeLayer("O", layerTemplate)
         };
 
-        rec.catalyst = Items.REDSTONE;
+        rec.recalculateDimensions();
+
+        rec.catalyst = Items.ANVIL;
         rec.outputs = new ItemStack[]{
                 new ItemStack(Items.CRYING_OBSIDIAN, 1)
         };
 
-        rec.addComponent("I", Blocks.IRON_BLOCK.getDefaultState());
-        rec.addComponent("R", Blocks.REDSTONE_WIRE.getDefaultState());
+        rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
 
         return rec;
     });

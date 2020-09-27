@@ -14,13 +14,17 @@ public interface IRecipeLayer {
      * cardinal directions.
      *
      * @param world
+     * @param recipe
      * @param fieldLayer
      * @return
      */
-    boolean matchesFieldLayer(IWorldReader world, AxisAlignedBB fieldLayer);
+    boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB fieldLayer);
 
-    int getVolume();
-
+    /**
+     * Gets the trimmed dimensions of the given recipe layer.
+     *
+     * @return
+     */
     Vector3i getDimensions();
 
     /**

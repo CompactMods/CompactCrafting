@@ -1,10 +1,6 @@
 package com.robotgryphon.compactcrafting.blocks;
 
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
-//import mcjty.theoneprobe.api.IProbeHitData;
-//import mcjty.theoneprobe.api.IProbeInfo;
-//import mcjty.theoneprobe.api.IProbeInfoProvider;
-//import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -29,6 +25,11 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+
+//import mcjty.theoneprobe.api.IProbeHitData;
+//import mcjty.theoneprobe.api.IProbeInfo;
+//import mcjty.theoneprobe.api.IProbeInfoProvider;
+//import mcjty.theoneprobe.api.ProbeMode;
 
 public class FieldProjectorBlock extends Block  {
 

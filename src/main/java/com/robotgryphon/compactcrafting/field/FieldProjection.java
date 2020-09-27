@@ -1,12 +1,17 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -113,5 +118,19 @@ public class FieldProjection {
 
     public BlockPos getProjectorInDirection(Direction direction) {
         return center.offset(direction, size.getProjectorDistance());
+    }
+
+    public void clearBlocks(IWorld world) {
+        // Remove blocks from the world
+        BlockPos.getAllInBox(getBounds())
+                .filter(pos -> !world.isAirBlock(pos))
+                .map(BlockPos::toImmutable)
+                .sorted(Comparator.comparingInt(BlockPos::getY).reversed())
+                .forEach(blockPos -> {
+                    world.destroyBlock(blockPos, false);
+                    world.addParticle(ParticleTypes.LARGE_SMOKE,
+                            blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
+                            0d, 0.05D, 0D);
+                });
     }
 }
