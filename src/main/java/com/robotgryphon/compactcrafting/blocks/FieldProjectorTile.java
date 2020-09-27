@@ -5,6 +5,7 @@ import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
@@ -115,8 +116,6 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 return;
         }
 
-        doFieldCheck();
-
         if(this.currentRecipe != null)
             tickCrafting();
     }
@@ -137,38 +136,45 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         fieldCheckTimeout = 20;
     }
 
-    private void beginCraft() {
-        this.isCrafting = true;
-    }
-
     /**
      * Scans the field and attempts to match a recipe that's placed in it.
      */
     private void doRecipeScan() {
-        // Only the primary projector needs to worry about the recipe scan
-        if(!isMainProjector())
+        if(!this.field.isPresent())
             return;
 
-        if (this.field.isPresent()) {
-            FieldProjection fp = this.field.get();
-            AxisAlignedBB fieldBounds = fp.getBounds();
+        FieldProjection fp = this.field.get();
+        FieldProjectionSize size = fp.getFieldSize();
 
-            Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
-            if (entries.isEmpty())
-                return;
+        // Only the primary projector needs to worry about the recipe scan
+        if(!isMainProjector())
+        {
+            // getCenterForSize(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
+            Optional<BlockPos> center = ProjectorHelper.getCenterForSize(world, pos, size);
+            BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(world, center.get(), Direction.NORTH, size);
 
-            FieldProjection field = this.field.get();
-            FieldProjectionSize fieldSize = field.getFieldSize();
-
-            Stream<MiniaturizationRecipe> matchedRecipes = entries
-                    .stream()
-                    .map(RegistryObject::get)
-                    .filter(recipe -> recipe.fitsInFieldSize(fieldSize))
-                    .filter(recipe -> recipe.matches(world, fieldSize, fieldBounds));
-
-            Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
-            matched.ifPresent(miniaturizationRecipe -> this.currentRecipe = miniaturizationRecipe);
+            FieldProjectorTile masterTile = (FieldProjectorTile) world.getTileEntity(masterPos);
+            masterTile.doRecipeScan();
+            return;
         }
+
+        AxisAlignedBB fieldBounds = fp.getBounds();
+
+        Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
+        if (entries.isEmpty())
+            return;
+
+        FieldProjection field = this.field.get();
+
+        Stream<MiniaturizationRecipe> matchedRecipes = entries
+                .stream()
+                .map(RegistryObject::get)
+                .filter(recipe -> recipe.fitsInFieldSize(size))
+                .filter(recipe -> recipe.matches(world, size, fieldBounds));
+
+        Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
+
+        this.currentRecipe = matched.orElse(null);
     }
 
     private void tickCrafting() {
@@ -177,7 +183,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             AxisAlignedBB fieldBounds = fieldProjection.getBounds();
 
             // Get out, client worlds
-            if (world.isRemote())
+            if (world == null || world.isRemote())
                 return;
 
             List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds, currentRecipe.catalyst);

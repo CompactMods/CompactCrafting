@@ -4,13 +4,11 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,16 +69,38 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
             return false;
 
         // Normalize the block positions so the recipe can match easier
-        Stream<BlockPos> normalizedPositions = fieldPositions.stream()
+        BlockPos[] normalizedFilledPositions = fieldPositions.stream()
                 .map(p -> new BlockPos(
                         p.getX() - fieldLayer.minX,
                         p.getY() - fieldLayer.minY,
                         p.getZ() - fieldLayer.minZ
                 ))
-                .map(BlockPos::toImmutable);
+                .map(BlockPos::toImmutable)
+                .toArray(BlockPos[]::new);
+
+
+        // Create a minimum-filled bounds of blocks in the field
+        MutableBoundingBox trimmedBounds = new MutableBoundingBox(normalizedFilledPositions[0], normalizedFilledPositions[0]);
+        for(BlockPos filledPos : normalizedFilledPositions) {
+            MutableBoundingBox p = new MutableBoundingBox(filledPos, filledPos);
+
+            if(!trimmedBounds.intersectsWith(p))
+                trimmedBounds.expandTo(p);
+        }
+
+        // Whitespace trim done - no padding needed, min and max bounds are already correct
+
+        // Check recipe template against padded world layout
+
+
 
         // Finally, simply check the normalized template
-        return normalizedPositions.allMatch(np -> this.filledPositions.contains(np));
+        return Arrays.stream(normalizedFilledPositions)
+                .parallel()
+                .allMatch(np -> {
+                    Vector3i reAdjusted = np.subtract(new Vector3i(trimmedBounds.minX, trimmedBounds.minY, trimmedBounds.minZ));
+                    return this.filledPositions.contains(reAdjusted);
+                });
     }
 
     private Vector3i recalculateDimensions() {

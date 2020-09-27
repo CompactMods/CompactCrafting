@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  * Provides utilities to help with projector field management.
  */
 public abstract class FieldHelper {
-    public static void checkBlockPlacement(IWorld world, BlockPos pos) {
+    public static void checkBlockPlacement(IWorld world, BlockPos pos, BlockUpdateType type) {
         // Scan all blocks in the maximum field projection range (trying to find projectors)
         AxisAlignedBB scanBlocks = new AxisAlignedBB(pos).grow(FieldProjectionSize.maximum().getProjectorDistance() + 1);
 
@@ -35,7 +35,7 @@ public abstract class FieldHelper {
                 continue;
             }
 
-            tile.handleNearbyBlockUpdate(pos, BlockUpdateType.PLACE);
+            tile.handleNearbyBlockUpdate(pos, type);
         }
     }
 

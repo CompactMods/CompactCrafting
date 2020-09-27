@@ -24,6 +24,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryBuilder;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -82,11 +83,18 @@ public class Registration {
     {
         MiniaturizationRecipe rec = new MiniaturizationRecipe();
 
-        Set<BlockPos> layerTemplate = Collections.singleton(new BlockPos(0, 0, 0));
+        Set<BlockPos> template = new HashSet<>();
+        BlockPos[] layerBlocks = new BlockPos[] {
+            new BlockPos(0, 0, 0),
+            new BlockPos(2, 0, 0),
+        };
+
+        Collections.addAll(template, layerBlocks);
+
 
         // Example: One obsidian block anywhere in the field can turn into crying obsidian
         rec.layers = new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("O", layerTemplate)
+                new SingleComponentRecipeLayer("O", template)
         };
 
         rec.recalculateDimensions();
