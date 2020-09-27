@@ -6,9 +6,10 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldWriter;
-import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class CraftingHelper {
 
@@ -22,6 +23,8 @@ public abstract class CraftingHelper {
         // Remove blocks from the world
         BlockPos.getAllInBox(area)
                 .filter(pos -> !world.isAirBlock(pos))
+                .map(BlockPos::toImmutable)
+                .sorted(Comparator.comparingInt(BlockPos::getY).reversed())
                 .forEach(blockPos -> {
                         world.destroyBlock(blockPos, false);
                         world.addParticle(ParticleTypes.LARGE_SMOKE,

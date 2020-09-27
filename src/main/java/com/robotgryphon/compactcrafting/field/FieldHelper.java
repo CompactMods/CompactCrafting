@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.BlockUpdateType;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -24,7 +24,6 @@ public abstract class FieldHelper {
                 .toArray(BlockPos[]::new);
 
         for (BlockPos p : potentials) {
-            BlockState bs = world.getBlockState(p);
             FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(p);
 
             CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());
@@ -35,7 +34,7 @@ public abstract class FieldHelper {
                 continue;
             }
 
-            tile.handleNearbyBlockUpdate(p, BlockUpdateType.PLACE);
+            tile.handleNearbyBlockUpdate(pos, BlockUpdateType.PLACE);
         }
     }
 

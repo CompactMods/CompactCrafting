@@ -28,12 +28,12 @@ public class FieldProjection {
         return center;
     }
 
-    public Optional<AxisAlignedBB> getBounds() {
+    public AxisAlignedBB getBounds() {
         FieldProjectionSize size = this.size;
         BlockPos center = getCenterPosition();
         AxisAlignedBB bounds = new AxisAlignedBB(center).grow(size.getSize());
 
-        return Optional.of(bounds);
+        return bounds;
     }
 
     /**

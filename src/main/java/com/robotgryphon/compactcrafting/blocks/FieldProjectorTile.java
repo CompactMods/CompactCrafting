@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.blocks.tiles;
+package com.robotgryphon.compactcrafting.blocks;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
@@ -19,6 +19,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -143,60 +144,70 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         this.isCrafting = true;
     }
 
-    private void tickCrafting() {
-        if(this.field.isPresent()) {
+    /**
+     * Scans the field and attempts to match a recipe that's placed in it.
+     */
+    private void doRecipeScan() {
+        // Only the primary projector needs to worry about the recipe scan
+        if(!isMainProjector())
+            return;
+
+        if (this.field.isPresent()) {
             FieldProjection fp = this.field.get();
-            Optional<AxisAlignedBB> fb = fp.getBounds();
+            AxisAlignedBB fieldBounds = fp.getBounds();
 
             Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
-            if(entries.isEmpty())
+            if (entries.isEmpty())
                 return;
 
             FieldProjection field = this.field.get();
             FieldProjectionSize fieldSize = field.getFieldSize();
-            AxisAlignedBB fieldBounds = fb.get();
 
-            Set<MiniaturizationRecipe> matchedRecipes = entries
+            Stream<MiniaturizationRecipe> matchedRecipes = entries
                     .stream()
                     .map(RegistryObject::get)
-                    .filter(recipe -> recipe.matches(world, fieldSize, fieldBounds))
-                    .collect(Collectors.toSet());
+                    .filter(recipe -> recipe.matches(world, fieldSize, fieldBounds));
 
-            if(matchedRecipes.size() != 1) {
-                CompactCrafting.LOGGER.debug("More than one recipe matched result, this shouldn't happen. Check yo configs.");
-                return;
-            }
+            Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
+            matched.ifPresent(miniaturizationRecipe -> this.currentRecipe = miniaturizationRecipe);
+        }
+    }
 
-            for(MiniaturizationRecipe matchedRecipe : matchedRecipes) {
-                List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds, matchedRecipe.catalyst);
-                if (catalystEntities.size() > 0) {
-                    // We dropped a catalyst item in - are there any blocks in the field?
-                    // If so, we'll need to check the recipes -- but for now we just use it to
-                    // not delete the item if there's nothing in here
-                    if (CraftingHelper.hasBlocksInField(world, fieldBounds)) {
-                        this.isCrafting = true;
+    private void tickCrafting() {
+        // We don't have a recipe -- get out early
+        if (this.currentRecipe == null)
+            return;
 
-                        if (!world.isRemote()) {
-                            CraftingHelper.deleteCraftingBlocks(world, fieldBounds);
-                            CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
+        if (this.field.isPresent()) {
+            FieldProjection fp = this.field.get();
+            AxisAlignedBB fieldBounds = fp.getBounds();
+            List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds, currentRecipe.catalyst);
+            if (catalystEntities.size() > 0) {
+                // We dropped a catalyst item in - are there any blocks in the field?
+                // If so, we'll need to check the recipes -- but for now we just use it to
+                // not delete the item if there's nothing in here
+                if (CraftingHelper.hasBlocksInField(world, fieldBounds)) {
+                    this.isCrafting = true;
 
-                            Set<ItemEntity> collect = Arrays.stream(matchedRecipe.getOutputs())
-                                    .map(is -> new ItemEntity(world, pos.getX(), pos.getY(), pos.getZ(), is))
-                                    .collect(Collectors.toSet());
+                    if (!world.isRemote()) {
+                        CraftingHelper.deleteCraftingBlocks(world, fieldBounds);
+                        CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                            for(ItemEntity ie : collect) {
-                                world.addEntity(ie);
-                            }
-
+                        BlockPos fieldCenter = field.get().getCenterPosition();
+                        for (ItemStack is : currentRecipe.getOutputs()) {
+                            ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
+                            ((ServerWorld) world).addEntity(itemEntity);
                         }
 
-                        this.isCrafting = false;
                     }
+
+                    // We aren't crafting any more - recipe complete, reset for next one
+                    this.isCrafting = false;
+                    this.currentRecipe = null;
                 }
             }
         }
     }
-
 
     private List<ItemEntity> getCatalystsInField(AxisAlignedBB fieldBounds, Item itemFilter) {
         List<ItemEntity> itemsInRange = world.getEntitiesWithinAABB(ItemEntity.class, fieldBounds);
@@ -232,10 +243,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // Otherwise just use the super implementation
         if (this.field.isPresent()) {
             FieldProjection fp = this.field.get();
-            if (!fp.getBounds().isPresent())
-                return super.getRenderBoundingBox();
-
-            return fp.getBounds().get().grow(10);
+            return fp.getBounds().grow(10);
         }
 
         return super.getRenderBoundingBox();
@@ -247,12 +255,24 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     /**
      * Called whenever a nearby block is changed near the field.
+     *
      * @param pos The position a block was updated at.
      */
     public void handleNearbyBlockUpdate(BlockPos pos, BlockUpdateType updateType) {
-        if(updateType == BlockUpdateType.UNKNOWN)
+        if (updateType == BlockUpdateType.UNKNOWN)
             return;
 
-        doFieldCheck();
+        // Is there a current projection field that's active?
+        if(this.field.isPresent()) {
+            AxisAlignedBB fieldBounds = this.field.get().getBounds();
+
+            // Is the block update INSIDE the current field?
+            boolean blockInField = fieldBounds
+                    .contains(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
+
+            // Recipe update
+            if(blockInField)
+                doRecipeScan();
+        }
     }
 }

@@ -1,7 +1,5 @@
 package com.robotgryphon.compactcrafting.blocks;
 
-import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 //import mcjty.theoneprobe.api.IProbeHitData;
 //import mcjty.theoneprobe.api.IProbeInfo;

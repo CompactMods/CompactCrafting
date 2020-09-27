@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.blocks.tiles.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Constants;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import net.minecraft.block.BlockState;
@@ -67,7 +67,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             BlockPos center = fp.getCenterPosition();
             int fieldSize = fp.getFieldSize().getSize();
 
-            AxisAlignedBB cube = fp.getBounds().get();
+            AxisAlignedBB cube = fp.getBounds();
 
             renderFaces(tile, matrixStack, buffers, cube, 0);
 

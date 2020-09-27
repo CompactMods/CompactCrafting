@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.recipes;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
 import java.util.Map;
@@ -13,7 +14,17 @@ public class PatternRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public Map<String, BlockState> getComponents() {
+    public int getVolume() {
+        return 0;
+    }
+
+    @Override
+    public Vector3i getDimensions() {
+        return null;
+    }
+
+    @Override
+    public Vector3i getRelativeOffset() {
         return null;
     }
 
