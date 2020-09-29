@@ -78,7 +78,7 @@ public class FieldProjectorBlock extends Block  {
     @Override
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if(world.isRemote)
-            return ActionResultType.PASS;
+            return ActionResultType.SUCCESS;
 
         FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(pos);
 
