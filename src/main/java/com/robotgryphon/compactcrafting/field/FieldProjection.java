@@ -117,7 +117,7 @@ public class FieldProjection {
     }
 
     public BlockPos getProjectorInDirection(Direction direction) {
-        return center.offset(direction, size.getProjectorDistance());
+        return center.offset(direction, size.getProjectorDistance() + 1);
     }
 
     public void clearBlocks(IWorld world) {
