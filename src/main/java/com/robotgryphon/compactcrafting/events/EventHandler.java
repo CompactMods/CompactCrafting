@@ -14,30 +14,22 @@ import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 public class EventHandler {
 
     @SubscribeEvent
-    public static void onBlockPlaced(final BlockEvent.EntityPlaceEvent blockPlaced) {
+    public static void onBlockDestroyed(final BlockEvent.EntityPlaceEvent blockPlaced) {
         // Check if block is in or around a projector field
 
         IWorld world = blockPlaced.getWorld();
         BlockPos pos = blockPlaced.getPos();
-
-        // We don't care about client worlds RN
-        if(world.isRemote())
-            return;
 
         // Send the event position over to the field helper, so any nearby projectors can be notified
         FieldHelper.checkBlockPlacement(world, pos, BlockUpdateType.PLACE);
     }
 
     @SubscribeEvent
-    public static void onBlockPlaced(final BlockEvent.BreakEvent blockDestroyed) {
+    public static void onBlockDestroyed(final BlockEvent.BreakEvent blockDestroyed) {
         // Check if block is in or around a projector field
 
         IWorld world = blockDestroyed.getWorld();
         BlockPos pos = blockDestroyed.getPos();
-
-        // We don't care about client worlds RN
-        if(world.isRemote())
-            return;
 
         // Send the event position over to the field helper, so any nearby projectors can be notified
         FieldHelper.checkBlockPlacement(world, pos, BlockUpdateType.REMOVE);

@@ -4,18 +4,15 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SingleComponentRecipeLayer implements IRecipeLayer {
 
     private String componentKey;
-    private Vector3i dimensions;
+    private AxisAlignedBB dimensions;
 
     /**
      * Relative positions that are filled by the component.
@@ -33,8 +30,12 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     public SingleComponentRecipeLayer(String key, Set<BlockPos> filledPositions) {
         this.componentKey = key;
         this.filledPositions = filledPositions;
+        this.dimensions = AxisAlignedBB.withSizeAtOrigin(0, 0, 0);
+    }
 
-        recalculateDimensions();
+    @Override
+    public boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe) {
+        return false;
     }
 
     @Override
@@ -50,17 +51,17 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
         }
 
         // Dimensions check - make sure the field layer is large enough for the recipe layer
-        if(this.dimensions.getX() > fieldLayer.getXSize() || this.dimensions.getZ() > fieldLayer.getZSize())
+        if(this.dimensions.getXSize() > fieldLayer.getXSize() || this.dimensions.getZSize() > fieldLayer.getZSize())
             return false;
 
         // Non-empty field positions
-        Set<BlockPos> fieldPositions = BlockPos.getAllInBox(fieldLayer)
+        BlockPos[] fieldPositions = BlockPos.getAllInBox(fieldLayer)
                 .filter(p -> !world.isAirBlock(p))
                 .map(BlockPos::toImmutable)
-                .collect(Collectors.toSet());
+                .toArray(BlockPos[]::new);
 
         // Get all the distinct block types in the current layer
-        Stream<BlockState> distinctStates = fieldPositions.stream()
+        Stream<BlockState> distinctStates = Arrays.stream(fieldPositions)
                 .map(world::getBlockState)
                 .distinct();
 
@@ -68,59 +69,36 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
         if(distinctStates.anyMatch(state -> state != component.get()))
             return false;
 
-        // Normalize the block positions so the recipe can match easier
-        BlockPos[] normalizedFilledPositions = fieldPositions.stream()
-                .map(p -> new BlockPos(
-                        p.getX() - fieldLayer.minX,
-                        p.getY() - fieldLayer.minY,
-                        p.getZ() - fieldLayer.minZ
-                ))
-                .map(BlockPos::toImmutable)
-                .toArray(BlockPos[]::new);
-
+        BlockPos[] normalizedFilledPositions = RecipeHelper.normalizeLayerPositions(this.dimensions, fieldPositions);
 
         // Create a minimum-filled bounds of blocks in the field
-        MutableBoundingBox trimmedBounds = new MutableBoundingBox(normalizedFilledPositions[0], normalizedFilledPositions[0]);
-        for(BlockPos filledPos : normalizedFilledPositions) {
-            MutableBoundingBox p = new MutableBoundingBox(filledPos, filledPos);
-
-            if(!trimmedBounds.intersectsWith(p))
-                trimmedBounds.expandTo(p);
-        }
+        AxisAlignedBB trimmedBounds = RecipeHelper.getBoundsForBlocks(Arrays.asList(normalizedFilledPositions));
 
         // Whitespace trim done - no padding needed, min and max bounds are already correct
 
         // Check recipe template against padded world layout
 
-
-
-        // Finally, simply check the normalized template
-        return Arrays.stream(normalizedFilledPositions)
-                .parallel()
-                .allMatch(np -> {
-                    Vector3i reAdjusted = np.subtract(new Vector3i(trimmedBounds.minX, trimmedBounds.minY, trimmedBounds.minZ));
-                    return this.filledPositions.contains(reAdjusted);
-                });
-    }
-
-    private Vector3i recalculateDimensions() {
-        this.dimensions = new Vector3i(1, 1, 1);
-        return this.dimensions;
+        return RecipeHelper.layerMatchesTemplate(world, recipe, this, fieldLayer, normalizedFilledPositions);
     }
 
     @Override
-    public Vector3i getDimensions() {
+    public AxisAlignedBB getDimensions() {
         return dimensions;
     }
 
     @Override
-    public Vector3i getRelativeOffset() {
-        return Vector3i.NULL_VECTOR;
+    public Map<String, Integer> getComponentTotals() {
+        double volume = dimensions.getXSize() * dimensions.getYSize() * dimensions.getZSize();
+        return Collections.singletonMap(componentKey, (int) Math.ceil(volume));
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals() {
-        int volume = dimensions.getX() * dimensions.getY() * dimensions.getZ();
-        return Collections.singletonMap(componentKey, volume);
+    public String getRequiredComponentKeyForPosition(BlockPos pos) {
+        return filledPositions.contains(pos) ? componentKey : null;
+    }
+
+    @Override
+    public Set<BlockPos> getNonAirPositions() {
+        return filledPositions;
     }
 }

@@ -1,13 +1,17 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.BlockUpdateType;
+import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
+import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
+import net.minecraft.world.server.ServerWorld;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -15,16 +19,26 @@ import java.util.stream.Stream;
  */
 public abstract class FieldHelper {
     public static void checkBlockPlacement(IWorld world, BlockPos pos, BlockUpdateType type) {
-        // Scan all blocks in the maximum field projection range (trying to find projectors)
-        AxisAlignedBB scanBlocks = new AxisAlignedBB(pos).grow(FieldProjectionSize.maximum().getProjectorDistance() + 1);
+        // We don't care about client worlds RN
+        if(world.isRemote())
+            return;
 
-        BlockPos[] potentials = BlockPos.getAllInBox(scanBlocks)
-                .map(BlockPos::toImmutable)
-                .filter(p -> !world.isAirBlock(p))
-                .filter(p -> world.getBlockState(p).getBlock() instanceof FieldProjectorBlock)
-                .toArray(BlockPos[]::new);
+        ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+        if(data.ACTIVE_FIELDS.isEmpty())
+            return;
 
-        for (BlockPos p : potentials) {
+        List<BlockPos> projectors = new ArrayList<>();
+        int maxDimensions = FieldProjectionSize.maximum().getDimensions();
+        for(BlockPos center : data.ACTIVE_FIELDS.keySet()) {
+            // FieldProjectorTile mainTile = (FieldProjectorTile) world.getTileEntity(fielf)
+            boolean closeEnough = center.withinDistance(pos, maxDimensions);
+            if(closeEnough) {
+                ProjectorFieldData field = data.ACTIVE_FIELDS.get(center);
+                projectors.add(field.mainProjector);
+            }
+        }
+
+        for (BlockPos p : projectors) {
             FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(p);
 
             CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());

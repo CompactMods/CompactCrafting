@@ -105,4 +105,13 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
 
         return Optional.empty();
     }
+
+    public Optional<String> getRecipeComponentKey(BlockState state) {
+        for(String comp : this.components.keySet()) {
+            if(components.get(comp) == state)
+                return Optional.of(comp);
+        }
+
+        return Optional.empty();
+    }
 }

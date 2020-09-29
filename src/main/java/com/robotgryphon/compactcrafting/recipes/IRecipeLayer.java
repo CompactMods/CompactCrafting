@@ -1,12 +1,23 @@
 package com.robotgryphon.compactcrafting.recipes;
 
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface IRecipeLayer {
+
+    /**
+     * Specifies if the current layer needs to add padding spaces (air)
+     * around a recipe template.
+     *
+     * @param world
+     * @param recipe
+     * @return
+     */
+    boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe);
 
     /**
      * Determines if this layer matches a field's layer, given the blocks in the field
@@ -25,15 +36,23 @@ public interface IRecipeLayer {
      *
      * @return
      */
-    Vector3i getDimensions();
+    AxisAlignedBB getDimensions();
+
+    Map<String, Integer> getComponentTotals();
 
     /**
-     * Relative offset from center; if BlockPos.ZERO, center of this is assumed to be the center
-     * of the layer.
+     * Gets a component key for the given (normalized) position.
+     * @param pos
+     * @return
+     */
+    String getRequiredComponentKeyForPosition(BlockPos pos);
+
+    /**
+     * Gets a set of non-air positions that are required for the layer to match.
+     * This is expected to trim the air positions off the edges and return the positions with NW
+     * in the 0, 0 position.
      *
      * @return
      */
-    Vector3i getRelativeOffset();
-
-    Map<String, Integer> getComponentTotals();
+    Set<BlockPos> getNonAirPositions();
 }

@@ -84,9 +84,11 @@ public class Registration {
         MiniaturizationRecipe rec = new MiniaturizationRecipe();
 
         Set<BlockPos> template = new HashSet<>();
-        BlockPos[] layerBlocks = new BlockPos[] {
-            new BlockPos(0, 0, 0),
-            new BlockPos(2, 0, 0),
+        BlockPos[] layerBlocks = new BlockPos[]{
+                new BlockPos(1, 0, 0),
+                new BlockPos(0, 0, 1),
+                new BlockPos(2, 0, 1),
+                new BlockPos(1, 0, 2)
         };
 
         Collections.addAll(template, layerBlocks);

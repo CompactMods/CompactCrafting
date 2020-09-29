@@ -7,6 +7,8 @@ import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
+import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -16,6 +18,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.RegistryObject;
 
 import java.util.Collection;
@@ -95,8 +98,18 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     }
 
     public void invalidateField() {
-        this.field = Optional.empty();
-        this.fieldCheckTimeout = 20;
+        if(world == null || world.isRemote)
+            return;
+
+        if(this.field.isPresent()) {
+            BlockPos center = this.field.get().getCenterPosition();
+            ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+            data.ACTIVE_FIELDS.remove(center);
+            data.markDirty();
+
+            this.field = Optional.empty();
+            this.fieldCheckTimeout = 20;
+        }
     }
 
     @Override
@@ -124,9 +137,19 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
      * Invalidates the current field projection and attempts to rebuild it from this position as an initial.
      */
     private void doFieldCheck() {
+
+
         Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(world, this.pos);
         if (field.isPresent()) {
             this.field = field;
+            FieldProjection fp = field.get();
+
+            if(world != null && !world.isRemote) {
+                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+                data.ACTIVE_FIELDS.put(fp.getCenterPosition(), ProjectorFieldData.fromInstance(fp));
+                data.markDirty();
+            }
+
             return;
         }
 
@@ -149,7 +172,6 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // Only the primary projector needs to worry about the recipe scan
         if(!isMainProjector())
         {
-            // getCenterForSize(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
             Optional<BlockPos> center = ProjectorHelper.getCenterForSize(world, pos, size);
             BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(world, center.get(), Direction.NORTH, size);
 
