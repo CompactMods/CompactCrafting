@@ -265,7 +265,12 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
 
-        drawCube(builder, mx, cube, colorProjectionCube);
+        double expansion = 0.0001;
+        AxisAlignedBB slightlyBiggerBecauseFoxes = cube
+                .expand(expansion, expansion, expansion)
+                .expand(-expansion, -expansion, -expansion);
+
+        drawCube(builder, mx, slightlyBiggerBecauseFoxes, colorProjectionCube);
 
         mx.pop();
     }
