@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.blocks;
 
-import com.robotgryphon.compactcrafting.core.BlockUpdateType;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
@@ -162,7 +161,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     /**
      * Scans the field and attempts to match a recipe that's placed in it.
      */
-    private void doRecipeScan() {
+    public void doRecipeScan() {
         if(!this.field.isPresent())
             return;
 
@@ -275,28 +274,5 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     public Optional<FieldProjection> getField() {
         return this.field;
-    }
-
-    /**
-     * Called whenever a nearby block is changed near the field.
-     *
-     * @param pos The position a block was updated at.
-     */
-    public void handleNearbyBlockUpdate(BlockPos pos, BlockUpdateType updateType) {
-        if (updateType == BlockUpdateType.UNKNOWN)
-            return;
-
-        // Is there a current projection field that's active?
-        if(this.field.isPresent()) {
-            AxisAlignedBB fieldBounds = this.field.get().getBounds();
-
-            // Is the block update INSIDE the current field?
-            boolean blockInField = fieldBounds
-                    .contains(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
-
-            // Recipe update
-            if(blockInField)
-                doRecipeScan();
-        }
     }
 }

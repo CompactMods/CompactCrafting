@@ -1,6 +1,8 @@
 package com.robotgryphon.compactcrafting.recipes;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.field.FieldHelper;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -39,7 +41,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB fieldLayer) {
+    public boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, FieldProjectionSize fieldSize, AxisAlignedBB fieldLayer) {
         Optional<BlockState> component = recipe.getRecipeComponent(componentKey);
         // We can't find a component definition in the recipe, so something very wrong happened
         if(!component.isPresent()) {
@@ -77,6 +79,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
         // Whitespace trim done - no padding needed, min and max bounds are already correct
 
         // Check recipe template against padded world layout
+        Map<BlockPos, String> templateMap = FieldHelper.remapLayerToRecipe(world, recipe, fieldSize, fieldLayer);
 
         return RecipeHelper.layerMatchesTemplate(world, recipe, this, fieldLayer, normalizedFilledPositions);
     }

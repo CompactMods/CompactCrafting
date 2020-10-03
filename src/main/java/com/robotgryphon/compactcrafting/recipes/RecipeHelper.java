@@ -7,7 +7,10 @@ import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public abstract class RecipeHelper {
@@ -19,6 +22,13 @@ public abstract class RecipeHelper {
         return world.getBlockState(offsetPos);
     }
 
+    public static BlockPos normalizeLayerPosition(AxisAlignedBB layerBounds, BlockPos pos) {
+        return new BlockPos(
+                pos.getX() - layerBounds.minX,
+                pos.getY() - layerBounds.minY,
+                pos.getZ() - layerBounds.minZ
+        );
+    }
     /**
      * Converts world-coordinate positions into relative field positions.
      *
@@ -30,11 +40,7 @@ public abstract class RecipeHelper {
         // Normalize the block positions so the recipe can match easier
         return Stream.of(fieldPositions)
                 .parallel()
-                .map(p -> new BlockPos(
-                        p.getX() - layerBounds.minX,
-                        p.getY() - layerBounds.minY,
-                        p.getZ() - layerBounds.minZ
-                ))
+                .map(p -> normalizeLayerPosition(layerBounds, p))
                 .map(BlockPos::toImmutable)
                 .toArray(BlockPos[]::new);
     }
@@ -75,6 +81,7 @@ public abstract class RecipeHelper {
 
         return components;
     }
+
     /**
      * Checks if a layer matches a template by extracting information about components
      * from the various filled positions.
@@ -88,15 +95,13 @@ public abstract class RecipeHelper {
         AxisAlignedBB trimmedBounds = getBoundsForBlocks(Arrays.asList(filledLocations));
         BlockPos[] normalizedLocations = normalizeLayerPositions(trimmedBounds, filledLocations);
 
-        String[][] template = getTrimmedTemplateForLayer(layer, fieldBounds);
-
         // Finally, simply check the normalized template
         for(BlockPos pos : normalizedLocations) {
             String key = layer.getRequiredComponentKeyForPosition(pos);
             if(key == null)
                 return false;
 
-            BlockState state = getBlockStateForNormalizedLocation(world, pos, layer.getDimensions());
+            BlockState state = getBlockStateForNormalizedLocation(world, pos, fieldBounds);
             Optional<String> worldKey = recipe.getRecipeComponentKey(state);
 
             // Is the position the correct block?

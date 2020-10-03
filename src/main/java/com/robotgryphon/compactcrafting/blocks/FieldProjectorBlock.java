@@ -25,6 +25,7 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
+import java.util.Random;
 
 //import mcjty.theoneprobe.api.IProbeHitData;
 //import mcjty.theoneprobe.api.IProbeInfo;
@@ -52,6 +53,16 @@ public class FieldProjectorBlock extends Block  {
         Direction facing = positionState.get(FieldProjectorBlock.FACING);
         return Optional.of(facing);
     }
+
+    @Override
+    public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
+        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getTileEntity(pos);
+        if(tile == null)
+            return;
+
+        tile.doRecipeScan();
+    }
+
 
     @Override
     public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {

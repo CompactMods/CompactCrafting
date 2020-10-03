@@ -14,7 +14,7 @@ import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 public class EventHandler {
 
     @SubscribeEvent
-    public static void onBlockDestroyed(final BlockEvent.EntityPlaceEvent blockPlaced) {
+    public static void onBlockPlaced(final BlockEvent.EntityPlaceEvent blockPlaced) {
         // Check if block is in or around a projector field
 
         IWorld world = blockPlaced.getWorld();

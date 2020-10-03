@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
@@ -26,10 +27,11 @@ public interface IRecipeLayer {
      *
      * @param world
      * @param recipe
+     * @param fieldSize
      * @param fieldLayer
      * @return
      */
-    boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB fieldLayer);
+    boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, FieldProjectionSize fieldSize, AxisAlignedBB fieldLayer);
 
     /**
      * Gets the trimmed dimensions of the given recipe layer.

@@ -90,7 +90,7 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
 
         // Check each layer bottom to see if it matches the bottom layer of this recipe
         return possibleRecipeBottomLayers.stream()
-                .anyMatch(fieldLayer -> layers[0].matchesFieldLayer(world, this, fieldLayer));
+                .anyMatch(fieldLayer -> layers[0].matchesFieldLayer(world, this, fieldSize, fieldLayer));
     }
 
     public ItemStack[] getOutputs() {
