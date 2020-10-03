@@ -11,7 +11,7 @@ license="All rights reserved"
 modId="compactcrafting"
 version="${file.jarVersion}"
 displayName="Compact Crafting"
-authors="RobotGryphon" #optional
+authors="RobotGryphon and Zorn_Taov" #optional
 description='''
 Compact Crafting adds a new crafting system, miniaturization crafting, to Minecraft.
 
