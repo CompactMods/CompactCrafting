@@ -5,8 +5,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
+import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 
 public interface IRecipeLayer {
 
@@ -56,5 +56,5 @@ public interface IRecipeLayer {
      *
      * @return
      */
-    Set<BlockPos> getNonAirPositions();
+    Collection<BlockPos> getNonAirPositions();
 }

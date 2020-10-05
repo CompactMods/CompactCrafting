@@ -1,16 +1,14 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public abstract class RecipeHelper {
@@ -45,43 +43,6 @@ public abstract class RecipeHelper {
                 .toArray(BlockPos[]::new);
     }
 
-    public static AxisAlignedBB getBoundsForBlocks(Collection<BlockPos> filled) {
-        if(filled.size() == 0)
-            return AxisAlignedBB.withSizeAtOrigin(0, 0, 0);
-
-        MutableBoundingBox trimmedBounds = null;
-        for(BlockPos filledPos : filled) {
-            if(trimmedBounds == null) {
-                trimmedBounds = new MutableBoundingBox(filledPos, filledPos);
-                continue;
-            }
-
-            MutableBoundingBox checkPos = new MutableBoundingBox(filledPos, filledPos);
-            if(!trimmedBounds.intersectsWith(checkPos))
-                trimmedBounds.expandTo(checkPos);
-        }
-
-        return AxisAlignedBB.toImmutable(trimmedBounds);
-    }
-
-    public static String[][] getTrimmedTemplateForLayer(IRecipeLayer layer, AxisAlignedBB fieldBounds) {
-        Set<BlockPos> nonAir = layer.getNonAirPositions();
-        AxisAlignedBB bounds = getBoundsForBlocks(nonAir);
-
-        int dim = (int) fieldBounds.getXSize();
-
-        String[][] components = new String[dim][dim];
-
-        for(BlockPos filledPos : nonAir) {
-            String layerRequirement = layer.getRequiredComponentKeyForPosition(filledPos);
-
-            if(layerRequirement != null)
-                components[filledPos.getX()][filledPos.getZ()] = layerRequirement;
-        }
-
-        return components;
-    }
-
     /**
      * Checks if a layer matches a template by extracting information about components
      * from the various filled positions.
@@ -92,7 +53,7 @@ public abstract class RecipeHelper {
      * @return
      */
     public static boolean layerMatchesTemplate(IWorldReader world, MiniaturizationRecipe recipe, IRecipeLayer layer, AxisAlignedBB fieldBounds, BlockPos[] filledLocations) {
-        AxisAlignedBB trimmedBounds = getBoundsForBlocks(Arrays.asList(filledLocations));
+        AxisAlignedBB trimmedBounds = BlockSpaceUtil.getBoundsForBlocks(Arrays.asList(filledLocations));
         BlockPos[] normalizedLocations = normalizeLayerPositions(trimmedBounds, filledLocations);
 
         // Finally, simply check the normalized template

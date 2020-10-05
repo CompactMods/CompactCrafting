@@ -3,6 +3,7 @@ package com.robotgryphon.compactcrafting.recipes;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.FieldHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -27,12 +28,12 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
      *
      * = [0, 0], [2, 0], [1, 1], [0, 2], [2, 2]
      */
-    private Set<BlockPos> filledPositions;
+    private Collection<BlockPos> filledPositions;
 
-    public SingleComponentRecipeLayer(String key, Set<BlockPos> filledPositions) {
+    public SingleComponentRecipeLayer(String key, Collection<BlockPos> filledPositions) {
         this.componentKey = key;
         this.filledPositions = filledPositions;
-        this.dimensions = AxisAlignedBB.withSizeAtOrigin(0, 0, 0);
+        this.dimensions = BlockSpaceUtil.getBoundsForBlocks(filledPositions);
     }
 
     @Override
@@ -74,7 +75,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
         BlockPos[] normalizedFilledPositions = RecipeHelper.normalizeLayerPositions(this.dimensions, fieldPositions);
 
         // Create a minimum-filled bounds of blocks in the field
-        AxisAlignedBB trimmedBounds = RecipeHelper.getBoundsForBlocks(Arrays.asList(normalizedFilledPositions));
+        AxisAlignedBB trimmedBounds = BlockSpaceUtil.getBoundsForBlocks(Arrays.asList(normalizedFilledPositions));
 
         // Whitespace trim done - no padding needed, min and max bounds are already correct
 
@@ -101,7 +102,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public Set<BlockPos> getNonAirPositions() {
+    public Collection<BlockPos> getNonAirPositions() {
         return filledPositions;
     }
 }

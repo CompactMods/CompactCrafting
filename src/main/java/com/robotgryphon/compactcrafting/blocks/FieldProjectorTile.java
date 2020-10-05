@@ -1,11 +1,13 @@
 package com.robotgryphon.compactcrafting.blocks;
 
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
@@ -17,14 +19,15 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.RegistryObject;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
@@ -165,6 +168,9 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if(!this.field.isPresent())
             return;
 
+        if(this.world == null)
+            return;
+
         FieldProjection fp = this.field.get();
         FieldProjectionSize size = fp.getFieldSize();
 
@@ -172,30 +178,55 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if(!isMainProjector())
         {
             Optional<BlockPos> center = ProjectorHelper.getCenterForSize(world, pos, size);
+            if(!center.isPresent())
+                return;
+
             BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(world, center.get(), Direction.NORTH, size);
 
             FieldProjectorTile masterTile = (FieldProjectorTile) world.getTileEntity(masterPos);
+            if(masterTile == null)
+                return;
+
             masterTile.doRecipeScan();
             return;
         }
 
         AxisAlignedBB fieldBounds = fp.getBounds();
+        BlockPos[] nonAirPositions = BlockPos.getAllInBox(fieldBounds)
+                .filter(p -> !world.isAirBlock(p))
+                .map(BlockPos::toImmutable)
+                .toArray(BlockPos[]::new);
+
+        AxisAlignedBB filledBounds = BlockSpaceUtil.getBoundsForBlocks(nonAirPositions);
+
+        // ===========================================================================================================
+        //   RECIPE BEGIN
+        // ===========================================================================================================
 
         Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
         if (entries.isEmpty())
             return;
 
-        FieldProjection field = this.field.get();
-
-        Stream<MiniaturizationRecipe> matchedRecipes = entries
+        Set<MiniaturizationRecipe> matchedRecipes = entries
                 .stream()
                 .map(RegistryObject::get)
                 .filter(recipe -> recipe.fitsInFieldSize(size))
-                .filter(recipe -> recipe.matches(world, size, fieldBounds));
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(filledBounds, recipe.getDimensions()))
+                .collect(Collectors.toSet());
 
-        Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
+        BlockPos[] testLocations = new BlockPos[] {
+                new BlockPos(5, 0, 5),
+                new BlockPos(7, 0, 5),
+                new BlockPos(5, 0, 7)
+        };
 
-        this.currentRecipe = matched.orElse(null);
+        BlockPos[] rotatedCW = BlockSpaceUtil.rotateLayerPositions(testLocations, new Vector3i(5, 0, 5));
+
+        CompactCrafting.LOGGER.debug(".");
+
+//        Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
+//
+//        this.currentRecipe = matched.orElse(null);
     }
 
     private void tickCrafting() {

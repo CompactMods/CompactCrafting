@@ -55,6 +55,7 @@ public class FieldProjectorBlock extends Block  {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
         FieldProjectorTile tile = (FieldProjectorTile) worldIn.getTileEntity(pos);
         if(tile == null)
@@ -65,6 +66,7 @@ public class FieldProjectorBlock extends Block  {
 
 
     @Override
+    @SuppressWarnings("deprecation")
     public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
         return VoxelShapes.empty();
     }
@@ -87,6 +89,7 @@ public class FieldProjectorBlock extends Block  {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if(world.isRemote)
             return ActionResultType.SUCCESS;

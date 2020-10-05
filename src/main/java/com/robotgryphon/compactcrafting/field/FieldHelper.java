@@ -47,7 +47,7 @@ public abstract class FieldHelper {
         for (BlockPos p : projectors) {
             FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(p);
 
-            CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());
+            // CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());
 
             // Not a field projector tile. Somehow.
             if (tile == null) {
@@ -124,4 +124,6 @@ public abstract class FieldHelper {
 
         return relativeMap;
     }
+
+
 }

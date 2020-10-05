@@ -3,11 +3,12 @@ package com.robotgryphon.compactcrafting.recipes;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
 
 public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRecipe> {
 
-    public IRecipeLayer[] layers;
+    private IRecipeLayer[] layers;
     public Item catalyst;
     public ItemStack[] outputs;
     private AxisAlignedBB dimensions;
@@ -39,8 +40,26 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         recalculateDimensions();
     }
 
-    public void recalculateDimensions() {
-        this.dimensions = new AxisAlignedBB(BlockPos.ZERO);
+    public void setLayers(IRecipeLayer[] layers) {
+        this.layers = layers;
+        this.recalculateDimensions();
+    }
+
+    private void recalculateDimensions() {
+        int height = this.layers.length;
+        int x = 0;
+        int z = 0;
+
+        for(IRecipeLayer layer : this.layers) {
+            AxisAlignedBB dimensions = layer.getDimensions();
+            if(dimensions.getXSize() > x)
+                x = (int) Math.ceil(dimensions.getXSize());
+
+            if(dimensions.getZSize() > z)
+                z = (int) Math.ceil(dimensions.getZSize());
+        }
+
+        this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
     }
 
     public boolean addComponent(String key, BlockState block) {
@@ -76,6 +95,10 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         if (!fitsInFieldSize(fieldSize))
             return false;
 
+        // We know that the recipe will at least fit inside the current projection field
+
+        // Check filled dimensions vs. recipe dimensions here?
+
         Stream<AxisAlignedBB> fieldLayers = FieldHelper.splitIntoLayers(fieldSize, field);
         double recipeHeight = dimensions.getYSize();
         int maxRecipeBottomLayer = (int) Math.floor(field.maxY - recipeHeight);
@@ -88,9 +111,11 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
                 .filter(layer -> CraftingHelper.hasBlocksInField(world, layer))
                 .collect(Collectors.toList());
 
+        return false;
+
         // Check each layer bottom to see if it matches the bottom layer of this recipe
-        return possibleRecipeBottomLayers.stream()
-                .anyMatch(fieldLayer -> layers[0].matchesFieldLayer(world, this, fieldSize, fieldLayer));
+//        return possibleRecipeBottomLayers.stream()
+//                .anyMatch(fieldLayer -> layers[0].matchesFieldLayer(world, this, fieldSize, fieldLayer));
     }
 
     public ItemStack[] getOutputs() {
@@ -113,5 +138,13 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         }
 
         return Optional.empty();
+    }
+
+    public boolean fitsInDimensions(AxisAlignedBB bounds) {
+        return BlockSpaceUtil.boundsFitsInside(this.dimensions, bounds);
+    }
+
+    public AxisAlignedBB getDimensions() {
+        return this.dimensions;
     }
 }

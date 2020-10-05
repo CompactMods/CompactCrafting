@@ -84,6 +84,8 @@ public class Registration {
         MiniaturizationRecipe rec = new MiniaturizationRecipe();
 
         Set<BlockPos> template = new HashSet<>();
+
+        // cross pattern, see docs
         BlockPos[] layerBlocks = new BlockPos[]{
                 new BlockPos(1, 0, 0),
                 new BlockPos(0, 0, 1),
@@ -93,13 +95,9 @@ public class Registration {
 
         Collections.addAll(template, layerBlocks);
 
-
-        // Example: One obsidian block anywhere in the field can turn into crying obsidian
-        rec.layers = new IRecipeLayer[]{
+        rec.setLayers(new IRecipeLayer[]{
                 new SingleComponentRecipeLayer("O", template)
-        };
-
-        rec.recalculateDimensions();
+        });
 
         rec.catalyst = Items.ANVIL;
         rec.outputs = new ItemStack[]{
