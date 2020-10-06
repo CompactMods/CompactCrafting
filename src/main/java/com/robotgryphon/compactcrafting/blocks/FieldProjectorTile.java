@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.blocks;
 
-import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
@@ -19,20 +18,16 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.RegistryObject;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
     private boolean isCrafting = false;
-    private Optional<FieldProjection> field = Optional.empty();
+    private FieldProjection field = null;
     private MiniaturizationRecipe currentRecipe = null;
     private int fieldCheckTimeout = 0;
 
@@ -54,10 +49,9 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
      * @return
      */
     public Optional<BlockPos> getOppositeProjector() {
-        if (!field.isPresent())
+        if (field == null)
             return Optional.empty();
 
-        FieldProjection field = this.field.get();
         FieldProjectionSize size = field.getFieldSize();
 
         int offset = (size.getProjectorDistance() * 2) + 1;
@@ -89,9 +83,8 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if (this.isMainProjector())
             return Optional.of(this.pos);
 
-        if (this.field.isPresent()) {
-            FieldProjection fp = this.field.get();
-            BlockPos north = fp.getProjectorInDirection(Direction.NORTH);
+        if (this.field != null) {
+            BlockPos north = field.getProjectorInDirection(Direction.NORTH);
 
             return Optional.of(north);
         }
@@ -103,21 +96,22 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if(world == null || world.isRemote)
             return;
 
-        if(this.field.isPresent()) {
-            BlockPos center = this.field.get().getCenterPosition();
+        if(field != null) {
+            BlockPos center = this.field.getCenterPosition();
             ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
             data.ACTIVE_FIELDS.remove(center);
             data.markDirty();
 
-            this.field = Optional.empty();
+            this.field = null;
             this.fieldCheckTimeout = 20;
         }
     }
 
     @Override
     public void tick() {
+        // TODO: Do this in the field projector placement method instead
         // If we don't have a valid field, search again
-        if (!field.isPresent()) {
+        if (field == null) {
             if (fieldCheckTimeout > 0) {
                 fieldCheckTimeout--;
                 return;
@@ -127,7 +121,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             doFieldCheck();
 
             // If we still don't have a valid field, get out of tick logic
-            if (!field.isPresent())
+            if (field == null)
                 return;
         }
 
@@ -143,19 +137,18 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
         Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(world, this.pos);
         if (field.isPresent()) {
-            this.field = field;
-            FieldProjection fp = field.get();
+            this.field = field.get();
 
             if(world != null && !world.isRemote) {
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
-                data.ACTIVE_FIELDS.put(fp.getCenterPosition(), ProjectorFieldData.fromInstance(fp));
+                data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.markDirty();
             }
 
             return;
         }
 
-        this.field = Optional.empty();
+        this.field = null;
 
         // If we didn't find a valid field, restart timer and keep looking
         fieldCheckTimeout = 20;
@@ -165,14 +158,13 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
      * Scans the field and attempts to match a recipe that's placed in it.
      */
     public void doRecipeScan() {
-        if(!this.field.isPresent())
+        if(this.field == null)
             return;
 
         if(this.world == null)
             return;
 
-        FieldProjection fp = this.field.get();
-        FieldProjectionSize size = fp.getFieldSize();
+        FieldProjectionSize size = field.getFieldSize();
 
         // Only the primary projector needs to worry about the recipe scan
         if(!isMainProjector())
@@ -191,7 +183,13 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return;
         }
 
-        AxisAlignedBB fieldBounds = fp.getBounds();
+        Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
+
+        // If there are no registered recipes, then we obv can't match anything - exit early
+        if (entries.isEmpty())
+            return;
+
+        AxisAlignedBB fieldBounds = field.getBounds();
         BlockPos[] nonAirPositions = BlockPos.getAllInBox(fieldBounds)
                 .filter(p -> !world.isAirBlock(p))
                 .map(BlockPos::toImmutable)
@@ -202,37 +200,43 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // ===========================================================================================================
         //   RECIPE BEGIN
         // ===========================================================================================================
-
-        Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
-        if (entries.isEmpty())
-            return;
-
-        Set<MiniaturizationRecipe> matchedRecipes = entries
+        Set<MiniaturizationRecipe> recipesBoundFitted = entries
                 .stream()
                 .map(RegistryObject::get)
                 .filter(recipe -> recipe.fitsInFieldSize(size))
                 .filter(recipe -> BlockSpaceUtil.boundsFitsInside(filledBounds, recipe.getDimensions()))
                 .collect(Collectors.toSet());
 
-        BlockPos[] testLocations = new BlockPos[] {
-                new BlockPos(5, 0, 5),
-                new BlockPos(7, 0, 5),
-                new BlockPos(5, 0, 7)
-        };
+        // All the recipes we have registered won't fit in the filled bounds -
+        // blocks were placed in a larger space than the max recipe size
+        if(recipesBoundFitted.size() == 0)
+            return;
 
-        BlockPos[] rotatedCW = BlockSpaceUtil.rotateLayerPositions(testLocations, new Vector3i(5, 0, 5));
-
-        CompactCrafting.LOGGER.debug(".");
-
-//        Optional<MiniaturizationRecipe> matched = matchedRecipes.findFirst();
+//        BlockPos[] testLocations = new BlockPos[] {
+//                new BlockPos(5, 0, 5),
+//                new BlockPos(7, 0, 5),
+//                new BlockPos(5, 0, 7)
+//        };
 //
-//        this.currentRecipe = matched.orElse(null);
+//        BlockPos[] rotatedCW = BlockSpaceUtil.rotateLayerPositions(testLocations, new Vector3i(5, 0, 5));
+
+        // Begin recipe dry run - loop, check bottom layer for matches
+        MiniaturizationRecipe matchedRecipe = null;
+        for(MiniaturizationRecipe recipe : recipesBoundFitted) {
+            boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBounds, filledBounds);
+            if(!recipeMatches)
+                continue;
+
+            matchedRecipe = recipe;
+            break;
+        }
+
+        this.currentRecipe = matchedRecipe;
     }
 
     private void tickCrafting() {
-        if (this.field.isPresent()) {
-            FieldProjection fieldProjection = this.field.get();
-            AxisAlignedBB fieldBounds = fieldProjection.getBounds();
+        if (this.field != null) {
+            AxisAlignedBB fieldBounds = field.getBounds();
 
             // Get out, client worlds
             if (world == null || world.isRemote())
@@ -246,11 +250,11 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 this.isCrafting = true;
 
                 // We know the "recipe" in the field is an exact match already, so wipe the field
-                fieldProjection.clearBlocks(world);
+                field.clearBlocks(world);
 
                 CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                BlockPos fieldCenter = field.get().getCenterPosition();
+                BlockPos fieldCenter = field.getCenterPosition();
                 for (ItemStack is : currentRecipe.getOutputs()) {
                     ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
                     world.addEntity(itemEntity);
@@ -295,15 +299,14 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     public AxisAlignedBB getRenderBoundingBox() {
         // Check - if we have a valid field use the entire field plus space
         // Otherwise just use the super implementation
-        if (this.field.isPresent()) {
-            FieldProjection fp = this.field.get();
-            return fp.getBounds().grow(10);
+        if (this.field != null) {
+            return field.getBounds().grow(10);
         }
 
         return super.getRenderBoundingBox();
     }
 
     public Optional<FieldProjection> getField() {
-        return this.field;
+        return Optional.ofNullable(this.field);
     }
 }

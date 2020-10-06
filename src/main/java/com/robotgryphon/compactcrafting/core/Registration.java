@@ -96,7 +96,8 @@ public class Registration {
         Collections.addAll(template, layerBlocks);
 
         rec.setLayers(new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("O", template)
+                new SingleComponentRecipeLayer("O", template),
+                new SingleComponentRecipeLayer("G", template)
         });
 
         rec.catalyst = Items.ANVIL;
@@ -105,6 +106,7 @@ public class Registration {
         };
 
         rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
+        rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
 
         return rec;
     });

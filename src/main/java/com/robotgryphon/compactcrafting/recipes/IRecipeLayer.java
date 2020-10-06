@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.recipes;
 
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
@@ -19,19 +18,6 @@ public interface IRecipeLayer {
      * @return
      */
     boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe);
-
-    /**
-     * Determines if this layer matches a field's layer, given the blocks in the field
-     * and the definition of the recipe layer. This is expected to rotate and check all four
-     * cardinal directions.
-     *
-     * @param world
-     * @param recipe
-     * @param fieldSize
-     * @param fieldLayer
-     * @return
-     */
-    boolean matchesFieldLayer(IWorldReader world, MiniaturizationRecipe recipe, FieldProjectionSize fieldSize, AxisAlignedBB fieldLayer);
 
     /**
      * Gets the trimmed dimensions of the given recipe layer.
@@ -57,4 +43,8 @@ public interface IRecipeLayer {
      * @return
      */
     Collection<BlockPos> getNonAirPositions();
+
+    boolean isPositionRequired(BlockPos pos);
+
+    int getNumberFilledPositions();
 }

@@ -2,17 +2,8 @@ package com.robotgryphon.compactcrafting.crafting;
 
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
 
 public abstract class CraftingHelper {
-
-    public static boolean hasBlocksInField(IWorldReader world, AxisAlignedBB area) {
-        // Remove blocks from the world
-        return BlockPos.getAllInBox(area)
-                .anyMatch(p -> !world.isAirBlock(p));
-    }
 
     /**
      * Consumes a number of items from a stack in the world.

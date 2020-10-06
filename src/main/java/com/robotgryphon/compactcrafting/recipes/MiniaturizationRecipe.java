@@ -1,22 +1,21 @@
 package com.robotgryphon.compactcrafting.recipes;
 
-import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
-import com.robotgryphon.compactcrafting.field.FieldHelper;
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRecipe> {
@@ -91,31 +90,23 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         return true;
     }
 
-    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, AxisAlignedBB field) {
+    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, AxisAlignedBB field, AxisAlignedBB filledBounds) {
         if (!fitsInFieldSize(fieldSize))
             return false;
 
         // We know that the recipe will at least fit inside the current projection field
 
-        // Check filled dimensions vs. recipe dimensions here?
+        // Check rest of the recipe layers
+        int maxY = (int) dimensions.getYSize();
+        for(int offset = 0; offset < maxY; offset++) {
+            BlockPos[] layerFilled = BlockSpaceUtil.getFilledBlocksByLayer(world, filledBounds, offset);
 
-        Stream<AxisAlignedBB> fieldLayers = FieldHelper.splitIntoLayers(fieldSize, field);
-        double recipeHeight = dimensions.getYSize();
-        int maxRecipeBottomLayer = (int) Math.floor(field.maxY - recipeHeight);
+            boolean layerMatches = doLayerBlocksMatch(world, filledBounds, layerFilled);
+            if(!layerMatches)
+                return false;
+        }
 
-        // A list of all the possible layers of the field that COULD match the recipe
-        List<AxisAlignedBB> possibleRecipeBottomLayers = fieldLayers
-                .filter(layer -> layer.minY <= maxRecipeBottomLayer)
-
-                // TODO: Allow "air" layers at bottom of recipe
-                .filter(layer -> CraftingHelper.hasBlocksInField(world, layer))
-                .collect(Collectors.toList());
-
-        return false;
-
-        // Check each layer bottom to see if it matches the bottom layer of this recipe
-//        return possibleRecipeBottomLayers.stream()
-//                .anyMatch(fieldLayer -> layers[0].matchesFieldLayer(world, this, fieldSize, fieldLayer));
+        return true;
     }
 
     public ItemStack[] getOutputs() {
@@ -146,5 +137,82 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
 
     public AxisAlignedBB getDimensions() {
         return this.dimensions;
+    }
+
+    /**
+     * Checks if a given recipe layer matches the filled blocks provided.
+     *
+     * @param world
+     * @param fieldFilledBounds The boundaries of all filled blocks in the field.
+     * @param filledPositions The filled positions on the layer to check.
+     * @return
+     */
+    public boolean doLayerBlocksMatch(IWorldReader world, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
+        // Recipe layers using this method must define at least one filled space
+        if(filledPositions.length == 0)
+            return false;
+
+        int filledYLevel = filledPositions[0].getY();
+        int minFilledLevel = (int) Math.floor(fieldFilledBounds.minY);
+        int yLevelRelative = filledYLevel - minFilledLevel;
+
+        Optional<IRecipeLayer> layer = this.getLayer(yLevelRelative);
+
+        // No such layer exists
+        if(!layer.isPresent())
+            return false;
+
+        IRecipeLayer l = layer.get();
+
+        int totalFilled = filledPositions.length;
+        int requiredFilled = l.getNumberFilledPositions();
+
+        if(totalFilled != requiredFilled)
+            return false;
+
+        BlockPos[] fieldNormalizedPositions = RecipeHelper.normalizeLayerPositions(fieldFilledBounds, filledPositions);
+        int extraYOffset = fieldNormalizedPositions[0].getY();
+
+        for(BlockPos fieldFilledPosition : fieldNormalizedPositions) {
+            BlockPos realPos = RecipeHelper.denormalizeLayerPosition(fieldFilledBounds, fieldFilledPosition);
+            BlockState state = world.getBlockState(realPos);
+
+            // If we require a block at a position and it's air...
+            BlockPos zeroedRecipePosition = fieldFilledPosition.offset(Direction.DOWN, extraYOffset);
+            if(!l.isPositionRequired(zeroedRecipePosition)) {
+                CompactCrafting.LOGGER.debug("Position filled but the recipe does not require a block there; recipe not matched.");
+                return false;
+            }
+
+            // Position is required but the block there is air?
+            // This shouldn't happen, the air check should have happened before this
+            if(state.isAir(world, realPos))
+                return false;
+
+            String requiredCompKey = l.getRequiredComponentKeyForPosition(zeroedRecipePosition);
+            Optional<String> realComponentInPosition = this.getRecipeComponentKey(state);
+
+            if(requiredCompKey == null) {
+                CompactCrafting.LOGGER.error("Relative position marked as required but the recipe layer did not have a lookup.");
+                return false;
+            }
+
+            // No lookup defined in the recipe for the state in the position
+            if(!realComponentInPosition.isPresent())
+                return false;
+
+            // Does component match in position?
+            if(!realComponentInPosition.get().equals(requiredCompKey))
+                return false;
+        }
+
+        return true;
+    }
+
+    public Optional<IRecipeLayer> getLayer(int y) {
+        if(y < 0 || y > this.layers.length - 1)
+            return Optional.empty();
+
+        return Optional.of(this.layers[y]);
     }
 }

@@ -4,6 +4,7 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MutableBoundingBox;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
@@ -13,17 +14,24 @@ import java.util.stream.Stream;
 
 public abstract class BlockSpaceUtil {
 
-    public static AxisAlignedBB trimAirFromBounds(IWorldReader world, AxisAlignedBB bounds) {
-        // If bounds are zero, just return the bounds again
-        if(bounds.getAverageEdgeLength() == 0)
-            return bounds;
+    public static BlockPos[] getFilledBlocksByLayer(IWorldReader world, AxisAlignedBB fieldFilledBounds, int layer) {
+        // Outside of field bounds, ignore
+        if(layer < 0 || layer > fieldFilledBounds.maxY)
+            return new BlockPos[0];
 
-        BlockPos[] filled = BlockPos.getAllInBox(bounds)
-                .filter(p -> !world.isAirBlock(p))
+        AxisAlignedBB layerFilledBounds = getLayerBoundsByYOffset(fieldFilledBounds, layer);
+       return BlockPos.getAllInBox(layerFilledBounds)
+                .filter(pos -> pos.getY() == layerFilledBounds.minY)
+                .filter(pos -> !world.isAirBlock(pos))
                 .map(BlockPos::toImmutable)
                 .toArray(BlockPos[]::new);
+    }
 
-        return getBoundsForBlocks(filled);
+    public static AxisAlignedBB getLayerBoundsByYOffset(AxisAlignedBB fullBounds, int yOffset) {
+        return new AxisAlignedBB(
+                new Vector3d(fullBounds.minX, fullBounds.minY + yOffset, fullBounds.minZ),
+                new Vector3d(fullBounds.maxX, (fullBounds.minY + yOffset) + 1, fullBounds.maxZ)
+        );
     }
 
     public static BlockPos[] rotateLayerPositions(BlockPos[] positions, Vector3i fieldCenter) {
