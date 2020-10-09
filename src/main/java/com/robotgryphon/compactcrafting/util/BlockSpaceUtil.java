@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.util;
 
-import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -36,6 +35,20 @@ public abstract class BlockSpaceUtil {
 
     public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions) {
         return rotatePositionsInPlace(positions, Rotation.CLOCKWISE_90);
+    }
+
+    public static BlockPos rotatePositionInPlace(AxisAlignedBB bounds, BlockPos rotated, Rotation rotation) {
+        Rotation rotBack = rotation.add(Rotation.CLOCKWISE_180);
+
+        BlockPos normalized = normalizeLayerPosition(bounds, rotated);
+        BlockPos rotatedBack = normalized.rotate(rotBack);
+        BlockPos denormalized = denormalizeLayerPosition(bounds, rotatedBack);
+
+        AxisAlignedBB boundsRotated = new AxisAlignedBB(denormalized, denormalized);
+        BlockPos reNormalized = normalizeLayerPosition(boundsRotated, denormalized);
+
+        return denormalizeLayerPosition(bounds, reNormalized);
+
     }
 
     public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {

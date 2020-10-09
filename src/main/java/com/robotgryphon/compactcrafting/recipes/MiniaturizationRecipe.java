@@ -8,6 +8,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
+import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
@@ -84,13 +85,6 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         return fits;
     }
 
-    private boolean hasMatchingBottomLayer(IWorldReader world, FieldProjectionSize fieldSize, AxisAlignedBB field) {
-        if (!fitsInFieldSize(fieldSize))
-            return false;
-
-        return true;
-    }
-
     public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, MiniaturizationFieldBlockData fieldBlocks) {
         if (!fitsInFieldSize(fieldSize))
             return false;
@@ -98,13 +92,32 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         // We know that the recipe will at least fit inside the current projection field
         AxisAlignedBB filledBounds = fieldBlocks.getFilledBounds();
 
-        // Check rest of the recipe layers
-        int maxY = (int) dimensions.getYSize();
-        for(int offset = 0; offset < maxY; offset++) {
-            BlockPos[] layerFilled = BlockSpaceUtil.getFilledBlocksByLayer(world, filledBounds, offset);
+        Rotation[] validRotations = new Rotation[] {
+                Rotation.NONE,
+                Rotation.CLOCKWISE_90,
+                Rotation.CLOCKWISE_180,
+                Rotation.COUNTERCLOCKWISE_90
+        };
 
-            boolean layerMatches = doLayerBlocksMatch(world, filledBounds, layerFilled);
-            if(!layerMatches)
+        for(Rotation rot : validRotations) {
+            boolean matchesRot = checkRotation(world, rot, filledBounds);
+            if(matchesRot)
+               return true;
+        }
+
+        return false;
+    }
+
+    private boolean checkRotation(IWorldReader world, Rotation rot, AxisAlignedBB filledBounds) {
+        // Check the recipe layer by layer
+
+        int maxY = (int) dimensions.getYSize();
+        for (int offset = 0; offset < maxY; offset++) {
+            BlockPos[] layerFilled = BlockSpaceUtil.getFilledBlocksByLayer(world, filledBounds, offset);
+            BlockPos[] layerRotated = BlockSpaceUtil.rotatePositionsInPlace(layerFilled, rot);
+
+            boolean layerMatches = doLayerBlocksMatch(world, rot, filledBounds, layerRotated);
+            if (!layerMatches)
                 return false;
         }
 
@@ -149,19 +162,13 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
      * @param filledPositions The filled positions on the layer to check.
      * @return
      */
-    public boolean doLayerBlocksMatch(IWorldReader world, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
+    public boolean doLayerBlocksMatch(IWorldReader world, Rotation rot, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
         // Recipe layers using this method must define at least one filled space
         if(filledPositions.length == 0)
             return false;
 
-        int filledYLevel = filledPositions[0].getY();
-        int minFilledLevel = (int) Math.floor(fieldFilledBounds.minY);
-        int yLevelRelative = filledYLevel - minFilledLevel;
-
-        Optional<IRecipeLayer> layer = this.getLayer(yLevelRelative);
-
-        // No such layer exists
-        if(!layer.isPresent())
+        Optional<IRecipeLayer> layer = getRecipeLayerFromPositions(fieldFilledBounds, filledPositions);
+        if (!layer.isPresent())
             return false;
 
         IRecipeLayer l = layer.get();
@@ -169,46 +176,61 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         int totalFilled = filledPositions.length;
         int requiredFilled = l.getNumberFilledPositions();
 
+        // Early exit if we don't have the correct number of blocks in the layer
         if(totalFilled != requiredFilled)
             return false;
 
-        BlockPos[] fieldNormalizedPositions = BlockSpaceUtil.normalizeLayerPositions(fieldFilledBounds, filledPositions);
-        int extraYOffset = fieldNormalizedPositions[0].getY();
+        BlockPos[] fieldNormalizedPositionsFieldOffset = BlockSpaceUtil.normalizeLayerPositions(fieldFilledBounds, filledPositions);
 
-        for(BlockPos fieldFilledPosition : fieldNormalizedPositions) {
-            BlockPos realPos = BlockSpaceUtil.denormalizeLayerPosition(fieldFilledBounds, fieldFilledPosition);
-            BlockState state = world.getBlockState(realPos);
+        // TODO: Make recipe loading respect multiple layers as Y=0, 1, etc
+        int extraYOffset = fieldNormalizedPositionsFieldOffset[0].getY();
 
-            // If we require a block at a position and it's air...
-            BlockPos zeroedRecipePosition = fieldFilledPosition.offset(Direction.DOWN, extraYOffset);
-            if(!l.isPositionRequired(zeroedRecipePosition)) {
-                CompactCrafting.LOGGER.debug("Position filled but the recipe does not require a block there; recipe not matched.");
-                return false;
+        // We'll need an extra offset layer to match against the recipe layer's Y=0
+        BlockPos[] fieldNormalizedPositionsLayerOffset = Stream.of(fieldNormalizedPositionsFieldOffset)
+                .parallel()
+                .map(p -> p.offset(Direction.DOWN, extraYOffset))
+                .map(BlockPos::toImmutable)
+                .toArray(BlockPos[]::new);
+
+        for(BlockPos normalizedFieldPosition : fieldNormalizedPositionsLayerOffset) {
+
+            // normalizedFieldPosition is the normalized position in the ROTATED layout
+            boolean required = l.isPositionRequired(normalizedFieldPosition);
+            if(!required) {
+                // is block set? - if so, exit as a failure
             }
 
-            // Position is required but the block there is air?
-            // This shouldn't happen, the air check should have happened before this
-            if(state.isAir(world, realPos))
-                return false;
-
-            String requiredCompKey = l.getRequiredComponentKeyForPosition(zeroedRecipePosition);
-            Optional<String> realComponentInPosition = this.getRecipeComponentKey(state);
-
+            String requiredCompKey = l.getRequiredComponentKeyForPosition(normalizedFieldPosition);
             if(requiredCompKey == null) {
                 CompactCrafting.LOGGER.error("Relative position marked as required but the recipe layer did not have a lookup.");
                 return false;
             }
 
-            // No lookup defined in the recipe for the state in the position
-            if(!realComponentInPosition.isPresent())
-                return false;
-
-            // Does component match in position?
-            if(!realComponentInPosition.get().equals(requiredCompKey))
-                return false;
+//            Optional<String> realComponentInPosition = this.getRecipeComponentKey(state);
+//
+//
+//
+//            // No lookup defined in the recipe for the state in the position
+//            if(!realComponentInPosition.isPresent())
+//                return false;
+//
+//            // Does component match in position?
+//            if(!realComponentInPosition.get().equals(requiredCompKey))
+//                return false;
         }
 
         return true;
+    }
+
+    private Optional<IRecipeLayer> getRecipeLayerFromPositions(AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
+        if(filledPositions.length == 0)
+            return Optional.empty();
+
+        int filledYLevel = filledPositions[0].getY();
+        int minFilledLevel = (int) Math.floor(fieldFilledBounds.minY);
+        int yLevelRelative = filledYLevel - minFilledLevel;
+
+        return this.getLayer(yLevelRelative);
     }
 
     public Optional<IRecipeLayer> getLayer(int y) {

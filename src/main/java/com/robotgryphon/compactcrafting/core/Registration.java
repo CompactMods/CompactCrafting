@@ -85,28 +85,39 @@ public class Registration {
 
         Set<BlockPos> template = new HashSet<>();
 
-        // cross pattern, see docs
-        BlockPos[] layerBlocks = new BlockPos[]{
-                new BlockPos(1, 0, 0),
-                new BlockPos(0, 0, 1),
+        BlockPos[] complexPattern = new BlockPos[] {
+                // Glass
+                new BlockPos(3, 0, 0),
+                new BlockPos(4, 0, 0),
                 new BlockPos(2, 0, 1),
-                new BlockPos(1, 0, 2)
+                new BlockPos(5, 0, 1),
+                new BlockPos(2, 0, 2),
+                new BlockPos(5, 0, 2),
+                new BlockPos(3, 0, 3),
+                new BlockPos(4, 0, 3),
+
+                // Tail
+                new BlockPos(2, 0, 3),
+                new BlockPos(1, 0, 4),
+                new BlockPos(0, 0, 5)
         };
 
-        Collections.addAll(template, layerBlocks);
+        Collections.addAll(template, complexPattern);
 
         rec.setLayers(new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("O", template),
-                new SingleComponentRecipeLayer("G", template)
+                new SingleComponentRecipeLayer("S", template)
+                // new SingleComponentRecipeLayer("O", template),
+                // new SingleComponentRecipeLayer("G", template)
         });
 
-        rec.catalyst = Items.ANVIL;
+        rec.catalyst = Items.GLASS;
         rec.outputs = new ItemStack[]{
-                new ItemStack(Items.CRYING_OBSIDIAN, 1)
+                new ItemStack(Items.BELL, 1)
         };
 
-        rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
-        rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
+        rec.addComponent("S", Blocks.STONE.getDefaultState());
+        // rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
+        // rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
 
         return rec;
     });
