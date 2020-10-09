@@ -6,7 +6,7 @@ import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.recipes.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.SingleComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.MixedComponentRecipeLayer;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
@@ -83,10 +83,10 @@ public class Registration {
     {
         MiniaturizationRecipe rec = new MiniaturizationRecipe();
 
-        Set<BlockPos> template = new HashSet<>();
+        Set<BlockPos> glassColl = new HashSet<>();
+        Set<BlockPos> handleColl = new HashSet<>();
 
-        BlockPos[] complexPattern = new BlockPos[] {
-                // Glass
+        BlockPos[] glass = new BlockPos[]{
                 new BlockPos(3, 0, 0),
                 new BlockPos(4, 0, 0),
                 new BlockPos(2, 0, 1),
@@ -94,29 +94,31 @@ public class Registration {
                 new BlockPos(2, 0, 2),
                 new BlockPos(5, 0, 2),
                 new BlockPos(3, 0, 3),
-                new BlockPos(4, 0, 3),
+                new BlockPos(4, 0, 3)
+        };
 
-                // Tail
+        BlockPos[] handle = new BlockPos[]{
                 new BlockPos(2, 0, 3),
                 new BlockPos(1, 0, 4),
                 new BlockPos(0, 0, 5)
         };
 
-        Collections.addAll(template, complexPattern);
+        Collections.addAll(glassColl, glass);
+        Collections.addAll(handleColl, handle);
 
-        rec.setLayers(new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("O", template),
-                new SingleComponentRecipeLayer("G", template)
+        MixedComponentRecipeLayer mixed = new MixedComponentRecipeLayer();
+        mixed.addMultiple("S", handleColl);
+        mixed.addMultiple("G", glassColl);
 
-        });
+        rec.setLayers(new IRecipeLayer[]{mixed});
 
         rec.catalyst = Items.ANVIL;
         rec.outputs = new ItemStack[]{
                 new ItemStack(Items.CRYING_OBSIDIAN, 11)
         };
 
-        rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
-        rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
+        rec.addComponent("S", Blocks.STONE.getDefaultState());
+        rec.addComponent("G", Blocks.GLASS.getDefaultState());
 
         return rec;
     });
