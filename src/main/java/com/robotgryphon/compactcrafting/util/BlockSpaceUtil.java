@@ -9,6 +9,9 @@ import net.minecraft.world.IWorldReader;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class BlockSpaceUtil {
@@ -33,45 +36,32 @@ public abstract class BlockSpaceUtil {
         );
     }
 
-    public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions) {
+    public static Map<BlockPos, BlockPos> rotatePositionsInPlace(BlockPos[] positions) {
         return rotatePositionsInPlace(positions, Rotation.CLOCKWISE_90);
     }
 
-    public static BlockPos rotatePositionInPlace(AxisAlignedBB bounds, BlockPos rotated, Rotation rotation) {
-        Rotation rotBack = rotation.add(Rotation.CLOCKWISE_180);
-
-        BlockPos normalized = normalizeLayerPosition(bounds, rotated);
-        BlockPos rotatedBack = normalized.rotate(rotBack);
-        BlockPos denormalized = denormalizeLayerPosition(bounds, rotatedBack);
-
-        AxisAlignedBB boundsRotated = new AxisAlignedBB(denormalized, denormalized);
-        BlockPos reNormalized = normalizeLayerPosition(boundsRotated, denormalized);
-
-        return denormalizeLayerPosition(bounds, reNormalized);
-
-    }
-
-    public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {
+    public static Map<BlockPos, BlockPos> rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {
         AxisAlignedBB bounds = getBoundsForBlocks(positions);
 
         // Rotation around a normalized world offset (smallest position is 0,0)
-        BlockPos[] rotatedPreNormalize = Stream.of(positions)
-                .map(p -> normalizeLayerPosition(bounds, p))
-                .map(p -> p.rotate(rot))
-                .map(p -> denormalizeLayerPosition(bounds, p))
-                .map(BlockPos::toImmutable)
-                .toArray(BlockPos[]::new);
+        Map<BlockPos, BlockPos> rotatedPreNormalize = Stream.of(positions)
+                .map(p -> new BlockPos[] { p, normalizeLayerPosition(bounds, p) })
+                .map(p -> new BlockPos[] { p[0], p[1].rotate(rot) })
+                .map(p -> new BlockPos[] { p[0], denormalizeLayerPosition(bounds, p[1]) })
+                .map(p -> new BlockPos[] { p[0], p[1].toImmutable() })
+                .collect(Collectors.toMap(p -> p[0], p -> p[1]));
 
-        AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize);
+        AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize.values());
 
         // Re-Normalize the positions to fix the offsetting that rotation does (we're rotating in place)
-        BlockPos[] reNormalized = normalizeLayerPositions(rotatedBounds, rotatedPreNormalize);
+        Map<BlockPos, BlockPos> realPositions = new HashMap<>();
+        rotatedPreNormalize.forEach((k, rp) -> {
+            BlockPos reNormalized = normalizeLayerPosition(rotatedBounds, rp);
+            BlockPos realPosition = denormalizeLayerPosition(bounds, reNormalized);
+            realPositions.put(k.toImmutable(), realPosition.toImmutable());
+        });
 
-        // Rotated positions were normalized before to fix the offsetting that rotation does - denormalize again
-        return Stream.of(reNormalized)
-                .map(p -> denormalizeLayerPosition(bounds, p))
-                .map(BlockPos::toImmutable)
-                .toArray(BlockPos[]::new);
+        return realPositions;
     }
 
     public static boolean boundsFitsInside(AxisAlignedBB check, AxisAlignedBB space) {

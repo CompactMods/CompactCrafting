@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class RotationsTest {
@@ -19,9 +20,9 @@ public class RotationsTest {
                 new BlockPos(1, 0, 0)
         };
 
-        BlockPos[] newLocations = BlockSpaceUtil.rotatePositionsInPlace(singleBlock);
+        Map<BlockPos, BlockPos> newLocations = BlockSpaceUtil.rotatePositionsInPlace(singleBlock);
 
-        BlockPos rotatedPos = newLocations[0];
+        BlockPos rotatedPos = newLocations.get(singleBlock[0]);
 
         Assertions.assertEquals(new BlockPos(0, 0, 1), rotatedPos);
     }
@@ -82,10 +83,10 @@ public class RotationsTest {
                 new BlockPos(2, 0, 2)
         };
 
-        BlockPos[] rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPattern, Rotation.CLOCKWISE_90);
+        Map<BlockPos, BlockPos> rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPattern, Rotation.CLOCKWISE_90);
 
         List<BlockPos> expected = Arrays.asList(relativeWestPositions);
-        List<BlockPos> actual = Arrays.asList(rotatedPattern);
+        List<BlockPos> actual = Arrays.asList(rotatedPattern.values().toArray(new BlockPos[0]));
 
         Assertions.assertTrue(actual.containsAll(expected));
     }
@@ -153,10 +154,10 @@ public class RotationsTest {
                 new BlockPos(5, 0, 0)
         };
 
-        BlockPos[] rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPattern, Rotation.CLOCKWISE_180);
+        Map<BlockPos, BlockPos> rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPattern, Rotation.CLOCKWISE_180);
 
         List<BlockPos> expected = Arrays.asList(relativeWestPositions);
-        List<BlockPos> actual = Arrays.asList(rotatedPattern);
+        List<BlockPos> actual = Arrays.asList(rotatedPattern.values().toArray(new BlockPos[0]));
 
         Assertions.assertTrue(actual.containsAll(expected));
     }
