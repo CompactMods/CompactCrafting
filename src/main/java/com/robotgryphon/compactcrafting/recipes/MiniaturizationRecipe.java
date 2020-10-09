@@ -223,17 +223,6 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
                 .allMatch(layer::isPositionRequired);
     }
 
-    private Optional<IRecipeLayer> getRecipeLayerFromPositions(AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
-        if (filledPositions.length == 0)
-            return Optional.empty();
-
-        int filledYLevel = filledPositions[0].getY();
-        int minFilledLevel = (int) Math.floor(fieldFilledBounds.minY);
-        int yLevelRelative = filledYLevel - minFilledLevel;
-
-        return this.getLayer(yLevelRelative);
-    }
-
     public Optional<IRecipeLayer> getLayer(int y) {
         if (y < 0 || y > this.layers.length - 1)
             return Optional.empty();
