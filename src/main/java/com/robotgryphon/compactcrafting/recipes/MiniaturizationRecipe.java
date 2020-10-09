@@ -127,14 +127,14 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
             Map<BlockPos, BlockPos> layerRotated = BlockSpaceUtil.rotatePositionsInPlace(layerFilled, rot);
 
             // Check that the rotated positions are correct
-            boolean layerMatches = areLayerPositionsCorrect(filledBounds, layerRotated.values().toArray(new BlockPos[0]));
+            boolean layerMatches = areLayerPositionsCorrect(layer.get(), filledBounds, layerRotated.values().toArray(new BlockPos[0]));
             if (!layerMatches)
                 return false;
 
             // Check the states are correct
             for(BlockPos unrotatedPos : layerFilled) {
                 BlockPos rotatedPos = layerRotated.get(unrotatedPos);
-                BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos);
+                BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos).down(offset);
 
                 BlockState actualState = world.getBlockState(unrotatedPos);
 
@@ -194,19 +194,13 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
      * @param filledPositions   The filled positions on the layer to check.
      * @return
      */
-    public boolean areLayerPositionsCorrect(AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
+    public boolean areLayerPositionsCorrect(IRecipeLayer layer, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
         // Recipe layers using this method must define at least one filled space
         if (filledPositions.length == 0)
             return false;
 
-        Optional<IRecipeLayer> layer = getRecipeLayerFromPositions(fieldFilledBounds, filledPositions);
-        if (!layer.isPresent())
-            return false;
-
-        IRecipeLayer l = layer.get();
-
         int totalFilled = filledPositions.length;
-        int requiredFilled = l.getNumberFilledPositions();
+        int requiredFilled = layer.getNumberFilledPositions();
 
         // Early exit if we don't have the correct number of blocks in the layer
         if (totalFilled != requiredFilled)
@@ -226,7 +220,7 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
 
         return Arrays.stream(fieldNormalizedPositionsLayerOffset)
                 .parallel()
-                .allMatch(l::isPositionRequired);
+                .allMatch(layer::isPositionRequired);
     }
 
     private Optional<IRecipeLayer> getRecipeLayerFromPositions(AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {

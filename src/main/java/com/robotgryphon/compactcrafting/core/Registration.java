@@ -105,19 +105,18 @@ public class Registration {
         Collections.addAll(template, complexPattern);
 
         rec.setLayers(new IRecipeLayer[]{
-                new SingleComponentRecipeLayer("S", template)
-                // new SingleComponentRecipeLayer("O", template),
-                // new SingleComponentRecipeLayer("G", template)
+                new SingleComponentRecipeLayer("O", template),
+                new SingleComponentRecipeLayer("G", template)
+
         });
 
-        rec.catalyst = Items.GLASS;
+        rec.catalyst = Items.ANVIL;
         rec.outputs = new ItemStack[]{
-                new ItemStack(Items.BELL, 1)
+                new ItemStack(Items.CRYING_OBSIDIAN, 11)
         };
 
-        rec.addComponent("S", Blocks.STONE.getDefaultState());
-        // rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
-        // rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
+        rec.addComponent("O", Blocks.OBSIDIAN.getDefaultState());
+        rec.addComponent("G", Blocks.GLOWSTONE.getDefaultState());
 
         return rec;
     });
