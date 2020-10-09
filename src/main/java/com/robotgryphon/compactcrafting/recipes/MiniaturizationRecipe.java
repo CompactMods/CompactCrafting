@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.recipes;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
@@ -90,11 +91,12 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         return true;
     }
 
-    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, AxisAlignedBB field, AxisAlignedBB filledBounds) {
+    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, MiniaturizationFieldBlockData fieldBlocks) {
         if (!fitsInFieldSize(fieldSize))
             return false;
 
         // We know that the recipe will at least fit inside the current projection field
+        AxisAlignedBB filledBounds = fieldBlocks.getFilledBounds();
 
         // Check rest of the recipe layers
         int maxY = (int) dimensions.getYSize();
@@ -170,11 +172,11 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         if(totalFilled != requiredFilled)
             return false;
 
-        BlockPos[] fieldNormalizedPositions = RecipeHelper.normalizeLayerPositions(fieldFilledBounds, filledPositions);
+        BlockPos[] fieldNormalizedPositions = BlockSpaceUtil.normalizeLayerPositions(fieldFilledBounds, filledPositions);
         int extraYOffset = fieldNormalizedPositions[0].getY();
 
         for(BlockPos fieldFilledPosition : fieldNormalizedPositions) {
-            BlockPos realPos = RecipeHelper.denormalizeLayerPosition(fieldFilledBounds, fieldFilledPosition);
+            BlockPos realPos = BlockSpaceUtil.denormalizeLayerPosition(fieldFilledBounds, fieldFilledPosition);
             BlockState state = world.getBlockState(realPos);
 
             // If we require a block at a position and it's air...

@@ -4,6 +4,7 @@ import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -190,12 +191,12 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return;
 
         AxisAlignedBB fieldBounds = field.getBounds();
-        BlockPos[] nonAirPositions = BlockPos.getAllInBox(fieldBounds)
-                .filter(p -> !world.isAirBlock(p))
-                .map(BlockPos::toImmutable)
-                .toArray(BlockPos[]::new);
 
-        AxisAlignedBB filledBounds = BlockSpaceUtil.getBoundsForBlocks(nonAirPositions);
+        MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(world, fieldBounds);
+
+        // If no positions filled, exit early
+        if(fieldBlocks.getNumberFilledBlocks() == 0)
+            return;
 
         // ===========================================================================================================
         //   RECIPE BEGIN
@@ -204,7 +205,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 .stream()
                 .map(RegistryObject::get)
                 .filter(recipe -> recipe.fitsInFieldSize(size))
-                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(filledBounds, recipe.getDimensions()))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(fieldBlocks.getFilledBounds(), recipe.getDimensions()))
                 .collect(Collectors.toSet());
 
         // All the recipes we have registered won't fit in the filled bounds -
@@ -212,18 +213,10 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if(recipesBoundFitted.size() == 0)
             return;
 
-//        BlockPos[] testLocations = new BlockPos[] {
-//                new BlockPos(5, 0, 5),
-//                new BlockPos(7, 0, 5),
-//                new BlockPos(5, 0, 7)
-//        };
-//
-//        BlockPos[] rotatedCW = BlockSpaceUtil.rotateLayerPositions(testLocations, new Vector3i(5, 0, 5));
-
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
         for(MiniaturizationRecipe recipe : recipesBoundFitted) {
-            boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBounds, filledBounds);
+            boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBlocks);
             if(!recipeMatches)
                 continue;
 

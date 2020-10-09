@@ -106,6 +106,8 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
+
     // JEI
 //    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
 //    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
@@ -147,4 +149,8 @@ publishing {
             url "file:///${project.projectDir}/mcmodsrepo"
         }
     }
+}
+
+test {
+    useJUnitPlatform()
 }

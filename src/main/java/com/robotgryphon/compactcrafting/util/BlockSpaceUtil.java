@@ -1,11 +1,11 @@
 package com.robotgryphon.compactcrafting.util;
 
+import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorldReader;
 
 import java.util.Arrays;
@@ -34,11 +34,29 @@ public abstract class BlockSpaceUtil {
         );
     }
 
-    public static BlockPos[] rotateLayerPositions(BlockPos[] positions, Vector3i fieldCenter) {
-        return Stream.of(positions)
-                .map(p -> p.subtract(fieldCenter))
-                .map(p -> p.rotate(Rotation.CLOCKWISE_90))
-                .map(p -> p.add(fieldCenter))
+    public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions) {
+        return rotatePositionsInPlace(positions, Rotation.CLOCKWISE_90);
+    }
+
+    public static BlockPos[] rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {
+        AxisAlignedBB bounds = getBoundsForBlocks(positions);
+
+        // Rotation around a normalized world offset (smallest position is 0,0)
+        BlockPos[] rotatedPreNormalize = Stream.of(positions)
+                .map(p -> normalizeLayerPosition(bounds, p))
+                .map(p -> p.rotate(rot))
+                .map(p -> denormalizeLayerPosition(bounds, p))
+                .map(BlockPos::toImmutable)
+                .toArray(BlockPos[]::new);
+
+        AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize);
+
+        // Re-Normalize the positions to fix the offsetting that rotation does (we're rotating in place)
+        BlockPos[] reNormalized = normalizeLayerPositions(rotatedBounds, rotatedPreNormalize);
+
+        // Rotated positions were normalized before to fix the offsetting that rotation does - denormalize again
+        return Stream.of(reNormalized)
+                .map(p -> denormalizeLayerPosition(bounds, p))
                 .map(BlockPos::toImmutable)
                 .toArray(BlockPos[]::new);
     }
@@ -77,5 +95,44 @@ public abstract class BlockSpaceUtil {
         }
 
         return AxisAlignedBB.toImmutable(trimmedBounds);
+    }
+
+    /**
+     * Normalizes world coordinates to relative field coordinates.
+     *
+     * @param fieldBounds The bounds of the field itself.
+     * @param pos The position to normalize.
+     * @return
+     */
+    public static BlockPos normalizeLayerPosition(AxisAlignedBB fieldBounds, BlockPos pos) {
+        return new BlockPos(
+                pos.getX() - fieldBounds.minX,
+                pos.getY() - fieldBounds.minY,
+                pos.getZ() - fieldBounds.minZ
+        );
+    }
+
+    /**
+     * Converts world-coordinate positions into relative field positions.
+     *
+     * @param fieldBounds The boundaries of the crafting field.
+     * @param fieldPositions The non-air block positions in the field (world coordinates).
+     * @return
+     */
+    public static BlockPos[] normalizeLayerPositions(AxisAlignedBB fieldBounds, BlockPos[] fieldPositions) {
+        // Normalize the block positions so the recipe can match easier
+        return Stream.of(fieldPositions)
+                .parallel()
+                .map(p -> normalizeLayerPosition(fieldBounds, p))
+                .map(BlockPos::toImmutable)
+                .toArray(BlockPos[]::new);
+    }
+
+    public static BlockPos denormalizeLayerPosition(AxisAlignedBB realBounds, BlockPos normPos) {
+        return new BlockPos(
+                realBounds.minX + normPos.getX(),
+                realBounds.minY + normPos.getY(),
+                realBounds.minZ + normPos.getZ()
+        );
     }
 }
