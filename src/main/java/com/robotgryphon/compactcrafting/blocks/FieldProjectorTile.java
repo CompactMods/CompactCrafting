@@ -187,16 +187,20 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
 
         // If there are no registered recipes, then we obv can't match anything - exit early
-        if (entries.isEmpty())
+        if (entries.isEmpty()) {
+            this.currentRecipe = null;
             return;
+        }
 
         AxisAlignedBB fieldBounds = field.getBounds();
 
         MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(world, fieldBounds);
 
         // If no positions filled, exit early
-        if(fieldBlocks.getNumberFilledBlocks() == 0)
+        if(fieldBlocks.getNumberFilledBlocks() == 0) {
+            this.currentRecipe = null;
             return;
+        }
 
         // ===========================================================================================================
         //   RECIPE BEGIN
@@ -205,13 +209,15 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 .stream()
                 .map(RegistryObject::get)
                 .filter(recipe -> recipe.fitsInFieldSize(size))
-                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(fieldBlocks.getFilledBounds(), recipe.getDimensions()))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), fieldBlocks.getFilledBounds()))
                 .collect(Collectors.toSet());
 
         // All the recipes we have registered won't fit in the filled bounds -
         // blocks were placed in a larger space than the max recipe size
-        if(recipesBoundFitted.size() == 0)
+          if(recipesBoundFitted.size() == 0) {
+            this.currentRecipe = null;
             return;
+        }
 
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
