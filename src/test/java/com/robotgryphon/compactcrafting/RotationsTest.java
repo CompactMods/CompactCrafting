@@ -1,7 +1,6 @@
 package com.robotgryphon.compactcrafting;
 
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
-import net.minecraft.util.Direction;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public class RotationsTest {
 
@@ -24,7 +22,7 @@ public class RotationsTest {
 
         BlockPos rotatedPos = newLocations.get(singleBlock[0]);
 
-        Assertions.assertEquals(new BlockPos(0, 0, 1), rotatedPos);
+        Assertions.assertEquals(new BlockPos(1, 0, 0), rotatedPos);
     }
 
     @Test
@@ -120,13 +118,6 @@ public class RotationsTest {
                 new BlockPos(0, 0, 5)
         };
 
-        BlockPos[] complexAfterTranslate = Stream.of(complexPreTranslate)
-                .map(p -> p.offset(Direction.EAST, 100).offset(Direction.SOUTH, 123))
-                .map(BlockPos::toImmutable)
-                .toArray(BlockPos[]::new);
-
-        BlockPos[] complexPattern = complexAfterTranslate;
-
         /*
             Magnifying glass shape. (West/90-degree rotation)
 
@@ -154,7 +145,7 @@ public class RotationsTest {
                 new BlockPos(5, 0, 0)
         };
 
-        Map<BlockPos, BlockPos> rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPattern, Rotation.CLOCKWISE_180);
+        Map<BlockPos, BlockPos> rotatedPattern = BlockSpaceUtil.rotatePositionsInPlace(complexPreTranslate, Rotation.CLOCKWISE_180);
 
         List<BlockPos> expected = Arrays.asList(relativeWestPositions);
         List<BlockPos> actual = Arrays.asList(rotatedPattern.values().toArray(new BlockPos[0]));
