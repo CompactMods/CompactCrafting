@@ -86,7 +86,24 @@ minecraft {
     }
 }
 
+def format(String jar_name) {
+    def index = jar_name.lastIndexOf('-')
+    index = jar_name.substring(0, index).lastIndexOf('-')
+    def mod_version = jar_name.substring(index).replace(".jar", "")
+    if (mod_version.startsWith('-')) {
+        mod_version = mod_version.substring(1);
+    }
+    def mod_name = jar_name.substring(0, index)
+    return mod_name + ":" + mod_name + ":" + mod_version
+}
+
+def dev_mods_dir = "mods"
+
 repositories {
+    flatDir {
+        dirs dev_mods_dir
+    }
+
     // location of the maven that hosts JEI files
     maven {
         name "Progwml Repo"
@@ -100,6 +117,8 @@ repositories {
 //    }
 }
 
+def dev_mods = fileTree(dev_mods_dir).filter { it -> it.isFile() }.files.name.collect( { format(it) } )
+
 dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
@@ -107,6 +126,12 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
+
+    // Deobfuscate each dev mod for runtime
+    dev_mods.each {
+        compileOnly fg.deobf(it)
+        runtimeOnly fg.deobf(it)
+    }
 
     // JEI
 //    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
