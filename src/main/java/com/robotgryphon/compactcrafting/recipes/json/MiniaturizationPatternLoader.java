@@ -49,12 +49,17 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
             if(!layersLoaded)
                 continue;
 
-            loadComponents(root, recipe);
+            // Load Components - If nothing was loaded, skip the recipe
+            boolean componentsLoaded = loadComponents(root, recipe);
+            if(!componentsLoaded || recipe.getNumberComponents() == 0)
+                continue;
 
-            loadCatalyst(recipe, root);
+            boolean catalystsLoaded = loadCatalyst(recipe, root);
+            if(!catalystsLoaded)
+                continue;
 
             loadOutputs(recipe, root);
-            
+
             MiniaturizationRecipeManager.add(rl, recipe);
         }
     }
@@ -66,7 +71,19 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         }
 
         JsonArray outputs = root.getAsJsonArray("outputs");
-        return false;
+        for(JsonElement output : outputs) {
+            if(!output.isJsonObject())
+                continue;
+
+            JsonObject op = output.getAsJsonObject();
+            Optional<ItemStack> oStack = RecipeLoaderUtil.getItemStack(op);
+            if(!oStack.isPresent())
+                continue;
+
+            recipe.addOutput(oStack.get());
+        }
+
+        return true;
     }
 
     private boolean loadCatalyst(MiniaturizationRecipe recipe, JsonObject root) {
@@ -112,23 +129,25 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         return true;
     }
 
-    private void loadComponents(JsonObject root, MiniaturizationRecipe recipe) {
+    private boolean loadComponents(JsonObject root, MiniaturizationRecipe recipe) {
         JsonObject components = root.get("components").getAsJsonObject();
         if(components.size() == 0) {
             throw new JsonParseException("Error: No components defined.");
         }
 
-        components.entrySet().forEach(component -> {
+        for(Map.Entry<String, JsonElement> component : components.entrySet()) {
             String key = component.getKey();
             Optional<BlockState> state = RecipeLoaderUtil.extractComponentDefinition(key, component.getValue());
 
             if(key.isEmpty() || !state.isPresent()) {
                 CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; definition not found.", key);
-                return;
+                continue;
             }
 
             recipe.addComponent(key, state.get());
-        });
+        }
+
+        return true;
     }
 
 }

@@ -15,10 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class MiniaturizationRecipe {
@@ -240,7 +237,14 @@ public class MiniaturizationRecipe {
         return registryName;
     }
 
-    public void setRegistryName(ResourceLocation registryName) {
-        this.registryName = registryName;
+    public void addOutput(ItemStack itemStack) {
+        List<ItemStack> oTmp = new ArrayList<>(Arrays.asList(this.outputs));
+        oTmp.add(itemStack);
+
+        this.outputs = oTmp.toArray(new ItemStack[0]);
+    }
+
+    public int getNumberComponents() {
+        return this.components.size();
     }
 }
