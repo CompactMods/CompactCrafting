@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "recipeSize": 5,
+  "layers": [
+    {
+      "type": "filled",
+      "component": "C"
+    },
+    {
+      "type": "mixed",
+      "pattern": [
+        ["C", "C", "C", "C", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "C", "C", "C", "C"]
+      ]
+    },
+    {
+      "type": "mixed",
+      "pattern": [
+        ["C", "C", "C", "C", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "-", "D", "-", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "C", "C", "C", "C"]
+      ]
+    },
+    {
+      "type": "mixed",
+      "pattern": [
+        ["C", "C", "C", "C", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "-", "-", "-", "C"],
+        ["C", "C", "C", "C", "C"]
+      ]
+    },
+    {
+      "type": "filled",
+      "component": "C"
+    }
+  ],
+
+  "catalyst": {
+    "id": "minecraft:diamond",
+    "Count": 1
+  },
+
+  "components": {
+    "C": {
+      "Name": "minecraft:coal_block"
+    },
+
+    "D": {
+      "Name": "minecraft:diamond_block"
+    }
+  },
+
+  "outputs": [
+    {
+      "id": "minecraft:diamond_block",
+      "Count": 27
+    }
+  ]
+}
