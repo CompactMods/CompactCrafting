@@ -1,14 +1,20 @@
-package com.robotgryphon.compactcrafting.util;
+package com.robotgryphon.compactcrafting.recipes.json;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.JsonOps;
+import com.robotgryphon.compactcrafting.CompactCrafting;
+import net.minecraft.block.BlockState;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class RecipeLoaderUtil {
 
@@ -78,5 +84,21 @@ public class RecipeLoaderUtil {
         }
 
         return convertMultiArrayToMap(mappedToArray);
+    }
+
+    public static Optional<ItemStack> getItemStack(JsonObject stack) {
+        return ItemStack.CODEC.decode(JsonOps.INSTANCE, stack)
+                .get()
+                .ifRight(err -> CompactCrafting.LOGGER.warn("Failed to load itemstack from JSON: {}", err.message()))
+                .mapLeft(Pair::getFirst)
+                .left();
+    }
+
+    public static Optional<BlockState> extractComponentDefinition(String key, JsonElement definition) {
+        JsonObject comp = definition.getAsJsonObject();
+        return BlockState.CODEC.decode(JsonOps.INSTANCE, comp)
+                .get().ifRight(error -> {
+                    CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}: {}", key, error.message());
+                }).mapLeft(Pair::getFirst).left();
     }
 }

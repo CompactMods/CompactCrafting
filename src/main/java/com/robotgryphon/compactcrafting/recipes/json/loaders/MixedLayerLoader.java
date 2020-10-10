@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
-import com.robotgryphon.compactcrafting.util.RecipeLoaderUtil;
+import com.robotgryphon.compactcrafting.recipes.json.RecipeLoaderUtil;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;

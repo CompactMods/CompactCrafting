@@ -1,8 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.json;
 
 import com.google.gson.*;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
@@ -55,8 +53,20 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
 
             loadCatalyst(recipe, root);
 
+            loadOutputs(recipe, root);
+            
             MiniaturizationRecipeManager.add(rl, recipe);
         }
+    }
+
+    private boolean loadOutputs(MiniaturizationRecipe recipe, JsonObject root) {
+        if(!root.has("outputs")) {
+            CompactCrafting.LOGGER.warn("Warning: Recipe does not have outputs defined; not skipping here, but the recipe will not give anything!");
+            return false;
+        }
+
+        JsonArray outputs = root.getAsJsonArray("outputs");
+        return false;
     }
 
     private boolean loadCatalyst(MiniaturizationRecipe recipe, JsonObject root) {
@@ -66,16 +76,10 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         }
 
         JsonObject catalyst = root.getAsJsonObject("catalyst");
-
-        Optional<ItemStack> stack = ItemStack.CODEC.decode(JsonOps.INSTANCE, catalyst)
-                .get()
-                .ifRight(err -> CompactCrafting.LOGGER.warn("Failed to load itemstack for catalyst: {}", err.message()))
-                .mapLeft(Pair::getFirst)
-                .left();
-
+        Optional<ItemStack> stack = RecipeLoaderUtil.getItemStack(catalyst);
         if(!stack.isPresent())
             return false;
-
+        
         ItemStack c = stack.get();
 
         if(c.getCount() != 1) {
@@ -116,7 +120,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
 
         components.entrySet().forEach(component -> {
             String key = component.getKey();
-            Optional<BlockState> state = extractComponentDefinition(key, component.getValue());
+            Optional<BlockState> state = RecipeLoaderUtil.extractComponentDefinition(key, component.getValue());
 
             if(key.isEmpty() || !state.isPresent()) {
                 CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; definition not found.", key);
@@ -127,11 +131,4 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         });
     }
 
-    private Optional<BlockState> extractComponentDefinition(String key, JsonElement definition) {
-        JsonObject comp = definition.getAsJsonObject();
-        return BlockState.CODEC.decode(JsonOps.INSTANCE, comp)
-                .get().ifRight(error -> {
-                    CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}: {}", key, error.message());
-                }).mapLeft(Pair::getFirst).left();
-    }
 }

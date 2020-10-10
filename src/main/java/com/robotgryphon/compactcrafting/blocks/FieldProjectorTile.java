@@ -241,7 +241,8 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             if (world == null || world.isRemote())
                 return;
 
-            List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds, currentRecipe.catalyst.getItem());
+            // We grow the bounds check here a little to support patterns that are exactly the size of the field
+            List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds.grow(0.25), currentRecipe.catalyst.getItem());
             if (catalystEntities.size() > 0) {
                 // We dropped a catalyst item in
                 // At this point, we had a valid recipe and a valid catalyst entity

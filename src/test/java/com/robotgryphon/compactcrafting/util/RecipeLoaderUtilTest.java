@@ -1,12 +1,11 @@
 package com.robotgryphon.compactcrafting.util;
 
+import com.robotgryphon.compactcrafting.recipes.json.RecipeLoaderUtil;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class RecipeLoaderUtilTest {
 

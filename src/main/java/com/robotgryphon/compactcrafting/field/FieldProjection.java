@@ -1,12 +1,14 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import net.minecraft.block.Blocks;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
+import net.minecraft.world.server.ServerWorld;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -127,10 +129,13 @@ public class FieldProjection {
                 .map(BlockPos::toImmutable)
                 .sorted(Comparator.comparingInt(BlockPos::getY).reversed())
                 .forEach(blockPos -> {
-                    world.destroyBlock(blockPos, false);
-                    world.addParticle(ParticleTypes.LARGE_SMOKE,
-                            blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                            0d, 0.05D, 0D);
+                    world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 7);
+
+                    if(world instanceof ServerWorld) {
+                        ((ServerWorld) world).spawnParticle(ParticleTypes.LARGE_SMOKE,
+                                blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
+                                1,0d, 0.05D, 0D, 0.25d);
+                    }
                 });
     }
 }
