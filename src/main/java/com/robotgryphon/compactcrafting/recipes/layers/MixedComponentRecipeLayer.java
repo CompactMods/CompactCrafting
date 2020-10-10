@@ -1,15 +1,14 @@
-package com.robotgryphon.compactcrafting.recipes;
+package com.robotgryphon.compactcrafting.recipes.layers;
 
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MixedComponentRecipeLayer implements IRecipeLayer {
+public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimensions {
     private AxisAlignedBB dimensions;
     private Map<BlockPos, String> componentLookup;
     private Map<String, Integer> totalCache;
@@ -38,17 +37,12 @@ public class MixedComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe) {
-        return false;
-    }
-
-    @Override
     public AxisAlignedBB getDimensions() {
         return this.dimensions;
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals() {
+    public Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims) {
         if(this.totalCache != null)
             return this.totalCache;
 
@@ -77,7 +71,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public Collection<BlockPos> getNonAirPositions() {
+    public Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims) {
         return componentLookup.keySet();
     }
 
@@ -87,8 +81,8 @@ public class MixedComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public int getNumberFilledPositions() {
-        return getComponentTotals()
+    public int getNumberFilledPositions(AxisAlignedBB recipeDims) {
+        return getComponentTotals(recipeDims)
                 .values()
                 .stream()
                 .reduce(0, Integer::sum);

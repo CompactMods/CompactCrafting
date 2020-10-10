@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting;
 import com.robotgryphon.compactcrafting.client.ClientSetup;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.RecipeLoader;
+import com.robotgryphon.compactcrafting.recipes.json.MiniaturizationPatternLoader;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -70,6 +70,6 @@ public class CompactCrafting
 
     private void addReloadListenerEvent(final AddReloadListenerEvent e)
     {
-        e.addListener(new RecipeLoader());
+        e.addListener(new MiniaturizationPatternLoader());
     }
 }

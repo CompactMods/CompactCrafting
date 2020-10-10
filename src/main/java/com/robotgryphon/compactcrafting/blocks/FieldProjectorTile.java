@@ -7,6 +7,7 @@ import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
@@ -19,7 +20,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.RegistryObject;
 
 import java.util.Collection;
 import java.util.List;
@@ -186,7 +186,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return;
         }
 
-        Collection<RegistryObject<MiniaturizationRecipe>> entries = Registration.MINIATURIZATION_RECIPES.getEntries();
+        Collection<MiniaturizationRecipe> entries = MiniaturizationRecipeManager.getAll();
 
         // If there are no registered recipes, then we obv can't match anything - exit early
         if (entries.isEmpty()) {
@@ -209,7 +209,6 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // ===========================================================================================================
         Set<MiniaturizationRecipe> recipesBoundFitted = entries
                 .stream()
-                .map(RegistryObject::get)
                 .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
                 .collect(Collectors.toSet());
 

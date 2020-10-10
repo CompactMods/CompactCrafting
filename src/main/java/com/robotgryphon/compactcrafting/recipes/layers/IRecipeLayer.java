@@ -1,32 +1,14 @@
-package com.robotgryphon.compactcrafting.recipes;
+package com.robotgryphon.compactcrafting.recipes.layers;
 
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
 
 import java.util.Collection;
 import java.util.Map;
 
 public interface IRecipeLayer {
 
-    /**
-     * Specifies if the current layer needs to add padding spaces (air)
-     * around a recipe template.
-     *
-     * @param world
-     * @param recipe
-     * @return
-     */
-    boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe);
-
-    /**
-     * Gets the trimmed dimensions of the given recipe layer.
-     *
-     * @return
-     */
-    AxisAlignedBB getDimensions();
-
-    Map<String, Integer> getComponentTotals();
+    Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims);
 
     /**
      * Gets a component key for the given (normalized) position.
@@ -42,9 +24,9 @@ public interface IRecipeLayer {
      *
      * @return
      */
-    Collection<BlockPos> getNonAirPositions();
+    Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims);
 
     boolean isPositionRequired(BlockPos pos);
 
-    int getNumberFilledPositions();
+    int getNumberFilledPositions(AxisAlignedBB recipeDims);
 }

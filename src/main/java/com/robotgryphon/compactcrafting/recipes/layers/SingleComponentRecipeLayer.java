@@ -1,15 +1,14 @@
-package com.robotgryphon.compactcrafting.recipes;
+package com.robotgryphon.compactcrafting.recipes.layers;
 
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-public class SingleComponentRecipeLayer implements IRecipeLayer {
+public class SingleComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimensions {
 
     private String componentKey;
     private AxisAlignedBB dimensions;
@@ -27,15 +26,14 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
      */
     private Collection<BlockPos> filledPositions;
 
+    protected SingleComponentRecipeLayer(String key) {
+        this.componentKey = key;
+    }
+
     public SingleComponentRecipeLayer(String key, Collection<BlockPos> filledPositions) {
         this.componentKey = key;
         this.filledPositions = filledPositions;
         this.dimensions = BlockSpaceUtil.getBoundsForBlocks(filledPositions);
-    }
-
-    @Override
-    public boolean hasPadding(IWorldReader world, MiniaturizationRecipe recipe) {
-        return false;
     }
 
     @Override
@@ -44,7 +42,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals() {
+    public Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims) {
         double volume = dimensions.getXSize() * dimensions.getYSize() * dimensions.getZSize();
         return Collections.singletonMap(componentKey, (int) Math.ceil(volume));
     }
@@ -55,7 +53,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public Collection<BlockPos> getNonAirPositions() {
+    public Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims) {
         return filledPositions;
     }
 
@@ -65,7 +63,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer {
     }
 
     @Override
-    public int getNumberFilledPositions() {
+    public int getNumberFilledPositions(AxisAlignedBB recipeDims) {
         return filledPositions.size();
     }
 }

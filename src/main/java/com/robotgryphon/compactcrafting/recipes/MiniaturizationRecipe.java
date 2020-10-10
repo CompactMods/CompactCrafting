@@ -2,6 +2,8 @@ package com.robotgryphon.compactcrafting.recipes;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.layers.IFixedLayerDimensions;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.Item;
@@ -31,7 +33,7 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
      * Contains a mapping of all known components in the recipe.
      * Vanilla style; C = CHARCOAL_BLOCK
      */
-    private Map<String, BlockState> components;
+    private final Map<String, BlockState> components;
 
     public MiniaturizationRecipe() {
         this.layers = new IRecipeLayer[0];
@@ -52,12 +54,15 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
         int z = 0;
 
         for (IRecipeLayer layer : this.layers) {
-            AxisAlignedBB dimensions = layer.getDimensions();
-            if (dimensions.getXSize() > x)
-                x = (int) Math.ceil(dimensions.getXSize());
+            // We only need to worry about fixed-dimension layers; the fluid layers will adapt
+            if(layer instanceof IFixedLayerDimensions) {
+                AxisAlignedBB dimensions = ((IFixedLayerDimensions) layer).getDimensions();
+                if (dimensions.getXSize() > x)
+                    x = (int) Math.ceil(dimensions.getXSize());
 
-            if (dimensions.getZSize() > z)
-                z = (int) Math.ceil(dimensions.getZSize());
+                if (dimensions.getZSize() > z)
+                    z = (int) Math.ceil(dimensions.getZSize());
+            }
         }
 
         this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
@@ -200,7 +205,7 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
             return false;
 
         int totalFilled = filledPositions.length;
-        int requiredFilled = layer.getNumberFilledPositions();
+        int requiredFilled = layer.getNumberFilledPositions(this.dimensions);
 
         // Early exit if we don't have the correct number of blocks in the layer
         if (totalFilled != requiredFilled)
