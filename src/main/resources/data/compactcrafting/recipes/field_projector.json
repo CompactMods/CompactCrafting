@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "result": {
+    "item": "compactcrafting:field_projector",
+    "count": 4
+  },
+  "pattern": [
+    " e ",
+    " r ",
+    "did"
+  ],
+  "key": {
+    "e": {
+      "item": "minecraft:ender_eye"
+    },
+    "i": {
+      "item": "minecraft:iron_block"
+    },
+    "r": {
+      "item": "minecraft:redstone_torch"
+    },
+    "d": {
+      "item": "minecraft:diamond"
+    }
+  }
+}
