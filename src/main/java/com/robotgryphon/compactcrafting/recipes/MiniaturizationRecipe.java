@@ -6,15 +6,14 @@ import com.robotgryphon.compactcrafting.recipes.layers.IFixedLayerDimensions;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,10 +21,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRecipe> {
+public class MiniaturizationRecipe {
 
+    private ResourceLocation registryName;
     private IRecipeLayer[] layers;
-    public Item catalyst;
+    public ItemStack catalyst;
     public ItemStack[] outputs;
     private AxisAlignedBB dimensions;
 
@@ -35,7 +35,8 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
      */
     private final Map<String, BlockState> components;
 
-    public MiniaturizationRecipe() {
+    public MiniaturizationRecipe(ResourceLocation rl) {
+        this.registryName = rl;
         this.layers = new IRecipeLayer[0];
         this.outputs = new ItemStack[0];
         this.components = new HashMap<>();
@@ -233,5 +234,13 @@ public class MiniaturizationRecipe extends ForgeRegistryEntry<MiniaturizationRec
             return Optional.empty();
 
         return Optional.of(this.layers[y]);
+    }
+
+    public ResourceLocation getRegistryName() {
+        return registryName;
+    }
+
+    public void setRegistryName(ResourceLocation registryName) {
+        this.registryName = registryName;
     }
 }
