@@ -13,7 +13,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
-version = "${minecraft_version}-${mod_version}"
+version = "${mod_version}"
 group = 'com.robotgryphon.compactcrafting' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'compactcrafting'
 
@@ -110,11 +110,11 @@ repositories {
         url "http://dvs1.progwml6.com/files/maven"
     }
 
-//    // TheOneProbe
-//    maven {
-//        name 'tterrag maven'
-//        url "http://maven.tterrag.com/"
-//    }
+    // TheOneProbe
+    maven {
+        name 'tterrag maven'
+        url "http://maven.tterrag.com/"
+    }
 }
 
 def dev_mods = fileTree(dev_mods_dir).filter { it -> it.isFile() }.files.name.collect( { format(it) } )
@@ -138,8 +138,8 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 
     // The One Probe
-    // compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
-    // runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+    compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
+    runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
