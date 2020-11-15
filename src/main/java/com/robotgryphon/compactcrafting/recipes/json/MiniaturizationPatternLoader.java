@@ -50,7 +50,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
                 continue;
 
             // Load Components - If nothing was loaded, skip the recipe
-            boolean componentsLoaded = loadComponents(root, recipe);
+            boolean componentsLoaded = loadComponents(recipe, root);
             if(!componentsLoaded || recipe.getNumberComponents() == 0)
                 continue;
 
@@ -129,7 +129,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         return true;
     }
 
-    private boolean loadComponents(JsonObject root, MiniaturizationRecipe recipe) {
+    private boolean loadComponents(MiniaturizationRecipe recipe, JsonObject root) {
         JsonObject components = root.get("components").getAsJsonObject();
         if(components.size() == 0) {
             throw new JsonParseException("Error: No components defined.");
