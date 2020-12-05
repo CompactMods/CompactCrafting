@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.blocks;
 
+import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
@@ -21,6 +22,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
 
+import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,26 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     public FieldProjectorTile() {
         super(Registration.FIELD_PROJECTOR_TILE.get());
+    }
+
+    public Color getProjectionColor(EnumProjectorColorType type) {
+        Color base = new Color(255, 106, 0, 100);
+        // Color base = Color.red.brighter();
+        int red = base.getRed();
+        int green = base.getGreen();
+        int blue = base.getBlue();
+
+        switch(type) {
+            case FIELD:
+            case SCAN_LINE:
+                return new Color(red, green, blue, 100);
+
+            case PROJECTOR_FACE:
+                // return new Color(Color.cyan.getRed(), Color.cyan.getGreen(), Color.cyan.getBlue(), 100);
+                return new Color(red, green, blue, 250);
+        }
+
+        return Color.WHITE;
     }
 
     @Override

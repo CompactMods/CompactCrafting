@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.core.Constants;
+import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -48,10 +49,6 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     private IBakedModel bakedModelCached;
-
-    private Color colorProjectionArc = new Color(255, 106, 0, 200);
-    private final Color colorProjectionCube = new Color(255, 106, 0, 100);
-    private final Color colorScanLine = new Color(255, 106, 0, 200);
 
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
@@ -223,9 +220,17 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         mx.translate(-.5, 0, -.5);
 
+        Color faceColor = te.getProjectionColor(EnumProjectorColorType.PROJECTOR_FACE);
+        float red = faceColor.getRed() / 255f;
+        float green = faceColor.getGreen() / 255f;
+        float blue = faceColor.getBlue() / 255f;
+
         blockRenderer.getBlockModelRenderer()
                 .renderModel(mx.getLast(), cutoutBlocks, state,
-                        baked, 1, 1, 1,
+                        baked,
+                        red,
+                        green,
+                        blue,
                         combinedLight, combinedOverlay, model);
 
         mx.pop();
@@ -270,7 +275,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .expand(expansion, expansion, expansion)
                 .expand(-expansion, -expansion, -expansion);
 
-        drawCube(builder, mx, slightlyBiggerBecauseFoxes, colorProjectionCube);
+        drawCube(builder, mx, slightlyBiggerBecauseFoxes, tile.getProjectionColor(EnumProjectorColorType.FIELD));
 
         mx.pop();
     }
@@ -297,6 +302,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         mx.translate(.5, .5, .5);
 
         mx.rotate(rotation);
+
+        Color colorProjectionArc = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
         // 0, 0, 0 is now the edge of the projector's space
         addColoredVertex(builder, mx, colorProjectionArc, new Vector3f(0f, 0f, 0f));
@@ -390,6 +397,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
 
+        Color colorScanLine = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
         drawRing(builder, mx, scanLineMain, colorScanLine);
 
         mx.pop();
