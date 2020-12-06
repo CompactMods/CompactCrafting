@@ -42,7 +42,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimen
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims) {
+    public Map<String, Integer> getComponentTotals() {
         if(this.totalCache != null)
             return this.totalCache;
 
@@ -71,7 +71,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimen
     }
 
     @Override
-    public Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims) {
+    public Collection<BlockPos> getNonAirPositions() {
         return componentLookup.keySet();
     }
 
@@ -81,8 +81,8 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimen
     }
 
     @Override
-    public int getNumberFilledPositions(AxisAlignedBB recipeDims) {
-        return getComponentTotals(recipeDims)
+    public int getNumberFilledPositions() {
+        return getComponentTotals()
                 .values()
                 .stream()
                 .reduce(0, Integer::sum);

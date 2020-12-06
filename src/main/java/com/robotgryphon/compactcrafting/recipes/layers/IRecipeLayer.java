@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
@@ -8,7 +7,7 @@ import java.util.Map;
 
 public interface IRecipeLayer {
 
-    Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims);
+    Map<String, Integer> getComponentTotals();
 
     /**
      * Gets a component key for the given (normalized) position.
@@ -24,9 +23,9 @@ public interface IRecipeLayer {
      *
      * @return
      */
-    Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims);
+    Collection<BlockPos> getNonAirPositions();
 
     boolean isPositionRequired(BlockPos pos);
 
-    int getNumberFilledPositions(AxisAlignedBB recipeDims);
+    int getNumberFilledPositions();
 }

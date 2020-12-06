@@ -2,6 +2,8 @@ package com.robotgryphon.compactcrafting.recipes;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
+import com.robotgryphon.compactcrafting.recipes.layers.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.IFixedLayerDimensions;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -65,6 +67,13 @@ public class MiniaturizationRecipe {
         }
 
         this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
+
+        // Update all the dynamic recipe layers
+        Arrays.stream(this.layers)
+                .filter(layer -> layer instanceof IDynamicRecipeLayer)
+                .forEach(dynamicLayer -> {
+                    ((IDynamicRecipeLayer) dynamicLayer).setRecipeDimensions(dimensions);
+                });
     }
 
     public boolean addComponent(String key, BlockState block) {
@@ -195,7 +204,7 @@ public class MiniaturizationRecipe {
 
         int required = 0;
         for (IRecipeLayer layer : this.layers) {
-            Map<String, Integer> layerTotals = layer.getComponentTotals(this.dimensions);
+            Map<String, Integer> layerTotals = layer.getComponentTotals();
 
             if (layerTotals.containsKey(i))
                 required += layerTotals.get(i);
@@ -234,7 +243,7 @@ public class MiniaturizationRecipe {
             return false;
 
         int totalFilled = filledPositions.length;
-        int requiredFilled = layer.getNumberFilledPositions(this.dimensions);
+        int requiredFilled = layer.getNumberFilledPositions();
 
         // Early exit if we don't have the correct number of blocks in the layer
         if (totalFilled != requiredFilled)
@@ -292,5 +301,18 @@ public class MiniaturizationRecipe {
 
     public void setCatalyst(ItemStack c) {
         this.catalyst = c;
+    }
+
+    public void setFluidDimensions(AxisAlignedBB dimensions) throws MiniaturizationRecipeException {
+        if(Arrays.stream(this.layers).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
+            throw new MiniaturizationRecipeException("Tried to set fluid dimensions when a non-fluid layer exists.");
+
+        this.dimensions = dimensions;
+        Arrays.stream(this.layers)
+                .filter(l -> l instanceof IDynamicRecipeLayer)
+                .forEach(layer -> {
+                    IDynamicRecipeLayer dynamic = (IDynamicRecipeLayer) layer;
+                    dynamic.setRecipeDimensions(dimensions);
+                });
     }
 }

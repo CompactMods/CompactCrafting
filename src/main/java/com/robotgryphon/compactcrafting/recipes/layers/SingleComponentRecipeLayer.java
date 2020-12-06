@@ -42,7 +42,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IFixedLayerDime
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals(AxisAlignedBB recipeDims) {
+    public Map<String, Integer> getComponentTotals() {
         double volume = dimensions.getXSize() * dimensions.getYSize() * dimensions.getZSize();
         return Collections.singletonMap(componentKey, (int) Math.ceil(volume));
     }
@@ -53,7 +53,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IFixedLayerDime
     }
 
     @Override
-    public Collection<BlockPos> getNonAirPositions(AxisAlignedBB recipeDims) {
+    public Collection<BlockPos> getNonAirPositions() {
         return filledPositions;
     }
 
@@ -63,7 +63,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IFixedLayerDime
     }
 
     @Override
-    public int getNumberFilledPositions(AxisAlignedBB recipeDims) {
+    public int getNumberFilledPositions() {
         return filledPositions.size();
     }
 }
