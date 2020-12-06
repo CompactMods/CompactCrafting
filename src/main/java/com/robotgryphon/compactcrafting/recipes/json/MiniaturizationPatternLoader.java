@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
+import com.robotgryphon.compactcrafting.recipes.layers.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.JsonReloadListener;
@@ -11,6 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.profiler.IProfiler;
 import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.AxisAlignedBB;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -110,8 +112,10 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
     }
 
     private boolean loadLayers(MiniaturizationRecipe recipe, JsonObject root) {
+        String recipeRegName = recipe.getRegistryName().toString();
         if(!root.has("layers")) {
-            CompactCrafting.LOGGER.debug("Skipping pattern loading for recipe " + recipe.getRegistryName().toString() + "; no layers defined.");
+            String msg = String.format("Skipping pattern loading for recipe %s; no layers defined.", recipeRegName);
+            CompactCrafting.LOGGER.debug(msg);
             return false;
         }
 
@@ -124,8 +128,26 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         IRecipeLayer[] iRecipeLayers = g.fromJson(layers, IRecipeLayer[].class);
         Collections.reverse(Arrays.asList(iRecipeLayers));
 
-
         recipe.setLayers(iRecipeLayers);
+
+        boolean allDynamic = Arrays.stream(iRecipeLayers).allMatch(layer -> layer instanceof IDynamicRecipeLayer);
+        if(allDynamic) {
+            if(!root.has("recipeSize"))
+            {
+                String msg = String.format("Cannot finish recipe definition for %s: all recipe layers are dynamic and no defined size set (recipeSize).", recipeRegName);
+                CompactCrafting.LOGGER.warn(msg);
+                return false;
+            }
+
+            try {
+                int size = root.get("recipeSize").getAsInt();
+                recipe.setFluidDimensions(AxisAlignedBB.withSizeAtOrigin(size, size, size));
+            } catch (Exception e) {
+                CompactCrafting.LOGGER.error("Error while trying to set fluid recipe dimensions.", e);
+                return false;
+            }
+        }
+
         return true;
     }
 
