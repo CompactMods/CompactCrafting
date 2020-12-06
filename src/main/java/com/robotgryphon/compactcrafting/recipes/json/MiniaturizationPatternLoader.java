@@ -104,7 +104,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
             c.setCount(1);
         }
 
-        recipe.catalyst = c;
+        recipe.setCatalyst(c);
 
         return true;
     }

@@ -22,10 +22,10 @@ public class MiniaturizationRecipe {
 
     private ResourceLocation registryName;
     private IRecipeLayer[] layers;
-    public ItemStack catalyst;
-    public ItemStack[] outputs;
+    private ItemStack catalyst;
+    private ItemStack[] outputs;
     private AxisAlignedBB dimensions;
-
+    private Map<String, Integer> cachedComponentTotals;
     /**
      * Contains a mapping of all known components in the recipe.
      * Vanilla style; C = CHARCOAL_BLOCK
@@ -43,6 +43,7 @@ public class MiniaturizationRecipe {
 
     public void setLayers(IRecipeLayer[] layers) {
         this.layers = layers;
+        this.cachedComponentTotals = null;
         this.recalculateDimensions();
     }
 
@@ -53,7 +54,7 @@ public class MiniaturizationRecipe {
 
         for (IRecipeLayer layer : this.layers) {
             // We only need to worry about fixed-dimension layers; the fluid layers will adapt
-            if(layer instanceof IFixedLayerDimensions) {
+            if (layer instanceof IFixedLayerDimensions) {
                 AxisAlignedBB dimensions = ((IFixedLayerDimensions) layer).getDimensions();
                 if (dimensions.getXSize() > x)
                     x = (int) Math.ceil(dimensions.getXSize());
@@ -71,6 +72,7 @@ public class MiniaturizationRecipe {
             return false;
 
         components.put(key, block);
+        this.cachedComponentTotals = null;
         return true;
     }
 
@@ -122,7 +124,7 @@ public class MiniaturizationRecipe {
 
             // If we have no layer definition do lighter processing
             // TODO: Consider changing the layers to a map so we can make air layers null/nonexistent
-            if(!layer.isPresent() && layerFilled.length > 0) {
+            if (!layer.isPresent() && layerFilled.length > 0) {
                 // We're being safe here - if there's no layer definition we assume the layer is all-air
                 return false;
             }
@@ -135,7 +137,7 @@ public class MiniaturizationRecipe {
                 return false;
 
             // Check the states are correct
-            for(BlockPos unrotatedPos : layerFilled) {
+            for (BlockPos unrotatedPos : layerFilled) {
                 BlockPos rotatedPos = layerRotated.get(unrotatedPos);
                 BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos).down(offset);
 
@@ -145,14 +147,14 @@ public class MiniaturizationRecipe {
                 String requiredComponentKeyForPosition = l.getRequiredComponentKeyForPosition(normalizedRotatedPos);
                 Optional<String> recipeComponentKey = this.getRecipeComponentKey(actualState);
 
-                if(!recipeComponentKey.isPresent()) {
+                if (!recipeComponentKey.isPresent()) {
                     // At this point we don't have a lookup for the state that's at the position
                     // No match can be made here
                     return false;
                 }
 
                 boolean statesEqual = recipeComponentKey.get().equals(requiredComponentKeyForPosition);
-                if(!statesEqual)
+                if (!statesEqual)
                     return false;
             }
         }
@@ -164,6 +166,20 @@ public class MiniaturizationRecipe {
         return outputs;
     }
 
+    public Map<String, Integer> getRecipeComponentTotals() {
+        if(this.cachedComponentTotals != null)
+            return this.cachedComponentTotals;
+
+        HashMap<String, Integer> totals = new HashMap<>();
+        this.components.keySet().forEach(comp -> {
+            int count = this.getComponentRequiredCount(comp);
+            totals.put(comp, count);
+        });
+
+        this.cachedComponentTotals = totals;
+        return totals;
+    }
+
     public Optional<BlockState> getRecipeComponent(String i) {
         if (this.components.containsKey(i)) {
             BlockState component = components.get(i);
@@ -171,6 +187,21 @@ public class MiniaturizationRecipe {
         }
 
         return Optional.empty();
+    }
+
+    public int getComponentRequiredCount(String i) {
+        if (!this.components.containsKey(i))
+            return 0;
+
+        int required = 0;
+        for (IRecipeLayer layer : this.layers) {
+            Map<String, Integer> layerTotals = layer.getComponentTotals(this.dimensions);
+
+            if (layerTotals.containsKey(i))
+                required += layerTotals.get(i);
+        }
+
+        return required;
     }
 
     public Optional<String> getRecipeComponentKey(BlockState state) {
@@ -211,7 +242,6 @@ public class MiniaturizationRecipe {
 
         BlockPos[] fieldNormalizedPositionsFieldOffset = BlockSpaceUtil.normalizeLayerPositions(fieldFilledBounds, filledPositions);
 
-        // TODO: Make recipe loading respect multiple layers as Y=0, 1, etc
         int extraYOffset = fieldNormalizedPositionsFieldOffset[0].getY();
 
         // We'll need an extra offset layer to match against the recipe layer's Y=0
@@ -237,6 +267,10 @@ public class MiniaturizationRecipe {
         return registryName;
     }
 
+    public Set<String> getComponentKeys() {
+        return this.components.keySet();
+    }
+
     public void addOutput(ItemStack itemStack) {
         List<ItemStack> oTmp = new ArrayList<>(Arrays.asList(this.outputs));
         oTmp.add(itemStack);
@@ -246,5 +280,17 @@ public class MiniaturizationRecipe {
 
     public int getNumberComponents() {
         return this.components.size();
+    }
+
+    public Map<String, BlockState> getComponents() {
+        return this.components;
+    }
+
+    public ItemStack getCatalyst() {
+        return this.catalyst;
+    }
+
+    public void setCatalyst(ItemStack c) {
+        this.catalyst = c;
     }
 }
