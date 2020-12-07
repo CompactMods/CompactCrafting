@@ -3,8 +3,8 @@ package com.robotgryphon.compactcrafting.recipes;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
-import com.robotgryphon.compactcrafting.recipes.layers.IDynamicRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.IFixedLayerDimensions;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
@@ -56,8 +56,8 @@ public class MiniaturizationRecipe {
 
         for (IRecipeLayer layer : this.layers) {
             // We only need to worry about fixed-dimension layers; the fluid layers will adapt
-            if (layer instanceof IFixedLayerDimensions) {
-                AxisAlignedBB dimensions = ((IFixedLayerDimensions) layer).getDimensions();
+            if (layer instanceof IRigidRecipeLayer) {
+                AxisAlignedBB dimensions = ((IRigidRecipeLayer) layer).getDimensions();
                 if (dimensions.getXSize() > x)
                     x = (int) Math.ceil(dimensions.getXSize());
 

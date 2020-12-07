@@ -1,5 +1,7 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 

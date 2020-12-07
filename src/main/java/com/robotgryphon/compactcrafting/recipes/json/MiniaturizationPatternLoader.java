@@ -4,8 +4,10 @@ import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
-import com.robotgryphon.compactcrafting.recipes.layers.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.json.layers.LayerDeserializer;
+import com.robotgryphon.compactcrafting.util.JsonUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.JsonReloadListener;
 import net.minecraft.item.ItemStack;
@@ -78,7 +80,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
                 continue;
 
             JsonObject op = output.getAsJsonObject();
-            Optional<ItemStack> oStack = RecipeLoaderUtil.getItemStack(op);
+            Optional<ItemStack> oStack = JsonUtil.getItemStack(op);
             if(!oStack.isPresent())
                 continue;
 
@@ -95,7 +97,7 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
         }
 
         JsonObject catalyst = root.getAsJsonObject("catalyst");
-        Optional<ItemStack> stack = RecipeLoaderUtil.getItemStack(catalyst);
+        Optional<ItemStack> stack = JsonUtil.getItemStack(catalyst);
         if(!stack.isPresent())
             return false;
         
@@ -159,14 +161,19 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
 
         for(Map.Entry<String, JsonElement> component : components.entrySet()) {
             String key = component.getKey();
-            Optional<BlockState> state = RecipeLoaderUtil.extractComponentDefinition(key, component.getValue());
+            JsonElement bsElement = component.getValue();
+            if(bsElement.isJsonObject()) {
+                Optional<BlockState> state = JsonUtil.getBlockState(bsElement.getAsJsonObject());
 
-            if(key.isEmpty() || !state.isPresent()) {
-                CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; definition not found.", key);
-                continue;
+                if (key.isEmpty() || !state.isPresent()) {
+                    CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; definition not found.", key);
+                    continue;
+                }
+
+                recipe.addComponent(key, state.get());
+            } else {
+                CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; not a JSON object. Cannot decode.", key);
             }
-
-            recipe.addComponent(key, state.get());
         }
 
         return true;

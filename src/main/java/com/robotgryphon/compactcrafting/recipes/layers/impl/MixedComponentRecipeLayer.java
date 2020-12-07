@@ -1,5 +1,7 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -8,7 +10,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedLayerDimensions {
+public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLayer {
     private AxisAlignedBB dimensions;
     private Map<BlockPos, String> componentLookup;
     private Map<String, Integer> totalCache;

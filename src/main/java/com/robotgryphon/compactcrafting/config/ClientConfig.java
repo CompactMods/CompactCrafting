@@ -27,8 +27,13 @@ public class ClientConfig {
                 .comment("Projector Settings")
                 .push("projectors");
 
+        String sep = System.lineSeparator();
+
         PROJECTOR_COLOR = builder
-                .comment("The color for the projector fields. (HEX format, default #FF6A00)")
+                .comment(
+                        "The color for the projector fields. (HEX format)",
+                        "Examples: Orange - #FF6A00, Violet - #32174D, Green - #00A658, Blue - #3A7FE1"
+                )
                 .define("projectorColor", "#FF6A00");
 
         builder.pop();
