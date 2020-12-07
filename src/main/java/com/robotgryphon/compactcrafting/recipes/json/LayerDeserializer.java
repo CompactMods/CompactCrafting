@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.json;
 
 import com.google.gson.*;
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.json.loaders.FilledLayerLoader;
 import com.robotgryphon.compactcrafting.recipes.json.loaders.HollowLayerLoader;
 import com.robotgryphon.compactcrafting.recipes.json.loaders.ILayerLoader;
@@ -42,7 +43,8 @@ public class LayerDeserializer implements JsonDeserializer<IRecipeLayer> {
                 break;
 
             default:
-                throw new JsonParseException("Unknown layer type '" + type + "'");
+                CompactCrafting.LOGGER.error("Unknown layer type '" + type + "'");
+                return null;
         }
 
         try {

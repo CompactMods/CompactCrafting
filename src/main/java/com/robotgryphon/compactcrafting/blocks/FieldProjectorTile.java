@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.blocks;
 
+import com.robotgryphon.compactcrafting.config.ClientConfig;
 import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
@@ -41,7 +42,8 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     }
 
     public Color getProjectionColor(EnumProjectorColorType type) {
-        Color base = new Color(255, 106, 0, 100);
+        Color base = ClientConfig.projectorColor;
+        new Color(255, 106, 0, 100);
         // Color base = Color.red.brighter();
         int red = base.getRed();
         int green = base.getGreen();
