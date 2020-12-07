@@ -36,9 +36,8 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
      */
     @Override
     public Collection<BlockPos> getNonAirPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize(), 1, recipeDimensions.getZSize());
+        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 1, recipeDimensions.getZSize() - 1);
         return BlockPos.getAllInBox(layerBounds)
-                .parallel()
                 .map(BlockPos::toImmutable)
                 .collect(Collectors.toSet());
     }

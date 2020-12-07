@@ -4,6 +4,7 @@ import com.robotgryphon.compactcrafting.config.ClientConfig;
 import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
+import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
@@ -32,7 +33,7 @@ import java.util.stream.Collectors;
 
 public class FieldProjectorTile extends TileEntity implements ITickableTileEntity {
 
-    private boolean isCrafting = false;
+    private EnumCraftingState craftingState = EnumCraftingState.NOT_MATCHED;
     private FieldProjection field = null;
     private MiniaturizationRecipe currentRecipe = null;
     private int fieldCheckTimeout = 0;
@@ -49,7 +50,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         int green = base.getGreen();
         int blue = base.getBlue();
 
-        switch(type) {
+        switch (type) {
             case FIELD:
             case SCAN_LINE:
                 return new Color(red, green, blue, 100);
@@ -120,10 +121,10 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
     }
 
     public void invalidateField() {
-        if(world == null || world.isRemote)
+        if (world == null || world.isRemote)
             return;
 
-        if(field != null) {
+        if (field != null) {
             BlockPos center = this.field.getCenterPosition();
             ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
             data.ACTIVE_FIELDS.remove(center);
@@ -152,7 +153,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 return;
         }
 
-        if(this.currentRecipe != null)
+        if (this.currentRecipe != null)
             tickCrafting();
     }
 
@@ -166,7 +167,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         if (field.isPresent()) {
             this.field = field.get();
 
-            if(world != null && !world.isRemote) {
+            if (world != null && !world.isRemote) {
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.markDirty();
@@ -185,25 +186,24 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
      * Scans the field and attempts to match a recipe that's placed in it.
      */
     public void doRecipeScan() {
-        if(this.field == null)
+        if (this.field == null)
             return;
 
-        if(this.world == null)
+        if (this.world == null)
             return;
 
         FieldProjectionSize size = field.getFieldSize();
 
         // Only the primary projector needs to worry about the recipe scan
-        if(!isMainProjector())
-        {
+        if (!isMainProjector()) {
             Optional<BlockPos> center = ProjectorHelper.getCenterForSize(world, pos, size);
-            if(!center.isPresent())
+            if (!center.isPresent())
                 return;
 
             BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(world, center.get(), Direction.NORTH, size);
 
             FieldProjectorTile masterTile = (FieldProjectorTile) world.getTileEntity(masterPos);
-            if(masterTile == null)
+            if (masterTile == null)
                 return;
 
             masterTile.doRecipeScan();
@@ -215,6 +215,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // If there are no registered recipes, then we obv can't match anything - exit early
         if (entries.isEmpty()) {
             this.currentRecipe = null;
+            this.craftingState = EnumCraftingState.NOT_MATCHED;
             return;
         }
 
@@ -223,8 +224,9 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(world, fieldBounds);
 
         // If no positions filled, exit early
-        if(fieldBlocks.getNumberFilledBlocks() == 0) {
+        if (fieldBlocks.getNumberFilledBlocks() == 0) {
             this.currentRecipe = null;
+            this.craftingState = EnumCraftingState.NOT_MATCHED;
             return;
         }
 
@@ -238,19 +240,21 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
         // All the recipes we have registered won't fit in the filled bounds -
         // blocks were placed in a larger space than the max recipe size
-          if(recipesBoundFitted.size() == 0) {
+        if (recipesBoundFitted.size() == 0) {
             this.currentRecipe = null;
+            this.craftingState = EnumCraftingState.NOT_MATCHED;
             return;
         }
 
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
-        for(MiniaturizationRecipe recipe : recipesBoundFitted) {
+        for (MiniaturizationRecipe recipe : recipesBoundFitted) {
             boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBlocks);
-            if(!recipeMatches)
+            if (!recipeMatches)
                 continue;
 
             matchedRecipe = recipe;
+            this.craftingState = EnumCraftingState.MATCHED;
             break;
         }
 
@@ -271,22 +275,32 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 // We dropped a catalyst item in
                 // At this point, we had a valid recipe and a valid catalyst entity
                 // Start crafting
-                this.isCrafting = true;
+                switch (craftingState) {
+                    case MATCHED:
+                        craftingState = EnumCraftingState.CRAFTING;
 
-                // We know the "recipe" in the field is an exact match already, so wipe the field
-                field.clearBlocks(world);
+                        // We know the "recipe" in the field is an exact match already, so wipe the field
+                        field.clearBlocks(world);
 
-                CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
+                        CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                BlockPos fieldCenter = field.getCenterPosition();
-                for (ItemStack is : currentRecipe.getOutputs()) {
-                    ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
-                    world.addEntity(itemEntity);
+                        BlockPos centerField = field.getCenterPosition();
+                        world.setBlockState(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().getDefaultState());
+                        FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) world.getTileEntity(centerField);
+                        if(tile != null)
+                            tile.setMasterProjector(this);
+
+                        break;
+
+                    case CRAFTING:
+                        break;
+
+                    case DONE:
+                        // We aren't crafting any more - recipe complete, reset for next one
+                        this.craftingState = EnumCraftingState.NOT_MATCHED;
+                        this.currentRecipe = null;
+                        break;
                 }
-
-                // We aren't crafting any more - recipe complete, reset for next one
-                this.isCrafting = false;
-                this.currentRecipe = null;
             }
         }
     }
@@ -332,5 +346,14 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     public Optional<FieldProjection> getField() {
         return Optional.ofNullable(this.field);
+    }
+
+    public Optional<MiniaturizationRecipe> getCurrentRecipe() {
+        return Optional.ofNullable(this.currentRecipe);
+    }
+
+    public void updateCraftingState(EnumCraftingState state) {
+        this.craftingState = state;
+        this.markDirty();
     }
 }
