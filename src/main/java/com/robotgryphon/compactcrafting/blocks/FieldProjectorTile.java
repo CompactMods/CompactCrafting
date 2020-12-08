@@ -215,7 +215,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // If there are no registered recipes, then we obv can't match anything - exit early
         if (entries.isEmpty()) {
             this.currentRecipe = null;
-            this.craftingState = EnumCraftingState.NOT_MATCHED;
+            updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
         }
 
@@ -226,7 +226,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // If no positions filled, exit early
         if (fieldBlocks.getNumberFilledBlocks() == 0) {
             this.currentRecipe = null;
-            this.craftingState = EnumCraftingState.NOT_MATCHED;
+            updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
         }
 
@@ -242,7 +242,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // blocks were placed in a larger space than the max recipe size
         if (recipesBoundFitted.size() == 0) {
             this.currentRecipe = null;
-            this.craftingState = EnumCraftingState.NOT_MATCHED;
+            updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
         }
 
@@ -254,7 +254,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 continue;
 
             matchedRecipe = recipe;
-            this.craftingState = EnumCraftingState.MATCHED;
+            updateCraftingState(EnumCraftingState.MATCHED);
             break;
         }
 
@@ -277,7 +277,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                 // Start crafting
                 switch (craftingState) {
                     case MATCHED:
-                        craftingState = EnumCraftingState.CRAFTING;
+                        updateCraftingState(EnumCraftingState.CRAFTING);
 
                         // We know the "recipe" in the field is an exact match already, so wipe the field
                         field.clearBlocks(world);
@@ -297,7 +297,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
                     case DONE:
                         // We aren't crafting any more - recipe complete, reset for next one
-                        this.craftingState = EnumCraftingState.NOT_MATCHED;
+                        updateCraftingState(EnumCraftingState.NOT_MATCHED);
                         this.currentRecipe = null;
                         break;
                 }
@@ -354,6 +354,9 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
     public void updateCraftingState(EnumCraftingState state) {
         this.craftingState = state;
-        this.markDirty();
+    }
+
+    public EnumCraftingState getCraftingState() {
+        return this.craftingState;
     }
 }

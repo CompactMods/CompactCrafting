@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -13,6 +14,10 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderTypeBuffers;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,6 +25,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraftforge.client.model.data.EmptyModelData;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,6 +34,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     public static final ResourceLocation UID = new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization");
     private final IDrawable icon;
+    private final BlockRendererDispatcher blocks;
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
@@ -35,12 +42,14 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     public JeiMiniaturizationCraftingCategory(IGuiHelper guiHelper) {
         int width = (9 * 18) + 10;
-        int height = 10 + (18 * 3) + 5;
+        int height = 150 + (10 + (18 * 3) + 5);
 
         this.guiHelper = guiHelper;
         this.background = guiHelper.createBlankDrawable(width, height);
         this.slotDrawable = guiHelper.getSlotDrawable();
         this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
+
+        this.blocks = Minecraft.getInstance().getBlockRendererDispatcher();
     }
 
     @Override
@@ -170,7 +179,37 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
+
+        RenderTypeBuffers renderBuffers = Minecraft.getInstance().getRenderTypeBuffers();
+        IRenderTypeBuffer.Impl buffers = renderBuffers.getBufferSource();
+
         mx.push();
+
+        double ySize = recipe.getDimensions().getYSize();
+
+        for(int y = 0; y < ySize; y++) {
+            mx.push();
+            mx.translate(0, y, 0);
+
+            Optional<IRecipeLayer> layer = recipe.getLayer(y);
+            layer.ifPresent(l -> {
+                l.getNonAirPositions().forEach(filledPos -> {
+                    mx.push();
+                    mx.translate(filledPos.getX(), 0, filledPos.getZ());
+                    String component = l.getRequiredComponentKeyForPosition(filledPos);
+                    Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
+
+                    recipeComponent.ifPresent(state -> {
+                        blocks.renderBlock(state, mx, buffers, 0, 0, EmptyModelData.INSTANCE);
+                    });
+
+                    mx.pop();
+                });
+            });
+
+            mx.pop();
+        }
+
         // mx.scale(3, 3, 1);
         // this.getIcon().draw(mx, 7, 0);
         mx.pop();

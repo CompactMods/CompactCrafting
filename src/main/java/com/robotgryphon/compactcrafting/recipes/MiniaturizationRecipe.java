@@ -315,4 +315,8 @@ public class MiniaturizationRecipe {
                     dynamic.setRecipeDimensions(dimensions);
                 });
     }
+
+    public int getTicks() {
+        return 200;
+    }
 }

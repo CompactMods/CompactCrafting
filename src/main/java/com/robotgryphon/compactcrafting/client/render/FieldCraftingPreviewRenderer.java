@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 import java.util.Optional;
@@ -33,16 +34,16 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             mx.translate(0.5, 0.5, 0.5);
 
             // progress, ticks required
-            double craftProgress = (double) tile.getProgress();
-            double progress = 1.0d - (craftProgress / (double) 200);
+            double craftProgress = tile.getProgress();
+
+            double progress = 1.0d - (craftProgress / (double)rec.getTicks());
 
             double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f));
-            scale *= 0.7d;
 
             mx.scale((float) scale, (float) scale, (float) scale);
 
-            // double yaw = Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / FieldProjectorRenderer.RotationSpeed.SLOW.getSpeed()) * 10;
-            // mx.rotate(Vector3f.YP.rotation((float) yaw));
+            double angle = RenderTickCounter.renderTicks * (45.0f / 64.0f);
+            mx.rotate(Vector3f.YP.rotationDegrees((float) angle));
 
             AxisAlignedBB dimensions = rec.getDimensions();
             mx.translate(-(dimensions.getXSize() / 2), -(dimensions.getYSize() / 2), -(dimensions.getZSize() / 2));
