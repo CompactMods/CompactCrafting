@@ -1,21 +1,21 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
+public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
 
     private String componentKey;
     private AxisAlignedBB recipeDimensions;
-    private Collection<BlockPos> filledPositions;
 
-    public HollowComponentRecipeLayer(String component) {
+    public FilledComponentRecipeLayer(String component) {
         this.componentKey = component;
     }
 
@@ -29,9 +29,19 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
         return componentKey;
     }
 
+    /**
+     * Gets a set of non-air positions that are required for the layer to match.
+     * This is expected to trim the air positions off the edges and return the positions with NW
+     * in the 0, 0 position.
+     *
+     * @return
+     */
     @Override
     public Collection<BlockPos> getNonAirPositions() {
-        return this.filledPositions;
+        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 1, recipeDimensions.getZSize() - 1);
+        return BlockPos.getAllInBox(layerBounds)
+                .map(BlockPos::toImmutable)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -41,13 +51,18 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
 
     @Override
     public int getNumberFilledPositions() {
-        return filledPositions.size();
+        return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getYSize());
     }
 
     public void setComponent(String component) {
         this.componentKey = component;
     }
 
+    /**
+     * Used to update a recipe layer to change the size of the recipe base.
+     *
+     * @param dimensions The new dimensions of the recipe.
+     */
     @Override
     public void setRecipeDimensions(AxisAlignedBB dimensions) {
         this.recipeDimensions = dimensions;
@@ -60,22 +75,6 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
      */
     @Override
     public void recalculateRequirements() {
-        this.filledPositions = getWallPositions();
-    }
 
-    public Collection<BlockPos> getWallPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 0, recipeDimensions.getZSize() - 1);
-        AxisAlignedBB insideBounds = layerBounds.offset(1, 0, 1).contract(2, 0, 2);
-
-        Set<BlockPos> positions = BlockPos.getAllInBox(layerBounds)
-                .map(BlockPos::toImmutable)
-                .collect(Collectors.toSet());
-
-        Set<BlockPos> inside = BlockPos.getAllInBox(insideBounds)
-                .map(BlockPos::toImmutable)
-                .collect(Collectors.toSet());
-
-        positions.removeAll(inside);
-        return positions;
     }
 }

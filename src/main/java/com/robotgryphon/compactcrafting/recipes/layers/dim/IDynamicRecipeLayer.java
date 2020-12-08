@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.recipes.layers.dim;
 
 import net.minecraft.util.math.AxisAlignedBB;
 

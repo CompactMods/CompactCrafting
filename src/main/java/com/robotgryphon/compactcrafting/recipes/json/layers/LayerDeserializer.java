@@ -1,11 +1,8 @@
-package com.robotgryphon.compactcrafting.recipes.json;
+package com.robotgryphon.compactcrafting.recipes.json.layers;
 
 import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.json.loaders.FilledLayerLoader;
-import com.robotgryphon.compactcrafting.recipes.json.loaders.HollowLayerLoader;
-import com.robotgryphon.compactcrafting.recipes.json.loaders.ILayerLoader;
-import com.robotgryphon.compactcrafting.recipes.json.loaders.MixedLayerLoader;
+import com.robotgryphon.compactcrafting.recipes.exceptions.RecipeLoadingException;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 
 import java.lang.reflect.Type;

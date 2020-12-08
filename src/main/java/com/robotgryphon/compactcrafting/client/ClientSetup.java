@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.client;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.client.render.FieldCraftingPreviewRenderer;
 import com.robotgryphon.compactcrafting.client.render.FieldProjectorRenderer;
 import com.robotgryphon.compactcrafting.core.Constants;
 import com.robotgryphon.compactcrafting.core.Registration;
@@ -18,6 +19,7 @@ public class ClientSetup {
     @SubscribeEvent
     public static void init(final FMLClientSetupEvent event) {
         ClientRegistry.bindTileEntityRenderer(Registration.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(Registration.FIELD_CRAFTING_PREVIEW_TILE.get(), FieldCraftingPreviewRenderer::new);
     }
 
     @SubscribeEvent

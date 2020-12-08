@@ -1,10 +1,10 @@
-package com.robotgryphon.compactcrafting.recipes.json.loaders;
+package com.robotgryphon.compactcrafting.recipes.json.layers;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.json.RecipeLoaderUtil;
+import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;
@@ -16,7 +16,7 @@ public class MixedLayerLoader implements ILayerLoader {
         if(!layer.has("pattern"))
             throw new JsonParseException("Mixed layer definition does not have an associated pattern.");
 
-        Map<BlockPos, String> compMap = RecipeLoaderUtil.getComponentMapFromPattern(layer);
+        Map<BlockPos, String> compMap = RecipeHelper.getComponentMapFromPattern(layer);
 
         MixedComponentRecipeLayer mixed = new MixedComponentRecipeLayer();
         for(Map.Entry<BlockPos, String> mapping : compMap.entrySet()) {

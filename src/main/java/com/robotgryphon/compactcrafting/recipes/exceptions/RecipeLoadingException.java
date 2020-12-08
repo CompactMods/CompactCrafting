@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.json;
+package com.robotgryphon.compactcrafting.recipes.exceptions;
 
 public class RecipeLoadingException extends Throwable {
 

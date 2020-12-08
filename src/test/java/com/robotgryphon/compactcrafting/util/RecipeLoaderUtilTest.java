@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting.util;
 
-import com.robotgryphon.compactcrafting.recipes.json.RecipeLoaderUtil;
+import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Test;
 
@@ -13,16 +13,16 @@ class RecipeLoaderUtilTest {
     void convertsStringToMap() {
         String[][] array = getTargetArray();
 
-        Map<BlockPos, String> map = RecipeLoaderUtil.convertMultiArrayToMap(array);
+        Map<BlockPos, String> map = RecipeHelper.convertMultiArrayToMap(array);
     }
 
     @Test
     void convertsMapToComponentCounts() {
         String[][] array = getTargetArray();
 
-        Map<BlockPos, String> map = RecipeLoaderUtil.convertMultiArrayToMap(array);
+        Map<BlockPos, String> map = RecipeHelper.convertMultiArrayToMap(array);
 
-        RecipeLoaderUtil.getComponentCounts(map);
+        RecipeHelper.getComponentCounts(map);
     }
 
     // =========================================================================================================

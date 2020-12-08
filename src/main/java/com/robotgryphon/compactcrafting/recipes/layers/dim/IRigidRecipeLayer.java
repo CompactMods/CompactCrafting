@@ -1,8 +1,8 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.recipes.layers.dim;
 
 import net.minecraft.util.math.AxisAlignedBB;
 
-public interface IFixedLayerDimensions {
+public interface IRigidRecipeLayer {
 
     /**
      * Gets the trimmed dimensions of the given recipe layer.

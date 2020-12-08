@@ -1,10 +1,14 @@
 package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewBlock;
+import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
+import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntityType;
@@ -50,6 +54,9 @@ public class Registration {
                     .hardnessAndResistance(8, 20)
             ));
 
+    public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
+            new FieldCraftingPreviewBlock(AbstractBlock.Properties.from(Blocks.BARRIER)));
+
     // ================================================================================================================
     //   ITEMS
     // ================================================================================================================
@@ -62,6 +69,11 @@ public class Registration {
     public static final RegistryObject<TileEntityType<FieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
             TileEntityType.Builder
                     .create(FieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .build(null));
+
+    public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
+            TileEntityType.Builder
+                    .create(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())
                     .build(null));
 
     // ================================================================================================================
