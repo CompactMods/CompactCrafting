@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
@@ -17,11 +18,14 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderTypeBuffers;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -180,38 +184,64 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
 
-        RenderTypeBuffers renderBuffers = Minecraft.getInstance().getRenderTypeBuffers();
-        IRenderTypeBuffer.Impl buffers = renderBuffers.getBufferSource();
+        try {
+            IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
 
-        mx.push();
+            TileEntityRendererDispatcher renderer = TileEntityRendererDispatcher.instance;
+            // renderer.renderEngine = Minecraft.getMinecraft().renderEngine;
 
-        double ySize = recipe.getDimensions().getYSize();
-
-        for(int y = 0; y < ySize; y++) {
             mx.push();
-            mx.translate(0, y, 0);
 
-            Optional<IRecipeLayer> layer = recipe.getLayer(y);
-            layer.ifPresent(l -> {
-                l.getNonAirPositions().forEach(filledPos -> {
-                    mx.push();
-                    mx.translate(filledPos.getX(), 0, filledPos.getZ());
-                    String component = l.getRequiredComponentKeyForPosition(filledPos);
-                    Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
+            //mx.translate(80, 0, 0);
 
-                    recipeComponent.ifPresent(state -> {
-                        blocks.renderBlock(state, mx, buffers, 0, 0, EmptyModelData.INSTANCE);
+            GlStateManager.enableCull();
+
+            mx.translate((background.getWidth()  / 2) - 40, 120, 100);
+
+            mx.scale(10, 10, 1);
+
+            mx.rotate(Vector3f.XP.rotationDegrees(15f));
+            mx.rotate(Vector3f.YP.rotationDegrees(15f));
+
+            int overlay = OverlayTexture.NO_OVERLAY;
+//            blocks.renderBlock(Blocks.PUMPKIN.getDefaultState(), mx, buffers,
+//                    0xf000f0, overlay, EmptyModelData.INSTANCE);
+
+            double ySize = recipe.getDimensions().getYSize();
+
+            for (int y = 0; y < ySize; y++) {
+                mx.push();
+                mx.translate(0, y, 0);
+
+                Optional<IRecipeLayer> layer = recipe.getLayer(y);
+                layer.ifPresent(l -> {
+                    l.getNonAirPositions().forEach(filledPos -> {
+                        mx.push();
+                        mx.translate(filledPos.getX(), 0, filledPos.getZ());
+                        String component = l.getRequiredComponentKeyForPosition(filledPos);
+                        Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
+
+                        recipeComponent.ifPresent(state -> {
+                            // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
+
+                            blocks.renderBlock(state, mx, buffers,
+                                    0xf000f0, overlay, EmptyModelData.INSTANCE);
+                        });
+
+                        mx.pop();
                     });
-
-                    mx.pop();
                 });
-            });
 
+                mx.pop();
+            }
+
+            // mx.scale(3, 3, 1);
+            // this.getIcon().draw(mx, 7, 0);
             mx.pop();
-        }
 
-        // mx.scale(3, 3, 1);
-        // this.getIcon().draw(mx, 7, 0);
-        mx.pop();
+            buffers.finish();
+        } catch (Exception ex) {
+
+        }
     }
 }
