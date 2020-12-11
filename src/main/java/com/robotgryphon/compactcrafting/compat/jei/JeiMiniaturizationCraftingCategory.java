@@ -3,6 +3,7 @@ package com.robotgryphon.compactcrafting.compat.jei;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
@@ -25,7 +26,8 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -194,14 +196,18 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             //mx.translate(80, 0, 0);
 
-            GlStateManager.enableCull();
+            AxisAlignedBB dims = recipe.getDimensions();
 
-            mx.translate((background.getWidth()  / 2) - 40, 120, 100);
+            mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
 
-            mx.scale(10, 10, 1);
+            mx.scale(-10, -10, 10);
 
-            mx.rotate(Vector3f.XP.rotationDegrees(15f));
-            mx.rotate(Vector3f.YP.rotationDegrees(15f));
+            mx.rotate(new Quaternion(35f, (RenderTickCounter.renderTicks), 0, true));
+            // mx.translate((background.getWidth()  / 2) - 40, 120, 100);
+
+            mx.push();
+
+            mx.scale(-1, -1, -1);
 
             int overlay = OverlayTexture.NO_OVERLAY;
 //            blocks.renderBlock(Blocks.PUMPKIN.getDefaultState(), mx, buffers,
@@ -209,7 +215,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             double ySize = recipe.getDimensions().getYSize();
 
-            for (int y = 0; y < ySize; y++) {
+            int y = 2;
+//            for (int y = 0; y < ySize; y++) {
                 mx.push();
                 mx.translate(0, y, 0);
 
@@ -224,6 +231,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                         recipeComponent.ifPresent(state -> {
                             // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
 
+                            // 0xf000f0
                             blocks.renderBlock(state, mx, buffers,
                                     0xf000f0, overlay, EmptyModelData.INSTANCE);
                         });
@@ -233,10 +241,14 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 });
 
                 mx.pop();
-            }
+//            }
 
             // mx.scale(3, 3, 1);
             // this.getIcon().draw(mx, 7, 0);
+            mx.pop();
+
+
+
             mx.pop();
 
             buffers.finish();
