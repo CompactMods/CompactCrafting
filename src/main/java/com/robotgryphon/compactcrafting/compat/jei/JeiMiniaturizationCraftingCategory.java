@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.core.Registration;
@@ -19,6 +19,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
@@ -27,14 +28,20 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
+import java.awt.*;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<MiniaturizationRecipe> {
 
@@ -196,64 +203,95 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             //mx.translate(80, 0, 0);
 
+            IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
             AxisAlignedBB dims = recipe.getDimensions();
 
-            mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
+            // mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
 
-            mx.scale(-10, -10, 10);
+            mx.translate(
+                    background.getWidth() / 2,
+                    (background.getHeight() / 2) + 30,
+                    400);
 
-            mx.rotate(new Quaternion(35f, (RenderTickCounter.renderTicks), 0, true));
-            // mx.translate((background.getWidth()  / 2) - 40, 120, 100);
+            mx.scale(10, -10, 10);
 
-            mx.push();
+            mx.rotate(new Quaternion(35f,
+                    (RenderTickCounter.renderTicks),
+                    0,
+                    true));
 
-            mx.scale(-1, -1, -1);
+            addColoredVertex(builder, mx, Color.RED, new Vector3f(0, (float) -10, 0));
+
+            addColoredVertex(builder, mx, Color.RED, new Vector3f(0, (float) 10, 0));
 
             int overlay = OverlayTexture.NO_OVERLAY;
 //            blocks.renderBlock(Blocks.PUMPKIN.getDefaultState(), mx, buffers,
 //                    0xf000f0, overlay, EmptyModelData.INSTANCE);
 
-            double ySize = recipe.getDimensions().getYSize();
 
-            int y = 2;
-//            for (int y = 0; y < ySize; y++) {
+            double ySize = recipe.getDimensions().getYSize();
+            double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
+
+            int[] layers = IntStream.range(0, (int) ySize).toArray();
+
+            for (int y : layers) {
                 mx.push();
-                mx.translate(0, y, 0);
+                mx.translate(
+                        -(dims.getXSize() / 2) * explodeMulti - 0.5,
+                        -(dims.getYSize() / 2) * explodeMulti - 0.5,
+                        -(dims.getZSize() / 2) * explodeMulti - 0.5
+                );
 
                 Optional<IRecipeLayer> layer = recipe.getLayer(y);
-                layer.ifPresent(l -> {
-                    l.getNonAirPositions().forEach(filledPos -> {
-                        mx.push();
-                        mx.translate(filledPos.getX(), 0, filledPos.getZ());
-                        String component = l.getRequiredComponentKeyForPosition(filledPos);
-                        Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
 
-                        recipeComponent.ifPresent(state -> {
-                            // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
-
-                            // 0xf000f0
-                            blocks.renderBlock(state, mx, buffers,
-                                    0xf000f0, overlay, EmptyModelData.INSTANCE);
-                        });
-
-                        mx.pop();
-                    });
-                });
+                if (layer.isPresent()) {
+                    renderRecipeLayer(recipe, mx, buffers, overlay, layer.get(), y, explodeMulti);
+                }
 
                 mx.pop();
-//            }
+            }
 
             // mx.scale(3, 3, 1);
             // this.getIcon().draw(mx, 7, 0);
             mx.pop();
 
 
-
-            mx.pop();
-
             buffers.finish();
         } catch (Exception ex) {
+            CompactCrafting.LOGGER.warn(ex);
+        }
+    }
 
+    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
+        renderer.pos(stack.getLast().getMatrix(), position.getX(), position.getY(), position.getZ())
+                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
+                .lightmap(0, 240)
+                .normal(1, 0, 0)
+                .endVertex();
+    }
+
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, int overlay, IRecipeLayer l, int y, double explodeMulti) {
+        for (BlockPos filledPos : l.getNonAirPositions()) {
+            mx.push();
+
+            mx.translate(
+                    ((filledPos.getX() + 0.5) * explodeMulti),
+                    ((y + 0.5) * explodeMulti),
+                    ((filledPos.getZ() + 0.5) * explodeMulti)
+            );
+
+            String component = l.getRequiredComponentKeyForPosition(filledPos);
+            Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
+
+            recipeComponent.ifPresent(state -> {
+                // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
+
+                // 0xf000f0
+                blocks.renderBlock(state, mx, buffers,
+                        0xf000f0, overlay, EmptyModelData.INSTANCE);
+            });
+
+            mx.pop();
         }
     }
 }
