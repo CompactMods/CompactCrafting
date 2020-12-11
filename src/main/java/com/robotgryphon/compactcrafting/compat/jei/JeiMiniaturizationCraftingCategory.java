@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
+import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
@@ -17,19 +18,14 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Quaternion;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.IFormattableTextComponent;
@@ -51,7 +47,14 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
+    private int[] renderLayers;
+    private boolean debugMode = false;
+    private Rectangle2d explodeToggle = new Rectangle2d(0, 0, 10, 10);
 
+    /**
+     * Explode multiplier; specifies how far apart blocks are rendered.
+     */
+    private double explodeMulti = 1.0d;
 
     public JeiMiniaturizationCraftingCategory(IGuiHelper guiHelper) {
         int width = (9 * 18) + 10;
@@ -112,7 +115,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public void setRecipe(IRecipeLayout recipeLayout, MiniaturizationRecipe recipe, IIngredients iIngredients) {
 
         int GUTTER_X = 5;
-        int OFFSET_Y = 10;
+        int OFFSET_Y = 150;
 
         IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
         int numComponentSlots = 18;
@@ -191,70 +194,93 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     }
 
     @Override
+    public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
+
+        if(explodeToggle.contains((int) mouseX, (int) mouseY)) {
+            if(explodeMulti == 1.6d) {
+                explodeMulti = 1.0d;
+            } else {
+                explodeMulti = 1.6d;
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
 
         try {
-            IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
 
-            TileEntityRendererDispatcher renderer = TileEntityRendererDispatcher.instance;
-            // renderer.renderEngine = Minecraft.getMinecraft().renderEngine;
+        }
+
+        catch(Exception ex) {}
+
+        try {
+            IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+            IVertexBuilder field = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
+            IVertexBuilder lines = buffers.getBuffer(RenderType.getLines());
 
             mx.push();
 
-            //mx.translate(80, 0, 0);
+            mx.translate(explodeToggle.getX(), explodeToggle.getY(), 0);
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY(), 0));
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY(), 0));
 
-            IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY(), 0));
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
+
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
+
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
+            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY(), 0));
+
+            mx.pop();
+
+            mx.push();
+
             AxisAlignedBB dims = recipe.getDimensions();
 
             // mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
 
             mx.translate(
                     background.getWidth() / 2,
-                    (background.getHeight() / 2) + 30,
+                    70,
                     400);
 
             mx.scale(10, -10, 10);
 
             mx.rotate(new Quaternion(35f,
-                    (RenderTickCounter.renderTicks),
+                    -(RenderTickCounter.renderTicks),
                     0,
                     true));
 
-            addColoredVertex(builder, mx, Color.RED, new Vector3f(0, (float) -10, 0));
-
-            addColoredVertex(builder, mx, Color.RED, new Vector3f(0, (float) 10, 0));
-
-            int overlay = OverlayTexture.NO_OVERLAY;
-//            blocks.renderBlock(Blocks.PUMPKIN.getDefaultState(), mx, buffers,
-//                    0xf000f0, overlay, EmptyModelData.INSTANCE);
-
-
-            double ySize = recipe.getDimensions().getYSize();
-            double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
-
-            int[] layers = IntStream.range(0, (int) ySize).toArray();
-
-            for (int y : layers) {
-                mx.push();
-                mx.translate(
-                        -(dims.getXSize() / 2) * explodeMulti - 0.5,
-                        -(dims.getYSize() / 2) * explodeMulti - 0.5,
-                        -(dims.getZSize() / 2) * explodeMulti - 0.5
-                );
-
-                Optional<IRecipeLayer> layer = recipe.getLayer(y);
-
-                if (layer.isPresent()) {
-                    renderRecipeLayer(recipe, mx, buffers, overlay, layer.get(), y, explodeMulti);
-                }
-
-                mx.pop();
+            if(debugMode) {
+                // DEBUG Line
+                addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) -10, 0));
+                addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) 10, 0));
             }
 
-            // mx.scale(3, 3, 1);
-            // this.getIcon().draw(mx, 7, 0);
-            mx.pop();
+            double ySize = recipe.getDimensions().getYSize();
 
+            // Variable explode based on mouse position (clamped)
+            // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
+
+            renderLayers = IntStream.range(0, (int) ySize).toArray();
+
+            mx.translate(
+                    -(dims.getXSize() / 2) * explodeMulti - 0.5,
+                    -(dims.getYSize() / 2) * explodeMulti - 0.5,
+                    -(dims.getZSize() / 2) * explodeMulti - 0.5
+            );
+
+            for (int y : renderLayers) {
+                Optional<IRecipeLayer> layer = recipe.getLayer(y);
+                layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
+            }
+
+            mx.pop();
 
             buffers.finish();
         } catch (Exception ex) {
@@ -270,13 +296,16 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 .endVertex();
     }
 
-    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, int overlay, IRecipeLayer l, int y, double explodeMulti) {
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
+        // Begin layer
+        mx.push();
+
         for (BlockPos filledPos : l.getNonAirPositions()) {
             mx.push();
 
             mx.translate(
                     ((filledPos.getX() + 0.5) * explodeMulti),
-                    ((y + 0.5) * explodeMulti),
+                    ((layerY + 0.5) * explodeMulti),
                     ((filledPos.getZ() + 0.5) * explodeMulti)
             );
 
@@ -288,10 +317,13 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
                 // 0xf000f0
                 blocks.renderBlock(state, mx, buffers,
-                        0xf000f0, overlay, EmptyModelData.INSTANCE);
+                        0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
             });
 
             mx.pop();
         }
+
+        // Done with layer
+        mx.pop();
     }
 }
