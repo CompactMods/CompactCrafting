@@ -18,7 +18,10 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
@@ -27,6 +30,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
@@ -47,9 +51,19 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
-    private int[] renderLayers;
+    private boolean singleLayer = false;
+    private int singleLayerOffset = 0;
     private boolean debugMode = false;
-    private Rectangle2d explodeToggle = new Rectangle2d(0, 0, 10, 10);
+
+    private Rectangle explodeToggle = new Rectangle(0, 0, 10, 10);
+    private Rectangle layerUp = new Rectangle(0, 12, 10, 10);
+    private Rectangle layerSwap = new Rectangle(0, 23, 10, 10);
+    private Rectangle layerDown = new Rectangle(0, 34, 10, 10);
+
+    /**
+     * Whether or not the preview is exploded (expanded) or not.
+     */
+    private boolean exploded = false;
 
     /**
      * Explode multiplier; specifies how far apart blocks are rendered.
@@ -113,6 +127,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public void setRecipe(IRecipeLayout recipeLayout, MiniaturizationRecipe recipe, IIngredients iIngredients) {
+
+        singleLayer = false;
+        singleLayerOffset = 0;
 
         int GUTTER_X = 5;
         int OFFSET_Y = 150;
@@ -196,12 +213,29 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
 
-        if(explodeToggle.contains((int) mouseX, (int) mouseY)) {
-            if(explodeMulti == 1.6d) {
-                explodeMulti = 1.0d;
-            } else {
-                explodeMulti = 1.6d;
-            }
+        if (explodeToggle.contains(mouseX, mouseY)) {
+            explodeMulti = exploded ? 1.0d : 1.6d;
+            exploded = !exploded;
+            return true;
+        }
+
+        if (layerSwap.contains(mouseX, mouseY)) {
+            singleLayer = !singleLayer;
+            return true;
+        }
+
+        if (layerUp.contains(mouseX, mouseY) && singleLayer) {
+            if(singleLayerOffset < recipe.getDimensions().getYSize() - 1)
+                singleLayerOffset++;
+
+            return true;
+        }
+
+        if (layerDown.contains(mouseX, mouseY) && singleLayer) {
+            if(singleLayerOffset > 0)
+                singleLayerOffset--;
+
+            return true;
         }
 
         return false;
@@ -210,37 +244,44 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
 
-        try {
+//        try {
+//            IDrawableBuilder b = guiHelper.drawableBuilder(new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector"), 16, 16, 16, 16);
+//            IDrawableStatic build = b.build();
+//
+//            build.draw(mx, 0, 30);
+//        } catch (Exception ex) {
+//        }
 
+        AxisAlignedBB dims = recipe.getDimensions();
+
+        IDrawableStatic jei = guiHelper
+                .drawableBuilder(
+                new ResourceLocation(CompactCrafting.MOD_ID, "textures/nope.png"),
+                0, 0,
+                10, 10
+        ).setTextureSize(16, 16).build();
+
+        jei.draw(mx, explodeToggle.x, explodeToggle.y);
+
+        jei.draw(mx, layerSwap.x, layerSwap.y);
+        if(singleLayer) {
+            if(singleLayerOffset < dims.getYSize() - 1)
+                jei.draw(mx, layerUp.x, layerUp.y);
+
+            if(singleLayerOffset > 0)
+                jei.draw(mx, layerDown.x, layerDown.y);
         }
-
-        catch(Exception ex) {}
 
         try {
             IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
             IVertexBuilder field = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
             IVertexBuilder lines = buffers.getBuffer(RenderType.getLines());
 
-            mx.push();
-
-            mx.translate(explodeToggle.getX(), explodeToggle.getY(), 0);
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY(), 0));
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY(), 0));
-
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY(), 0));
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
-
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX() + explodeToggle.getWidth(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
-
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY() + explodeToggle.getHeight(), 0));
-            addColoredVertex(field, mx, Color.green, new Vector3f(explodeToggle.getX(), explodeToggle.getY(), 0));
-
-            mx.pop();
+//            drawRect(mx, lines, layerUp, Color.blue);
+//            drawRect(mx, lines, layerSwap, Color.red);
+//            drawRect(mx, lines, layerDown, Color.blue);
 
             mx.push();
-
-            AxisAlignedBB dims = recipe.getDimensions();
 
             // mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
 
@@ -256,7 +297,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     0,
                     true));
 
-            if(debugMode) {
+            if (debugMode) {
                 // DEBUG Line
                 addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) -10, 0));
                 addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) 10, 0));
@@ -267,7 +308,13 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             // Variable explode based on mouse position (clamped)
             // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
 
-            renderLayers = IntStream.range(0, (int) ySize).toArray();
+
+            int[] renderLayers;
+            if (!singleLayer) {
+                renderLayers = IntStream.range(0, (int) ySize).toArray();
+            } else {
+                renderLayers = new int[]{singleLayerOffset};
+            }
 
             mx.translate(
                     -(dims.getXSize() / 2) * explodeMulti - 0.5,
@@ -288,8 +335,33 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
+    private void drawRect(MatrixStack mx, IVertexBuilder field, Rectangle rect, Color color) {
+        mx.push();
+        mx.translate(rect.getX(), rect.getY(), 0);
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY(), 0));
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY(), 0));
+
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY(), 0));
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), 0));
+
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), 0));
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY() + rect.getHeight(), 0));
+
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY() + rect.getHeight(), 0));
+        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY(), 0));
+        mx.pop();
+    }
+
+    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3d position) {
+        renderer.pos(position.getX(), position.getY(), position.getZ())
+                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
+                .lightmap(0, 240)
+                .normal(1, 0, 0)
+                .endVertex();
+    }
+
     private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
-        renderer.pos(stack.getLast().getMatrix(), position.getX(), position.getY(), position.getZ())
+        renderer.pos(position.getX(), position.getY(), position.getZ())
                 .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
                 .lightmap(0, 240)
                 .normal(1, 0, 0)
