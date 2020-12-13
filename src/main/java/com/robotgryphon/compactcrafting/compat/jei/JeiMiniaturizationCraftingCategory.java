@@ -4,7 +4,6 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
-import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
@@ -18,7 +17,10 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.BlockRendererDispatcher;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
@@ -133,13 +135,19 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
         int numComponentSlots = 18;
+        int catalystSlot = -1;
+        try {
+            addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
 
-        addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+            catalystSlot = addCatalystSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
 
-        int catalystSlot = addCatalystSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+            addOutputSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+        } catch (Exception ex) {
+            CompactCrafting.LOGGER.error(recipe.getRegistryName());
+            CompactCrafting.LOGGER.error(ex);
+        }
 
-        addOutputSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
-
+        int finalCatalystSlot = catalystSlot;
         guiItemStacks.addTooltipCallback((slot, b, itemStack, tooltip) -> {
             if (slot >= 0 && slot < recipe.getComponentKeys().size()) {
                 IFormattableTextComponent text =
@@ -150,7 +158,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 tooltip.add(text);
             }
 
-            if (slot == catalystSlot) {
+            if (slot == finalCatalystSlot) {
                 IFormattableTextComponent text = new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
                         .mergeStyle(TextFormatting.YELLOW)
                         .mergeStyle(TextFormatting.ITALIC);
@@ -181,6 +189,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         recipe.getRecipeComponentTotals()
                 .entrySet()
                 .stream()
+                .filter(comp -> comp.getValue() > 0)
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .forEach((comp) -> {
                     String component = comp.getKey();
@@ -222,14 +231,14 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
 
         if (layerUp.contains(mouseX, mouseY) && singleLayer) {
-            if(singleLayerOffset < recipe.getDimensions().getYSize() - 1)
+            if (singleLayerOffset < recipe.getDimensions().getYSize() - 1)
                 singleLayerOffset++;
 
             return true;
         }
 
         if (layerDown.contains(mouseX, mouseY) && singleLayer) {
-            if(singleLayerOffset > 0)
+            if (singleLayerOffset > 0)
                 singleLayerOffset--;
 
             return true;
@@ -240,47 +249,31 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
-
-//        try {
-//            IDrawableBuilder b = guiHelper.drawableBuilder(new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector"), 16, 16, 16, 16);
-//            IDrawableStatic build = b.build();
-//
-//            build.draw(mx, 0, 30);
-//        } catch (Exception ex) {
-//        }
-
         AxisAlignedBB dims = recipe.getDimensions();
 
         IDrawableStatic jei = guiHelper
                 .drawableBuilder(
-                new ResourceLocation(CompactCrafting.MOD_ID, "textures/nope.png"),
-                0, 0,
-                10, 10
-        ).setTextureSize(16, 16).build();
+                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/nope.png"),
+                        0, 0,
+                        10, 10
+                ).setTextureSize(16, 16).build();
 
         jei.draw(mx, explodeToggle.x, explodeToggle.y);
 
         jei.draw(mx, layerSwap.x, layerSwap.y);
-        if(singleLayer) {
-            if(singleLayerOffset < dims.getYSize() - 1)
+        if (singleLayer) {
+            if (singleLayerOffset < dims.getYSize() - 1)
                 jei.draw(mx, layerUp.x, layerUp.y);
 
-            if(singleLayerOffset > 0)
+            if (singleLayerOffset > 0)
                 jei.draw(mx, layerDown.x, layerDown.y);
         }
 
         try {
             IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
-            IVertexBuilder field = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
             IVertexBuilder lines = buffers.getBuffer(RenderType.getLines());
 
-//            drawRect(mx, lines, layerUp, Color.blue);
-//            drawRect(mx, lines, layerSwap, Color.red);
-//            drawRect(mx, lines, layerDown, Color.blue);
-
             mx.push();
-
-            // mx.translate(-dims.getXSize()/2, -dims.getYSize() /2 , -dims.getZSize() / 2);
 
             mx.translate(
                     background.getWidth() / 2,
