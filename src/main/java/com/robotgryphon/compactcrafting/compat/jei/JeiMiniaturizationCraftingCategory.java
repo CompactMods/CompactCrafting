@@ -1,9 +1,9 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
+import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
@@ -19,7 +19,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.I18n;
@@ -29,8 +28,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -251,6 +248,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
         AxisAlignedBB dims = recipe.getDimensions();
 
+        //region JEI controls
         IDrawableStatic jei = guiHelper
                 .drawableBuilder(
                         new ResourceLocation(CompactCrafting.MOD_ID, "textures/nope.png"),
@@ -268,10 +266,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             if (singleLayerOffset > 0)
                 jei.draw(mx, layerDown.x, layerDown.y);
         }
+        //endregion
 
         try {
             IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
-            IVertexBuilder lines = buffers.getBuffer(RenderType.getLines());
 
             mx.push();
 
@@ -286,12 +284,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     -(RenderTickCounter.renderTicks),
                     0,
                     true));
-
-            if (debugMode) {
-                // DEBUG Line
-                addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) -10, 0));
-                addColoredVertex(lines, mx, Color.RED, new Vector3f(0, (float) 10, 0));
-            }
 
             double ySize = recipe.getDimensions().getYSize();
 
@@ -325,39 +317,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void drawRect(MatrixStack mx, IVertexBuilder field, Rectangle rect, Color color) {
-        mx.push();
-        mx.translate(rect.getX(), rect.getY(), 0);
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY(), 0));
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY(), 0));
-
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY(), 0));
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), 0));
-
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), 0));
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY() + rect.getHeight(), 0));
-
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY() + rect.getHeight(), 0));
-        addColoredVertex(field, mx, color, new Vector3d(rect.getX(), rect.getY(), 0));
-        mx.pop();
-    }
-
-    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3d position) {
-        renderer.pos(position.getX(), position.getY(), position.getZ())
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
-                .lightmap(0, 240)
-                .normal(1, 0, 0)
-                .endVertex();
-    }
-
-    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
-        renderer.pos(position.getX(), position.getY(), position.getZ())
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
-                .lightmap(0, 240)
-                .normal(1, 0, 0)
-                .endVertex();
-    }
-
     private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
         // Begin layer
         mx.push();
@@ -377,9 +336,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             recipeComponent.ifPresent(state -> {
                 // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
 
-                // 0xf000f0
-                // TODO: RenderTypesExtensions.disableLighting(buffers);
-                blocks.renderBlock(state, mx, buffers,
+                // Thanks Immersive, Astral, and others
+                blocks.renderBlock(state, mx, RenderTypesExtensions.disableLighting(buffers),
                         0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
             });
 
