@@ -51,10 +51,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private int singleLayerOffset = 0;
     private boolean debugMode = false;
 
-    private Rectangle explodeToggle = new Rectangle(0, 0, 10, 10);
-    private Rectangle layerUp = new Rectangle(0, 12, 10, 10);
-    private Rectangle layerSwap = new Rectangle(0, 23, 10, 10);
-    private Rectangle layerDown = new Rectangle(0, 34, 10, 10);
+    private Rectangle explodeToggle = new Rectangle(0, 0, 20, 20);
+    private Rectangle layerUp = new Rectangle(0, 32, 20, 20);
+    private Rectangle layerSwap = new Rectangle(0, 52, 20, 20);
+    private Rectangle layerDown = new Rectangle(0, 72, 20, 20);
 
     /**
      * Whether or not the preview is exploded (expanded) or not.
@@ -123,7 +123,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public void setRecipe(IRecipeLayout recipeLayout, MiniaturizationRecipe recipe, IIngredients iIngredients) {
-
         singleLayer = false;
         singleLayerOffset = 0;
 
@@ -249,23 +248,70 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         AxisAlignedBB dims = recipe.getDimensions();
 
         //region JEI controls
-        IDrawableStatic jei = guiHelper
+        IDrawableStatic button;
+        if(exploded) {
+            button = guiHelper
+                    .drawableBuilder(
+                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                            20, 0,
+                            20, 20
+                    ).setTextureSize(120, 20).build();
+        } else {
+            button = guiHelper
+                    .drawableBuilder(
+                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                            0, 0,
+                            20, 20
+                    ).setTextureSize(120, 20).build();
+        }
+
+        IDrawableStatic layerUp = guiHelper
                 .drawableBuilder(
-                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/nope.png"),
-                        0, 0,
-                        10, 10
-                ).setTextureSize(16, 16).build();
+                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                        80, 20,
+                        20, 20
+                ).setTextureSize(120, 20).build();
 
-        jei.draw(mx, explodeToggle.x, explodeToggle.y);
+        IDrawableStatic layerMode;
+        if(singleLayer) {
+            layerMode =guiHelper
+                    .drawableBuilder(
+                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                            60, 20,
+                            20, 20
+                    ).setTextureSize(120, 20).build();
+        } else {
+            layerMode = guiHelper
+                .drawableBuilder(
+                    new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                    40, 20,
+                    20, 20
+            ).setTextureSize(120, 20).build();
+        }
 
-        jei.draw(mx, layerSwap.x, layerSwap.y);
+        IDrawableStatic lDown = guiHelper
+                .drawableBuilder(
+                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
+                        100, 20,
+                        20, 20
+                ).setTextureSize(120, 20).build();
+
+        mx.push();
+
+        button.draw(mx, explodeToggle.x, explodeToggle.y);
+
+        layerMode.draw(mx, layerSwap.x, layerSwap.y);
         if (singleLayer) {
             if (singleLayerOffset < dims.getYSize() - 1)
-                jei.draw(mx, layerUp.x, layerUp.y);
+                layerUp.draw(mx, this.layerUp.x, this.layerUp.y);
 
-            if (singleLayerOffset > 0)
-                jei.draw(mx, layerDown.x, layerDown.y);
+            if (singleLayerOffset > 0) {
+                lDown.draw(mx, layerDown.x, layerDown.y);
+            }
         }
+
+        mx.pop();
+
         //endregion
 
         try {
@@ -303,6 +349,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     -(dims.getYSize() / 2) * explodeMulti - 0.5,
                     -(dims.getZSize() / 2) * explodeMulti - 0.5
             );
+
+            // ZORN NO
+            //if(exploded) {
+            //    float s = 1 / (float) explodeMulti;
+            //    mx.scale(s, s, s);
+            //}
 
             for (int y : renderLayers) {
                 Optional<IRecipeLayer> layer = recipe.getLayer(y);
