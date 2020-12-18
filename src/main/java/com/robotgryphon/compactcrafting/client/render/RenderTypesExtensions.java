@@ -2,6 +2,8 @@ package com.robotgryphon.compactcrafting.client.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.robotgryphon.compactcrafting.CompactCrafting;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -44,4 +46,53 @@ public class RenderTypesExtensions extends RenderType {
                     .writeMask(COLOR_WRITE)
                     .depthTest(DepthTestState.DEPTH_LEQUAL) // Default, but let's make sure it stays that way
                     .build(false));
+
+    public static final RenderType MULTIBLOCK_GUI = makeType(CompactCrafting.MOD_ID + ":multiblock_gui",
+            DefaultVertexFormats.BLOCK, GL11.GL_QUADS, 256,
+            RenderType.State.getBuilder()
+                    .transparency(PROJECTION_TRANSPARENCY)
+                    .target(RenderState.MAIN_TARGET)
+                    .cull(RenderState.CULL_ENABLED)
+                    .writeMask(RenderState.COLOR_WRITE)
+                    .diffuseLighting(DiffuseLightingState.DIFFUSE_LIGHTING_DISABLED)
+                    .depthTest(DepthTestState.DEPTH_LEQUAL)
+                    .build(false));
+
+    public static IRenderTypeBuffer disableLighting(IRenderTypeBuffer in)
+    {
+        return wrapWithAdditional(
+                in,
+                "no_lighting",
+                RenderSystem::disableLighting,
+                () -> {
+                }
+        );
+    }
+
+    private static IRenderTypeBuffer wrapWithAdditional(
+            IRenderTypeBuffer in,
+            String name,
+            Runnable setup,
+            Runnable teardown
+    )
+    {
+        return type -> in.getBuffer(new RenderType(
+                CompactCrafting.MOD_ID+":"+type+"_"+name,
+                type.getVertexFormat(),
+                type.getDrawMode(),
+                type.getBufferSize(),
+                type.isUseDelegate(),
+                false, // needsSorting is private and shouldn't be too relevant here
+                () -> {
+                    type.setupRenderState();
+                    setup.run();
+                },
+                () -> {
+                    teardown.run();
+                    type.clearRenderState();
+                }
+        )
+        {
+        });
+    }
 }

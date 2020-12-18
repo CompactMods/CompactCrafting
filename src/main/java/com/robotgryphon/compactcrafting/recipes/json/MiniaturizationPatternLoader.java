@@ -16,10 +16,7 @@ import net.minecraft.resources.IResourceManager;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class MiniaturizationPatternLoader extends JsonReloadListener {
     public MiniaturizationPatternLoader() {
@@ -66,6 +63,9 @@ public class MiniaturizationPatternLoader extends JsonReloadListener {
 
             MiniaturizationRecipeManager.add(rl, recipe);
         }
+
+        Collection<MiniaturizationRecipe> loaded = MiniaturizationRecipeManager.getAll();
+        CompactCrafting.LOGGER.info("Done reloading data; got {} recipes.", loaded.size());
     }
 
     private boolean loadOutputs(MiniaturizationRecipe recipe, JsonObject root) {

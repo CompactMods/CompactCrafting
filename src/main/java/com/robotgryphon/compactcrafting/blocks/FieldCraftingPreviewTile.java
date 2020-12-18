@@ -97,7 +97,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(pos, 1, getUpdateTag());
+        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
     }
 
     @Override
