@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
@@ -17,6 +18,7 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.audio.SoundHandler;
@@ -34,6 +36,7 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -84,6 +87,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.blocks = Minecraft.getInstance().getBlockRendererDispatcher();
     }
 
+    //region JEI implementation requirements
     @Override
     public ResourceLocation getUid() {
         return UID;
@@ -108,7 +112,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public IDrawable getIcon() {
         return this.icon;
     }
+    //endregion
 
+    //region Recipe Slots and Items
     @Override
     public void setIngredients(MiniaturizationRecipe recipe, IIngredients ing) {
         List<ItemStack> inputs = new ArrayList<>();
@@ -217,6 +223,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             guiItemStacks.set(outputOffset, output);
         }
     }
+    //endregion
 
     @Override
     public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
@@ -258,6 +265,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         return false;
     }
 
+    //region Rendering help
     private void drawScaledTexture(
             MatrixStack matrixStack,
             ResourceLocation texture, Rectangle bounds,
@@ -277,9 +285,57 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 //        }
     }
 
+    private void addColoredVertex(IVertexBuilder renderer, Color color, Vector3d position) {
+        renderer.pos(position.getX(), position.getY(), position.getZ())
+                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
+                .lightmap(0, 240)
+                .normal(1, 0, 0)
+                .endVertex();
+    }
+
+    private void drawRectOutline(IVertexBuilder renderer, Color color, Rectangle rect) {
+        Vector3d bottomLeft = new Vector3d((float) rect.getMinX(), (float) rect.getMinY(), 0);
+        Vector3d bottomRight = bottomLeft.add(rect.width, 0, 0);
+        Vector3d topRight = bottomLeft.add(rect.width, rect.height, 0);
+        Vector3d topLeft = bottomLeft.add(0, rect.height, 0);
+
+        addColoredVertex(renderer, color, bottomLeft);
+        addColoredVertex(renderer, color, bottomRight);
+
+        addColoredVertex(renderer, color, bottomRight);
+        addColoredVertex(renderer, color, topRight);
+
+        addColoredVertex(renderer, color, topRight);
+        addColoredVertex(renderer, color, topLeft);
+
+        addColoredVertex(renderer, color, topLeft);
+        addColoredVertex(renderer, color, bottomLeft);
+    }
+    //endregion
+
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
         AxisAlignedBB dims = recipe.getDimensions();
+
+        Screen curr = Minecraft.getInstance().currentScreen;
+
+        MainWindow mainWindow = Minecraft.getInstance().getMainWindow();
+        int scaledWidth = mainWindow.getScaledWidth();
+        int scaledHeight = mainWindow.getScaledHeight();
+
+        int winWidth = (9 * 18) + 10;
+
+        int slotHeight = (18 * 3) - 8;
+
+        int scissorX = (curr.width / 2) - (background.getWidth() / 2) + 15;
+        int scissorY = (curr.height / 2) - (background.getHeight() / 2)  + slotHeight;
+
+        double guiScaleFactor = mainWindow.getGuiScaleFactor();
+        Rectangle scissorBounds = new Rectangle(
+                scissorX, scissorY,
+                winWidth - 22,
+                (int) (background.getHeight() - slotHeight - 27)
+        );
 
         //region JEI controls
         mx.push();
@@ -314,12 +370,27 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         //endregion
 
         try {
+            AbstractGui.fill(
+                    mx,
+                    // scissorBounds.x, scissorBounds.y,
+                    14, 0,
+                    scissorBounds.width + 16,
+                    scissorBounds.height + 1,
+                    Color.darkGray.getRGB()
+            );
+
             IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+
+            RenderSystem.enableScissor(
+                    (int) (scissorBounds.x * guiScaleFactor),
+                    (int) (scissorBounds.y * guiScaleFactor),
+                    (int) (scissorBounds.width * guiScaleFactor),
+                    (int) (scissorBounds.height * guiScaleFactor));
 
             mx.push();
 
             mx.translate(
-                    background.getWidth() / 2,
+                    (background.getWidth() / 2) + 6,
                     70,
                     400);
 
@@ -360,9 +431,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
             }
 
+
             mx.pop();
 
             buffers.finish();
+
+            RenderSystem.disableScissor();
         } catch (Exception ex) {
             CompactCrafting.LOGGER.warn(ex);
         }
