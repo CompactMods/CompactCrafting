@@ -200,7 +200,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             if (!center.isPresent())
                 return;
 
-            BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(world, center.get(), Direction.NORTH, size);
+            BlockPos masterPos = ProjectorHelper.getProjectorLocationForDirection(center.get(), Direction.NORTH, size);
 
             FieldProjectorTile masterTile = (FieldProjectorTile) world.getTileEntity(masterPos);
             if (masterTile == null)

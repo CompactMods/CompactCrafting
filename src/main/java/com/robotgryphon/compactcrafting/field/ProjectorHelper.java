@@ -6,7 +6,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -36,20 +36,58 @@ public abstract class ProjectorHelper {
         return Optional.of(center);
     }
 
-    public static Optional<BlockPos> getOppositeForSize(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
-        Optional<BlockPos> center = getCenterForSize(world, initial, size);
-        if(!center.isPresent())
-            return Optional.empty();
-
-        Optional<Direction> direction = FieldProjectorBlock.getDirection(world, initial);
-        if(!direction.isPresent())
-            return Optional.empty();
-
-        BlockPos projectorLocationForDirection = getProjectorLocationForDirection(world, center.get(), direction.get(), size);
-        return Optional.of(projectorLocationForDirection);
+    public static Optional<BlockPos> getCenterForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
+        BlockPos center = initial.offset(facing, size.getProjectorDistance() + 1);
+        return Optional.of(center);
     }
 
-    public static BlockPos getProjectorLocationForDirection(IWorldReader world, BlockPos center, Direction direction, FieldProjectionSize size) {
+    public static Optional<BlockPos> getOppositePositionForSize(BlockPos initial, Direction direction, FieldProjectionSize size) {
+        BlockPos center = initial.offset(direction, size.getProjectorDistance() + 1);
+        BlockPos opp = center.offset(direction, size.getProjectorDistance() + 1);
+
+        return Optional.of(opp);
+    }
+
+    public static Optional<BlockPos> getOppositePositionForSize(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
+        Optional<Direction> facing = FieldProjectorBlock.getDirection(world, initial);
+
+        // Initial wasn't a valid field projector, can't get direction to look in
+        if (!facing.isPresent())
+            return Optional.empty();
+
+        Direction fieldDirection = facing.get();
+        return getOppositePositionForSize(initial, fieldDirection, size);
+    }
+
+    public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader world, BlockPos initial) {
+        for (FieldProjectionSize size : FieldProjectionSize.values()) {
+            if (hasProjectorOpposite(world, initial, size)) {
+                return Optional.of(size);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader world, BlockPos initial, Direction look) {
+        for (FieldProjectionSize size : FieldProjectionSize.values()) {
+            if (hasProjectorOpposite(world, initial, look, size)) {
+                return Optional.of(size);
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    public static Set<BlockPos> getProjectorLocationsForAxis(BlockPos center, Direction.Axis axis, FieldProjectionSize size) {
+        Direction posdir = Direction.getFacingFromAxis(Direction.AxisDirection.POSITIVE, axis);
+        BlockPos posLocation = ProjectorHelper.getProjectorLocationForDirection(center, posdir, size);
+        BlockPos negLocation = ProjectorHelper.getProjectorLocationForDirection(center, posdir.getOpposite(), size);
+
+        return new HashSet<>(Arrays.asList(posLocation, negLocation));
+    }
+
+    public static BlockPos getProjectorLocationForDirection(BlockPos center, Direction direction, FieldProjectionSize size) {
         BlockPos location = center.offset(direction, size.getProjectorDistance() + 1);
         return location;
     }
@@ -63,8 +101,8 @@ public abstract class ProjectorHelper {
      * @param size      The field size to check.
      * @return
      */
-    public static boolean hasValidProjectorInDirection(IWorldReader world, BlockPos center, Direction direction, FieldProjectionSize size) {
-        BlockPos location = getProjectorLocationForDirection(world, center, direction, size);
+    public static boolean hasProjectorInDirection(IWorldReader world, BlockPos center, Direction direction, FieldProjectionSize size) {
+        BlockPos location = getProjectorLocationForDirection(center, direction, size);
         BlockState state = world.getBlockState(location);
 
         if (state.getBlock() instanceof FieldProjectorBlock) {
@@ -73,6 +111,20 @@ public abstract class ProjectorHelper {
         }
 
         return false;
+    }
+
+    public static boolean hasProjectorOpposite(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
+        Optional<BlockPos> opp = getOppositePositionForSize(world, initial, size);
+        return opp
+                .map(possible -> world.getBlockState(possible).getBlock() instanceof FieldProjectorBlock)
+                .orElse(false);
+    }
+
+    public static boolean hasProjectorOpposite(IWorldReader world, BlockPos initial, Direction look, FieldProjectionSize size) {
+        Optional<BlockPos> opp = getOppositePositionForSize(initial, look, size);
+        return opp
+                .map(possible -> world.getBlockState(possible).getBlock() instanceof FieldProjectorBlock)
+                .orElse(false);
     }
 
     /**
@@ -91,12 +143,12 @@ public abstract class ProjectorHelper {
         Direction checkDirection = Direction.getFacingFromAxisDirection(primaryAxis, Direction.AxisDirection.POSITIVE);
 
         // Do we have a valid projector in the first direction?
-        boolean posValid = hasValidProjectorInDirection(world, center, checkDirection, fieldSize);
+        boolean posValid = hasProjectorInDirection(world, center, checkDirection, fieldSize);
         if (!posValid)
             return false;
 
         // What about the negative direction?
-        boolean negValid = hasValidProjectorInDirection(world, center, checkDirection.getOpposite(), fieldSize);
+        boolean negValid = hasProjectorInDirection(world, center, checkDirection.getOpposite(), fieldSize);
         if (!negValid)
             return false;
 
@@ -124,10 +176,12 @@ public abstract class ProjectorHelper {
 
     public static Stream<BlockPos> getValidOppositePositions(IWorldReader world, BlockPos initial) {
         Stream<BlockPos> validOpposites = Stream.of(FieldProjectionSize.values())
-                .map(s -> getOppositeForSize(world, initial, s))
+                .map(s -> getOppositePositionForSize(world, initial, s))
                 .filter(Optional::isPresent)
                 .map(Optional::get);
 
         return validOpposites;
     }
+
+
 }
