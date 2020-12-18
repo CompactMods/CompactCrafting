@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
@@ -17,6 +18,10 @@ import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
+import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.client.gui.AbstractGui;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.Tessellator;
@@ -25,6 +30,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
@@ -51,10 +57,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private int singleLayerOffset = 0;
     private boolean debugMode = false;
 
-    private Rectangle explodeToggle = new Rectangle(0, 0, 20, 20);
-    private Rectangle layerUp = new Rectangle(0, 32, 20, 20);
-    private Rectangle layerSwap = new Rectangle(0, 52, 20, 20);
-    private Rectangle layerDown = new Rectangle(0, 72, 20, 20);
+    private Rectangle explodeToggle = new Rectangle(0, 0, 10, 10);
+    private Rectangle layerUp = new Rectangle(0, 25, 10, 10);
+    private Rectangle layerSwap = new Rectangle(0, 37, 10, 10);
+    private Rectangle layerDown = new Rectangle(0, 49, 10, 10);
 
     /**
      * Whether or not the preview is exploded (expanded) or not.
@@ -215,27 +221,36 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
 
+        SoundHandler handler = Minecraft.getInstance().getSoundHandler();
+
+
         if (explodeToggle.contains(mouseX, mouseY)) {
             explodeMulti = exploded ? 1.0d : 1.6d;
             exploded = !exploded;
+            handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerSwap.contains(mouseX, mouseY)) {
             singleLayer = !singleLayer;
+            handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerUp.contains(mouseX, mouseY) && singleLayer) {
-            if (singleLayerOffset < recipe.getDimensions().getYSize() - 1)
+            if (singleLayerOffset < recipe.getDimensions().getYSize() - 1) {
+                handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset++;
+            }
 
             return true;
         }
 
         if (layerDown.contains(mouseX, mouseY) && singleLayer) {
-            if (singleLayerOffset > 0)
+            if (singleLayerOffset > 0) {
+                handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset--;
+            }
 
             return true;
         }
@@ -243,70 +258,54 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         return false;
     }
 
+    private void drawScaledTexture(
+            MatrixStack matrixStack,
+            ResourceLocation texture, Rectangle bounds,
+            float u, float v,
+            int uWidth, int vHeight,
+            int textureWidth, int textureHeight) {
+
+        Minecraft minecraft = Minecraft.getInstance();
+        minecraft.getTextureManager().bindTexture(texture);
+
+        RenderSystem.enableDepthTest();
+        Screen curr = Minecraft.getInstance().currentScreen;
+        AbstractGui.blit(matrixStack, bounds.x, bounds.y, bounds.width, bounds.height,
+                u, v, uWidth, vHeight, textureWidth, textureHeight);
+//        if (this.isHovered()) {
+//            this.renderToolTip(matrixStack, mouseX, mouseY);
+//        }
+    }
+
     @Override
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
         AxisAlignedBB dims = recipe.getDimensions();
 
         //region JEI controls
-        IDrawableStatic button;
-        if(exploded) {
-            button = guiHelper
-                    .drawableBuilder(
-                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                            20, 0,
-                            20, 20
-                    ).setTextureSize(120, 20).build();
-        } else {
-            button = guiHelper
-                    .drawableBuilder(
-                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                            0, 0,
-                            20, 20
-                    ).setTextureSize(120, 20).build();
-        }
-
-        IDrawableStatic layerUp = guiHelper
-                .drawableBuilder(
-                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                        80, 20,
-                        20, 20
-                ).setTextureSize(120, 20).build();
-
-        IDrawableStatic layerMode;
-        if(singleLayer) {
-            layerMode =guiHelper
-                    .drawableBuilder(
-                            new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                            60, 20,
-                            20, 20
-                    ).setTextureSize(120, 20).build();
-        } else {
-            layerMode = guiHelper
-                .drawableBuilder(
-                    new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                    40, 20,
-                    20, 20
-            ).setTextureSize(120, 20).build();
-        }
-
-        IDrawableStatic lDown = guiHelper
-                .drawableBuilder(
-                        new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png"),
-                        100, 20,
-                        20, 20
-                ).setTextureSize(120, 20).build();
-
         mx.push();
+        mx.translate(0, 0, 500);
 
-        button.draw(mx, explodeToggle.x, explodeToggle.y);
+        ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
 
-        layerMode.draw(mx, layerSwap.x, layerSwap.y);
+        if (exploded) {
+            drawScaledTexture(mx, sprites, explodeToggle, 20, 0, 20, 20, 120, 20);
+        } else {
+            drawScaledTexture(mx, sprites, explodeToggle, 0, 0, 20, 20, 120, 20);
+        }
+
+        // Layer change buttons
+        if (singleLayer) {
+            drawScaledTexture(mx, sprites, layerSwap, 60, 0, 20, 20, 120, 20);
+        } else {
+            drawScaledTexture(mx, sprites, layerSwap, 40, 0, 20, 20, 120, 20);
+        }
+
         if (singleLayer) {
             if (singleLayerOffset < dims.getYSize() - 1)
-                layerUp.draw(mx, this.layerUp.x, this.layerUp.y);
+                drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 120, 20);
 
             if (singleLayerOffset > 0) {
-                lDown.draw(mx, layerDown.x, layerDown.y);
+                drawScaledTexture(mx, sprites, layerDown, 100, 0, 20, 20, 120, 20);
             }
         }
 
