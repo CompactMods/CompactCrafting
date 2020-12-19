@@ -88,7 +88,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     public CompoundNBT write(CompoundNBT compound) {
         super.write(compound);
         if(recipe != null) {
-            compound.putString("recipe", recipe.getRegistryName().toString());
+            compound.putString("recipe", recipe.getId().toString());
         }
 
         compound.putInt("progress", craftingProgress);

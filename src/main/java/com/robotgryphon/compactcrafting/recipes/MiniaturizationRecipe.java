@@ -1,14 +1,18 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.data.base.RecipeBase;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
@@ -20,7 +24,7 @@ import net.minecraft.world.IWorldReader;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MiniaturizationRecipe {
+public class MiniaturizationRecipe extends RecipeBase {
 
     private ResourceLocation registryName;
     private IRecipeLayer[] layers;
@@ -272,10 +276,6 @@ public class MiniaturizationRecipe {
         return Optional.of(this.layers[y]);
     }
 
-    public ResourceLocation getRegistryName() {
-        return registryName;
-    }
-
     public Set<String> getComponentKeys() {
         return this.components.keySet();
     }
@@ -317,6 +317,21 @@ public class MiniaturizationRecipe {
     }
 
     public int getTicks() {
-        return 200;
+        return 1;
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return this.registryName;
+    }
+
+    @Override
+    public IRecipeSerializer<?> getSerializer() {
+        return Registration.MINIATURIZATION_SERIALIZER.get();
+    }
+
+    @Override
+    public IRecipeType<?> getType() {
+        return Registration.MINIATURIZATION_RECIPE_TYPE;
     }
 }

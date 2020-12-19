@@ -2,18 +2,20 @@ package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
+import com.robotgryphon.compactcrafting.recipes.data.base.RecipeBase;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.util.ResourceLocation;
 
-import java.util.Collection;
+import java.util.List;
 
 @JeiPlugin
 public class JeiMiniaturizationPlugin implements IModPlugin {
@@ -41,8 +43,11 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        Collection<MiniaturizationRecipe> miniaturizationRecipes = MiniaturizationRecipeManager.getAll();
-
-        registration.addRecipes(miniaturizationRecipes, JeiMiniaturizationCraftingCategory.UID);
+        ClientWorld w = Minecraft.getInstance().world;
+        RecipeManager rm = w == null ? null : w.getRecipeManager();
+        if(rm != null) {
+            List<RecipeBase> miniRecipes = rm.getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE);
+            registration.addRecipes(miniRecipes, JeiMiniaturizationCraftingCategory.UID);
+        }
     }
 }

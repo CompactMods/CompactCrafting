@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.json.layers;
+package com.robotgryphon.compactcrafting.recipes.data.json.layers;
 
 import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;

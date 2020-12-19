@@ -4,7 +4,7 @@ import com.robotgryphon.compactcrafting.client.ClientSetup;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.config.ClientConfig;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.json.MiniaturizationPatternLoader;
+import com.robotgryphon.compactcrafting.recipes.data.json.MiniaturizationPatternLoader;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
