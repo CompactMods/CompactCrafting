@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
@@ -11,6 +13,7 @@ public interface IRecipeLayer {
 
     /**
      * Gets a component key for the given (normalized) position.
+     *
      * @param pos
      * @return
      */
@@ -28,4 +31,6 @@ public interface IRecipeLayer {
     boolean isPositionRequired(BlockPos pos);
 
     int getNumberFilledPositions();
+
+    <T extends IRecipeLayer> RecipeLayerSerializer<FilledComponentRecipeLayer> getSerializer(T layer);
 }

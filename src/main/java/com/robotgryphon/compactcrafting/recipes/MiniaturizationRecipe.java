@@ -49,6 +49,10 @@ public class MiniaturizationRecipe extends RecipeBase {
 
     public void setLayers(IRecipeLayer[] layers) {
         this.layers = layers;
+        this.postLayerChange();
+    }
+
+    private void postLayerChange() {
         this.cachedComponentTotals = null;
         this.recalculateDimensions();
     }
@@ -72,6 +76,10 @@ public class MiniaturizationRecipe extends RecipeBase {
 
         this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
 
+        updateFluidLayerDimensions();
+    }
+
+    private void updateFluidLayerDimensions() {
         // Update all the dynamic recipe layers
         Arrays.stream(this.layers)
                 .filter(layer -> layer instanceof IDynamicRecipeLayer)
@@ -208,6 +216,9 @@ public class MiniaturizationRecipe extends RecipeBase {
 
         int required = 0;
         for (IRecipeLayer layer : this.layers) {
+            if(layer == null)
+                continue;
+
             Map<String, Integer> layerTotals = layer.getComponentTotals();
 
             if (layerTotals.containsKey(i))
@@ -273,7 +284,23 @@ public class MiniaturizationRecipe extends RecipeBase {
         if (y < 0 || y > this.layers.length - 1)
             return Optional.empty();
 
-        return Optional.of(this.layers[y]);
+        return Optional.ofNullable(this.layers[y]);
+    }
+
+    public Stream<IRecipeLayer> getLayers() {
+        return Arrays.stream(layers.clone());
+    }
+
+    public int getNumberLayers() {
+        return layers.length;
+    }
+
+    public void setLayer(int num, IRecipeLayer layer) {
+        if(num < 0 || num > layers.length - 1)
+            return;
+
+        this.layers[num] = layer;
+        this.postLayerChange();
     }
 
     public Set<String> getComponentKeys() {
@@ -304,16 +331,11 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public void setFluidDimensions(AxisAlignedBB dimensions) throws MiniaturizationRecipeException {
-        if(Arrays.stream(this.layers).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
+        if(Arrays.stream(this.layers).filter(Objects::nonNull).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
             throw new MiniaturizationRecipeException("Tried to set fluid dimensions when a non-fluid layer exists.");
 
         this.dimensions = dimensions;
-        Arrays.stream(this.layers)
-                .filter(l -> l instanceof IDynamicRecipeLayer)
-                .forEach(layer -> {
-                    IDynamicRecipeLayer dynamic = (IDynamicRecipeLayer) layer;
-                    dynamic.setRecipeDimensions(dimensions);
-                });
+        updateFluidLayerDimensions();
     }
 
     public int getTicks() {

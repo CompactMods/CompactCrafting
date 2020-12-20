@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -88,5 +89,10 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLaye
                 .values()
                 .stream()
                 .reduce(0, Integer::sum);
+    }
+
+    @Override
+    public <T extends IRecipeLayer> RecipeLayerSerializer<FilledComponentRecipeLayer> getSerializer(T layer) {
+        return null;
     }
 }

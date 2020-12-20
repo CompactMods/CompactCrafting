@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -44,6 +45,11 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
     @Override
     public int getNumberFilledPositions() {
         return filledPositions.size();
+    }
+
+    @Override
+    public <T extends IRecipeLayer> RecipeLayerSerializer<FilledComponentRecipeLayer> getSerializer(T layer) {
+        return null;
     }
 
     public void setComponent(String component) {

@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.data.util;
+package com.robotgryphon.compactcrafting.recipes.data.serialization;
 
 import com.mojang.serialization.DataResult;
 import com.robotgryphon.compactcrafting.CompactCrafting;
@@ -15,7 +15,7 @@ import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
 
-public abstract class RecipeBufferDataUtil {
+public abstract class RecipeBufferData {
 
     public static final ResourceLocation TYPE_CATALYSTS = new ResourceLocation(CompactCrafting.MOD_ID, "catalysts");
 

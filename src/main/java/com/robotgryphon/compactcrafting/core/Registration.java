@@ -9,6 +9,8 @@ import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.recipes.data.base.BaseRecipeType;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.FilledLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -18,25 +20,41 @@ import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ToolType;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.*;
 
 import java.util.function.Supplier;
 
 import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 
+@SuppressWarnings("unchecked")
+@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
 
     // ================================================================================================================
     //   REGISTRIES
     // ================================================================================================================
+
+
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
     private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
     private static final DeferredRegister<IRecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MOD_ID);
+
+    public static DeferredRegister<RecipeLayerSerializer<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerSerializer.class, MOD_ID);
+    public static IForgeRegistry<RecipeLayerSerializer<?>> RECIPE_SERIALIZERS;
+
+    static {
+        RECIPE_LAYERS.makeRegistry("recipe_layer_serializers", () -> new RegistryBuilder<RecipeLayerSerializer<?>>()
+                .setName(new ResourceLocation(MOD_ID, "recipe_layer_serializers"))
+                .setType(c(RecipeLayerSerializer.class))
+                .tagFolder("recipe_layer_serializers"));
+    }
 
     // ================================================================================================================
     //   PROPERTIES
@@ -91,9 +109,15 @@ public class Registration {
 
     public static final BaseRecipeType<MiniaturizationRecipe> MINIATURIZATION_RECIPE_TYPE = new BaseRecipeType<>(MINIATURIZATION_RECIPE_TYPE_ID);
 
+
+    public static final RegistryObject<RecipeLayerSerializer<?>> FILLED_LAYER_SERIALIZER =
+            RECIPE_LAYERS.register("filled", FilledLayerSerializer::new);
+
     // ================================================================================================================
     //   INITIALIZATION
     // ================================================================================================================
+    private static <T> Class<T> c(Class<?> cls) { return (Class<T>)cls; }
+
     public static void init() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -104,5 +128,14 @@ public class Registration {
 
         // Recipe Types (Forge Registry setup does not call this yet)
         MINIATURIZATION_RECIPE_TYPE.register();
+
+        RECIPE_LAYERS.register(eventBus);
     }
+
+    @SubscribeEvent
+    public static void onRegistration(RegistryEvent.Register<RecipeLayerSerializer<?>> evt) {
+        RECIPE_SERIALIZERS = evt.getRegistry();
+    }
+
+
 }
