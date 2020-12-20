@@ -339,7 +339,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public int getTicks() {
-        return 1;
+        return 200;
     }
 
     @Override

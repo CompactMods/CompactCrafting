@@ -10,7 +10,6 @@ import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
@@ -25,7 +24,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
 
 import java.awt.*;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -210,10 +208,13 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return;
         }
 
-        Collection<MiniaturizationRecipe> entries = MiniaturizationRecipeManager.getAll();
+        List<MiniaturizationRecipe> recipes = world.getRecipeManager()
+                .getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE)
+                .stream().map(r -> (MiniaturizationRecipe) r)
+                .collect(Collectors.toList());
 
         // If there are no registered recipes, then we obv can't match anything - exit early
-        if (entries.isEmpty()) {
+        if (recipes.isEmpty()) {
             this.currentRecipe = null;
             updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
@@ -233,7 +234,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // ===========================================================================================================
         //   RECIPE BEGIN
         // ===========================================================================================================
-        Set<MiniaturizationRecipe> recipesBoundFitted = entries
+        Set<MiniaturizationRecipe> recipesBoundFitted = recipes
                 .stream()
                 .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
                 .collect(Collectors.toSet());
@@ -287,7 +288,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
                         BlockPos centerField = field.getCenterPosition();
                         world.setBlockState(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().getDefaultState());
                         FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) world.getTileEntity(centerField);
-                        if(tile != null)
+                        if (tile != null)
                             tile.setMasterProjector(this);
 
                         break;

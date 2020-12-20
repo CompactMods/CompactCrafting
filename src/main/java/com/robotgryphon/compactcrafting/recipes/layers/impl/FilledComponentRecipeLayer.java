@@ -36,6 +36,20 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
     }
 
     /**
+     * Get a collection of positions that are filled by a given component.
+     *
+     * @param component
+     * @return
+     */
+    @Override
+    public Collection<BlockPos> getPositionsForComponent(String component) {
+        if(component == this.componentKey)
+            return getNonAirPositions();
+
+        return Collections.emptySet();
+    }
+
+    /**
      * Gets a set of non-air positions that are required for the layer to match.
      * This is expected to trim the air positions off the edges and return the positions with NW
      * in the 0, 0 position.
@@ -61,9 +75,8 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
     }
 
     @Override
-    public <T extends IRecipeLayer> RecipeLayerSerializer<FilledComponentRecipeLayer> getSerializer(T layer) {
-        return (RecipeLayerSerializer<FilledComponentRecipeLayer>)
-                Registration.FILLED_LAYER_SERIALIZER.get();
+    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
+        return (RecipeLayerSerializer<T>) Registration.FILLED_LAYER_SERIALIZER.get();
     }
 
     public void setComponent(String component) {

@@ -32,6 +32,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
     @Nullable
     @Override
     public MiniaturizationRecipe read(ResourceLocation recipeId, PacketBuffer buffer) {
+        CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
         MiniaturizationRecipe recipe = new MiniaturizationRecipe(recipeId);
 
         CompoundNBT dim = buffer.readCompoundTag();
@@ -50,22 +51,35 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
             CompactCrafting.LOGGER.error(e);
         }
 
-        int numLayers = buffer.readInt();
-        recipe.setLayers(new IRecipeLayer[numLayers]);
-        for(int i = 0; i < numLayers; i++) {
-            ResourceLocation layerType = buffer.readResourceLocation();
-            if(Registration.RECIPE_SERIALIZERS.containsKey(layerType)) {
-                RecipeLayerSerializer<?> serializer = Registration.RECIPE_SERIALIZERS.getValue(layerType);
-                IRecipeLayer layer = serializer.readLayerData(buffer);
-                if(layer instanceof IDynamicRecipeLayer)
-                    ((IDynamicRecipeLayer) layer).setRecipeDimensions(dims);
+        CompactCrafting.LOGGER.debug("Done loading recipe meta, starting layer loading.");
 
-                recipe.setLayer(i, layer);
+        try {
+            int numLayers = buffer.readInt();
+            recipe.setLayers(new IRecipeLayer[numLayers]);
+            for (int i = 0; i < numLayers; i++) {
+                ResourceLocation layerType = buffer.readResourceLocation();
+                if (Registration.RECIPE_SERIALIZERS.containsKey(layerType)) {
+                    RecipeLayerSerializer<?> serializer = Registration.RECIPE_SERIALIZERS.getValue(layerType);
+                    IRecipeLayer layer = serializer.readLayerData(buffer);
+                    if (layer instanceof IDynamicRecipeLayer)
+                        ((IDynamicRecipeLayer) layer).setRecipeDimensions(dims);
+
+                    recipe.setLayer(i, layer);
+                }
             }
         }
 
+        catch(Exception e) {
+            CompactCrafting.LOGGER.error("Error loading layers.", e);
+        }
+
         try {
-            recipe.setFluidDimensions(dims);
+            /*
+             * If all layers in the recipe are dynamically-sized, set the dimensions based on
+             * what they are on the layer spec from the server (would be loaded from JSON)
+             */
+            if(recipe.getLayers().allMatch(l -> l instanceof IDynamicRecipeLayer))
+                recipe.setFluidDimensions(dims);
         } catch (MiniaturizationRecipeException e) {
             CompactCrafting.LOGGER.error("Unable to set fluid recipe dimensions.", e);
         }
@@ -90,6 +104,11 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         buffer.writeInt(numLayers);
 
         recipe.getLayers().forEach(layer -> {
+            if(layer == null) {
+                buffer.writeResourceLocation(new ResourceLocation(CompactCrafting.MOD_ID, "blank"));
+                return;
+            }
+
             RecipeLayerSerializer serializer = layer.getSerializer(layer);
             if(serializer != null)
                 serializer.writeLayerData(layer, buffer);

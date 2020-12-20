@@ -3,7 +3,6 @@ package com.robotgryphon.compactcrafting.blocks;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeManager;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
@@ -80,7 +79,9 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
         if(compound.contains("recipe")) {
             ResourceLocation recipeId = new ResourceLocation(compound.getString("recipe"));
-            this.recipe = MiniaturizationRecipeManager.get(recipeId).orElse(null);
+            world.getRecipeManager()
+                    .getRecipe(recipeId)
+                    .ifPresent(recipe -> this.recipe = (MiniaturizationRecipe) recipe);
         }
     }
 

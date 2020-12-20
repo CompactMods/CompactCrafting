@@ -10,7 +10,12 @@ import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.recipes.data.base.BaseRecipeType;
 import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.FilledLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.HollowLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.MixedLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.impl.HollowComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -109,9 +114,17 @@ public class Registration {
 
     public static final BaseRecipeType<MiniaturizationRecipe> MINIATURIZATION_RECIPE_TYPE = new BaseRecipeType<>(MINIATURIZATION_RECIPE_TYPE_ID);
 
-
-    public static final RegistryObject<RecipeLayerSerializer<?>> FILLED_LAYER_SERIALIZER =
+    // ================================================================================================================
+    //   RECIPE LAYER SERIALIZERS
+    // ================================================================================================================
+    public static final RegistryObject<RecipeLayerSerializer<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
             RECIPE_LAYERS.register("filled", FilledLayerSerializer::new);
+
+    public static final RegistryObject<RecipeLayerSerializer<HollowComponentRecipeLayer>> HOLLOW_LAYER_SERIALIZER =
+            RECIPE_LAYERS.register("hollow", HollowLayerSerializer::new);
+
+    public static final RegistryObject<RecipeLayerSerializer<MixedComponentRecipeLayer>> MIXED_LAYER_SERIALIZER =
+            RECIPE_LAYERS.register("mixed", MixedLayerSerializer::new);
 
     // ================================================================================================================
     //   INITIALIZATION

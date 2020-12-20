@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.data.serialization.layers;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
 import net.minecraft.network.PacketBuffer;
@@ -16,6 +18,16 @@ public class FilledLayerSerializer extends RecipeLayerSerializer<FilledComponent
         String component = buffer.readString();
         FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer(component);
         return layer;
+    }
+
+    @Override
+    public FilledComponentRecipeLayer readLayerData(JsonObject json) {
+        if(!json.has("component"))
+            throw new JsonParseException("Filled layer definition does not have an associated component key.");
+
+        String component = json.get("component").getAsString();
+
+        return new FilledComponentRecipeLayer(component);
     }
 
     /**

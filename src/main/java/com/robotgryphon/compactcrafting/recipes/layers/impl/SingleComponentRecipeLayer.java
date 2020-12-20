@@ -55,6 +55,20 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLay
         return filledPositions.contains(pos) ? componentKey : null;
     }
 
+    /**
+     * Get a collection of positions that are filled by a given component.
+     *
+     * @param component
+     * @return
+     */
+    @Override
+    public Collection<BlockPos> getPositionsForComponent(String component) {
+        if(component == this.componentKey)
+            return filledPositions;
+
+        return Collections.emptySet();
+    }
+
     @Override
     public Collection<BlockPos> getNonAirPositions() {
         return filledPositions;
@@ -71,7 +85,7 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLay
     }
 
     @Override
-    public <T extends IRecipeLayer> RecipeLayerSerializer<FilledComponentRecipeLayer> getSerializer(T layer) {
+    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
         return null;
     }
 }
