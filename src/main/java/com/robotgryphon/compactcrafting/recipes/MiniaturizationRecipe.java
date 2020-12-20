@@ -1,14 +1,18 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.data.base.RecipeBase;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
@@ -20,7 +24,7 @@ import net.minecraft.world.IWorldReader;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MiniaturizationRecipe {
+public class MiniaturizationRecipe extends RecipeBase {
 
     private ResourceLocation registryName;
     private IRecipeLayer[] layers;
@@ -45,6 +49,10 @@ public class MiniaturizationRecipe {
 
     public void setLayers(IRecipeLayer[] layers) {
         this.layers = layers;
+        this.postLayerChange();
+    }
+
+    private void postLayerChange() {
         this.cachedComponentTotals = null;
         this.recalculateDimensions();
     }
@@ -68,6 +76,10 @@ public class MiniaturizationRecipe {
 
         this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
 
+        updateFluidLayerDimensions();
+    }
+
+    private void updateFluidLayerDimensions() {
         // Update all the dynamic recipe layers
         Arrays.stream(this.layers)
                 .filter(layer -> layer instanceof IDynamicRecipeLayer)
@@ -204,6 +216,9 @@ public class MiniaturizationRecipe {
 
         int required = 0;
         for (IRecipeLayer layer : this.layers) {
+            if(layer == null)
+                continue;
+
             Map<String, Integer> layerTotals = layer.getComponentTotals();
 
             if (layerTotals.containsKey(i))
@@ -269,11 +284,23 @@ public class MiniaturizationRecipe {
         if (y < 0 || y > this.layers.length - 1)
             return Optional.empty();
 
-        return Optional.of(this.layers[y]);
+        return Optional.ofNullable(this.layers[y]);
     }
 
-    public ResourceLocation getRegistryName() {
-        return registryName;
+    public Stream<IRecipeLayer> getLayers() {
+        return Arrays.stream(layers.clone());
+    }
+
+    public int getNumberLayers() {
+        return layers.length;
+    }
+
+    public void setLayer(int num, IRecipeLayer layer) {
+        if(num < 0 || num > layers.length - 1)
+            return;
+
+        this.layers[num] = layer;
+        this.postLayerChange();
     }
 
     public Set<String> getComponentKeys() {
@@ -304,19 +331,29 @@ public class MiniaturizationRecipe {
     }
 
     public void setFluidDimensions(AxisAlignedBB dimensions) throws MiniaturizationRecipeException {
-        if(Arrays.stream(this.layers).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
+        if(Arrays.stream(this.layers).filter(Objects::nonNull).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
             throw new MiniaturizationRecipeException("Tried to set fluid dimensions when a non-fluid layer exists.");
 
         this.dimensions = dimensions;
-        Arrays.stream(this.layers)
-                .filter(l -> l instanceof IDynamicRecipeLayer)
-                .forEach(layer -> {
-                    IDynamicRecipeLayer dynamic = (IDynamicRecipeLayer) layer;
-                    dynamic.setRecipeDimensions(dimensions);
-                });
+        updateFluidLayerDimensions();
     }
 
     public int getTicks() {
         return 200;
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return this.registryName;
+    }
+
+    @Override
+    public IRecipeSerializer<?> getSerializer() {
+        return Registration.MINIATURIZATION_SERIALIZER.get();
+    }
+
+    @Override
+    public IRecipeType<?> getType() {
+        return Registration.MINIATURIZATION_RECIPE_TYPE;
     }
 }

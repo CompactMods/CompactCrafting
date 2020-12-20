@@ -103,7 +103,6 @@ public class FieldProjectorBlock extends Block  {
         Optional<BlockPos> oppositeProjector = tile.getOppositeProjector();
         if(!oppositeProjector.isPresent()) {
             // Spawn particle in valid places
-
             ProjectorHelper.getValidOppositePositions(world, pos)
                 .forEach(opp -> {
                     ((ServerWorld) world).spawnParticle(ParticleTypes.BARRIER,

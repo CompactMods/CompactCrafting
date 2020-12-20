@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -54,6 +55,20 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLay
         return filledPositions.contains(pos) ? componentKey : null;
     }
 
+    /**
+     * Get a collection of positions that are filled by a given component.
+     *
+     * @param component
+     * @return
+     */
+    @Override
+    public Collection<BlockPos> getPositionsForComponent(String component) {
+        if(component == this.componentKey)
+            return filledPositions;
+
+        return Collections.emptySet();
+    }
+
     @Override
     public Collection<BlockPos> getNonAirPositions() {
         return filledPositions;
@@ -67,5 +82,10 @@ public class SingleComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLay
     @Override
     public int getNumberFilledPositions() {
         return filledPositions.size();
+    }
+
+    @Override
+    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
+        return null;
     }
 }

@@ -151,8 +151,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             addOutputSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
         } catch (Exception ex) {
-            CompactCrafting.LOGGER.error(recipe.getRegistryName());
-            CompactCrafting.LOGGER.error(ex);
+            CompactCrafting.LOGGER.error(recipe.getId());
+            CompactCrafting.LOGGER.error("Error displaying recipe", ex);
         }
 
         int finalCatalystSlot = catalystSlot;

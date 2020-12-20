@@ -1,14 +1,15 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLayer {
     private AxisAlignedBB dimensions;
@@ -72,6 +73,24 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLaye
         return null;
     }
 
+    /**
+     * Get a collection of positions that are filled by a given component.
+     *
+     * @param component
+     * @return
+     */
+    @Override
+    public Collection<BlockPos> getPositionsForComponent(String component) {
+        if(component == null)
+            return Collections.emptySet();
+
+        return componentLookup.entrySet()
+                .stream()
+                .filter(e -> Objects.equals(e.getValue(), component))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public Collection<BlockPos> getNonAirPositions() {
         return componentLookup.keySet();
@@ -88,5 +107,10 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLaye
                 .values()
                 .stream()
                 .reduce(0, Integer::sum);
+    }
+
+    @Override
+    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
+        return (RecipeLayerSerializer<T>) Registration.MIXED_LAYER_SERIALIZER.get();
     }
 }

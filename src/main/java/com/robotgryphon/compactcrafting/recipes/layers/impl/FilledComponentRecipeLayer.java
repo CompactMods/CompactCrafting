@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -19,6 +21,10 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
         this.componentKey = component;
     }
 
+    public String getComponent() {
+        return this.componentKey;
+    }
+
     @Override
     public Map<String, Integer> getComponentTotals() {
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
@@ -27,6 +33,20 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
     @Override
     public String getRequiredComponentKeyForPosition(BlockPos pos) {
         return componentKey;
+    }
+
+    /**
+     * Get a collection of positions that are filled by a given component.
+     *
+     * @param component
+     * @return
+     */
+    @Override
+    public Collection<BlockPos> getPositionsForComponent(String component) {
+        if(component == this.componentKey)
+            return getNonAirPositions();
+
+        return Collections.emptySet();
     }
 
     /**
@@ -52,6 +72,11 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
     @Override
     public int getNumberFilledPositions() {
         return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getYSize());
+    }
+
+    @Override
+    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
+        return (RecipeLayerSerializer<T>) Registration.FILLED_LAYER_SERIALIZER.get();
     }
 
     public void setComponent(String component) {
