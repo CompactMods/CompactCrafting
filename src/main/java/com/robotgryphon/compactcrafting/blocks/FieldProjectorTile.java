@@ -208,18 +208,6 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
             return;
         }
 
-        List<MiniaturizationRecipe> recipes = world.getRecipeManager()
-                .getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE)
-                .stream().map(r -> (MiniaturizationRecipe) r)
-                .collect(Collectors.toList());
-
-        // If there are no registered recipes, then we obv can't match anything - exit early
-        if (recipes.isEmpty()) {
-            this.currentRecipe = null;
-            updateCraftingState(EnumCraftingState.NOT_MATCHED);
-            return;
-        }
-
         AxisAlignedBB fieldBounds = field.getBounds();
 
         MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(world, fieldBounds);
@@ -234,14 +222,24 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
         // ===========================================================================================================
         //   RECIPE BEGIN
         // ===========================================================================================================
-        Set<MiniaturizationRecipe> recipesBoundFitted = recipes
-                .stream()
+
+        /*
+         * Dry run - we have the data from the field on what's filled and how large
+         * the area is. Run through the recipe list and filter based on that, so
+         * we remove all the recipes that are definitely larger than the currently
+         * filled space.
+          */
+        Set<MiniaturizationRecipe> recipes = world.getRecipeManager()
+                .getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE)
+                .stream().map(r -> (MiniaturizationRecipe) r)
                 .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
                 .collect(Collectors.toSet());
 
-        // All the recipes we have registered won't fit in the filled bounds -
-        // blocks were placed in a larger space than the max recipe size
-        if (recipesBoundFitted.size() == 0) {
+        /*
+         * All the recipes we have registered won't fit in the filled bounds -
+         * blocks were placed in a larger space than the max recipe size
+         */
+        if (recipes.isEmpty()) {
             this.currentRecipe = null;
             updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
@@ -249,7 +247,7 @@ public class FieldProjectorTile extends TileEntity implements ITickableTileEntit
 
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
-        for (MiniaturizationRecipe recipe : recipesBoundFitted) {
+        for (MiniaturizationRecipe recipe : recipes) {
             boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBlocks);
             if (!recipeMatches)
                 continue;
