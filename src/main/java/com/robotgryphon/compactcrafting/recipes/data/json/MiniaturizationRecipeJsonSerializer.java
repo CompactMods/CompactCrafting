@@ -3,6 +3,7 @@ package com.robotgryphon.compactcrafting.recipes.data.json;
 import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.data.states.BlockStatePredicateMatcher;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.util.JsonUtil;
@@ -147,6 +148,7 @@ public abstract class MiniaturizationRecipeJsonSerializer {
             JsonElement bsElement = component.getValue();
             if(bsElement.isJsonObject()) {
                 Optional<BlockState> state = JsonUtil.getBlockState(bsElement.getAsJsonObject());
+                Optional<BlockStatePredicateMatcher> matcher = JsonUtil.getPossibleStates(bsElement.getAsJsonObject());
 
                 if (key.isEmpty() || !state.isPresent()) {
                     CompactCrafting.LOGGER.warn("Failed to process blockstate for component {}; definition not found.", key);

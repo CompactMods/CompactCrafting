@@ -1,8 +1,10 @@
 package com.robotgryphon.compactcrafting.recipes.data.serialization;
 
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -12,8 +14,10 @@ import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public abstract class RecipeBufferData {
 
@@ -28,27 +32,45 @@ public abstract class RecipeBufferData {
     public static void readComponentInfo(MiniaturizationRecipe recipe, PacketBuffer buffer) {
         CompoundNBT components = buffer.readCompoundTag();
         int numComponents = components.getInt("count");
-        if(numComponents > 0) {
+        if (numComponents > 0) {
             ListNBT compList = components.getList("components", Constants.NBT.TAG_COMPOUND);
             compList.forEach(comp -> {
                 CompoundNBT compC = (CompoundNBT) comp;
                 String key = compC.getString("key");
                 CompoundNBT stateTag = compC.getCompound("state");
 
-                BlockState.CODEC.decode(NBTDynamicOps.INSTANCE, stateTag)
-                        .resultOrPartial(CompactCrafting.LOGGER::error)
-                        .ifPresent(state -> {
-                            BlockState compState = state.getFirst();
-                            recipe.addComponent(key, compState);
+                try {
+                    // TODO - Fix issue where this needs all properties defined
+                    Optional<Pair<BlockState, INBT>> fromState = BlockState.CODEC.decode(NBTDynamicOps.INSTANCE, stateTag)
+                            .resultOrPartial(CompactCrafting.LOGGER::error);
 
-                            CompactCrafting.LOGGER.debug("Got component: {} ({})", key, compState.toString());
-                        });
+                    if (fromState.isPresent()) {
+                        BlockState compState = fromState.get().getFirst();
+                        recipe.addComponent(key, compState);
+
+                        CompactCrafting.LOGGER.debug("Got component: {} ({})", key, compState.toString());
+                    } else {
+                        Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(stateTag.getString("Name")));
+                        if (block != null) {
+                            BlockState defaultState = block.getDefaultState();
+                            recipe.addComponent(key, defaultState);
+
+                            CompactCrafting.LOGGER.warn("Got component: {} ({})", key, defaultState.toString());
+                            CompactCrafting.LOGGER.warn("This is probably not intended; make sure all properties are properly set in the JSON file.");
+                        }
+                    }
+                }
+
+                catch(Exception ex) {
+                    //
+                }
             });
         }
     }
 
     /**
      * Writes component information for a recipe to a compound NBT tag.
+     *
      * @param recipe
      * @return
      */
@@ -63,14 +85,14 @@ public abstract class RecipeBufferData {
             recipe.getComponents().forEach((key, state) -> {
                 DataResult<INBT> encode = BlockState.CODEC.encode(state, NBTDynamicOps.INSTANCE, null);
                 encode
-                    .resultOrPartial(CompactCrafting.LOGGER::error)
-                    .ifPresent(stateNbt -> {
-                        CompoundNBT componentTag = new CompoundNBT();
-                        componentTag.put("state", stateNbt);
-                        componentTag.putString("key", key);
+                        .resultOrPartial(CompactCrafting.LOGGER::error)
+                        .ifPresent(stateNbt -> {
+                            CompoundNBT componentTag = new CompoundNBT();
+                            componentTag.put("state", stateNbt);
+                            componentTag.putString("key", key);
 
-                        compList.add(componentTag);
-                    });
+                            compList.add(componentTag);
+                        });
             });
 
             componentData.put("components", compList);
@@ -87,7 +109,7 @@ public abstract class RecipeBufferData {
      */
     public static void readRecipeOutputs(MiniaturizationRecipe recipe, PacketBuffer buffer) throws Exception {
         CompoundNBT outputMeta = buffer.readCompoundTag();
-        if(outputMeta == null || outputMeta.isEmpty() || !outputMeta.contains("outputs"))
+        if (outputMeta == null || outputMeta.isEmpty() || !outputMeta.contains("outputs"))
             throw new Exception("Output information is not readable: no output count or compound not readable.");
 
         if (outputMeta.getInt("outputs") > 0) {
@@ -126,10 +148,10 @@ public abstract class RecipeBufferData {
      */
     public static void readRecipeCatalysts(MiniaturizationRecipe recipe, PacketBuffer buffer) throws Exception {
         CompoundNBT tag = buffer.readCompoundTag();
-        if(tag == null || tag.isEmpty() || !tag.contains("type"))
+        if (tag == null || tag.isEmpty() || !tag.contains("type"))
             throw new Exception("Tag information is not readable: no type tag or compound not readable.");
 
-        if(!tag.getString("type").equals(TYPE_CATALYSTS.toString()))
+        if (!tag.getString("type").equals(TYPE_CATALYSTS.toString()))
             throw new Exception("Tried to read a non-catalyst tag.");
 
         ItemStack output = buffer.readItemStack();
