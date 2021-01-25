@@ -2,9 +2,7 @@ package com.robotgryphon.compactcrafting.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.core.Constants;
 import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
@@ -60,49 +58,51 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
 
-        Optional<FieldProjection> fieldProjection = tile.getField();
-        if (fieldProjection.isPresent()) {
-            FieldProjection fp = fieldProjection.get();
-            BlockPos center = fp.getCenterPosition();
-            int fieldSize = fp.getFieldSize().getSize();
+        if (tile instanceof MainFieldProjectorTile) {
+            MainFieldProjectorTile mainTile = (MainFieldProjectorTile) tile;
+            Optional<FieldProjection> fieldProjection = mainTile.getField();
+            if (fieldProjection.isPresent()) {
+                FieldProjection fp = fieldProjection.get();
+                BlockPos center = fp.getCenterPosition();
+                int fieldSize = fp.getFieldSize().getSize();
 
-            float scale = 1f;
+                float scale = 1f;
 
 
+                AxisAlignedBB cube = fp.getBounds();
 
-            AxisAlignedBB cube = fp.getBounds();
+                // renderFaces(tile, matrixStack, buffers, cube, 0);
 
-            // renderFaces(tile, matrixStack, buffers, cube, 0);
+                // TODO - WIP ARC CODE
+                // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
 
-            // TODO - WIP ARC CODE
-            // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
+                if (tile.isMainProjector()) {
+                    EnumCraftingState state = mainTile.getCraftingState();
+                    if (state == EnumCraftingState.CRAFTING) {
+                        FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
+                                .getWorld()
+                                .getTileEntity(fp.getCenterPosition());
 
-            if (tile.isMainProjector()) {
-                EnumCraftingState state = tile.getCraftingState();
-                if(state == EnumCraftingState.CRAFTING) {
-                    FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
-                            .getWorld()
-                            .getTileEntity(fp.getCenterPosition());
+                        // No preview tile found, not actually crafting rn
+                        if (preview == null)
+                            return;
 
-                    // No preview tile found, not actually crafting rn
-                    if(preview == null)
-                        return;
+                        double craftProgress = preview.getProgress();
 
-                    double craftProgress = preview.getProgress();
+                        double progress = 1.0d - (craftProgress / (double) mainTile.getCurrentRecipe().get().getTicks());
 
-                    double progress = 1.0d - (craftProgress / (double) tile.getCurrentRecipe().get().getTicks());
+                        scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f)));
+                    }
 
-                    scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f)));
+                    matrixStack.push();
+
+                    matrixStack.scale(scale, scale, scale);
+
+                    drawScanLines(mainTile, matrixStack, buffers, cube, fieldSize);
+                    renderProjectionCube(mainTile, matrixStack, buffers, cube, fieldSize);
+
+                    matrixStack.pop();
                 }
-
-                matrixStack.push();
-
-                matrixStack.scale(scale, scale, scale);
-
-                drawScanLines(tile, matrixStack, buffers, cube, fieldSize);
-                renderProjectionCube(tile, matrixStack, buffers, cube, fieldSize);
-
-                matrixStack.pop();
             }
         }
     }
@@ -274,7 +274,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * TODO - render projection arc connecting projector to large cube
      */
 
-    private void translateRendererToCube(FieldProjectorTile tile, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
+    private void translateRendererToCube(MainFieldProjectorTile tile, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
         BlockPos center = tile.getField().get().getCenterPosition();
 
         // Center on projector
@@ -292,7 +292,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void renderProjectionCube(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void renderProjectionCube(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
         mx.push();
 
         translateRendererToCube(tile, mx, cube, cubeSize);
@@ -413,7 +413,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLines(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void drawScanLines(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
         IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
 
         mx.push();

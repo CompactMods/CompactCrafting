@@ -45,7 +45,7 @@ public class ProjectorFieldData {
             BlockPos mainProjector = NBTUtil.readBlockPos(mainProjectorComp);
 
             CompoundNBT fieldCenterComp = fieldTagComp.getCompound("field");
-            BlockPos fieldCenter = NBTUtil.readBlockPos(fieldTagComp);
+            BlockPos fieldCenter = NBTUtil.readBlockPos(fieldCenterComp);
 
             ProjectorFieldData fd = new ProjectorFieldData(mainProjector, fieldCenter);
             return fd;
