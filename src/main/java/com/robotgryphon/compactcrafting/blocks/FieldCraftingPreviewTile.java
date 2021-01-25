@@ -19,7 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Optional;
 
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
-    private FieldProjectorTile masterProjector;
+    private MainFieldProjectorTile masterProjector;
     private int craftingProgress = 0;
     private MiniaturizationRecipe recipe;
 
@@ -35,7 +35,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         return Optional.ofNullable(recipe);
     }
 
-    public void setMasterProjector(FieldProjectorTile master) {
+    public void setMasterProjector(MainFieldProjectorTile master) {
         this.masterProjector = master;
         this.recipe = master.getCurrentRecipe().get();
         this.markDirty();

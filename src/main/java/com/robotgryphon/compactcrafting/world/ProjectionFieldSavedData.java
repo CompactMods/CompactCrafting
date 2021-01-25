@@ -48,8 +48,11 @@ public class ProjectionFieldSavedData extends WorldSavedData {
 
     public static ProjectionFieldSavedData get(ServerWorld world) {
         DimensionSavedDataManager wsd = world.getSavedData();
-        ProjectionFieldSavedData pfd = wsd.getOrCreate(ProjectionFieldSavedData::new, DATA_NAME);
+        return wsd.getOrCreate(ProjectionFieldSavedData::new, DATA_NAME);
+    }
 
-        return pfd;
+    public void unregister(BlockPos center) {
+        this.ACTIVE_FIELDS.remove(center);
+        this.markDirty();
     }
 }
