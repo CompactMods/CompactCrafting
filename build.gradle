@@ -86,6 +86,8 @@ minecraft {
     }
 }
 
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
 def format(String jar_name) {
     def index = jar_name.lastIndexOf('-')
     index = jar_name.substring(0, index).lastIndexOf('-')
