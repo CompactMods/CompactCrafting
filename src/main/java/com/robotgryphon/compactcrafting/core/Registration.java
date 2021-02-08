@@ -1,10 +1,7 @@
 package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewBlock;
-import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
@@ -95,9 +92,14 @@ public class Registration {
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
-    public static final RegistryObject<TileEntityType<FieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
+    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
             TileEntityType.Builder
-                    .create(FieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .create(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .build(null));
+
+    public static final RegistryObject<TileEntityType<DummyFieldProjectorTile>> DUMMY_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("dummy_field_projector", () ->
+            TileEntityType.Builder
+                    .create(DummyFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
     public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
@@ -146,6 +148,7 @@ public class Registration {
     }
 
     @SubscribeEvent
+    @SuppressWarnings("unused")
     public static void onRegistration(RegistryEvent.Register<RecipeLayerSerializer<?>> evt) {
         RECIPE_SERIALIZERS = evt.getRegistry();
     }
