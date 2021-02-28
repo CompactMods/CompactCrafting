@@ -72,7 +72,7 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
     }
 
     public int getNumberFilledPositions() {
-        return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getYSize());
+        return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getZSize());
     }
 
     @Override

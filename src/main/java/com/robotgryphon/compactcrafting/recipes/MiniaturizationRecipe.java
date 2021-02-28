@@ -80,8 +80,10 @@ public class MiniaturizationRecipe extends RecipeBase {
         this.outputs = outputs.toArray(new ItemStack[0]);
 
         this.layers = new HashMap<>();
-        for (int y = 0; y < layers.size(); y++)
-            this.layers.put(y, layers.get(y));
+        ArrayList<RecipeLayer> rev = new ArrayList<>(layers);
+        Collections.reverse(rev);
+        for (int y = 0; y < rev.size(); y++)
+            this.layers.put(y, rev.get(y));
 
         this.recalculateDimensions();
     }
@@ -115,7 +117,7 @@ public class MiniaturizationRecipe extends RecipeBase {
         boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IRigidRecipeLayer);
         if (!hasAnyRigidLayers) {
             try {
-                setFluidDimensions(AxisAlignedBB.withSizeAtOrigin(minRecipeDimensions, height, minRecipeDimensions));
+                setFluidDimensions(new AxisAlignedBB(0, 0, 0, minRecipeDimensions, height, minRecipeDimensions));
             } catch (MiniaturizationRecipeException e) {
 
             }
