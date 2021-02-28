@@ -9,10 +9,7 @@ import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
@@ -38,8 +35,8 @@ public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicR
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    public String getRequiredComponentKeyForPosition(BlockPos pos) {
-        return componentKey;
+    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
+        return Optional.ofNullable(componentKey);
     }
 
     /**
@@ -52,11 +49,11 @@ public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicR
         return filledPositions;
     }
 
-    public Collection<BlockPos> getNonAirPositions() {
+    public Collection<BlockPos> getFilledPositions() {
         return this.filledPositions;
     }
 
-    public boolean isPositionRequired(BlockPos pos) {
+    public boolean isPositionFilled(BlockPos pos) {
         return true;
     }
 

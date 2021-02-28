@@ -57,11 +57,11 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
                 Optional<RecipeLayer> layer = rec.getLayer(y);
                 layer.ifPresent(l -> {
-                    l.getNonAirPositions().forEach(filledPos -> {
+                    l.getFilledPositions().forEach(filledPos -> {
                         mx.push();
                         mx.translate(filledPos.getX(), 0, filledPos.getZ());
-                        String component = l.getRequiredComponentKeyForPosition(filledPos);
-                        Optional<BlockState> recipeComponent = rec.getRecipeComponent(component);
+                        Optional<String> component = l.getRequiredComponentKeyForPosition(filledPos);
+                        Optional<BlockState> recipeComponent = rec.getRecipeComponent(component.get());
 
                         recipeComponent.ifPresent(state -> {
                             blockRenderer.renderBlock(state, mx, buffers, light, overlay, EmptyModelData.INSTANCE);

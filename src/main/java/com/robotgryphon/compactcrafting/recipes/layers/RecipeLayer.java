@@ -4,6 +4,7 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 public abstract class RecipeLayer {
     public abstract Map<String, Integer> getComponentTotals();
@@ -14,7 +15,7 @@ public abstract class RecipeLayer {
      * @param pos
      * @return
      */
-    public abstract String getRequiredComponentKeyForPosition(BlockPos pos);
+    public abstract Optional<String> getRequiredComponentKeyForPosition(BlockPos pos);
 
     /**
      * Get a collection of positions that are filled by a given component.
@@ -31,9 +32,9 @@ public abstract class RecipeLayer {
      *
      * @return
      */
-    public abstract Collection<BlockPos> getNonAirPositions();
+    public abstract Collection<BlockPos> getFilledPositions();
 
-    public abstract boolean isPositionRequired(BlockPos pos);
+    public abstract boolean isPositionFilled(BlockPos pos);
 
     public abstract int getNumberFilledPositions();
 

@@ -446,7 +446,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         // Begin layer
         mx.push();
 
-        for (BlockPos filledPos : l.getNonAirPositions()) {
+        for (BlockPos filledPos : l.getFilledPositions()) {
             mx.push();
 
             mx.translate(
@@ -455,7 +455,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     ((filledPos.getZ() + 0.5) * explodeMulti)
             );
 
-            String component = l.getRequiredComponentKeyForPosition(filledPos);
+            String component = l.getRequiredComponentKeyForPosition(filledPos).get();
             Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
 
             recipeComponent.ifPresent(state -> {

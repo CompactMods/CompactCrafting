@@ -12,6 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
@@ -35,8 +36,8 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    public String getRequiredComponentKeyForPosition(BlockPos pos) {
-        return componentKey;
+    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
+        return Optional.ofNullable(componentKey);
     }
 
     /**
@@ -47,7 +48,7 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
      */
     public Collection<BlockPos> getPositionsForComponent(String component) {
         if (component == this.componentKey)
-            return getNonAirPositions();
+            return getFilledPositions();
 
         return Collections.emptySet();
     }
@@ -59,14 +60,14 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
      *
      * @return
      */
-    public Collection<BlockPos> getNonAirPositions() {
+    public Collection<BlockPos> getFilledPositions() {
         AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 1, recipeDimensions.getZSize() - 1);
         return BlockPos.getAllInBox(layerBounds)
                 .map(BlockPos::toImmutable)
                 .collect(Collectors.toSet());
     }
 
-    public boolean isPositionRequired(BlockPos pos) {
+    public boolean isPositionFilled(BlockPos pos) {
         return true;
     }
 
