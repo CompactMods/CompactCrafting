@@ -1,14 +1,12 @@
 package com.robotgryphon.compactcrafting.recipes.data;
 
 import com.google.gson.JsonObject;
+import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.data.json.MiniaturizationRecipeJsonSerializer;
 import com.robotgryphon.compactcrafting.recipes.data.serialization.RecipeBufferData;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.nbt.CompoundNBT;
@@ -18,15 +16,15 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
         implements IRecipeSerializer<MiniaturizationRecipe> {
 
     @Override
     public MiniaturizationRecipe read(ResourceLocation recipeId, JsonObject json) {
-        Optional<MiniaturizationRecipe> attempt = MiniaturizationRecipeJsonSerializer.deserialize(json, recipeId);
-        return attempt.orElse(null);
+        return MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
+                .result()
+                .orElse(null);
     }
 
     @Nullable
@@ -55,17 +53,18 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
 
         try {
             int numLayers = buffer.readInt();
-            recipe.setLayers(new IRecipeLayer[numLayers]);
+            recipe.setLayers(new RecipeLayer[numLayers]);
             for (int i = 0; i < numLayers; i++) {
-                ResourceLocation layerType = buffer.readResourceLocation();
-                if (Registration.RECIPE_SERIALIZERS.containsKey(layerType)) {
-                    RecipeLayerSerializer<?> serializer = Registration.RECIPE_SERIALIZERS.getValue(layerType);
-                    IRecipeLayer layer = serializer.readLayerData(buffer);
-                    if (layer instanceof IDynamicRecipeLayer)
-                        ((IDynamicRecipeLayer) layer).setRecipeDimensions(dims);
-
-                    recipe.setLayer(i, layer);
-                }
+                // TODO - NO
+//                ResourceLocation layerType = buffer.readResourceLocation();
+//                if (Registration.RECIPE_SERIALIZERS.containsKey(layerType)) {
+//                    RecipeLayerSerializer<?> serializer = Registration.RECIPE_SERIALIZERS.getValue(layerType);
+//                    RecipeLayerType layer = serializer.readLayerData(buffer);
+//                    if (layer instanceof IDynamicRecipeLayer)
+//                        ((IDynamicRecipeLayer) layer).setRecipeDimensions(dims);
+//
+//                    recipe.setLayer(i, layer);
+//                }
             }
         }
 
@@ -109,11 +108,12 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
                 return;
             }
 
-            RecipeLayerSerializer serializer = layer.getSerializer(layer);
-            if(serializer != null)
-                serializer.writeLayerData(layer, buffer);
-            else
-                buffer.writeResourceLocation(new ResourceLocation(CompactCrafting.MOD_ID, "blank"));
+            // TODO - JsonOps
+//            Codec<?> serializer = layer.getCodec();
+//            if(serializer != null)
+//                serializer.writeLayerData(layer, buffer);
+//            else
+//                buffer.writeResourceLocation(new ResourceLocation(CompactCrafting.MOD_ID, "blank"));
         });
     }
 

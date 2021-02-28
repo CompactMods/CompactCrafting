@@ -1,8 +1,10 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -12,10 +14,14 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
+public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
 
     private String componentKey;
     private AxisAlignedBB recipeDimensions;
+
+    public static final Codec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.create(in -> in.group(
+            Codec.STRING.fieldOf("component").forGetter(FilledComponentRecipeLayer::getComponent)
+        ).apply(in, FilledComponentRecipeLayer::new));
 
     public FilledComponentRecipeLayer(String component) {
         this.componentKey = component;
@@ -25,12 +31,10 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
         return this.componentKey;
     }
 
-    @Override
     public Map<String, Integer> getComponentTotals() {
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    @Override
     public String getRequiredComponentKeyForPosition(BlockPos pos) {
         return componentKey;
     }
@@ -41,9 +45,8 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
      * @param component
      * @return
      */
-    @Override
     public Collection<BlockPos> getPositionsForComponent(String component) {
-        if(component == this.componentKey)
+        if (component == this.componentKey)
             return getNonAirPositions();
 
         return Collections.emptySet();
@@ -56,7 +59,6 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
      *
      * @return
      */
-    @Override
     public Collection<BlockPos> getNonAirPositions() {
         AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 1, recipeDimensions.getZSize() - 1);
         return BlockPos.getAllInBox(layerBounds)
@@ -64,19 +66,17 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
                 .collect(Collectors.toSet());
     }
 
-    @Override
     public boolean isPositionRequired(BlockPos pos) {
         return true;
     }
 
-    @Override
     public int getNumberFilledPositions() {
         return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getYSize());
     }
 
     @Override
-    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
-        return (RecipeLayerSerializer<T>) Registration.FILLED_LAYER_SERIALIZER.get();
+    public RecipeLayerType<?> getType() {
+        return Registration.FILLED_LAYER_SERIALIZER.get();
     }
 
     public void setComponent(String component) {

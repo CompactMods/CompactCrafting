@@ -4,7 +4,7 @@ import com.google.gson.*;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.data.states.BlockStatePredicateMatcher;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.util.JsonUtil;
 import net.minecraft.block.BlockState;
@@ -108,10 +108,10 @@ public abstract class MiniaturizationRecipeJsonSerializer {
         JsonArray layers = root.get("layers").getAsJsonArray();
         LayerDeserializer layerJsonSerializer = new LayerDeserializer();
         Gson g = new GsonBuilder()
-                .registerTypeAdapter(IRecipeLayer.class, layerJsonSerializer)
+                .registerTypeAdapter(RecipeLayer.class, layerJsonSerializer)
                 .create();
 
-        IRecipeLayer[] iRecipeLayers = g.fromJson(layers, IRecipeLayer[].class);
+        RecipeLayer[] iRecipeLayers = g.fromJson(layers, RecipeLayer[].class);
         Collections.reverse(Arrays.asList(iRecipeLayers));
 
         recipe.setLayers(iRecipeLayers);

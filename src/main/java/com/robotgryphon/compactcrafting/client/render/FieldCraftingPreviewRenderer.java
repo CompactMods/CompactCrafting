@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
@@ -55,7 +55,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
                 mx.push();
                 mx.translate(0, y, 0);
 
-                Optional<IRecipeLayer> layer = rec.getLayer(y);
+                Optional<RecipeLayer> layer = rec.getLayer(y);
                 layer.ifPresent(l -> {
                     l.getNonAirPositions().forEach(filledPos -> {
                         mx.push();

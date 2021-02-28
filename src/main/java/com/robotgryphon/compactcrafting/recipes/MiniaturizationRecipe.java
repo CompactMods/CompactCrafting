@@ -1,11 +1,15 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.recipes.data.base.RecipeBase;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -27,27 +31,51 @@ import java.util.stream.Stream;
 public class MiniaturizationRecipe extends RecipeBase {
 
     private ResourceLocation registryName;
-    private IRecipeLayer[] layers;
+    private RecipeLayer[] layers;
     private ItemStack catalyst;
     private ItemStack[] outputs;
     private AxisAlignedBB dimensions;
     private Map<String, Integer> cachedComponentTotals;
+
     /**
      * Contains a mapping of all known components in the recipe.
      * Vanilla style; C = CHARCOAL_BLOCK
      */
     private final Map<String, BlockState> components;
 
+    private static final Codec<RecipeLayer> l = RecipeLayerType.CODEC.dispatchStable(RecipeLayer::getType, RecipeLayerType::getCodec);
+
+    public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
+            l.listOf().fieldOf("layers").forGetter(MiniaturizationRecipe::getLayerList),
+            ItemStack.CODEC.fieldOf("catalyst").forGetter(MiniaturizationRecipe::getCatalyst),
+            ItemStack.CODEC.listOf().fieldOf("outputs").forGetter(MiniaturizationRecipe::getOutputList)
+    ).apply(i, MiniaturizationRecipe::new));
+
     public MiniaturizationRecipe(ResourceLocation rl) {
         this.registryName = rl;
-        this.layers = new IRecipeLayer[0];
+        this.layers = new RecipeLayer[0];
         this.outputs = new ItemStack[0];
         this.components = new HashMap<>();
 
         recalculateDimensions();
     }
 
-    public void setLayers(IRecipeLayer[] layers) {
+    public MiniaturizationRecipe(Collection<RecipeLayer> layers, ItemStack catalyst, List<ItemStack> outputs) {
+        this.catalyst = catalyst;
+        this.layers = layers.toArray(new RecipeLayer[0]);
+        this.components = new HashMap<>();
+        this.outputs = outputs.toArray(new ItemStack[0]);
+    }
+
+    private ImmutableList<ItemStack> getOutputList() {
+        return ImmutableList.copyOf(outputs.clone());
+    }
+
+    private ImmutableList<RecipeLayer> getLayerList() {
+        return ImmutableList.copyOf(layers.clone());
+    }
+
+    public void setLayers(RecipeLayer[] layers) {
         this.layers = layers;
         this.postLayerChange();
     }
@@ -62,7 +90,7 @@ public class MiniaturizationRecipe extends RecipeBase {
         int x = 0;
         int z = 0;
 
-        for (IRecipeLayer layer : this.layers) {
+        for (RecipeLayer layer : this.layers) {
             // We only need to worry about fixed-dimension layers; the fluid layers will adapt
             if (layer instanceof IRigidRecipeLayer) {
                 AxisAlignedBB dimensions = ((IRigidRecipeLayer) layer).getDimensions();
@@ -139,7 +167,7 @@ public class MiniaturizationRecipe extends RecipeBase {
 
         int maxY = (int) dimensions.getYSize();
         for (int offset = 0; offset < maxY; offset++) {
-            Optional<IRecipeLayer> layer = getLayer(offset);
+            Optional<RecipeLayer> layer = getLayer(offset);
 
             BlockPos[] layerFilled = BlockSpaceUtil.getFilledBlocksByLayer(world, filledBounds, offset);
 
@@ -164,7 +192,7 @@ public class MiniaturizationRecipe extends RecipeBase {
 
                 BlockState actualState = world.getBlockState(unrotatedPos);
 
-                IRecipeLayer l = layer.get();
+                RecipeLayer l = layer.get();
                 String requiredComponentKeyForPosition = l.getRequiredComponentKeyForPosition(normalizedRotatedPos);
                 Optional<String> recipeComponentKey = this.getRecipeComponentKey(actualState);
 
@@ -188,7 +216,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public Map<String, Integer> getRecipeComponentTotals() {
-        if(this.cachedComponentTotals != null)
+        if (this.cachedComponentTotals != null)
             return this.cachedComponentTotals;
 
         HashMap<String, Integer> totals = new HashMap<>();
@@ -215,8 +243,8 @@ public class MiniaturizationRecipe extends RecipeBase {
             return 0;
 
         int required = 0;
-        for (IRecipeLayer layer : this.layers) {
-            if(layer == null)
+        for (RecipeLayer layer : this.layers) {
+            if (layer == null)
                 continue;
 
             Map<String, Integer> layerTotals = layer.getComponentTotals();
@@ -252,7 +280,7 @@ public class MiniaturizationRecipe extends RecipeBase {
      * @param filledPositions   The filled positions on the layer to check.
      * @return
      */
-    public boolean areLayerPositionsCorrect(IRecipeLayer layer, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
+    public boolean areLayerPositionsCorrect(RecipeLayer layer, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
         // Recipe layers using this method must define at least one filled space
         if (filledPositions.length == 0)
             return false;
@@ -280,14 +308,14 @@ public class MiniaturizationRecipe extends RecipeBase {
                 .allMatch(layer::isPositionRequired);
     }
 
-    public Optional<IRecipeLayer> getLayer(int y) {
+    public Optional<RecipeLayer> getLayer(int y) {
         if (y < 0 || y > this.layers.length - 1)
             return Optional.empty();
 
         return Optional.ofNullable(this.layers[y]);
     }
 
-    public Stream<IRecipeLayer> getLayers() {
+    public Stream<RecipeLayer> getLayers() {
         return Arrays.stream(layers.clone());
     }
 
@@ -295,8 +323,8 @@ public class MiniaturizationRecipe extends RecipeBase {
         return layers.length;
     }
 
-    public void setLayer(int num, IRecipeLayer layer) {
-        if(num < 0 || num > layers.length - 1)
+    public void setLayer(int num, RecipeLayer layer) {
+        if (num < 0 || num > layers.length - 1)
             return;
 
         this.layers[num] = layer;
@@ -331,7 +359,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public void setFluidDimensions(AxisAlignedBB dimensions) throws MiniaturizationRecipeException {
-        if(Arrays.stream(this.layers).filter(Objects::nonNull).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
+        if (Arrays.stream(this.layers).filter(Objects::nonNull).anyMatch(layer -> !(layer instanceof IDynamicRecipeLayer)))
             throw new MiniaturizationRecipeException("Tried to set fluid dimensions when a non-fluid layer exists.");
 
         this.dimensions = dimensions;

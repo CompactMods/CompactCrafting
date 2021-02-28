@@ -1,16 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.data.serialization.layers;
 
-import com.google.gson.JsonObject;
-import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
-import com.robotgryphon.compactcrafting.recipes.exceptions.RecipeLoadingException;
-import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-
-import java.util.*;
-
-public class MixedLayerSerializer extends RecipeLayerSerializer<MixedComponentRecipeLayer> {
+public class MixedLayerSerializer {}
+/* extends RecipeLayerSerializer<MixedComponentRecipeLayer> {
 
     @Override
     public MixedComponentRecipeLayer readLayerData(JsonObject json) throws RecipeLoadingException {
@@ -56,7 +47,7 @@ public class MixedLayerSerializer extends RecipeLayerSerializer<MixedComponentRe
 
     @Override
     public void writeLayerData(MixedComponentRecipeLayer layer, PacketBuffer buffer) {
-        buffer.writeResourceLocation(Registration.MIXED_LAYER_SERIALIZER.getId());
+        buffer.writeResourceLocation(Registration.MIXED_LAYER_TYPE.getId());
 
         Set<String> componentKeys = layer.getComponentTotals().keySet();
         buffer.writeInt(componentKeys.size());
@@ -68,4 +59,4 @@ public class MixedLayerSerializer extends RecipeLayerSerializer<MixedComponentRe
             positionsForComponent.forEach(buffer::writeBlockPos);
         });
     }
-}
+}*/

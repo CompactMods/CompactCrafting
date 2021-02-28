@@ -1,8 +1,10 @@
 package com.robotgryphon.compactcrafting.recipes.layers.impl;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -13,22 +15,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
+public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
 
     private String componentKey;
     private AxisAlignedBB recipeDimensions;
     private Collection<BlockPos> filledPositions;
+
+    public static final Codec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponent)
+    ).apply(i, HollowComponentRecipeLayer::new));
 
     public HollowComponentRecipeLayer(String component) {
         this.componentKey = component;
     }
 
     @Override
+    public RecipeLayerType<?> getType() {
+        return Registration.HOLLOW_LAYER_TYPE.get();
+    }
+
     public Map<String, Integer> getComponentTotals() {
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    @Override
     public String getRequiredComponentKeyForPosition(BlockPos pos) {
         return componentKey;
     }
@@ -39,29 +48,20 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
      * @param component
      * @return
      */
-    @Override
     public Collection<BlockPos> getPositionsForComponent(String component) {
         return filledPositions;
     }
 
-    @Override
     public Collection<BlockPos> getNonAirPositions() {
         return this.filledPositions;
     }
 
-    @Override
     public boolean isPositionRequired(BlockPos pos) {
         return true;
     }
 
-    @Override
     public int getNumberFilledPositions() {
         return filledPositions.size();
-    }
-
-    @Override
-    public <T extends IRecipeLayer> RecipeLayerSerializer<T> getSerializer(T layer) {
-        return (RecipeLayerSerializer<T>) Registration.HOLLOW_LAYER_SERIALIZER.get();
     }
 
     public void setComponent(String component) {
