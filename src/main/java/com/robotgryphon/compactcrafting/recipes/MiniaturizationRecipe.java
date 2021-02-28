@@ -36,7 +36,7 @@ public class MiniaturizationRecipe extends RecipeBase {
      * Specifies the minimum field size required for fluid recipe layers.
      */
     private int minRecipeDimensions;
-    private ResourceLocation registryName;
+    private ResourceLocation id;
     private RecipeLayer[] layers;
     private ItemStack catalyst;
     private ItemStack[] outputs;
@@ -63,7 +63,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public MiniaturizationRecipe(ResourceLocation rl) {
-        this.registryName = rl;
+        this.id = rl;
         this.layers = new RecipeLayer[0];
         this.outputs = new ItemStack[0];
         this.components = new HashMap<>();
@@ -395,10 +395,6 @@ public class MiniaturizationRecipe extends RecipeBase {
         return 200;
     }
 
-    @Override
-    public ResourceLocation getId() {
-        return this.registryName;
-    }
 
     @Override
     public IRecipeSerializer<?> getSerializer() {
@@ -408,5 +404,15 @@ public class MiniaturizationRecipe extends RecipeBase {
     @Override
     public IRecipeType<?> getType() {
         return Registration.MINIATURIZATION_RECIPE_TYPE;
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return this.id;
+    }
+
+    @Override
+    public void setId(ResourceLocation recipeId) {
+        this.id = recipeId;
     }
 }

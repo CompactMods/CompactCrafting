@@ -4,7 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.PrimitiveCodec;
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.*;
@@ -45,7 +48,27 @@ public class RecipeLayerComponentPositionLookup {
 
         @Override
         public <T> T write(DynamicOps<T> ops, RecipeLayerComponentPositionLookup value) {
-            return null;
+            AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(value.getAllPositions());
+
+            HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXSize());
+            for(int x = 0; x < boundsForBlocks.getXSize(); x++)
+                revMap.putIfAbsent(x, new ArrayList<>());
+
+            value.components.forEach((pos, comp) -> {
+                List<String> xList = revMap.get(pos.getX());
+                xList.add(pos.getZ(), comp);
+            });
+
+            List<List<String>> fin = new ArrayList<>(revMap.size());
+            revMap.forEach(fin::add);
+
+            DataResult<T> encoded = Codec.STRING.listOf().listOf().encode(fin, ops, ops.empty());
+
+            return encoded
+                    .resultOrPartial(err -> CompactCrafting.LOGGER.error(
+                            String.format("Failed to encode layer component position lookup: %s", err)
+                    ))
+                    .get();
         }
     };
 

@@ -1,15 +1,10 @@
 package com.robotgryphon.compactcrafting.recipes;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -69,29 +64,4 @@ public abstract class RecipeHelper {
         return counts;
     }
 
-    public static Map<BlockPos, String> getComponentMapFromPattern(JsonObject layer) {
-        if(!layer.has("pattern"))
-            return Collections.emptyMap();
-
-        JsonArray layerPattern = layer.get("pattern").getAsJsonArray();
-        int zSize = layerPattern.size();
-
-        String[][] mappedToArray = new String[zSize][];
-
-        for(int z = 0; z < zSize; z++) {
-            JsonElement jsonElement = layerPattern.get(z);
-            if(!jsonElement.isJsonArray())
-                throw new JsonParseException("Mixed layer definition got a non-array in its pattern definition.");
-
-            JsonArray el = jsonElement.getAsJsonArray();
-            String[] xValues = new String[el.size()];
-            for(int x = 0; x < el.size(); x++) {
-                xValues[x] = el.get(x).getAsString();
-            }
-
-            mappedToArray[z] = xValues;
-        }
-
-        return convertMultiArrayToMap(mappedToArray);
-    }
 }
