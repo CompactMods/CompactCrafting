@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.data.base;
+package com.robotgryphon.compactcrafting.recipes.setup;
 
 import com.robotgryphon.compactcrafting.recipes.FakeInventory;
 import net.minecraft.item.ItemStack;

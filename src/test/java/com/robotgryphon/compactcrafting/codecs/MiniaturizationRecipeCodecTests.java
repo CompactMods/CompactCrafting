@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.codecs;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
@@ -8,39 +7,35 @@ import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.util.FileHelper;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.NBTDynamicOps;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 
 public class MiniaturizationRecipeCodecTests {
 
-    InputStreamReader openFile(String filename) {
-        URL res = getClass().getClassLoader().getResource(filename);
-        try {
-            InputStream inputStream = res.openStream();
-            return new InputStreamReader(inputStream);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private MiniaturizationRecipe getRecipeFromFile(String filename) {
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile(filename);
 
-        return null;
+        Optional<Pair<MiniaturizationRecipe, JsonElement>> loaded = MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
+                .resultOrPartial(CompactCrafting.LOGGER::info);
+
+        if (!loaded.isPresent()) {
+            Assertions.fail("Recipe did not load from file.");
+            return null;
+        } else {
+            return loaded.get().getFirst();
+        }
     }
 
     @Test
     void LoadsRecipeFromJson() {
-        Gson g = new Gson();
-        InputStreamReader isr = openFile("layers.json");
-        JsonElement json = g.fromJson(isr, JsonElement.class);
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("layers.json");
 
-        // TODO - Light registry replacement for the Forge Registry here
         MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
@@ -111,22 +106,6 @@ public class MiniaturizationRecipeCodecTests {
             Map<String, Integer> componentTotals = lay.getComponentTotals();
             Assertions.assertTrue(componentTotals.containsKey("R"), "Expected redstone component in top layer; it does not exist.");
             Assertions.assertEquals(1, componentTotals.get("R"), "Expected one redstone required in top layer.");
-        }
-    }
-
-    private MiniaturizationRecipe getRecipeFromFile(String filename) {
-        Gson g = new Gson();
-        InputStreamReader isr = openFile(filename);
-        JsonElement json = g.fromJson(isr, JsonElement.class);
-
-        Optional<Pair<MiniaturizationRecipe, JsonElement>> loaded = MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(CompactCrafting.LOGGER::info);
-
-        if (!loaded.isPresent()) {
-            Assertions.fail("Recipe did not load from file.");
-            return null;
-        } else {
-            return loaded.get().getFirst();
         }
     }
 }

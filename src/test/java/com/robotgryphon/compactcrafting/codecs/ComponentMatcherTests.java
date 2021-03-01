@@ -1,0 +1,76 @@
+package com.robotgryphon.compactcrafting.codecs;
+
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
+import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.recipes.data.RecipeBlockStateComponentMatcher;
+import com.robotgryphon.compactcrafting.util.FileHelper;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.StairsBlock;
+import net.minecraft.state.properties.Half;
+import net.minecraft.state.properties.StairsShape;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+
+public class ComponentMatcherTests {
+
+    @Test
+    void CanMatchBlock() {
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("properties.json");
+
+        RecipeBlockStateComponentMatcher.CODEC.decode(JsonOps.INSTANCE, json)
+                .resultOrPartial(Assertions::fail)
+                .ifPresent(res -> {
+                    RecipeBlockStateComponentMatcher matcher = res.getFirst();
+
+                    BlockState[] tests = Blocks.COBBLESTONE_STAIRS
+                            .getStateContainer()
+                            .getValidStates()
+                            .toArray(new BlockState[0]);
+
+                    Hashtable<BlockState, Boolean> results = new Hashtable<>();
+                    for(BlockState stateTest : tests) {
+                        boolean matched = matcher.filterMatches(stateTest);
+                        results.put(stateTest, matched);
+                    }
+
+                    List<BlockState> matched = new ArrayList<>();
+                    for(Map.Entry<BlockState, Boolean> e : results.entrySet()) {
+                        if(e.getValue())
+                            matched.add(e.getKey());
+                    }
+
+                    for(BlockState bs : matched) {
+                        if(bs.get(StairsBlock.HALF) == Half.TOP)
+                            Assertions.fail("Found a state with an invalid property TOP");
+
+                        if(bs.get(StairsBlock.SHAPE) != StairsShape.STRAIGHT)
+                            Assertions.fail("Found a state with a non-straight shape");
+                    }
+                });
+    }
+
+    @Test
+    void CanReserializeComponentMatcher() {
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("properties.json");
+
+        RecipeBlockStateComponentMatcher.CODEC.decode(JsonOps.INSTANCE, json)
+                .resultOrPartial(Assertions::fail)
+                .ifPresent(res -> {
+                    RecipeBlockStateComponentMatcher matcher = res.getFirst();
+
+                    RecipeBlockStateComponentMatcher.CODEC
+                            .encodeStart(JsonOps.INSTANCE, matcher)
+                            .resultOrPartial(Assertions::fail)
+                            .ifPresent(jsonE -> {
+                                CompactCrafting.LOGGER.info(jsonE);
+                            });
+                });
+    }
+}

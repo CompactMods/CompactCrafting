@@ -7,7 +7,7 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
-import com.robotgryphon.compactcrafting.recipes.data.base.RecipeBase;
+import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
