@@ -8,7 +8,7 @@ import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -427,7 +427,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             //}
 
             for (int y : renderLayers) {
-                Optional<IRecipeLayer> layer = recipe.getLayer(y);
+                Optional<RecipeLayer> layer = recipe.getLayer(y);
                 layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
             }
 
@@ -442,11 +442,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, RecipeLayer l, int layerY) {
         // Begin layer
         mx.push();
 
-        for (BlockPos filledPos : l.getNonAirPositions()) {
+        for (BlockPos filledPos : l.getFilledPositions()) {
             mx.push();
 
             mx.translate(
@@ -455,7 +455,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     ((filledPos.getZ() + 0.5) * explodeMulti)
             );
 
-            String component = l.getRequiredComponentKeyForPosition(filledPos);
+            String component = l.getRequiredComponentKeyForPosition(filledPos).get();
             Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
 
             recipeComponent.ifPresent(state -> {

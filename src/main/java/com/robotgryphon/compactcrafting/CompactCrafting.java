@@ -32,7 +32,6 @@ public class CompactCrafting
     public CompactCrafting() {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        forgeBus.register(this);
         forgeBus.register(RenderTickCounter.class);
         forgeBus.register(ClientSetup.class);
 
