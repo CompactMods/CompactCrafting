@@ -1,8 +1,9 @@
-package com.robotgryphon.compactcrafting.recipes.data;
+package com.robotgryphon.compactcrafting.recipes.components;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.state.Property;
@@ -13,16 +14,16 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class RecipeBlockStateComponentMatcher {
+public class RecipeBlockStateComponent extends RecipeComponent {
 
     public Block block;
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
 
-    public static final Codec<RecipeBlockStateComponentMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.fieldOf("block").forGetter(RecipeBlockStateComponentMatcher::getBlockName),
-            Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(RecipeBlockStateComponentMatcher::getProperties)
-    ).apply(i, RecipeBlockStateComponentMatcher::new));
+    public static final Codec<RecipeBlockStateComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
+            ResourceLocation.CODEC.fieldOf("block").forGetter(RecipeBlockStateComponent::getBlockName),
+            Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(RecipeBlockStateComponent::getProperties)
+    ).apply(i, RecipeBlockStateComponent::new));
 
     private Optional<Map<String, List<String>>> getProperties() {
         return Optional.of(allowedValues);
@@ -32,14 +33,14 @@ public class RecipeBlockStateComponentMatcher {
         return block.getRegistryName();
     }
 
-    public RecipeBlockStateComponentMatcher(Block b) {
+    public RecipeBlockStateComponent(Block b) {
         this.block = b;
         this.filters = new HashMap<>();
         this.allowedValues = new HashMap<>();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
-    public RecipeBlockStateComponentMatcher(ResourceLocation blockId, Optional<Map<String, List<String>>> propertyRequirements) {
+    public RecipeBlockStateComponent(ResourceLocation blockId, Optional<Map<String, List<String>>> propertyRequirements) {
         this.block = ForgeRegistries.BLOCKS.getValue(blockId);
         if (this.block == null)
             throw new IllegalArgumentException("Block identifier does not exist.");
@@ -107,5 +108,14 @@ public class RecipeBlockStateComponentMatcher {
         }
 
         return true;
+    }
+
+    @Override
+    public RecipeComponentType<?> getType() {
+        return Registration.BLOCKSTATE_COMPONENT.get();
+    }
+
+    public Block getBlock() {
+        return this.block;
     }
 }

@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.codecs;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.data.RecipeBlockStateComponentMatcher;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.util.FileHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -22,12 +22,12 @@ public class ComponentMatcherTests {
 
     @Test
     void CanMatchBlock() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("properties.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
 
-        RecipeBlockStateComponentMatcher.CODEC.decode(JsonOps.INSTANCE, json)
+        RecipeBlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
-                    RecipeBlockStateComponentMatcher matcher = res.getFirst();
+                    RecipeBlockStateComponent matcher = res.getFirst();
 
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
                             .getStateContainer()
@@ -57,15 +57,45 @@ public class ComponentMatcherTests {
     }
 
     @Test
-    void CanReserializeComponentMatcher() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("properties.json");
+    void CanMatchBlockNoProperties() {
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_no_properties.json");
 
-        RecipeBlockStateComponentMatcher.CODEC.decode(JsonOps.INSTANCE, json)
+        RecipeBlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
-                    RecipeBlockStateComponentMatcher matcher = res.getFirst();
+                    RecipeBlockStateComponent matcher = res.getFirst();
 
-                    RecipeBlockStateComponentMatcher.CODEC
+                    BlockState[] tests = Blocks.COBBLESTONE_STAIRS
+                            .getStateContainer()
+                            .getValidStates()
+                            .toArray(new BlockState[0]);
+
+                    Hashtable<BlockState, Boolean> results = new Hashtable<>();
+                    for(BlockState stateTest : tests) {
+                        boolean matched = matcher.filterMatches(stateTest);
+                        results.put(stateTest, matched);
+                    }
+
+                    List<BlockState> matched = new ArrayList<>();
+                    for(Map.Entry<BlockState, Boolean> e : results.entrySet()) {
+                        if(e.getValue())
+                            matched.add(e.getKey());
+                    }
+
+                    Assertions.assertEquals(tests.length, matched.size(), "Matches does not equal number of states.");
+                });
+    }
+
+    @Test
+    void CanReserializeComponentMatcher() {
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
+
+        RecipeBlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
+                .resultOrPartial(Assertions::fail)
+                .ifPresent(res -> {
+                    RecipeBlockStateComponent matcher = res.getFirst();
+
+                    RecipeBlockStateComponent.CODEC
                             .encodeStart(JsonOps.INSTANCE, matcher)
                             .resultOrPartial(Assertions::fail)
                             .ifPresent(jsonE -> {

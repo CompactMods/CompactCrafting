@@ -16,28 +16,6 @@
     "id": "minecraft:redstone",
     "Count": 1
   },
-  "components": {
-    "I": {
-      "Name": "minecraft:iron_block"
-    },
-    "R": {
-      "type": "compactcrafting:blockstate_matches",
-      "block": {
-        "Name": "minecraft:redstone_wire",
-        "Properties": {
-          "north": "none",
-          "south": "none",
-          "west": "none",
-          "east": "none",
-          "power": "0"
-        }
-      }
-    }
-  },
-  "outputs": [
-    {
-      "id": "minecraft:diamond",
-      "Count": 16
-    }
-  ]
+  "components": {},
+  "outputs": [  ]
 }

@@ -7,6 +7,9 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponent;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
@@ -47,16 +50,20 @@ public class MiniaturizationRecipe extends RecipeBase {
      * Contains a mapping of all known components in the recipe.
      * Vanilla style; C = CHARCOAL_BLOCK
      */
-    private final Map<String, BlockState> components;
+    private final Map<String, RecipeBlockStateComponent> blockComponents;
 
-    private static final Codec<RecipeLayer> LAYER_CODEC = RecipeLayerType.CODEC.dispatchStable(RecipeLayer::getType, RecipeLayerType::getCodec);
+    private static final Codec<RecipeLayer> LAYER_CODEC =
+            RecipeLayerType.CODEC.dispatchStable(RecipeLayer::getType, RecipeLayerType::getCodec);
+
+    private static final Codec<RecipeComponent> COMPONENT_CODEC =
+            RecipeComponentType.CODEC.dispatchStable(RecipeComponent::getType, RecipeComponentType::getCodec);
 
     public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("recipeSize").forGetter(MiniaturizationRecipe::getRecipeSize),
             LAYER_CODEC.listOf().fieldOf("layers").forGetter(MiniaturizationRecipe::getLayerListForCodecWrite),
             ItemStack.CODEC.fieldOf("catalyst").forGetter(MiniaturizationRecipe::getCatalyst),
             ItemStack.CODEC.listOf().fieldOf("outputs").forGetter(MiniaturizationRecipe::getOutputList),
-            Codec.unboundedMap(Codec.STRING, BlockState.CODEC).fieldOf("components").forGetter(MiniaturizationRecipe::getComponents)
+            Codec.unboundedMap(Codec.STRING, COMPONENT_CODEC).fieldOf("components").forGetter(MiniaturizationRecipe::getComponentsForCodecWrite)
     ).apply(i, MiniaturizationRecipe::new));
 
     private int getRecipeSize() {
@@ -67,16 +74,15 @@ public class MiniaturizationRecipe extends RecipeBase {
         this.id = rl;
         this.layers = new HashMap<>();
         this.outputs = new ItemStack[0];
-        this.components = new HashMap<>();
+        this.blockComponents = new HashMap<>();
 
         recalculateDimensions();
     }
 
     public MiniaturizationRecipe(int minRecipeDimensions, List<RecipeLayer> layers,
-                                 ItemStack catalyst, List<ItemStack> outputs, Map<String, BlockState> compMap) {
+                                 ItemStack catalyst, List<ItemStack> outputs, Map<String, RecipeComponent> compMap) {
         this.minRecipeDimensions = minRecipeDimensions;
         this.catalyst = catalyst;
-        this.components = compMap;
         this.outputs = outputs.toArray(new ItemStack[0]);
 
         this.layers = new HashMap<>();
@@ -84,6 +90,14 @@ public class MiniaturizationRecipe extends RecipeBase {
         Collections.reverse(rev);
         for (int y = 0; y < rev.size(); y++)
             this.layers.put(y, rev.get(y));
+
+        this.blockComponents = new HashMap<>();
+        for (Map.Entry<String, RecipeComponent> comp : compMap.entrySet()) {
+            // Map in block components
+            if(comp.getValue() instanceof RecipeBlockStateComponent) {
+                this.blockComponents.put(comp.getKey(), (RecipeBlockStateComponent) comp.getValue());
+            }
+        }
 
         this.recalculateDimensions();
     }
@@ -94,10 +108,17 @@ public class MiniaturizationRecipe extends RecipeBase {
 
     private List<RecipeLayer> getLayerListForCodecWrite() {
         ImmutableList.Builder<RecipeLayer> l = ImmutableList.builder();
-        for(int y = layers.size() - 1; y >= 0; y--)
+        for (int y = layers.size() - 1; y >= 0; y--)
             l.add(layers.get(y));
 
         return l.build();
+    }
+
+    private Map<String, RecipeComponent> getComponentsForCodecWrite() {
+        Map<String, RecipeComponent> allComponents = new HashMap<>();
+        allComponents.putAll(blockComponents);
+
+        return allComponents;
     }
 
     private Map<Integer, RecipeLayer> getLayers() {
@@ -146,15 +167,6 @@ public class MiniaturizationRecipe extends RecipeBase {
                 .stream()
                 .filter(l -> l instanceof IDynamicRecipeLayer)
                 .forEach(dl -> ((IDynamicRecipeLayer) dl).setRecipeDimensions(dimensions));
-    }
-
-    public boolean addComponent(String key, BlockState block) {
-        if (components.containsKey(key))
-            return false;
-
-        components.put(key, block);
-        this.cachedComponentTotals = null;
-        return true;
     }
 
     /**
@@ -252,7 +264,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             return this.cachedComponentTotals;
 
         HashMap<String, Integer> totals = new HashMap<>();
-        this.components.keySet().forEach(comp -> {
+        this.blockComponents.keySet().forEach(comp -> {
             int count = this.getComponentRequiredCount(comp);
             totals.put(comp, count);
         });
@@ -261,9 +273,9 @@ public class MiniaturizationRecipe extends RecipeBase {
         return totals;
     }
 
-    public Optional<BlockState> getRecipeComponent(String i) {
-        if (this.components.containsKey(i)) {
-            BlockState component = components.get(i);
+    public Optional<RecipeBlockStateComponent> getRecipeBlockComponent(String i) {
+        if (this.blockComponents.containsKey(i)) {
+            RecipeBlockStateComponent component = blockComponents.get(i);
             return Optional.of(component);
         }
 
@@ -271,7 +283,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public int getComponentRequiredCount(String i) {
-        if (!this.components.containsKey(i))
+        if (!this.blockComponents.containsKey(i))
             return 0;
 
         int required = 0;
@@ -289,8 +301,10 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public Optional<String> getRecipeComponentKey(BlockState state) {
-        for (String comp : this.components.keySet()) {
-            if (components.get(comp) == state)
+        // TODO - This might conflict with multiple matching states, consider handling this in the codec loading process
+        for (String comp : this.blockComponents.keySet()) {
+            RecipeBlockStateComponent sComp = blockComponents.get(comp);
+            if(sComp.filterMatches(state))
                 return Optional.of(comp);
         }
 
@@ -364,7 +378,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public Set<String> getComponentKeys() {
-        return this.components.keySet();
+        return this.blockComponents.keySet();
     }
 
     public void addOutput(ItemStack itemStack) {
@@ -372,14 +386,6 @@ public class MiniaturizationRecipe extends RecipeBase {
         oTmp.add(itemStack);
 
         this.outputs = oTmp.toArray(new ItemStack[0]);
-    }
-
-    public int getNumberComponents() {
-        return this.components.size();
-    }
-
-    public Map<String, BlockState> getComponents() {
-        return this.components;
     }
 
     public ItemStack getCatalyst() {
