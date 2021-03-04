@@ -12,9 +12,12 @@ import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -76,7 +79,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     public void invalidateField() {
-        if(field == null)
+        if (field == null)
             return;
 
         if (world != null && !world.isRemote) {
@@ -270,5 +273,32 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     public EnumCraftingState getCraftingState() {
         return this.craftingState;
+    }
+
+    @Override
+    public CompoundNBT getUpdateTag() {
+        CompoundNBT tag = super.getUpdateTag();
+
+        if (this.field != null) {
+            CompoundNBT fieldInfo = new CompoundNBT();
+            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
+            fieldInfo.putString("size", this.field.getFieldSize().name());
+            tag.put("fieldInfo", fieldInfo);
+        }
+
+        return tag;
+    }
+
+    @Override
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
+        if(tag.contains("fieldInfo")) {
+            CompoundNBT fieldInfo = tag.getCompound("fieldInfo");
+            BlockPos fCenter = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+            String sizeName = fieldInfo.getString("size");
+            FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
+
+            this.field = FieldProjection.fromSizeAndCenter(size, fCenter);
+        }
     }
 }
