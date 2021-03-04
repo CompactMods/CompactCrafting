@@ -308,7 +308,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
         if (field != null) {
             CompoundNBT fieldInfo = new CompoundNBT();
-            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()))
+            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
             nbt.put("fieldInfo", fieldInfo);
         }
 
@@ -318,7 +318,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     @Override
     public void read(BlockState state, CompoundNBT nbt) {
         super.read(state, nbt);
-        
+
         if(nbt.contains("fieldInfo")) {
             CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
