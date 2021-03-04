@@ -292,13 +292,43 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     @Override
     public void handleUpdateTag(BlockState state, CompoundNBT tag) {
         super.handleUpdateTag(state, tag);
-        if(tag.contains("fieldInfo")) {
+        if (tag.contains("fieldInfo")) {
             CompoundNBT fieldInfo = tag.getCompound("fieldInfo");
             BlockPos fCenter = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
             String sizeName = fieldInfo.getString("size");
             FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
 
             this.field = FieldProjection.fromSizeAndCenter(size, fCenter);
+        }
+    }
+
+    @Override
+    public CompoundNBT write(CompoundNBT compound) {
+        CompoundNBT nbt = super.write(compound);
+
+        if (field != null) {
+            CompoundNBT fieldInfo = new CompoundNBT();
+            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()))
+            nbt.put("fieldInfo", fieldInfo);
+        }
+
+        return nbt;
+    }
+
+    @Override
+    public void read(BlockState state, CompoundNBT nbt) {
+        super.read(state, nbt);
+        
+        if(nbt.contains("fieldInfo")) {
+            CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
+            BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+
+            if(this.world != null && !this.world.isRemote) {
+                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+                ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
+
+                this.field = FieldProjection.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
+            }
         }
     }
 }
