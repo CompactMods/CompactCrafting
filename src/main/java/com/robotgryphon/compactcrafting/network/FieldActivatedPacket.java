@@ -26,7 +26,7 @@ public class FieldActivatedPacket {
         NetworkEvent.Context ctx = context.get();
 
         ctx.enqueueWork(() -> {
-            DistExecutor.safeCallWhenOn(Dist.CLIENT, () -> {
+            DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> {
                 ClientPacketHandler.handleFieldActivation(message.position, message.fieldSize);
                 return null;
             });
@@ -37,7 +37,7 @@ public class FieldActivatedPacket {
 
     public static void encode(FieldActivatedPacket pkt, PacketBuffer buf) {
         buf.writeBlockPos(pkt.position);
-        buf.writeString(pkt.fieldSize.getName());
+        buf.writeString(pkt.fieldSize.name());
     }
 
     public static FieldActivatedPacket decode(PacketBuffer buf) {

@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.network;
 
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientPacketHandler;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import net.minecraft.network.PacketBuffer;
@@ -26,7 +27,7 @@ public class FieldDeactivatedPacket {
         NetworkEvent.Context ctx = context.get();
 
         ctx.enqueueWork(() -> {
-            DistExecutor.safeCallWhenOn(Dist.CLIENT, () -> {
+            DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> {
                 ClientPacketHandler.handleFieldDeactivation(message.position, message.fieldSize);
                 return null;
             });
@@ -37,7 +38,9 @@ public class FieldDeactivatedPacket {
 
     public static void encode(FieldDeactivatedPacket pkt, PacketBuffer buf) {
         buf.writeBlockPos(pkt.position);
-        buf.writeString(pkt.fieldSize.getName());
+        String n = pkt.fieldSize.name();
+        CompactCrafting.LOGGER.debug("D: {}, N: {}", pkt.position, n);
+        buf.writeString(n);
     }
 
     public static FieldDeactivatedPacket decode(PacketBuffer buf) {

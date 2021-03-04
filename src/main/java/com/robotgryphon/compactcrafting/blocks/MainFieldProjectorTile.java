@@ -7,6 +7,7 @@ import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
+import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
@@ -89,7 +90,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                     .with(() -> world.getChunkAt(this.pos));
 
             NetworkHandler.MAIN_CHANNEL
-                    .send(trk, new FieldActivatedPacket(center, size));
+                    .send(trk, new FieldDeactivatedPacket(center, size));
         }
 
         this.field = null;
@@ -155,6 +156,11 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         }
 
         this.currentRecipe = matchedRecipe;
+    }
+
+    public void setFieldInfo(FieldProjection field) {
+        this.field = field;
+        this.markDirty();
     }
 
     private void tickCrafting() {

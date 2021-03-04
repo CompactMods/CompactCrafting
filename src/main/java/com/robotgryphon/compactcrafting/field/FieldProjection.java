@@ -27,6 +27,10 @@ public class FieldProjection {
         this.size = size;
     }
 
+    public static FieldProjection fromSizeAndCenter(FieldProjectionSize fieldSize, BlockPos center) {
+        return new FieldProjection(fieldSize, center);
+    }
+
     public FieldProjectionSize getFieldSize() {
         return this.size;
     }
