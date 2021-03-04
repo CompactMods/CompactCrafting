@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class NetworkHandler {
     private static int index = 0;
-    private static final String PROTOCOL_VERSION = "1.0.0";
+    private static final String PROTOCOL_VERSION = "1";
     public static final SimpleChannel MAIN_CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(CompactCrafting.MOD_ID, "main"),
             () -> PROTOCOL_VERSION,
@@ -22,7 +22,6 @@ public class NetworkHandler {
         MAIN_CHANNEL.registerMessage(index++, FieldActivatedPacket.class,
                 FieldActivatedPacket::encode, FieldActivatedPacket::decode,
                 FieldActivatedPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
-
 
         MAIN_CHANNEL.registerMessage(index++, FieldDeactivatedPacket.class,
                 FieldDeactivatedPacket::encode, FieldDeactivatedPacket::decode,
