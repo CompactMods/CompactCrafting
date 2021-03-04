@@ -1,10 +1,10 @@
-package com.robotgryphon.compactcrafting.codecs;
+package com.robotgryphon.compactcrafting.tests.minecraft.codecs;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
-import com.robotgryphon.compactcrafting.util.FileHelper;
+import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.StairsBlock;

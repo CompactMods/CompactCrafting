@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.codecs;
+package com.robotgryphon.compactcrafting.tests.minecraft.codecs;
 
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Pair;
@@ -7,7 +7,7 @@ import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
-import com.robotgryphon.compactcrafting.util.FileHelper;
+import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.NBTDynamicOps;
 import org.junit.jupiter.api.Assertions;

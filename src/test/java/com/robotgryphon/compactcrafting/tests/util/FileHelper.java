@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.util;
+package com.robotgryphon.compactcrafting.tests.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
