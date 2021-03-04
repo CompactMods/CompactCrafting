@@ -4,7 +4,10 @@ import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
+import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
@@ -15,6 +18,7 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +61,12 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.markDirty();
+
+                PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
+                        .with(() -> world.getChunkAt(this.pos));
+
+                NetworkHandler.MAIN_CHANNEL
+                        .send(trk, new FieldActivatedPacket(this.field.getCenterPosition(), this.field.getFieldSize()));
             }
         } else {
             this.invalidateField();
@@ -70,8 +80,16 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
         if (world != null && !world.isRemote) {
             BlockPos center = this.field.getCenterPosition();
+            FieldProjectionSize size = this.field.getFieldSize();
+
             ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
             data.unregister(center);
+
+            PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
+                    .with(() -> world.getChunkAt(this.pos));
+
+            NetworkHandler.MAIN_CHANNEL
+                    .send(trk, new FieldActivatedPacket(center, size));
         }
 
         this.field = null;
