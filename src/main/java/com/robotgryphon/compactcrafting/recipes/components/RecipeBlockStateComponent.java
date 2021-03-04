@@ -95,6 +95,9 @@ public class RecipeBlockStateComponent extends RecipeComponent {
     }
 
     public boolean filterMatches(BlockState state) {
+        if(state.getBlock().getRegistryName() != this.block.getRegistryName())
+            return false;
+
         for (Property<?> prop : state.getProperties()) {
             String name = prop.getName();
 
