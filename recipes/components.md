@@ -16,10 +16,10 @@
 ### Match Block with Properties
 ```json
 {
-    "type": "compactcrafting:match_block",
+    "type": "compactcrafting:block",
     "block": "minecraft:block_id_here",
     "properties": {
-        "{property}": "{value}"
+        "{property}": ["accepted", "values", "here"]
     }
 }
 ```
