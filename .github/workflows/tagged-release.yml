@@ -128,7 +128,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build JAR with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -x test
         env:
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -206,6 +206,6 @@ jobs:
     needs: [changelog, vars, jar]
     steps:
       - name: Publish package
-        run: ./gradlew publish
+        run: ./gradlew publish -x test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
