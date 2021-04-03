@@ -6,7 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.NBTDynamicOps;
@@ -53,13 +53,13 @@ public class MiniaturizationRecipeCodecTests {
             // There should only be two layers loaded from the file
             Assertions.assertEquals(2, recipe.getNumberLayers());
 
-            Optional<RecipeLayer> topLayer = recipe.getLayer(1);
+            Optional<IRecipeLayer> topLayer = recipe.getLayer(1);
             if (!topLayer.isPresent()) {
                 Assertions.fail("No top layer loaded.");
                 return;
             }
 
-            RecipeLayer lay = topLayer.get();
+            IRecipeLayer lay = topLayer.get();
             int filledCount = lay.getNumberFilledPositions();
 
             // Layer only has one spot (redstone dust)
@@ -90,13 +90,13 @@ public class MiniaturizationRecipeCodecTests {
             // There should only be two layers loaded from the file
             Assertions.assertEquals(2, rFromNbt.getNumberLayers());
 
-            Optional<RecipeLayer> topLayer = rFromNbt.getLayer(1);
+            Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
             if (!topLayer.isPresent()) {
                 Assertions.fail("No top layer loaded.");
                 return;
             }
 
-            RecipeLayer lay = topLayer.get();
+            IRecipeLayer lay = topLayer.get();
             int filledCount = lay.getNumberFilledPositions();
 
             // Layer only has one spot (redstone dust)

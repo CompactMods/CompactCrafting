@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.recipes.layers.impl;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -12,7 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
+public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
 
     private String componentKey;
     private AxisAlignedBB recipeDimensions;

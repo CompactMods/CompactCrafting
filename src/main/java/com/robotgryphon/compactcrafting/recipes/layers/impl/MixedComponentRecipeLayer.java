@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.recipes.layers.impl;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerComponentPositionLookup;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
@@ -15,7 +15,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidRecipeLayer {
+public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLayer {
     private AxisAlignedBB dimensions;
     private RecipeLayerComponentPositionLookup componentLookup;
 
@@ -61,7 +61,6 @@ public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidReci
         return this.dimensions;
     }
 
-    @Override
     public Map<String, Integer> getComponentTotals() {
         return componentLookup.getComponentTotals();
     }
@@ -72,7 +71,6 @@ public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidReci
      * @param pos
      * @return
      */
-    @Override
     public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
         return componentLookup.getRequiredComponentKeyForPosition(pos);
     }
@@ -83,7 +81,6 @@ public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidReci
      * @param component
      * @return
      */
-    @Override
     public Collection<BlockPos> getPositionsForComponent(String component) {
         return componentLookup.getPositionsForComponent(component);
     }
@@ -95,12 +92,10 @@ public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidReci
      *
      * @return
      */
-    @Override
     public Collection<BlockPos> getFilledPositions() {
         return componentLookup.getFilledPositions();
     }
 
-    @Override
     public boolean isPositionFilled(BlockPos pos) {
         return componentLookup.isPositionFilled(pos);
     }

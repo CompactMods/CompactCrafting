@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-public abstract class RecipeLayer {
-    public abstract Map<String, Integer> getComponentTotals();
+public interface IRecipeLayer {
+    Map<String, Integer> getComponentTotals();
 
     /**
      * Gets a component key for the given (normalized) position.
@@ -15,7 +15,7 @@ public abstract class RecipeLayer {
      * @param pos
      * @return
      */
-    public abstract Optional<String> getRequiredComponentKeyForPosition(BlockPos pos);
+    Optional<String> getRequiredComponentKeyForPosition(BlockPos pos);
 
     /**
      * Get a collection of positions that are filled by a given component.
@@ -23,7 +23,7 @@ public abstract class RecipeLayer {
      * @param component
      * @return
      */
-    public abstract Collection<BlockPos> getPositionsForComponent(String component);
+    Collection<BlockPos> getPositionsForComponent(String component);
 
     /**
      * Gets a set of non-air positions that are required for the layer to match.
@@ -32,11 +32,11 @@ public abstract class RecipeLayer {
      *
      * @return
      */
-    public abstract Collection<BlockPos> getFilledPositions();
+    Collection<BlockPos> getFilledPositions();
 
-    public abstract boolean isPositionFilled(BlockPos pos);
+    boolean isPositionFilled(BlockPos pos);
 
-    public abstract int getNumberFilledPositions();
+    int getNumberFilledPositions();
 
-    public abstract RecipeLayerType<?> getType();
+    RecipeLayerType<?> getType();
 }

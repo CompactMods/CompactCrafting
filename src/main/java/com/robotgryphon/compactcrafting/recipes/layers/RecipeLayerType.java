@@ -8,7 +8,7 @@ import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
-public interface RecipeLayerType<L extends RecipeLayer> extends IForgeRegistryEntry<RecipeLayerType<?>> {
+public interface RecipeLayerType<L extends IRecipeLayer> extends IForgeRegistryEntry<RecipeLayerType<?>> {
 
     // Lifted and modified from a Forge PR #7668, temporary until Forge itself supports the Codec interface
     Codec<RecipeLayerType> CODEC = new Codec<RecipeLayerType>() {

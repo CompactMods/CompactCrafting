@@ -9,7 +9,7 @@ import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -428,7 +428,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             //}
 
             for (int y : renderLayers) {
-                Optional<RecipeLayer> layer = recipe.getLayer(y);
+                Optional<IRecipeLayer> layer = recipe.getLayer(y);
                 layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
             }
 
@@ -443,7 +443,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, RecipeLayer l, int layerY) {
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
         // Begin layer
         mx.pushPose();
 

@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicRecipeLayer {
+public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
 
     private String componentKey;
     private AxisAlignedBB recipeDimensions;
@@ -75,7 +75,6 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
         return (int) Math.ceil(recipeDimensions.getXsize() * recipeDimensions.getZsize());
     }
 
-    @Override
     public RecipeLayerType<?> getType() {
         return Registration.FILLED_LAYER_SERIALIZER.get();
     }
@@ -89,7 +88,6 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
      *
      * @param dimensions The new dimensions of the recipe.
      */
-    @Override
     public void setRecipeDimensions(AxisAlignedBB dimensions) {
         this.recipeDimensions = dimensions;
         this.recalculateRequirements();
@@ -99,7 +97,6 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
      * Used to recalculate dynamic-sized recipe layers. Expected to be called
      * any time components or base recipe dimensions change.
      */
-    @Override
     public void recalculateRequirements() {
 
     }
