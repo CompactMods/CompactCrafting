@@ -24,7 +24,7 @@ public class ProjectionFieldSavedData extends WorldSavedData {
     }
 
     @Override
-    public void read(CompoundNBT nbt) {
+    public void load(CompoundNBT nbt) {
         ListNBT fields = nbt.getList("fields", Constants.NBT.TAG_COMPOUND);
         for(INBT fieldTag : fields) {
             ProjectorFieldData fd = ProjectorFieldData.deserialize(fieldTag);
@@ -34,7 +34,7 @@ public class ProjectionFieldSavedData extends WorldSavedData {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
+    public CompoundNBT save(CompoundNBT compound) {
         ListNBT list = new ListNBT();
 
         for(ProjectorFieldData pf : ACTIVE_FIELDS.values()) {
@@ -47,12 +47,12 @@ public class ProjectionFieldSavedData extends WorldSavedData {
     }
 
     public static ProjectionFieldSavedData get(ServerWorld world) {
-        DimensionSavedDataManager wsd = world.getSavedData();
-        return wsd.getOrCreate(ProjectionFieldSavedData::new, DATA_NAME);
+        DimensionSavedDataManager wsd = world.getDataStorage();
+        return wsd.computeIfAbsent(ProjectionFieldSavedData::new, DATA_NAME);
     }
 
     public void unregister(BlockPos center) {
         this.ACTIVE_FIELDS.remove(center);
-        this.markDirty();
+        this.setDirty();
     }
 }

@@ -25,7 +25,7 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
      * @param inv
      */
     @Override
-    public ItemStack getCraftingResult(FakeInventory inv) {
+    public ItemStack assemble(FakeInventory inv) {
         return ItemStack.EMPTY;
     }
 
@@ -36,7 +36,7 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
      * @param height
      */
     @Override
-    public boolean canFit(int width, int height) {
+    public boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
@@ -45,12 +45,12 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
      * possible result (e.g. it's dynamic and depends on its inputs), then return an empty stack.
      */
     @Override
-    public ItemStack getRecipeOutput() {
+    public ItemStack getResultItem() {
         return ItemStack.EMPTY;
     }
 
     @Override
-    public boolean isDynamic() {
+    public boolean isSpecial() {
         return true;
     }
 

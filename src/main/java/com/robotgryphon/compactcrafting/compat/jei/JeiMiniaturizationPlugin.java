@@ -43,10 +43,10 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        ClientWorld w = Minecraft.getInstance().world;
+        ClientWorld w = Minecraft.getInstance().level;
         RecipeManager rm = w == null ? null : w.getRecipeManager();
         if(rm != null) {
-            List<RecipeBase> miniRecipes = rm.getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE);
+            List<RecipeBase> miniRecipes = rm.getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE);
             registration.addRecipes(miniRecipes, JeiMiniaturizationCraftingCategory.UID);
         }
     }

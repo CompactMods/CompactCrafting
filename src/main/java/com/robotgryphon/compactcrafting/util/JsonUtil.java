@@ -66,7 +66,7 @@ public abstract class JsonUtil {
         }
 
         // Get state information for block
-        StateContainer<Block, BlockState> states = b.getStateContainer();
+        StateContainer<Block, BlockState> states = b.getStateDefinition();
 
         JsonObject properties = root.get("Properties").getAsJsonObject();
 
@@ -99,7 +99,7 @@ public abstract class JsonUtil {
                             if (!acceptedValue.isJsonPrimitive()) continue;
                             JsonPrimitive prim = acceptedValue.getAsJsonPrimitive();
                             if (!prim.isString()) continue;
-                            Optional<?> parsed = stateProperty.parseValue(prim.getAsString());
+                            Optional<?> parsed = stateProperty.getValue(prim.getAsString());
                             if (!parsed.isPresent()) continue;
                             pred = pred.and((stateValue) -> stateValue.equals(parsed.get()));
                         }
@@ -113,10 +113,10 @@ public abstract class JsonUtil {
                     case "match":
                         if(propMap.has("value")) {
                             String propValue = propMap.get("value").getAsString();
-                            Optional<?> parsed = stateProperty.parseValue(propValue);
+                            Optional<?> parsed = stateProperty.getValue(propValue);
 
                             if(!parsed.isPresent()) {
-                                CompactCrafting.LOGGER.warn("Value for {} is invalid. Allowed values: {}", propertyName, stateProperty.getAllowedValues());
+                                CompactCrafting.LOGGER.warn("Value for {} is invalid. Allowed values: {}", propertyName, stateProperty.getPossibleValues());
                                 return;
                             }
 

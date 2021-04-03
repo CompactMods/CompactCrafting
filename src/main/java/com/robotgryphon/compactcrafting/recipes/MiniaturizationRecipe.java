@@ -147,11 +147,11 @@ public class MiniaturizationRecipe extends RecipeBase {
                 // We only need to worry about fixed-dimension layers; the fluid layers will adapt
                 if (l instanceof IRigidRecipeLayer) {
                     AxisAlignedBB dimensions = ((IRigidRecipeLayer) l).getDimensions();
-                    if (dimensions.getXSize() > x)
-                        x = (int) Math.ceil(dimensions.getXSize());
+                    if (dimensions.getXsize() > x)
+                        x = (int) Math.ceil(dimensions.getXsize());
 
-                    if (dimensions.getZSize() > z)
-                        z = (int) Math.ceil(dimensions.getZSize());
+                    if (dimensions.getZsize() > z)
+                        z = (int) Math.ceil(dimensions.getZsize());
                 }
             }
 
@@ -177,7 +177,7 @@ public class MiniaturizationRecipe extends RecipeBase {
      */
     public boolean fitsInFieldSize(FieldProjectionSize fieldSize) {
         int dim = fieldSize.getDimensions();
-        boolean fits = Stream.of(dimensions.getXSize(), dimensions.getYSize(), dimensions.getZSize())
+        boolean fits = Stream.of(dimensions.getXsize(), dimensions.getYsize(), dimensions.getZsize())
                 .allMatch(size -> size <= dim);
 
         return fits;
@@ -209,7 +209,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     private boolean checkRotation(IWorldReader world, Rotation rot, AxisAlignedBB filledBounds) {
         // Check the recipe layer by layer
 
-        int maxY = (int) dimensions.getYSize();
+        int maxY = (int) dimensions.getYsize();
         for (int offset = 0; offset < maxY; offset++) {
             Optional<RecipeLayer> layer = getLayer(offset);
 
@@ -232,7 +232,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             // Check the states are correct
             for (BlockPos unrotatedPos : layerFilled) {
                 BlockPos rotatedPos = layerRotated.get(unrotatedPos);
-                BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos).down(offset);
+                BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos).below(offset);
 
                 BlockState actualState = world.getBlockState(unrotatedPos);
 
@@ -345,8 +345,8 @@ public class MiniaturizationRecipe extends RecipeBase {
         // We'll need an extra offset layer to match against the recipe layer's Y=0
         BlockPos[] fieldNormalizedPositionsLayerOffset = Stream.of(fieldNormalizedPositionsFieldOffset)
                 .parallel()
-                .map(p -> p.offset(Direction.DOWN, extraYOffset))
-                .map(BlockPos::toImmutable)
+                .map(p -> p.relative(Direction.DOWN, extraYOffset))
+                .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
 
         return Arrays.stream(fieldNormalizedPositionsLayerOffset)

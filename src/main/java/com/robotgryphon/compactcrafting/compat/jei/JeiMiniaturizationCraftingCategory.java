@@ -85,7 +85,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.slotDrawable = guiHelper.getSlotDrawable();
         this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
 
-        this.blocks = Minecraft.getInstance().getBlockRendererDispatcher();
+        this.blocks = Minecraft.getInstance().getBlockRenderer();
     }
 
     //region JEI implementation requirements
@@ -101,7 +101,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public String getTitle() {
-        return I18n.format(CompactCrafting.MOD_ID + ".jei.miniaturization.title");
+        return I18n.get(CompactCrafting.MOD_ID + ".jei.miniaturization.title");
     }
 
     @Override
@@ -123,7 +123,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         for (String compKey : recipe.getComponentKeys()) {
             Optional<RecipeBlockStateComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
             requiredBlock.ifPresent(bs -> {
-                Item bi = Item.getItemFromBlock(bs.getBlock());
+                Item bi = Item.byBlock(bs.getBlock());
                 inputs.add(new ItemStack(bi));
             });
         }
@@ -161,16 +161,16 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             if (slot >= 0 && slot < recipe.getComponentKeys().size()) {
                 IFormattableTextComponent text =
                         new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
-                                .mergeStyle(TextFormatting.GRAY)
-                                .mergeStyle(TextFormatting.ITALIC);
+                                .withStyle(TextFormatting.GRAY)
+                                .withStyle(TextFormatting.ITALIC);
 
                 tooltip.add(text);
             }
 
             if (slot == finalCatalystSlot) {
                 IFormattableTextComponent text = new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
-                        .mergeStyle(TextFormatting.YELLOW)
-                        .mergeStyle(TextFormatting.ITALIC);
+                        .withStyle(TextFormatting.YELLOW)
+                        .withStyle(TextFormatting.ITALIC);
 
                 tooltip.add(text);
             }
@@ -206,7 +206,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int finalInputOffset = inputOffset.get();
 
                     RecipeBlockStateComponent bs = recipe.getRecipeBlockComponent(component).get();
-                    Item bi = Item.getItemFromBlock(bs.getBlock());
+                    Item bi = Item.byBlock(bs.getBlock());
                     guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
 
                     inputOffset.getAndIncrement();
@@ -229,25 +229,25 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
 
-        SoundHandler handler = Minecraft.getInstance().getSoundHandler();
+        SoundHandler handler = Minecraft.getInstance().getSoundManager();
 
 
         if (explodeToggle.contains(mouseX, mouseY)) {
             explodeMulti = exploded ? 1.0d : 1.6d;
             exploded = !exploded;
-            handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerSwap.contains(mouseX, mouseY)) {
             singleLayer = !singleLayer;
-            handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerUp.contains(mouseX, mouseY) && singleLayer) {
-            if (singleLayerOffset < recipe.getDimensions().getYSize() - 1) {
-                handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            if (singleLayerOffset < recipe.getDimensions().getYsize() - 1) {
+                handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset++;
             }
 
@@ -256,7 +256,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         if (layerDown.contains(mouseX, mouseY) && singleLayer) {
             if (singleLayerOffset > 0) {
-                handler.play(SimpleSound.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset--;
             }
 
@@ -275,10 +275,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             int textureWidth, int textureHeight) {
 
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getTextureManager().bindTexture(texture);
+        minecraft.getTextureManager().bind(texture);
 
         RenderSystem.enableDepthTest();
-        Screen curr = Minecraft.getInstance().currentScreen;
+        Screen curr = Minecraft.getInstance().screen;
         AbstractGui.blit(matrixStack, bounds.x, bounds.y, bounds.width, bounds.height,
                 u, v, uWidth, vHeight, textureWidth, textureHeight);
 //        if (this.isHovered()) {
@@ -287,9 +287,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     }
 
     private void addColoredVertex(IVertexBuilder renderer, Color color, Vector3d position) {
-        renderer.pos(position.getX(), position.getY(), position.getZ())
+        renderer.vertex(position.x(), position.y(), position.z())
                 .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
-                .lightmap(0, 240)
+                .uv2(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
     }
@@ -318,11 +318,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
         AxisAlignedBB dims = recipe.getDimensions();
 
-        Screen curr = Minecraft.getInstance().currentScreen;
+        Screen curr = Minecraft.getInstance().screen;
 
-        MainWindow mainWindow = Minecraft.getInstance().getMainWindow();
-        int scaledWidth = mainWindow.getScaledWidth();
-        int scaledHeight = mainWindow.getScaledHeight();
+        MainWindow mainWindow = Minecraft.getInstance().getWindow();
+        int scaledWidth = mainWindow.getGuiScaledWidth();
+        int scaledHeight = mainWindow.getGuiScaledHeight();
 
         int winWidth = (9 * 18) + 10;
 
@@ -331,7 +331,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         int scissorX = (curr.width / 2) - (background.getWidth() / 2) + 15;
         int scissorY = (curr.height / 2) - (background.getHeight() / 2)  + slotHeight;
 
-        double guiScaleFactor = mainWindow.getGuiScaleFactor();
+        double guiScaleFactor = mainWindow.getGuiScale();
         Rectangle scissorBounds = new Rectangle(
                 scissorX, scissorY,
                 winWidth - 22,
@@ -339,7 +339,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         );
 
         //region JEI controls
-        mx.push();
+        mx.pushPose();
         mx.translate(0, 0, 500);
 
         ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
@@ -358,7 +358,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
 
         if (singleLayer) {
-            if (singleLayerOffset < dims.getYSize() - 1)
+            if (singleLayerOffset < dims.getYsize() - 1)
                 drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 120, 20);
 
             if (singleLayerOffset > 0) {
@@ -366,7 +366,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             }
         }
 
-        mx.pop();
+        mx.popPose();
 
         //endregion
 
@@ -380,7 +380,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     Color.darkGray.getRGB()
             );
 
-            IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.getImpl(Tessellator.getInstance().getBuffer());
+            IRenderTypeBuffer.Impl buffers = IRenderTypeBuffer.immediate(Tessellator.getInstance().getBuilder());
 
             RenderSystem.enableScissor(
                     (int) (scissorBounds.x * guiScaleFactor),
@@ -388,7 +388,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     (int) (scissorBounds.width * guiScaleFactor),
                     (int) (scissorBounds.height * guiScaleFactor));
 
-            mx.push();
+            mx.pushPose();
 
             mx.translate(
                     (background.getWidth() / 2) + 6,
@@ -397,12 +397,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             mx.scale(10, -10, 10);
 
-            mx.rotate(new Quaternion(35f,
+            mx.mulPose(new Quaternion(35f,
                     -(RenderTickCounter.renderTicks),
                     0,
                     true));
 
-            double ySize = recipe.getDimensions().getYSize();
+            double ySize = recipe.getDimensions().getYsize();
 
             // Variable explode based on mouse position (clamped)
             // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
@@ -416,9 +416,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             }
 
             mx.translate(
-                    -(dims.getXSize() / 2) * explodeMulti - 0.5,
-                    -(dims.getYSize() / 2) * explodeMulti - 0.5,
-                    -(dims.getZSize() / 2) * explodeMulti - 0.5
+                    -(dims.getXsize() / 2) * explodeMulti - 0.5,
+                    -(dims.getYsize() / 2) * explodeMulti - 0.5,
+                    -(dims.getZsize() / 2) * explodeMulti - 0.5
             );
 
             // ZORN NO
@@ -433,9 +433,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             }
 
 
-            mx.pop();
+            mx.popPose();
 
-            buffers.finish();
+            buffers.endBatch();
 
             RenderSystem.disableScissor();
         } catch (Exception ex) {
@@ -445,10 +445,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, RecipeLayer l, int layerY) {
         // Begin layer
-        mx.push();
+        mx.pushPose();
 
         for (BlockPos filledPos : l.getFilledPositions()) {
-            mx.push();
+            mx.pushPose();
 
             mx.translate(
                     ((filledPos.getX() + 0.5) * explodeMulti),
@@ -462,16 +462,16 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             recipeComponent.ifPresent(state -> {
                 // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
                 // TODO - Render switching at fixed interval
-                BlockState state1 = state.block.getDefaultState();
+                BlockState state1 = state.block.defaultBlockState();
                 // Thanks Immersive, Astral, and others
                 blocks.renderBlock(state1, mx, RenderTypesExtensions.disableLighting(buffers),
                         0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
             });
 
-            mx.pop();
+            mx.popPose();
         }
 
         // Done with layer
-        mx.pop();
+        mx.popPose();
     }
 }

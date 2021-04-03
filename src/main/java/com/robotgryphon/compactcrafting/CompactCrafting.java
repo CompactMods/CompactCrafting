@@ -27,7 +27,7 @@ public class CompactCrafting
 
     public static ItemGroup ITEM_GROUP = new ItemGroup(MOD_ID) {
         @Override
-        public ItemStack createIcon() {
+        public ItemStack makeIcon() {
             return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
         }
     };

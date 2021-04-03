@@ -16,9 +16,9 @@ public abstract class ClientPacketHandler {
 
         FieldProjection fp = FieldProjection.fromSizeAndCenter(fieldSize, center);
         Minecraft mc = Minecraft.getInstance();
-        mc.deferTask(() -> {
-            World w = Minecraft.getInstance().world;
-            MainFieldProjectorTile mainTile = (MainFieldProjectorTile) w.getTileEntity(mainProjector);
+        mc.submitAsync(() -> {
+            World w = Minecraft.getInstance().level;
+            MainFieldProjectorTile mainTile = (MainFieldProjectorTile) w.getBlockEntity(mainProjector);
             if (mainTile == null)
                 return;
 
@@ -29,8 +29,8 @@ public abstract class ClientPacketHandler {
     public static void handleFieldDeactivation(BlockPos center, FieldProjectionSize fieldSize) {
         BlockPos mainProjector = ProjectorHelper.getProjectorLocationForDirection(center, Direction.NORTH, fieldSize);
 
-        World w = Minecraft.getInstance().world;
-        MainFieldProjectorTile mainTile = (MainFieldProjectorTile) w.getTileEntity(mainProjector);
+        World w = Minecraft.getInstance().level;
+        MainFieldProjectorTile mainTile = (MainFieldProjectorTile) w.getBlockEntity(mainProjector);
         if (mainTile == null)
             return;
 

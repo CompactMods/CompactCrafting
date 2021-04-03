@@ -7,6 +7,8 @@ import net.minecraft.world.IBlockReader;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.block.AbstractBlock.Properties;
+
 public class FieldCraftingPreviewBlock extends Block {
     public FieldCraftingPreviewBlock(Properties properties) {
         super(properties);

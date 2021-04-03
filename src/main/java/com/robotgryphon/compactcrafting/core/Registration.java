@@ -73,50 +73,50 @@ public class Registration {
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
-    private static Block.Properties MACHINE_BLOCK_PROPS = Block.Properties
-            .create(Material.IRON)
-            .hardnessAndResistance(8.0F, 20.0F)
-            .setLightLevel(state -> 1)
+    private static AbstractBlock.Properties MACHINE_BLOCK_PROPS = AbstractBlock.Properties
+            .of(Material.METAL)
+            .strength(8.0F, 20.0F)
+            .lightLevel(state -> 1)
             .harvestLevel(1)
             .harvestTool(ToolType.PICKAXE)
-            .setRequiresTool();
+            .requiresCorrectToolForDrops();
 
     private static Supplier<Item.Properties> BASIC_ITEM_PROPS = () -> new Item.Properties()
-            .group(CompactCrafting.ITEM_GROUP);
+            .tab(CompactCrafting.ITEM_GROUP);
 
     // ================================================================================================================
     //   BLOCKS
     // ================================================================================================================
     public static final RegistryObject<Block> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
-            new FieldProjectorBlock(Block.Properties.create(Material.IRON)
-                    .hardnessAndResistance(8, 20)
+            new FieldProjectorBlock(AbstractBlock.Properties.of(Material.METAL)
+                    .strength(8, 20)
             ));
 
     public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
-            new FieldCraftingPreviewBlock(AbstractBlock.Properties.from(Blocks.BARRIER)));
+            new FieldCraftingPreviewBlock(AbstractBlock.Properties.copy(Blocks.BARRIER)));
 
     // ================================================================================================================
     //   ITEMS
     // ================================================================================================================
     public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
-            new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().group(CompactCrafting.ITEM_GROUP)));
+            new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
     public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
             TileEntityType.Builder
-                    .create(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .of(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
     public static final RegistryObject<TileEntityType<DummyFieldProjectorTile>> DUMMY_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("dummy_field_projector", () ->
             TileEntityType.Builder
-                    .create(DummyFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .of(DummyFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
     public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
             TileEntityType.Builder
-                    .create(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())
+                    .of(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())
                     .build(null));
 
     // ================================================================================================================

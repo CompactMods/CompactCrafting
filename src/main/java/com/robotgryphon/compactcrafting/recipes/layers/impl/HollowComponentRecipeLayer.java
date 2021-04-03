@@ -81,15 +81,15 @@ public class HollowComponentRecipeLayer extends RecipeLayer implements IDynamicR
     }
 
     public Collection<BlockPos> getWallPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 0, recipeDimensions.getZSize() - 1);
-        AxisAlignedBB insideBounds = layerBounds.offset(1, 0, 1).contract(2, 0, 2);
+        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXsize() - 1, 0, recipeDimensions.getZsize() - 1);
+        AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
 
-        Set<BlockPos> positions = BlockPos.getAllInBox(layerBounds)
-                .map(BlockPos::toImmutable)
+        Set<BlockPos> positions = BlockPos.betweenClosedStream(layerBounds)
+                .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        Set<BlockPos> inside = BlockPos.getAllInBox(insideBounds)
-                .map(BlockPos::toImmutable)
+        Set<BlockPos> inside = BlockPos.betweenClosedStream(insideBounds)
+                .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
         positions.removeAll(inside);

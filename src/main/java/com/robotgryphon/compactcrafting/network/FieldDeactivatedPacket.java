@@ -40,13 +40,13 @@ public class FieldDeactivatedPacket {
         buf.writeBlockPos(pkt.position);
         String n = pkt.fieldSize.name();
         CompactCrafting.LOGGER.debug("D: {}, N: {}", pkt.position, n);
-        buf.writeString(n);
+        buf.writeUtf(n);
     }
 
     public static FieldDeactivatedPacket decode(PacketBuffer buf) {
         FieldDeactivatedPacket pkt = new FieldDeactivatedPacket();
         pkt.position = buf.readBlockPos();
-        pkt.fieldSize = FieldProjectionSize.valueOf(buf.readString());
+        pkt.fieldSize = FieldProjectionSize.valueOf(buf.readUtf());
 
         return pkt;
     }

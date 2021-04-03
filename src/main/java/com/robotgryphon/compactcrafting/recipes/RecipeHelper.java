@@ -18,7 +18,7 @@ public abstract class RecipeHelper {
         return Stream.of(filledBlocks)
                 .parallel()
                 .map(p -> BlockSpaceUtil.normalizeLayerPosition(filledBounds, p))
-                .map(BlockPos::toImmutable)
+                .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
     }
 

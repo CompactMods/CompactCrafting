@@ -30,8 +30,8 @@ public class ComponentMatcherTests {
                     RecipeBlockStateComponent matcher = res.getFirst();
 
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
-                            .getStateContainer()
-                            .getValidStates()
+                            .getStateDefinition()
+                            .getPossibleStates()
                             .toArray(new BlockState[0]);
 
                     Hashtable<BlockState, Boolean> results = new Hashtable<>();
@@ -47,10 +47,10 @@ public class ComponentMatcherTests {
                     }
 
                     for(BlockState bs : matched) {
-                        if(bs.get(StairsBlock.HALF) == Half.TOP)
+                        if(bs.getValue(StairsBlock.HALF) == Half.TOP)
                             Assertions.fail("Found a state with an invalid property TOP");
 
-                        if(bs.get(StairsBlock.SHAPE) != StairsShape.STRAIGHT)
+                        if(bs.getValue(StairsBlock.SHAPE) != StairsShape.STRAIGHT)
                             Assertions.fail("Found a state with a non-straight shape");
                     }
                 });
@@ -66,8 +66,8 @@ public class ComponentMatcherTests {
                     RecipeBlockStateComponent matcher = res.getFirst();
 
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
-                            .getStateContainer()
-                            .getValidStates()
+                            .getStateDefinition()
+                            .getPossibleStates()
                             .toArray(new BlockState[0]);
 
                     Hashtable<BlockState, Boolean> results = new Hashtable<>();

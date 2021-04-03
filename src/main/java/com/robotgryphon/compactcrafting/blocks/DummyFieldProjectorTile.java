@@ -26,10 +26,10 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
 
     @Override
     public Optional<MainFieldProjectorTile> getMainProjectorTile() {
-        if(world == null || mainProjector == null)
+        if(level == null || mainProjector == null)
             return Optional.empty();
 
-        TileEntity tile = world.getTileEntity(mainProjector);
+        TileEntity tile = level.getBlockEntity(mainProjector);
         if(tile instanceof MainFieldProjectorTile)
             return Optional.of((MainFieldProjectorTile) tile);
         else
@@ -39,7 +39,7 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     public void onInitialPlacement() {
         // Need to scan for main projector and update accordingly
         Direction facing = getFacing();
-        Optional<FieldProjectionSize> size = ProjectorHelper.getClosestOppositeSize(world, pos, facing);
+        Optional<FieldProjectionSize> size = ProjectorHelper.getClosestOppositeSize(level, worldPosition, facing);
         if (!size.isPresent()) {
             this.fieldCenter = null;
             this.mainProjector = null;
@@ -47,7 +47,7 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
         }
 
         FieldProjectionSize fieldSize = size.get();
-        Optional<BlockPos> center = ProjectorHelper.getCenterForSize(pos, facing, fieldSize);
+        Optional<BlockPos> center = ProjectorHelper.getCenterForSize(worldPosition, facing, fieldSize);
         if (!center.isPresent())
             return;
 
@@ -56,8 +56,8 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        CompoundNBT nbt = super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        CompoundNBT nbt = super.save(compound);
 
         if(mainProjector != null)
             nbt.put("main", NBTUtil.writeBlockPos(mainProjector));
@@ -69,8 +69,8 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt) {
-        super.read(state, nbt);
+    public void load(BlockState state, CompoundNBT nbt) {
+        super.load(state, nbt);
 
         if(nbt.contains("main"))
             mainProjector = NBTUtil.readBlockPos(nbt.getCompound("main"));

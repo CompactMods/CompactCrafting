@@ -36,8 +36,8 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     private MiniaturizationRecipe currentRecipe = null;
 
     @Override
-    public void remove() {
-        super.remove();
+    public void setRemoved() {
+        super.setRemoved();
 
         // Invalidate field
         invalidateField();
@@ -57,17 +57,17 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.field != null)
             return;
 
-        Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(world, this.pos);
+        Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(level, this.worldPosition);
         if (field.isPresent()) {
             this.field = field.get();
 
-            if (world != null && !world.isRemote) {
-                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+            if (level != null && !level.isClientSide) {
+                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
-                data.markDirty();
+                data.setDirty();
 
                 PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
-                        .with(() -> world.getChunkAt(this.pos));
+                        .with(() -> level.getChunkAt(this.worldPosition));
 
                 NetworkHandler.MAIN_CHANNEL
                         .send(trk, new FieldActivatedPacket(this.field.getCenterPosition(), this.field.getFieldSize()));
@@ -82,22 +82,22 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (field == null)
             return;
 
-        if (world != null && !world.isRemote) {
+        if (level != null && !level.isClientSide) {
             BlockPos center = this.field.getCenterPosition();
             FieldProjectionSize size = this.field.getFieldSize();
 
-            ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+            ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
             data.unregister(center);
 
             PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
-                    .with(() -> world.getChunkAt(this.pos));
+                    .with(() -> level.getChunkAt(this.worldPosition));
 
             NetworkHandler.MAIN_CHANNEL
                     .send(trk, new FieldDeactivatedPacket(center, size));
         }
 
         this.field = null;
-        this.markDirty();
+        this.setChanged();
     }
 
     /**
@@ -107,12 +107,12 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.field == null)
             return;
 
-        if (this.world == null)
+        if (this.level == null)
             return;
 
         AxisAlignedBB fieldBounds = field.getBounds();
 
-        MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(world, fieldBounds);
+        MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(level, fieldBounds);
 
         // If no positions filled, exit early
         if (fieldBlocks.getNumberFilledBlocks() == 0) {
@@ -131,8 +131,8 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          * we remove all the recipes that are definitely larger than the currently
          * filled space.
          */
-        Set<MiniaturizationRecipe> recipes = world.getRecipeManager()
-                .getRecipesForType(Registration.MINIATURIZATION_RECIPE_TYPE)
+        Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
+                .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
                 .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
                 .collect(Collectors.toSet());
@@ -150,7 +150,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
         for (MiniaturizationRecipe recipe : recipes) {
-            boolean recipeMatches = recipe.matches(world, field.getFieldSize(), fieldBlocks);
+            boolean recipeMatches = recipe.matches(level, field.getFieldSize(), fieldBlocks);
             if (!recipeMatches)
                 continue;
 
@@ -164,7 +164,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     public void setFieldInfo(FieldProjection field) {
         this.field = field;
-        this.markDirty();
+        this.setChanged();
     }
 
     private void tickCrafting() {
@@ -172,11 +172,11 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             AxisAlignedBB fieldBounds = field.getBounds();
 
             // Get out, client worlds
-            if (world == null || world.isRemote())
+            if (level == null || level.isClientSide())
                 return;
 
             // We grow the bounds check here a little to support patterns that are exactly the size of the field
-            List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds.grow(0.25), currentRecipe.getCatalyst().getItem());
+            List<ItemEntity> catalystEntities = getCatalystsInField(fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
             if (catalystEntities.size() > 0) {
                 // We dropped a catalyst item in
                 // At this point, we had a valid recipe and a valid catalyst entity
@@ -186,13 +186,13 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                         updateCraftingState(EnumCraftingState.CRAFTING);
 
                         // We know the "recipe" in the field is an exact match already, so wipe the field
-                        field.clearBlocks(world);
+                        field.clearBlocks(level);
 
                         CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
                         BlockPos centerField = field.getCenterPosition();
-                        world.setBlockState(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().getDefaultState());
-                        FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) world.getTileEntity(centerField);
+                        level.setBlockAndUpdate(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().defaultBlockState());
+                        FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) level.getBlockEntity(centerField);
                         if (tile != null)
                             tile.setMasterProjector(this);
 
@@ -212,7 +212,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     private List<ItemEntity> getCatalystsInField(AxisAlignedBB fieldBounds, Item itemFilter) {
-        List<ItemEntity> itemsInRange = world.getEntitiesWithinAABB(ItemEntity.class, fieldBounds);
+        List<ItemEntity> itemsInRange = level.getEntitiesOfClass(ItemEntity.class, fieldBounds);
         return itemsInRange.stream()
                 .filter(ise -> ise.getItem().getItem() == itemFilter)
                 .collect(Collectors.toList());
@@ -244,7 +244,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         // Check - if we have a valid field use the entire field plus space
         // Otherwise just use the super implementation
         if (this.field != null) {
-            return field.getBounds().grow(10);
+            return field.getBounds().inflate(10);
         }
 
         return super.getRenderBoundingBox();
@@ -252,7 +252,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     @Override
     public Optional<BlockPos> getMainProjectorPosition() {
-        return Optional.ofNullable(pos);
+        return Optional.ofNullable(worldPosition);
     }
 
     @Override
@@ -304,8 +304,8 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        CompoundNBT nbt = super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        CompoundNBT nbt = super.save(compound);
 
         if (field != null) {
             CompoundNBT fieldInfo = new CompoundNBT();
@@ -317,15 +317,15 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt) {
-        super.read(state, nbt);
+    public void load(BlockState state, CompoundNBT nbt) {
+        super.load(state, nbt);
 
         if(nbt.contains("fieldInfo")) {
             CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
 
-            if(this.world != null && !this.world.isRemote) {
-                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+            if(this.level != null && !this.level.isClientSide) {
+                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
                 ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
 
                 this.field = FieldProjection.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);

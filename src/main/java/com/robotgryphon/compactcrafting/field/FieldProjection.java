@@ -6,6 +6,7 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.server.ServerWorld;
@@ -42,7 +43,7 @@ public class FieldProjection {
     public AxisAlignedBB getBounds() {
         FieldProjectionSize size = this.size;
         BlockPos center = getCenterPosition();
-        AxisAlignedBB bounds = new AxisAlignedBB(center).grow(size.getSize());
+        AxisAlignedBB bounds = new AxisAlignedBB(center).inflate(size.getSize());
 
         return bounds;
     }
@@ -123,20 +124,20 @@ public class FieldProjection {
     }
 
     public BlockPos getProjectorInDirection(Direction direction) {
-        return center.offset(direction, size.getProjectorDistance() + 1);
+        return center.relative(direction, size.getProjectorDistance() + 1);
     }
 
     public void clearBlocks(IWorld world) {
         // Remove blocks from the world
-        BlockPos.getAllInBox(getBounds())
-                .filter(pos -> !world.isAirBlock(pos))
-                .map(BlockPos::toImmutable)
-                .sorted(Comparator.comparingInt(BlockPos::getY).reversed())
+        BlockPos.betweenClosedStream(getBounds())
+                .filter(pos -> !world.isEmptyBlock(pos))
+                .map(BlockPos::immutable)
+                .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
                 .forEach(blockPos -> {
-                    world.setBlockState(blockPos, Blocks.AIR.getDefaultState(), 7);
+                    world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
                     if(world instanceof ServerWorld) {
-                        ((ServerWorld) world).spawnParticle(ParticleTypes.LARGE_SMOKE,
+                        ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
                                 blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
                                 1,0d, 0.05D, 0D, 0.25d);
                     }

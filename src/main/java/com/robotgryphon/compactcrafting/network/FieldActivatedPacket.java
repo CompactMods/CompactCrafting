@@ -37,13 +37,13 @@ public class FieldActivatedPacket {
 
     public static void encode(FieldActivatedPacket pkt, PacketBuffer buf) {
         buf.writeBlockPos(pkt.position);
-        buf.writeString(pkt.fieldSize.name());
+        buf.writeUtf(pkt.fieldSize.name());
     }
 
     public static FieldActivatedPacket decode(PacketBuffer buf) {
         FieldActivatedPacket pkt = new FieldActivatedPacket();
         pkt.position = buf.readBlockPos();
-        pkt.fieldSize = FieldProjectionSize.valueOf(buf.readString());
+        pkt.fieldSize = FieldProjectionSize.valueOf(buf.readUtf());
 
         return pkt;
     }

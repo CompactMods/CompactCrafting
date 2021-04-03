@@ -50,8 +50,8 @@ public class RecipeLayerComponentPositionLookup {
         public <T> T write(DynamicOps<T> ops, RecipeLayerComponentPositionLookup value) {
             AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(value.getAllPositions());
 
-            HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXSize());
-            for(int x = 0; x < boundsForBlocks.getXSize(); x++)
+            HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXsize());
+            for(int x = 0; x < boundsForBlocks.getXsize(); x++)
                 revMap.putIfAbsent(x, new ArrayList<>());
 
             value.components.forEach((pos, comp) -> {

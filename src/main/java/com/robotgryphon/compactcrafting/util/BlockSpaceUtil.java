@@ -22,10 +22,10 @@ public abstract class BlockSpaceUtil {
             return new BlockPos[0];
 
         AxisAlignedBB layerFilledBounds = getLayerBoundsByYOffset(fieldFilledBounds, layer);
-       return BlockPos.getAllInBox(layerFilledBounds)
+       return BlockPos.betweenClosedStream(layerFilledBounds)
                 .filter(pos -> pos.getY() == layerFilledBounds.minY)
-                .filter(pos -> !world.isAirBlock(pos))
-                .map(BlockPos::toImmutable)
+                .filter(pos -> !world.isEmptyBlock(pos))
+                .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
     }
 
@@ -48,7 +48,7 @@ public abstract class BlockSpaceUtil {
                 .map(p -> new BlockPos[] { p, normalizeLayerPosition(bounds, p) })
                 .map(p -> new BlockPos[] { p[0], p[1].rotate(rot) })
                 .map(p -> new BlockPos[] { p[0], denormalizeLayerPosition(bounds, p[1]) })
-                .map(p -> new BlockPos[] { p[0], p[1].toImmutable() })
+                .map(p -> new BlockPos[] { p[0], p[1].immutable() })
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
 
         AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize.values());
@@ -58,20 +58,20 @@ public abstract class BlockSpaceUtil {
         rotatedPreNormalize.forEach((k, rp) -> {
             BlockPos reNormalized = normalizeLayerPosition(rotatedBounds, rp);
             BlockPos realPosition = denormalizeLayerPosition(bounds, reNormalized);
-            realPositions.put(k.toImmutable(), realPosition.toImmutable());
+            realPositions.put(k.immutable(), realPosition.immutable());
         });
 
         return realPositions;
     }
 
     public static boolean boundsFitsInside(AxisAlignedBB check, AxisAlignedBB space) {
-        if(check.getZSize() > space.getZSize())
+        if(check.getZsize() > space.getZsize())
             return false;
 
-        if(check.getXSize() > space.getXSize())
+        if(check.getXsize() > space.getXsize())
             return false;
 
-        if(check.getYSize() > space.getYSize())
+        if(check.getYsize() > space.getYsize())
             return false;
 
         return true;
@@ -83,7 +83,7 @@ public abstract class BlockSpaceUtil {
 
     public static AxisAlignedBB getBoundsForBlocks(Collection<BlockPos> filled) {
         if(filled.size() == 0)
-            return AxisAlignedBB.withSizeAtOrigin(0, 0, 0);
+            return AxisAlignedBB.ofSize(0, 0, 0);
 
         MutableBoundingBox trimmedBounds = null;
         for(BlockPos filledPos : filled) {
@@ -93,11 +93,11 @@ public abstract class BlockSpaceUtil {
             }
 
             MutableBoundingBox checkPos = new MutableBoundingBox(filledPos, filledPos);
-            if(!trimmedBounds.intersectsWith(checkPos))
-                trimmedBounds.expandTo(checkPos);
+            if(!trimmedBounds.intersects(checkPos))
+                trimmedBounds.expand(checkPos);
         }
 
-        return AxisAlignedBB.toImmutable(trimmedBounds);
+        return AxisAlignedBB.of(trimmedBounds);
     }
 
     /**
@@ -127,7 +127,7 @@ public abstract class BlockSpaceUtil {
         return Stream.of(fieldPositions)
                 .parallel()
                 .map(p -> normalizeLayerPosition(fieldBounds, p))
-                .map(BlockPos::toImmutable)
+                .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
     }
 

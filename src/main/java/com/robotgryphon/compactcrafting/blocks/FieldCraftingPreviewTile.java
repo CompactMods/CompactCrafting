@@ -38,18 +38,18 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     public void setMasterProjector(MainFieldProjectorTile master) {
         this.masterProjector = master;
         this.recipe = master.getCurrentRecipe().get();
-        this.markDirty();
+        this.setChanged();
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
-        return new AxisAlignedBB(pos).grow(6.0f);
+        return new AxisAlignedBB(worldPosition).inflate(6.0f);
     }
 
     @Override
     public void tick() {
         this.craftingProgress++;
-        if(world.isRemote) {
+        if(level.isClientSide) {
             return;
         }
 
@@ -61,33 +61,33 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
                 getRecipe().ifPresent(recipe -> {
                     for (ItemStack is : recipe.getOutputs()) {
-                        ItemEntity itemEntity = new ItemEntity(world, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
-                        world.addEntity(itemEntity);
+                        ItemEntity itemEntity = new ItemEntity(level, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
+                        level.addFreshEntity(itemEntity);
                     }
                 });
             }
 
-            world.setBlockState(pos, Blocks.AIR.getDefaultState());
+            level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
         }
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT compound) {
-        super.read(state, compound);
+    public void load(BlockState state, CompoundNBT compound) {
+        super.load(state, compound);
 
         craftingProgress = compound.getInt("progress");
 
         if(compound.contains("recipe")) {
             ResourceLocation recipeId = new ResourceLocation(compound.getString("recipe"));
-            world.getRecipeManager()
-                    .getRecipe(recipeId)
+            level.getRecipeManager()
+                    .byKey(recipeId)
                     .ifPresent(recipe -> this.recipe = (MiniaturizationRecipe) recipe);
         }
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound) {
-        super.write(compound);
+    public CompoundNBT save(CompoundNBT compound) {
+        super.save(compound);
         if(recipe != null) {
             compound.putString("recipe", recipe.getId().toString());
         }
@@ -98,16 +98,16 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
     @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
-        return new SUpdateTileEntityPacket(pos, 0, getUpdateTag());
+        return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }
 
     @Override
     public CompoundNBT getUpdateTag() {
-        return write(new CompoundNBT());
+        return save(new CompoundNBT());
     }
 
     @Override
     public void onDataPacket(NetworkManager net, SUpdateTileEntityPacket packet) {
-        read(getBlockState(), packet.getNbtCompound());
+        load(getBlockState(), packet.getTag());
     }
 }

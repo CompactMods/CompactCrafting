@@ -32,7 +32,7 @@ public class LootTableGenerator extends LootTableProvider {
 
     @Override
     protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker) {
-        map.forEach((name, table) -> LootTableManager.validateLootTable(validationtracker, name, table));
+        map.forEach((name, table) -> LootTableManager.validate(validationtracker, name, table));
     }
 
     private static class Blocks extends BlockLootTables {
@@ -42,13 +42,13 @@ public class LootTableGenerator extends LootTableProvider {
         }
 
         private LootPool.Builder registerSelfDroppedBlock(RegistryObject<Block> block, RegistryObject<Item> item) {
-            LootPool.Builder builder = LootPool.builder()
+            LootPool.Builder builder = LootPool.lootPool()
                     .name(block.get().getRegistryName().toString())
-                    .rolls(ConstantRange.of(1))
-                    .acceptCondition(SurvivesExplosion.builder())
-                    .addEntry(ItemLootEntry.builder(item.get()));
+                    .setRolls(ConstantRange.exactly(1))
+                    .when(SurvivesExplosion.survivesExplosion())
+                    .add(ItemLootEntry.lootTableItem(item.get()));
 
-            this.registerLootTable(block.get(), LootTable.builder().addLootPool(builder));
+            this.add(block.get(), LootTable.lootTable().withPool(builder));
             return builder;
         }
 

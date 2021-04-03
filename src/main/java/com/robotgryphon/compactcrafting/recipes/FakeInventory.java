@@ -9,7 +9,7 @@ public class FakeInventory implements IInventory {
      * Returns the number of slots in the inventory.
      */
     @Override
-    public int getSizeInventory() {
+    public int getContainerSize() {
         return 0;
     }
 
@@ -24,7 +24,7 @@ public class FakeInventory implements IInventory {
      * @param index
      */
     @Override
-    public ItemStack getStackInSlot(int index) {
+    public ItemStack getItem(int index) {
         return ItemStack.EMPTY;
     }
 
@@ -35,7 +35,7 @@ public class FakeInventory implements IInventory {
      * @param count
      */
     @Override
-    public ItemStack decrStackSize(int index, int count) {
+    public ItemStack removeItem(int index, int count) {
         return ItemStack.EMPTY;
     }
 
@@ -45,7 +45,7 @@ public class FakeInventory implements IInventory {
      * @param index
      */
     @Override
-    public ItemStack removeStackFromSlot(int index) {
+    public ItemStack removeItemNoUpdate(int index) {
         return ItemStack.EMPTY;
     }
 
@@ -56,14 +56,14 @@ public class FakeInventory implements IInventory {
      * @param stack
      */
     @Override
-    public void setInventorySlotContents(int index, ItemStack stack) {    }
+    public void setItem(int index, ItemStack stack) {    }
 
     /**
      * For tile entities, ensures the chunk containing the tile entity is saved to disk later - the game won't think it
      * hasn't changed and skip it.
      */
     @Override
-    public void markDirty() {   }
+    public void setChanged() {   }
 
     /**
      * Don't rename this method to canInteractWith due to conflicts with Container
@@ -71,10 +71,10 @@ public class FakeInventory implements IInventory {
      * @param player
      */
     @Override
-    public boolean isUsableByPlayer(PlayerEntity player) {
+    public boolean stillValid(PlayerEntity player) {
         return false;
     }
 
     @Override
-    public void clear() {    }
+    public void clearContent() {    }
 }

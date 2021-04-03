@@ -64,18 +64,18 @@ public abstract class ProjectorHelper {
 
         Direction fieldDirection = facing.get();
 
-        BlockPos center = initial.offset(fieldDirection, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(fieldDirection, size.getProjectorDistance() + 1);
         return Optional.of(center);
     }
 
     public static Optional<BlockPos> getCenterForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
-        BlockPos center = initial.offset(facing, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(facing, size.getProjectorDistance() + 1);
         return Optional.of(center);
     }
 
     public static Optional<BlockPos> getOppositePositionForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
-        BlockPos center = initial.offset(facing, size.getProjectorDistance() + 1);
-        BlockPos opp = center.offset(facing, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(facing, size.getProjectorDistance() + 1);
+        BlockPos opp = center.relative(facing, size.getProjectorDistance() + 1);
 
         return Optional.of(opp);
     }
@@ -119,7 +119,7 @@ public abstract class ProjectorHelper {
     }
 
     public static Set<BlockPos> getProjectorLocationsForAxis(BlockPos center, Direction.Axis axis, FieldProjectionSize size) {
-        Direction posdir = Direction.getFacingFromAxis(Direction.AxisDirection.POSITIVE, axis);
+        Direction posdir = Direction.get(Direction.AxisDirection.POSITIVE, axis);
         BlockPos posLocation = ProjectorHelper.getProjectorLocationForDirection(center, posdir, size);
         BlockPos negLocation = ProjectorHelper.getProjectorLocationForDirection(center, posdir.getOpposite(), size);
 
@@ -127,7 +127,7 @@ public abstract class ProjectorHelper {
     }
 
     public static BlockPos getProjectorLocationForDirection(BlockPos center, Direction direction, FieldProjectionSize size) {
-        BlockPos location = center.offset(direction, size.getProjectorDistance() + 1);
+        BlockPos location = center.relative(direction, size.getProjectorDistance() + 1);
         return location;
     }
 
@@ -187,7 +187,7 @@ public abstract class ProjectorHelper {
         if (primaryAxis.isVertical())
             return false;
 
-        Direction checkDirection = Direction.getFacingFromAxisDirection(primaryAxis, Direction.AxisDirection.POSITIVE);
+        Direction checkDirection = Direction.fromAxisAndDirection(primaryAxis, Direction.AxisDirection.POSITIVE);
 
         // Do we have a valid projector in the first direction?
         boolean posValid = hasProjectorInDirection(world, center, checkDirection, fieldSize);
@@ -233,7 +233,7 @@ public abstract class ProjectorHelper {
         return Arrays.stream(FieldProjectionSize.values())
                 .filter(size -> {
                     // Try to match the positions, if so we found a valid size
-                    BlockPos location = fieldCenter.offset(Direction.NORTH, size.getProjectorDistance() + 1);
+                    BlockPos location = fieldCenter.relative(Direction.NORTH, size.getProjectorDistance() + 1);
                     return location == aProjector;
                 }).findFirst();
 

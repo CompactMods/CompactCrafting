@@ -23,9 +23,9 @@ public class MiniaturizationFieldBlockData {
     public static MiniaturizationFieldBlockData getFromField(IWorldReader world, AxisAlignedBB field) {
         MiniaturizationFieldBlockData fb = new MiniaturizationFieldBlockData(field);
 
-        BlockPos[] nonAirPositions = BlockPos.getAllInBox(field)
-                .filter(p -> !world.isAirBlock(p))
-                .map(BlockPos::toImmutable)
+        BlockPos[] nonAirPositions = BlockPos.betweenClosedStream(field)
+                .filter(p -> !world.isEmptyBlock(p))
+                .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
 
         fb.filledPositions = nonAirPositions;

@@ -80,8 +80,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                     EnumCraftingState state = mainTile.getCraftingState();
                     if (state == EnumCraftingState.CRAFTING) {
                         FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
-                                .getWorld()
-                                .getTileEntity(fp.getCenterPosition());
+                                .getLevel()
+                                .getBlockEntity(fp.getCenterPosition());
 
                         // No preview tile found, not actually crafting rn
                         if (preview == null)
@@ -94,14 +94,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                         scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f)));
                     }
 
-                    matrixStack.push();
+                    matrixStack.pushPose();
 
                     matrixStack.scale(scale, scale, scale);
 
                     drawScanLines(mainTile, matrixStack, buffers, cube, fieldSize);
                     renderProjectionCube(mainTile, matrixStack, buffers, cube, fieldSize);
 
-                    matrixStack.pop();
+                    matrixStack.popPose();
                 }
             }
         }
@@ -111,7 +111,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         if (bakedModelCached == null) {
             ModelManager models = Minecraft.getInstance()
                     .getItemRenderer()
-                    .getItemModelMesher()
+                    .getItemModelShaper()
                     .getModelManager();
 
 
@@ -122,9 +122,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
-        renderer.pos(stack.getLast().getMatrix(), position.getX(), position.getY(), position.getZ())
+        renderer.vertex(stack.last().pose(), position.x(), position.y(), position.z())
                 .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
-                .lightmap(0, 240)
+                .uv2(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
     }
@@ -223,14 +223,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         BlockState state = te.getBlockState();
 
-        BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRendererDispatcher();
+        BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
-        IVertexBuilder cutoutBlocks = buffer.getBuffer(Atlases.getCutoutBlockType());
-        IModelData model = ModelDataManager.getModelData(te.getWorld(), te.getPos());
+        IVertexBuilder cutoutBlocks = buffer.getBuffer(Atlases.cutoutBlockSheet());
+        IModelData model = ModelDataManager.getModelData(te.getLevel(), te.getBlockPos());
 
         IBakedModel baked = this.getModel();
 
-        mx.push();
+        mx.pushPose();
 
         mx.translate(.5, 0, .5);
 
@@ -238,13 +238,13 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         double yaw = Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / speed.getSpeed()) * 10;
         // double yaw = Math.random();
 
-        Direction facing = state.get(FieldProjectorBlock.FACING);
-        float angle = facing.getHorizontalAngle() - 90;
-        mx.rotate(Vector3f.YN.rotationDegrees(angle));
+        Direction facing = state.getValue(FieldProjectorBlock.FACING);
+        float angle = facing.toYRot() - 90;
+        mx.mulPose(Vector3f.YN.rotationDegrees(angle));
 
         float yDiskOffset = -0.66f;
         mx.translate(0.0, -yDiskOffset, 0.0);
-        mx.rotate(Vector3f.ZP.rotationDegrees((float) yaw));
+        mx.mulPose(Vector3f.ZP.rotationDegrees((float) yaw));
         mx.translate(0.0, yDiskOffset, 0.0);
 
         mx.translate(-.5, 0, -.5);
@@ -254,15 +254,15 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         float green = faceColor.getGreen() / 255f;
         float blue = faceColor.getBlue() / 255f;
 
-        blockRenderer.getBlockModelRenderer()
-                .renderModel(mx.getLast(), cutoutBlocks, state,
+        blockRenderer.getModelRenderer()
+                .renderModel(mx.last(), cutoutBlocks, state,
                         baked,
                         red,
                         green,
                         blue,
                         combinedLight, combinedOverlay, model);
 
-        mx.pop();
+        mx.popPose();
     }
 
     /**
@@ -282,7 +282,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         mx.translate(-cubeSize, -cubeSize, -cubeSize);
 
         // Now move to actual center
-        BlockPos projectorPos = tile.getPos();
+        BlockPos projectorPos = tile.getBlockPos();
         BlockPos offsetToCenter = center.subtract(projectorPos);
 
         mx.translate(offsetToCenter.getX(), offsetToCenter.getY(), offsetToCenter.getZ());
@@ -293,7 +293,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Should only be called by the main projector (typically the NORTH projector)
      */
     private void renderProjectionCube(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
-        mx.push();
+        mx.pushPose();
 
         translateRendererToCube(tile, mx, cube, cubeSize);
 
@@ -301,12 +301,12 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         double expansion = 0.005;
         AxisAlignedBB slightlyBiggerBecauseFoxes = cube
-                .expand(expansion, expansion, expansion)
-                .expand(-expansion, -expansion, -expansion);
+                .expandTowards(expansion, expansion, expansion)
+                .expandTowards(-expansion, -expansion, -expansion);
 
         drawCube(builder, mx, slightlyBiggerBecauseFoxes, tile.getProjectionColor(EnumProjectorColorType.FIELD));
 
-        mx.pop();
+        mx.popPose();
     }
 
     /**
@@ -315,22 +315,22 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      */
     private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
 
-        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.getLines());
+        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.lines());
 
-        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYSize());
+        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
         Vector3d centerPos = cube.getCenter();
 
-        Direction facing = tile.getBlockState().get(FieldProjectorBlock.FACING);
+        Direction facing = tile.getBlockState().getValue(FieldProjectorBlock.FACING);
         Quaternion rotation = facing.getRotation();
-        Vector3i identity = facing.getDirectionVec();
+        Vector3i identity = facing.getNormal();
 
-        mx.push();
+        mx.pushPose();
 
         mx.translate(.5, .5, .5);
 
-        mx.rotate(rotation);
+        mx.mulPose(rotation);
 
         Color colorProjectionArc = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
@@ -340,7 +340,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         // Now translate to center of projection field
         addColoredVertex(builder, mx, colorProjectionArc, new Vector3f((float) -scanHeight, 3, 0));
 
-        mx.pop();
+        mx.popPose();
 
 //        mx.push();
 //
@@ -414,14 +414,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * where the projection arcs meet the main projection cube.
      */
     private void drawScanLines(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
-        IVertexBuilder builder = buffers.getBuffer(RenderType.getLines());
+        IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
-        mx.push();
+        mx.pushPose();
 
         translateRendererToCube(tile, mx, cube, cubeSize);
 
         // Get the height of the scan line
-        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYSize());
+        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
         AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
@@ -429,7 +429,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         Color colorScanLine = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
         drawRing(builder, mx, scanLineMain, colorScanLine);
 
-        mx.pop();
+        mx.popPose();
     }
 
     /**
@@ -441,7 +441,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     private void renderFaces(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffer, AxisAlignedBB cube, double extraLength) {
 
         BlockState state = tile.getBlockState();
-        Direction facing = state.get(FieldProjectorBlock.FACING);
+        Direction facing = state.getValue(FieldProjectorBlock.FACING);
 
         try {
             IVertexBuilder builder = buffer.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
@@ -538,7 +538,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     @Override
-    public boolean isGlobalRenderer(FieldProjectorTile te) {
+    public boolean shouldRenderOffScreen(FieldProjectorTile te) {
         return true;
     }
 }

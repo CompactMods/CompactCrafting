@@ -22,7 +22,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         implements IRecipeSerializer<MiniaturizationRecipe> {
 
     @Override
-    public MiniaturizationRecipe read(ResourceLocation recipeId, JsonObject json) {
+    public MiniaturizationRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
         Optional<Pair<MiniaturizationRecipe, JsonElement>> p = MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(err -> {
                     CompactCrafting.LOGGER.error("Error loading recipe: " + err);
@@ -35,10 +35,10 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
 
     @Nullable
     @Override
-    public MiniaturizationRecipe read(ResourceLocation recipeId, PacketBuffer buffer) {
+    public MiniaturizationRecipe fromNetwork(ResourceLocation recipeId, PacketBuffer buffer) {
         CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
 
-        CompoundNBT n = buffer.readCompoundTag();
+        CompoundNBT n = buffer.readNbt();
         if (n != null && n.contains("recipe")) {
             INBT recipeNbt = n.get("recipe");
 
@@ -56,7 +56,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
     }
 
     @Override
-    public void write(PacketBuffer buffer, MiniaturizationRecipe recipe) {
+    public void toNetwork(PacketBuffer buffer, MiniaturizationRecipe recipe) {
         NBTDynamicOps ops = NBTDynamicOps.INSTANCE;
         try {
             DataResult<INBT> encode = MiniaturizationRecipe.CODEC.encodeStart(ops, recipe);
@@ -68,7 +68,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
                     .ifPresent(nbt -> {
                         CompoundNBT n = new CompoundNBT();
                         n.put("recipe", nbt);
-                        buffer.writeCompoundTag(n);
+                        buffer.writeNbt(n);
                     });
         }
 

@@ -29,6 +29,8 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
+import net.minecraft.block.AbstractBlock.Properties;
+
 public class FieldProjectorBlock extends Block {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
@@ -36,8 +38,8 @@ public class FieldProjectorBlock extends Block {
     public FieldProjectorBlock(Properties properties) {
         super(properties);
 
-        setDefaultState(getStateContainer().getBaseState()
-                .with(FACING, Direction.NORTH));
+        registerDefaultState(getStateDefinition().any()
+                .setValue(FACING, Direction.NORTH));
     }
 
     public static Optional<Direction> getDirection(IWorldReader world, BlockPos position) {
@@ -47,14 +49,14 @@ public class FieldProjectorBlock extends Block {
         if (!(positionState.getBlock() instanceof FieldProjectorBlock))
             return Optional.empty();
 
-        Direction facing = positionState.get(FieldProjectorBlock.FACING);
+        Direction facing = positionState.getValue(FieldProjectorBlock.FACING);
         return Optional.of(facing);
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
-        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getTileEntity(pos);
+        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
         if (tile == null)
             return;
 
@@ -64,13 +66,13 @@ public class FieldProjectorBlock extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getRenderShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
+    public VoxelShape getOcclusionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
         return VoxelShapes.empty();
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder) {
-        super.fillStateContainer(builder);
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
         builder.add(FACING);
     }
 
@@ -83,7 +85,7 @@ public class FieldProjectorBlock extends Block {
         if(!looking.getAxis().isHorizontal())
             looking = Direction.NORTH;
 
-        return base.with(FACING, looking);
+        return base.setValue(FACING, looking);
     }
 
     @Override
@@ -94,17 +96,17 @@ public class FieldProjectorBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        Direction fac = state.get(FACING);
+        Direction fac = state.getValue(FACING);
         return fac == Direction.SOUTH ? new MainFieldProjectorTile() : new DummyFieldProjectorTile();
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public ActionResultType onBlockActivated(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (world.isRemote)
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+        if (world.isClientSide)
             return ActionResultType.SUCCESS;
 
-        FieldProjectorTile tile = (FieldProjectorTile) world.getTileEntity(pos);
+        FieldProjectorTile tile = (FieldProjectorTile) world.getBlockEntity(pos);
 
         // Shouldn't happen, but safety
         if (tile == null)
@@ -122,7 +124,7 @@ public class FieldProjectorBlock extends Block {
 
             Optional<BlockPos> centerForSize = ProjectorHelper.getCenterForSize(world, pos, size);
             centerForSize.ifPresent(center -> {
-                Direction.Axis a = state.get(FACING).getAxis();
+                Direction.Axis a = state.getValue(FACING).getAxis();
                 Direction.Axis opp;
                 switch (a) {
                     case X:
@@ -149,7 +151,7 @@ public class FieldProjectorBlock extends Block {
         if (world.getBlockState(opp).getBlock() instanceof FieldProjectorBlock)
             return;
 
-        world.spawnParticle(ParticleTypes.BARRIER,
+        world.sendParticles(ParticleTypes.BARRIER,
                 opp.getX() + 0.5f,
                 opp.getY() + 0.5f,
                 opp.getZ() + 0.5f,
@@ -158,8 +160,8 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
-    public void onBlockPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getTileEntity(pos);
+    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
 
         // If we don't have a valid field, search again
         if(tile == null)
@@ -177,13 +179,13 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
-    public void onPlayerDestroy(IWorld worldIn, BlockPos pos, BlockState state) {
-        super.onPlayerDestroy(worldIn, pos, state);
+    public void destroy(IWorld worldIn, BlockPos pos, BlockState state) {
+        super.destroy(worldIn, pos, state);
 
-        Direction ogFacing = state.get(FACING);
+        Direction ogFacing = state.getValue(FACING);
         ProjectorHelper.getPossibleMainProjectors(worldIn, pos, ogFacing)
                 .forEach(projPos -> {
-                    TileEntity tileProj = worldIn.getTileEntity(projPos);
+                    TileEntity tileProj = worldIn.getBlockEntity(projPos);
                     if (!(tileProj instanceof MainFieldProjectorTile))
                         return;
 

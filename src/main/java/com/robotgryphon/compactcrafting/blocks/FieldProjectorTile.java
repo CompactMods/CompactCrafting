@@ -41,7 +41,7 @@ public abstract class FieldProjectorTile extends TileEntity {
 
     public Direction getFacing() {
         BlockState bs = this.getBlockState();
-        return bs.get(FieldProjectorBlock.FACING);
+        return bs.getValue(FieldProjectorBlock.FACING);
     }
 
     public Direction getProjectorSide() {

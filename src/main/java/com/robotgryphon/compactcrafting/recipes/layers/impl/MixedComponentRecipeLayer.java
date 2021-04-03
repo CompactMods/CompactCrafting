@@ -26,7 +26,7 @@ public class MixedComponentRecipeLayer extends RecipeLayer implements IRigidReci
     ).apply(i, MixedComponentRecipeLayer::new));
 
     public MixedComponentRecipeLayer() {
-        this.dimensions = AxisAlignedBB.withSizeAtOrigin(0, 0, 0);
+        this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
         this.componentLookup = new RecipeLayerComponentPositionLookup();
     }
 

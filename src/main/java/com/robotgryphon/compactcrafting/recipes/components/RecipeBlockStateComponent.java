@@ -49,7 +49,7 @@ public class RecipeBlockStateComponent extends RecipeComponent {
         this.allowedValues = new HashMap<>();
 
         propertyRequirements.ifPresent(userRequestedValues -> {
-            StateContainer<Block, BlockState> stateContainer = this.block.getStateContainer();
+            StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();
             for (Map.Entry<String, List<String>> entry : userRequestedValues.entrySet()) {
                 String propertyName = entry.getKey();
                 List<String> userFilteredProps = entry.getValue();
@@ -60,7 +60,7 @@ public class RecipeBlockStateComponent extends RecipeComponent {
                     List<Object> userAllowed = new ArrayList<>();
                     List<String> propertyAcceptableValues = new ArrayList<>();
                     for (String userValue : userFilteredProps) {
-                        prop.parseValue(userValue).ifPresent(u -> {
+                        prop.getValue(userValue).ifPresent(u -> {
                             // We keep two values here - the actual property value for comparison,
                             // and the string value the user provided (for re-serialization in the CODEC)
                              propertyAcceptableValues.add(userValue);
@@ -79,12 +79,12 @@ public class RecipeBlockStateComponent extends RecipeComponent {
 
     public void setFilter(String property, Predicate<Comparable<?>> val) {
         // Check property exists by name
-        Property<?> property1 = block.getStateContainer().getProperty(property);
+        Property<?> property1 = block.getStateDefinition().getProperty(property);
         if (property1 == null)
             throw new IllegalArgumentException(property);
 
         // Property exists in state container, we're good
-        Collection<?> allowedValues = property1.getAllowedValues();
+        Collection<?> allowedValues = property1.getPossibleValues();
         boolean anyMatch = allowedValues.stream().anyMatch(v -> val.test((Comparable<?>) v));
         if (!anyMatch) {
             CompactCrafting.LOGGER.warn("Failed to allow filter: No values would be valid for property [{}]", property);
@@ -105,7 +105,7 @@ public class RecipeBlockStateComponent extends RecipeComponent {
             if (!filters.containsKey(name))
                 continue;
 
-            Comparable<?> val = state.get(prop);
+            Comparable<?> val = state.getValue(prop);
             boolean matches = filters.get(name).test(val);
             if (!matches) return false;
         }

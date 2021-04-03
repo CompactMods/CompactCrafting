@@ -61,9 +61,9 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
      * @return
      */
     public Collection<BlockPos> getFilledPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXSize() - 1, 1, recipeDimensions.getZSize() - 1);
-        return BlockPos.getAllInBox(layerBounds)
-                .map(BlockPos::toImmutable)
+        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXsize() - 1, 1, recipeDimensions.getZsize() - 1);
+        return BlockPos.betweenClosedStream(layerBounds)
+                .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
     }
 
@@ -72,7 +72,7 @@ public class FilledComponentRecipeLayer extends RecipeLayer implements IDynamicR
     }
 
     public int getNumberFilledPositions() {
-        return (int) Math.ceil(recipeDimensions.getXSize() * recipeDimensions.getZSize());
+        return (int) Math.ceil(recipeDimensions.getXsize() * recipeDimensions.getZsize());
     }
 
     @Override

@@ -26,11 +26,11 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
     @Override
     public void render(FieldCraftingPreviewTile tile, float partialTicks, MatrixStack mx, IRenderTypeBuffer buffers, int light, int overlay) {
 
-        BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRendererDispatcher();
+        BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
         Optional<MiniaturizationRecipe> recipe = tile.getRecipe();
         recipe.ifPresent(rec -> {
-            mx.push();
+            mx.pushPose();
 
             mx.translate(0.5, 0.5, 0.5);
 
@@ -44,39 +44,39 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             mx.scale((float) scale, (float) scale, (float) scale);
 
             double angle = RenderTickCounter.renderTicks * (45.0f / 64.0f);
-            mx.rotate(Vector3f.YP.rotationDegrees((float) angle));
+            mx.mulPose(Vector3f.YP.rotationDegrees((float) angle));
 
             AxisAlignedBB dimensions = rec.getDimensions();
-            mx.translate(-(dimensions.getXSize() / 2), -(dimensions.getYSize() / 2), -(dimensions.getZSize() / 2));
+            mx.translate(-(dimensions.getXsize() / 2), -(dimensions.getYsize() / 2), -(dimensions.getZsize() / 2));
 
 
-            double ySize = rec.getDimensions().getYSize();
+            double ySize = rec.getDimensions().getYsize();
 
             for(int y = 0; y < ySize; y++) {
-                mx.push();
+                mx.pushPose();
                 mx.translate(0, y, 0);
 
                 Optional<RecipeLayer> layer = rec.getLayer(y);
                 layer.ifPresent(l -> {
                     l.getFilledPositions().forEach(filledPos -> {
-                        mx.push();
+                        mx.pushPose();
                         mx.translate(filledPos.getX(), 0, filledPos.getZ());
                         Optional<String> component = l.getRequiredComponentKeyForPosition(filledPos);
                         Optional<RecipeBlockStateComponent> recipeComponent = rec.getRecipeBlockComponent(component.get());
 
                         recipeComponent.ifPresent(state -> {
                             // TODO - Render switching
-                            BlockState state1 = state.block.getDefaultState();
+                            BlockState state1 = state.block.defaultBlockState();
                             blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
                         });
-                        mx.pop();
+                        mx.popPose();
                     });
                 });
 
-                mx.pop();
+                mx.popPose();
             }
 
-            mx.pop();
+            mx.popPose();
         });
     }
 }
