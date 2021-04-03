@@ -8,7 +8,7 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.data.states.BlockStatePredicateMatcher;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
@@ -49,7 +49,7 @@ public abstract class JsonUtil {
         return either.mapLeft(Pair::getFirst).left();
     }
 
-    public static Optional<BlockStatePredicateMatcher> getPossibleStates(JsonObject root) {
+    public static Optional<RecipeBlockStateComponent> getPossibleStates(JsonObject root) {
         // Get block information for node
         ResourceLocation blockId = new ResourceLocation(root.get("Name").getAsString());
         if(!ForgeRegistries.BLOCKS.containsKey(blockId))
@@ -59,7 +59,7 @@ public abstract class JsonUtil {
         if(b == null)
             return Optional.empty();
 
-        BlockStatePredicateMatcher matcher = new BlockStatePredicateMatcher(b);
+        RecipeBlockStateComponent matcher = new RecipeBlockStateComponent(b);
         if(!root.has("Properties")) {
             // Save block itself and mark that all properties are valid
             return Optional.of(matcher);

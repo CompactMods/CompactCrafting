@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.data.base;
+package com.robotgryphon.compactcrafting.recipes.setup;
 
 import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.ResourceLocation;

@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting;
+package com.robotgryphon.compactcrafting.tests;
 
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.Rotation;

@@ -3,21 +3,15 @@
   "recipeSize": 5,
   "layers": [
     {
-      "type": "filled",
+      "type": "compactcrafting:filled",
       "component": "C"
     },
     {
-      "type": "mixed",
-      "pattern": [
-        ["C", "C", "C", "C", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "C", "C", "C", "C"]
-      ]
+      "type": "compactcrafting:hollow",
+      "wall": "C"
     },
     {
-      "type": "mixed",
+      "type": "compactcrafting:mixed",
       "pattern": [
         ["C", "C", "C", "C", "C"],
         ["C", "-", "-", "-", "C"],
@@ -27,17 +21,11 @@
       ]
     },
     {
-      "type": "mixed",
-      "pattern": [
-        ["C", "C", "C", "C", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "-", "-", "-", "C"],
-        ["C", "C", "C", "C", "C"]
-      ]
+      "type": "compactcrafting:hollow",
+      "wall": "C"
     },
     {
-      "type": "filled",
+      "type": "compactcrafting:filled",
       "component": "C"
     }
   ],
@@ -49,11 +37,13 @@
 
   "components": {
     "C": {
-      "Name": "minecraft:coal_block"
+      "type": "compactcrafting:block",
+      "block": "minecraft:coal_block"
     },
 
     "D": {
-      "Name": "minecraft:diamond_block"
+      "type": "compactcrafting:block",
+      "block": "minecraft:diamond_block"
     }
   },
 
