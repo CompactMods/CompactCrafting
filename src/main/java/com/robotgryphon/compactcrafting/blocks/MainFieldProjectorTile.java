@@ -97,6 +97,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         }
 
         this.field = null;
+        this.markDirty();
     }
 
     /**
