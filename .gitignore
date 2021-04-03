@@ -29,3 +29,11 @@ logs/
 mods/
 
 demo-files/
+
+# MC Server Files
+saves/
+config/
+.mixin.out/
+options.txt
+usercache.json
+usernamecache.json

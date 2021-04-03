@@ -8,7 +8,8 @@ import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -120,7 +121,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         List<ItemStack> inputs = new ArrayList<>();
 
         for (String compKey : recipe.getComponentKeys()) {
-            Optional<BlockState> requiredBlock = recipe.getRecipeComponent(compKey);
+            Optional<RecipeBlockStateComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
             requiredBlock.ifPresent(bs -> {
                 Item bi = Item.getItemFromBlock(bs.getBlock());
                 inputs.add(new ItemStack(bi));
@@ -204,7 +205,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int required = comp.getValue();
                     int finalInputOffset = inputOffset.get();
 
-                    BlockState bs = recipe.getRecipeComponent(component).get();
+                    RecipeBlockStateComponent bs = recipe.getRecipeBlockComponent(component).get();
                     Item bi = Item.getItemFromBlock(bs.getBlock());
                     guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
 
@@ -427,7 +428,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             //}
 
             for (int y : renderLayers) {
-                Optional<IRecipeLayer> layer = recipe.getLayer(y);
+                Optional<RecipeLayer> layer = recipe.getLayer(y);
                 layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
             }
 
@@ -442,11 +443,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, RecipeLayer l, int layerY) {
         // Begin layer
         mx.push();
 
-        for (BlockPos filledPos : l.getNonAirPositions()) {
+        for (BlockPos filledPos : l.getFilledPositions()) {
             mx.push();
 
             mx.translate(
@@ -455,14 +456,15 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     ((filledPos.getZ() + 0.5) * explodeMulti)
             );
 
-            String component = l.getRequiredComponentKeyForPosition(filledPos);
-            Optional<BlockState> recipeComponent = recipe.getRecipeComponent(component);
+            String component = l.getRequiredComponentKeyForPosition(filledPos).get();
+            Optional<RecipeBlockStateComponent> recipeComponent = recipe.getRecipeBlockComponent(component);
 
             recipeComponent.ifPresent(state -> {
                 // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
-
+                // TODO - Render switching at fixed interval
+                BlockState state1 = state.block.getDefaultState();
                 // Thanks Immersive, Astral, and others
-                blocks.renderBlock(state, mx, RenderTypesExtensions.disableLighting(buffers),
+                blocks.renderBlock(state1, mx, RenderTypesExtensions.disableLighting(buffers),
                         0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
             });
 

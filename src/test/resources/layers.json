@@ -1,0 +1,21 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "version": 1,
+  "recipeSize": 1,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "R"
+    },
+    {
+      "type": "compactcrafting:filled",
+      "component": "I"
+    }
+  ],
+  "catalyst": {
+    "id": "minecraft:redstone",
+    "Count": 1
+  },
+  "components": {},
+  "outputs": [  ]
+}

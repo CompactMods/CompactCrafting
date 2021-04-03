@@ -37,7 +37,7 @@ public abstract class ProjectorHelper {
         Set<BlockPos> positions = new HashSet<>();
         for (FieldProjectionSize fieldSize : FieldProjectionSize.values()) {
             BlockPos possibleLocation = getProjectorLocationForDirection(center, direction, fieldSize);
-            if(!hasProjectorInPositionForDirection(world, direction, possibleLocation))
+            if (!hasProjectorInPositionForDirection(world, direction, possibleLocation))
                 continue;
 
             positions.add(possibleLocation);
@@ -229,4 +229,13 @@ public abstract class ProjectorHelper {
     }
 
 
+    public static Optional<FieldProjectionSize> findSizeByMainProjector(BlockPos fieldCenter, BlockPos aProjector) {
+        return Arrays.stream(FieldProjectionSize.values())
+                .filter(size -> {
+                    // Try to match the positions, if so we found a valid size
+                    BlockPos location = fieldCenter.offset(Direction.NORTH, size.getProjectorDistance() + 1);
+                    return location == aProjector;
+                }).findFirst();
+
+    }
 }

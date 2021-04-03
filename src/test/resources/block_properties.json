@@ -1,0 +1,7 @@
+{
+  "block": "minecraft:cobblestone_stairs",
+  "properties": {
+    "half": ["bottom"],
+    "shape": ["straight"]
+  }
+}

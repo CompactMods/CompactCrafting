@@ -1,8 +1,9 @@
-package com.robotgryphon.compactcrafting.recipes.data.base;
+package com.robotgryphon.compactcrafting.recipes.setup;
 
 import com.robotgryphon.compactcrafting.recipes.FakeInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 public abstract class RecipeBase implements IRecipe<FakeInventory> {
@@ -52,4 +53,6 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
     public boolean isDynamic() {
         return true;
     }
+
+    public abstract void setId(ResourceLocation recipeId);
 }

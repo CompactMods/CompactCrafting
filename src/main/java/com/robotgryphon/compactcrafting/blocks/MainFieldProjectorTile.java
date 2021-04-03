@@ -4,17 +4,25 @@ import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
+import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
+import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,6 +65,12 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.markDirty();
+
+                PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
+                        .with(() -> world.getChunkAt(this.pos));
+
+                NetworkHandler.MAIN_CHANNEL
+                        .send(trk, new FieldActivatedPacket(this.field.getCenterPosition(), this.field.getFieldSize()));
             }
         } else {
             this.invalidateField();
@@ -65,16 +79,25 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     public void invalidateField() {
-        if(field == null)
+        if (field == null)
             return;
 
         if (world != null && !world.isRemote) {
             BlockPos center = this.field.getCenterPosition();
+            FieldProjectionSize size = this.field.getFieldSize();
+
             ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
             data.unregister(center);
+
+            PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
+                    .with(() -> world.getChunkAt(this.pos));
+
+            NetworkHandler.MAIN_CHANNEL
+                    .send(trk, new FieldDeactivatedPacket(center, size));
         }
 
         this.field = null;
+        this.markDirty();
     }
 
     /**
@@ -137,6 +160,11 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         }
 
         this.currentRecipe = matchedRecipe;
+    }
+
+    public void setFieldInfo(FieldProjection field) {
+        this.field = field;
+        this.markDirty();
     }
 
     private void tickCrafting() {
@@ -246,5 +274,62 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     public EnumCraftingState getCraftingState() {
         return this.craftingState;
+    }
+
+    @Override
+    public CompoundNBT getUpdateTag() {
+        CompoundNBT tag = super.getUpdateTag();
+
+        if (this.field != null) {
+            CompoundNBT fieldInfo = new CompoundNBT();
+            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
+            fieldInfo.putString("size", this.field.getFieldSize().name());
+            tag.put("fieldInfo", fieldInfo);
+        }
+
+        return tag;
+    }
+
+    @Override
+    public void handleUpdateTag(BlockState state, CompoundNBT tag) {
+        super.handleUpdateTag(state, tag);
+        if (tag.contains("fieldInfo")) {
+            CompoundNBT fieldInfo = tag.getCompound("fieldInfo");
+            BlockPos fCenter = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+            String sizeName = fieldInfo.getString("size");
+            FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
+
+            this.field = FieldProjection.fromSizeAndCenter(size, fCenter);
+        }
+    }
+
+    @Override
+    public CompoundNBT write(CompoundNBT compound) {
+        CompoundNBT nbt = super.write(compound);
+
+        if (field != null) {
+            CompoundNBT fieldInfo = new CompoundNBT();
+            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
+            nbt.put("fieldInfo", fieldInfo);
+        }
+
+        return nbt;
+    }
+
+    @Override
+    public void read(BlockState state, CompoundNBT nbt) {
+        super.read(state, nbt);
+
+        if(nbt.contains("fieldInfo")) {
+            CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
+            BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+
+            if(this.world != null && !this.world.isRemote) {
+                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) world);
+                ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
+
+                this.field = FieldProjection.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
+            }
+        }
     }
 }

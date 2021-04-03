@@ -4,12 +4,13 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
+import com.robotgryphon.compactcrafting.recipes.components.SimpleRecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
-import com.robotgryphon.compactcrafting.recipes.data.base.BaseRecipeType;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.FilledLayerSerializer;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.HollowLayerSerializer;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.MixedLayerSerializer;
-import com.robotgryphon.compactcrafting.recipes.data.serialization.layers.RecipeLayerSerializer;
+import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
+import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.HollowComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
@@ -28,7 +29,10 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.*;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.RegistryBuilder;
 
 import java.util.function.Supplier;
 
@@ -48,14 +52,22 @@ public class Registration {
     private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
     private static final DeferredRegister<IRecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MOD_ID);
 
-    public static DeferredRegister<RecipeLayerSerializer<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerSerializer.class, MOD_ID);
-    public static IForgeRegistry<RecipeLayerSerializer<?>> RECIPE_SERIALIZERS;
+    public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, MOD_ID);
+    public static IForgeRegistry<RecipeLayerType<?>> RECIPE_LAYER_TYPES;
+
+    public static DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create((Class) RecipeComponentType.class, MOD_ID);
+    public static IForgeRegistry<RecipeComponentType<?>> RECIPE_COMPONENT_TYPES;
 
     static {
-        RECIPE_LAYERS.makeRegistry("recipe_layer_serializers", () -> new RegistryBuilder<RecipeLayerSerializer<?>>()
-                .setName(new ResourceLocation(MOD_ID, "recipe_layer_serializers"))
-                .setType(c(RecipeLayerSerializer.class))
-                .tagFolder("recipe_layer_serializers"));
+        RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
+                .setName(new ResourceLocation(MOD_ID, "recipe_layers"))
+                .setType(c(RecipeLayerType.class))
+                .tagFolder("recipe_layers"));
+
+        RECIPE_COMPONENTS.makeRegistry("recipe_components", () -> new RegistryBuilder<RecipeComponentType<?>>()
+                .setName(new ResourceLocation(MOD_ID, "recipe_components"))
+                .setType(c(RecipeComponentType.class))
+                .tagFolder("recipe_components"));
     }
 
     // ================================================================================================================
@@ -119,14 +131,20 @@ public class Registration {
     // ================================================================================================================
     //   RECIPE LAYER SERIALIZERS
     // ================================================================================================================
-    public static final RegistryObject<RecipeLayerSerializer<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
-            RECIPE_LAYERS.register("filled", FilledLayerSerializer::new);
+    public static final RegistryObject<RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
+            RECIPE_LAYERS.register("filled", () -> new SimpleRecipeLayerType<>(FilledComponentRecipeLayer.CODEC));
 
-    public static final RegistryObject<RecipeLayerSerializer<HollowComponentRecipeLayer>> HOLLOW_LAYER_SERIALIZER =
-            RECIPE_LAYERS.register("hollow", HollowLayerSerializer::new);
+    public static final RegistryObject<RecipeLayerType<HollowComponentRecipeLayer>> HOLLOW_LAYER_TYPE =
+            RECIPE_LAYERS.register("hollow", () -> new SimpleRecipeLayerType<>(HollowComponentRecipeLayer.CODEC));
 
-    public static final RegistryObject<RecipeLayerSerializer<MixedComponentRecipeLayer>> MIXED_LAYER_SERIALIZER =
-            RECIPE_LAYERS.register("mixed", MixedLayerSerializer::new);
+    public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
+            RECIPE_LAYERS.register("mixed", () -> new SimpleRecipeLayerType<>(MixedComponentRecipeLayer.CODEC));
+
+    // ================================================================================================================
+    //   RECIPE COMPONENTS
+    // ================================================================================================================
+    public static final RegistryObject<RecipeComponentType<RecipeBlockStateComponent>> BLOCKSTATE_COMPONENT =
+            RECIPE_COMPONENTS.register("block", () -> new SimpleRecipeComponentType<>(RecipeBlockStateComponent.CODEC));
 
     // ================================================================================================================
     //   INITIALIZATION
@@ -145,13 +163,18 @@ public class Registration {
         MINIATURIZATION_RECIPE_TYPE.register();
 
         RECIPE_LAYERS.register(eventBus);
+        RECIPE_COMPONENTS.register(eventBus);
     }
 
     @SubscribeEvent
     @SuppressWarnings("unused")
-    public static void onRegistration(RegistryEvent.Register<RecipeLayerSerializer<?>> evt) {
-        RECIPE_SERIALIZERS = evt.getRegistry();
+    public static void onRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
+        RECIPE_LAYER_TYPES = evt.getRegistry();
     }
 
-
+    @SubscribeEvent
+    @SuppressWarnings("unused")
+    public static void onComponentRegistration(RegistryEvent.Register<RecipeComponentType<?>> evt) {
+        RECIPE_COMPONENT_TYPES = evt.getRegistry();
+    }
 }
