@@ -177,6 +177,7 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           title: "Release ${{ github.event.release.tag_name }}"
+          automatic_release_tag: true
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
