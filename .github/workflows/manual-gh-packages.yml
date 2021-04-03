@@ -126,7 +126,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Publish package
-        run: ./gradlew publish
+        run: ./gradlew publish -x test
         env:
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

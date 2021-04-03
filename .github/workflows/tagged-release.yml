@@ -177,7 +177,7 @@ jobs:
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           title: "Release ${{ github.event.release.tag_name }}"
-          automatic_release_tag: true
+          automatic_release_tag: "latest"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
@@ -187,7 +187,7 @@ jobs:
 
       - name: Full File
         id: filename
-        run: echo "::set-output name=fullpath::buildfiles/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar"
+        run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar"
 
       - name: Create CurseForge Release
         uses: itsmeow/curseforge-upload@master
