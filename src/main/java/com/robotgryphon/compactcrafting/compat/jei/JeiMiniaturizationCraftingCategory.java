@@ -4,8 +4,8 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.client.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
-import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
@@ -464,8 +464,13 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 // TODO - Render switching at fixed interval
                 BlockState state1 = state.block.defaultBlockState();
                 // Thanks Immersive, Astral, and others
-                blocks.renderBlock(state1, mx, RenderTypesExtensions.disableLighting(buffers),
-                        0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
+                IRenderTypeBuffer light = CCRenderTypes.disableLighting(buffers);
+                blocks.renderBlock(state1,
+                        mx,
+                        light,
+                        0xf000f0,
+                        OverlayTexture.NO_OVERLAY,
+                        EmptyModelData.INSTANCE);
             });
 
             mx.popPose();
