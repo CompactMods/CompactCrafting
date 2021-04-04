@@ -5,14 +5,17 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.ui.container.TestContainer;
 import com.robotgryphon.compactcrafting.ui.widget.ContainerWidgetScreen;
+import com.robotgryphon.compactcrafting.ui.widget.IWidgetScreen;
+import com.robotgryphon.compactcrafting.ui.widget.WidgetBase;
 import com.robotgryphon.compactcrafting.ui.widget.WidgetHolder;
 import com.robotgryphon.compactcrafting.ui.widget.tab.EnumTabWidgetSide;
 import com.robotgryphon.compactcrafting.ui.widget.tab.GenericTabsWidget;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.text.ITextComponent;
 
-public class TestScreen extends ContainerWidgetScreen<TestContainer> {
+public class TestScreen extends ContainerWidgetScreen<TestContainer> implements IWidgetScreen {
     private GenericTabsWidget tabs;
     private GenericTabsWidget tabsBottom;
 
@@ -31,11 +34,16 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> {
     protected void init() {
         super.init();
         this.widgets = new WidgetHolder();
-        
-        GenericTabsWidget tabsTop = new GenericTabsWidget(this, getGuiLeft(), topPos, imageWidth, 28)
+
+        GenericTabsWidget tabsTop = new GenericTabsWidget(this, imageWidth, 28)
                 .withSide(EnumTabWidgetSide.TOP);
 
         this.widgets.add(tabsTop);
+
+        GenericTabsWidget tabsBottom = new GenericTabsWidget(this, imageWidth, 28)
+                .withSide(EnumTabWidgetSide.BOTTOM);
+
+        this.widgets.add(tabsBottom);
     }
 
     @Override
@@ -49,7 +57,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> {
     @Override
     protected void renderLabels(MatrixStack ms, int mouseX, int mouseY) {
         // this.font.draw(ms, this.title, (float)this.titleLabelX, (float)this.titleLabelY, 4210752);
-        this.font.draw(ms, this.inventory.getDisplayName(), (float)this.inventoryLabelX, (float)this.inventoryLabelY, 4210752);
+        this.font.draw(ms, this.inventory.getDisplayName(), (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
     }
 
     @Override
@@ -58,16 +66,45 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> {
         int relX = (this.width - this.imageWidth) / 2;
         int relY = (this.height - this.imageHeight) / 2;
 
+        ms.pushPose();
+        ms.translate(leftPos, topPos, 0);
         this.widgets.renderPreBackground(ms, mouseX, mouseY, partialTicks);
+        ms.popPose();
 
         this.minecraft.getTextureManager().bind(GUI);
         this.blit(ms, relX, relY, 0, 0, this.imageWidth, this.imageHeight);
 
+        ms.pushPose();
+        ms.translate(leftPos, topPos, 0);
         this.widgets.renderPostBackground(ms, mouseX, mouseY, partialTicks);
+        ms.popPose();
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        super.mouseClicked(mouseX, mouseY, button);
+
+        double relX = mouseX - leftPos;
+        double relY = mouseY - topPos;
+
+        for (WidgetBase w : widgets.getWidgets()) {
+            if (w.isMouseOver(relX, relY)) {
+                boolean handled = w.mouseClicked(relX, relY, button);
+                if (handled)
+                    return true;
+            }
+        }
+
+        return true;
     }
 
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    @Override
+    public Vector2f getScreenSize() {
+        return new Vector2f(this.imageWidth, this.imageHeight);
     }
 }
