@@ -17,19 +17,22 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Vector2f;
 
-public class GenericTab implements IRenderable, IGuiEventListener, IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
+import java.util.function.Consumer;
+
+public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
 
     protected final ResourceLocation TEXTURE = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/widget/tabs.png");
 
     private final ItemRenderer itemRenderer;
     private final FontRenderer fontRenderer;
-    private GenericTabsWidget container;
+    private TabsWidget container;
     private boolean isAlignedRight;
     private ItemStack icon;
 
     protected Vector2f screenPosition;
+    private Consumer<GuiTab> clickHandler;
 
-    public GenericTab(GenericTabsWidget container, ItemStack icon) {
+    public GuiTab(TabsWidget container, ItemStack icon) {
         this.container = container;
         this.isAlignedRight = false;
         this.icon = icon;
@@ -37,10 +40,18 @@ public class GenericTab implements IRenderable, IGuiEventListener, IWidgetPreBac
         Minecraft mc = Minecraft.getInstance();
         this.itemRenderer = mc.getItemRenderer();
         this.fontRenderer = mc.font;
+
+        this.container.addTab(this);
     }
 
-    public GenericTab onRight() {
+    public GuiTab onClicked(Consumer<GuiTab> handler) {
+        this.clickHandler = handler;
+        return this;
+    }
+
+    public GuiTab onRight() {
         this.isAlignedRight = true;
+        this.container.layout();
         return this;
     }
 
@@ -61,6 +72,9 @@ public class GenericTab implements IRenderable, IGuiEventListener, IWidgetPreBac
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         container.setActiveTab(this);
+        if(this.clickHandler != null)
+            this.clickHandler.accept(this);
+
         return true;
     }
 
