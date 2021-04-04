@@ -5,6 +5,7 @@ import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.config.ClientConfig;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
+import com.robotgryphon.compactcrafting.ui.container.ContainerRegistration;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,6 +46,7 @@ public class CompactCrafting
         mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
 
         Registration.init();
+        ContainerRegistration.init(modBus);
     }
 
     private void setup(final FMLCommonSetupEvent event)

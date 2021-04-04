@@ -3,6 +3,7 @@ package com.robotgryphon.compactcrafting.core;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
+import com.robotgryphon.compactcrafting.items.TestItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
@@ -100,6 +101,8 @@ public class Registration {
     // ================================================================================================================
     public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
             new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+
+    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
     // ================================================================================================================
     //   TILE ENTITIES
