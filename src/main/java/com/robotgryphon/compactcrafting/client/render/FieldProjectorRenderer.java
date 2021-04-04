@@ -297,7 +297,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         translateRendererToCube(tile, mx, cube, cubeSize);
 
-        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
+        IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.PROJECTION_FIELD_RENDERTYPE);
 
         double expansion = 0.005;
         AxisAlignedBB slightlyBiggerBecauseFoxes = cube
@@ -315,7 +315,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      */
     private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
 
-        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.lines());
+        IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
         double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
@@ -444,7 +444,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
 
         try {
-            IVertexBuilder builder = buffer.getBuffer(RenderTypesExtensions.PROJECTION_FIELD_RENDERTYPE);
+            IVertexBuilder builder = buffer.getBuffer(CCRenderTypes.PROJECTION_FIELD_RENDERTYPE);
 
             Color fieldColor = new Color(0x88FF6A00, true);
 
