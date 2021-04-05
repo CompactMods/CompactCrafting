@@ -42,29 +42,19 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
         super.init();
         this.widgets = new WidgetHolder();
 
-        TabsWidget tabsTop = new TabsWidget(this, imageWidth, 28 + 20)
+        TabsWidget tabsTop = new TabsWidget(this)
                 .withSide(EnumTabWidgetSide.TOP);
+
+        for(int i = 0; i < 12; i++)
+            new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
 
         new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {
                     player.displayClientMessage(new StringTextComponent("hi!"), true);
                 });
 
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-        new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
-
 
         this.widgets.add(tabsTop);
-
-        TabsWidget tabsBottom = new TabsWidget(this, imageWidth, 28)
-                .withSide(EnumTabWidgetSide.BOTTOM);
-
-        new GuiTab(tabsBottom, new ItemStack(Items.REDSTONE));
-        this.widgets.add(tabsBottom);
     }
 
     @Override
@@ -74,7 +64,12 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
 
         ms.pushPose();
         ms.translate(leftPos, topPos, 0);
-        this.widgets.render(ms, mouseX, mouseY, partialTicks);
+
+        // Get relative coordinates for mouse
+        int wMouseX = mouseX - leftPos;
+        int wMouseY = mouseY - topPos;
+
+        this.widgets.render(ms, wMouseX, wMouseY, partialTicks);
         ms.popPose();
     }
 
@@ -92,7 +87,12 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
 
         ms.pushPose();
         ms.translate(leftPos, topPos, 0);
-        this.widgets.renderPreBackground(ms, mouseX, mouseY, partialTicks);
+
+        // Get relative coordinates for mouse
+        int wMouseX = mouseX - leftPos;
+        int wMouseY = mouseY - topPos;
+
+        this.widgets.renderPreBackground(ms, wMouseX, wMouseY, partialTicks);
         ms.popPose();
 
         this.minecraft.getTextureManager().bind(GUI);
@@ -130,5 +130,10 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
     @Override
     public Vector2f getScreenSize() {
         return new Vector2f(this.imageWidth, this.imageHeight);
+    }
+
+    @Override
+    public Vector2f getScreenOffset() {
+        return new Vector2f(leftPos, topPos);
     }
 }

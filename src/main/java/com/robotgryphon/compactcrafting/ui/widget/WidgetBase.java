@@ -5,12 +5,9 @@ import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.IRenderable;
 
 public abstract class WidgetBase implements IRenderable, IGuiEventListener {
-    protected final int width;
-    protected final int height;
 
-    protected WidgetBase(int width, int height) {
-        this.width = width;
-        this.height = height;
+    protected WidgetBase() {
+
     }
 
     @Override

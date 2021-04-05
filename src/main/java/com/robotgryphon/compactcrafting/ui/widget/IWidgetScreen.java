@@ -5,4 +5,5 @@ import net.minecraft.util.math.vector.Vector2f;
 
 public interface IWidgetScreen extends IScreen {
     Vector2f getScreenSize();
+    Vector2f getScreenOffset();
 }

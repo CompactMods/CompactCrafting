@@ -31,8 +31,10 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
 
     protected Vector2f screenPosition;
     private Consumer<GuiTab> clickHandler;
+    private boolean visible;
 
     public GuiTab(TabsWidget container, ItemStack icon) {
+        this.visible = false;
         this.container = container;
         this.isAlignedRight = false;
         this.icon = icon;
@@ -49,7 +51,11 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
         return this;
     }
 
-    public GuiTab onRight() {
+    /**
+     * Do not use; not fully implemented yet - aligns tab to right of tab widget
+     * @return
+     */
+    private GuiTab onRight() {
         this.isAlignedRight = true;
         this.container.layout();
         return this;
@@ -66,7 +72,9 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
     }
 
     public boolean isOver(double mouseX, double mouseY) {
-        return UiHelper.pointInBounds(mouseX, mouseY, this.screenPosition.x, this.screenPosition.y, this.getWidth(), this.getHeight());
+        return UiHelper.pointInBounds(mouseX, mouseY,
+                this.screenPosition.x, this.screenPosition.y,
+                this.getWidth(), this.getHeight());
     }
 
     @Override
@@ -97,8 +105,12 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
         }
 
         if (rightAligned) {
-            // use "right" tab UV index
-            uvU = 28 * 2;
+            if((tabPos.x + getWidth()) < container.bounds.getWidth())
+                // use "middle" tab UV index
+                uvU = 28;
+            else
+                // use "right" tab UV index
+                uvU = 28 * 2;
         } else if (tabPos.x > 0) {
             // use "middle" tab UV index
             uvU = 28;
@@ -131,7 +143,7 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
 
     @Override
     public void renderPostBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        if (container.isActive(this)) {
+        if (this.visible && container.isActive(this)) {
             // Renders active tab above rest of background
             matrixStack.pushPose();
             Minecraft.getInstance().getTextureManager().bind(TEXTURE);
@@ -145,7 +157,7 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
 
     @Override
     public void renderPreBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        if (!container.isActive(this)) {
+        if (this.visible && !container.isActive(this)) {
             Minecraft.getInstance().getTextureManager().bind(TEXTURE);
             renderTabButton(matrixStack, false,
                     container.getSide() == EnumTabWidgetSide.TOP,
@@ -155,5 +167,9 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
 
     public boolean isOnRight() {
         return this.isAlignedRight;
+    }
+
+    public void setVisible(boolean b) {
+        this.visible = b;
     }
 }
