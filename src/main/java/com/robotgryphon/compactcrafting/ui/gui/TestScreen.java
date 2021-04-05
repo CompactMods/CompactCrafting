@@ -12,6 +12,7 @@ import com.robotgryphon.compactcrafting.ui.widget.WidgetHolder;
 import com.robotgryphon.compactcrafting.ui.widget.tab.EnumTabWidgetSide;
 import com.robotgryphon.compactcrafting.ui.widget.tab.GuiTab;
 import com.robotgryphon.compactcrafting.ui.widget.tab.TabsWidget;
+import net.minecraft.client.renderer.Rectangle2d;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -49,7 +50,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
                 .withSide(EnumTabWidgetSide.TOP);
 
         List<GuiTab> oTabs = new ArrayList<GuiTab>();
-        for (int i = 0; i < 23; i++)
+        for (int i = 0; i < 8; i++)
             oTabs.add(new GuiTab(tabsTop, new ItemStack(Items.GLASS)));
 
         GuiTab pro = new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
@@ -140,5 +141,10 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
     @Override
     public Vector2f getScreenOffset() {
         return new Vector2f(leftPos, topPos);
+    }
+
+    @Override
+    public Rectangle2d getBounds() {
+        return new Rectangle2d(leftPos, topPos, imageWidth, imageHeight);
     }
 }

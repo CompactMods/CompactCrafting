@@ -55,7 +55,6 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
      */
     private GuiTab onRight() {
         this.isAlignedRight = true;
-        this.container.layout();
         return this;
     }
 

@@ -1,22 +1,18 @@
 package com.robotgryphon.compactcrafting.ui.widget.tab;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.ui.widget.IWidgetScreen;
 import com.robotgryphon.compactcrafting.ui.widget.WidgetBase;
+import com.robotgryphon.compactcrafting.ui.widget.navigation.PaginationWidget;
 import com.robotgryphon.compactcrafting.ui.widget.renderable.IWidgetPostBackgroundRenderable;
 import com.robotgryphon.compactcrafting.ui.widget.renderable.IWidgetPreBackgroundRenderable;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.renderer.Rectangle2d;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,14 +23,8 @@ public class TabsWidget extends WidgetBase implements
         IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
 
     protected final ResourceLocation TEXTURE = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/widget/tabs.png");
-    protected final int ARROW_OFFSET_X = 130;
-    protected final int ARROW_OFFSET_Y = 0;
 
-    protected final int ARROW_OFFSET_DEFAULT = 0;
-    protected final int ARROW_OFFSET_DISABLED = 1;
-    protected final int ARROW_OFFSET_HOVERED = 2;
-
-    protected final Vector2f ARROW_TEXTURE_SIZE = new Vector2f(10, 15);
+    protected PaginationWidget pages;
 
     protected Rectangle2d bounds;
     protected List<GuiTab> tabs;
@@ -43,28 +33,33 @@ public class TabsWidget extends WidgetBase implements
     private EnumTabWidgetSide screenSide;
     private GuiTab activeTab;
 
-    private int numPages;
     private int currentPage;
-    protected Rectangle2d leftArrowArea;
-    protected Rectangle2d rightArrowArea;
-    protected Rectangle2d leftArrowRenderArea;
-    protected Rectangle2d rightArrowRenderArea;
+
 
     protected Set<GuiTab> currentScreenTabs;
 
     public TabsWidget(IWidgetScreen screen) {
         this.parentScreen = screen;
-        this.bounds = new Rectangle2d(0, 0,
-                (int) parentScreen.getScreenSize().x,
-                28 + 15);
 
         this.tabs = new ArrayList<>();
+        this.currentScreenTabs = Collections.emptySet();
+
         this.screenSide = EnumTabWidgetSide.TOP;
         this.parentHeight = parentScreen.getScreenSize().y;
         this.currentPage = 0;
-        this.numPages = 0;
         this.activeTab = null;
+
+        this.pages = new PaginationWidget()
+            .onPageChanged((page) -> {
+                this.currentPage = page;
+                this.setActiveTab(tabs.get(currentPage * this.getNumVisibleTabs()));
+                this.layoutTabs();
+            });
+
+        this.layout(screen.getBounds());
     }
+
+
 
     public TabsWidget addTab(GuiTab tab) {
         boolean firstAdded = tabs.isEmpty();
@@ -72,7 +67,7 @@ public class TabsWidget extends WidgetBase implements
             setActiveTab(tab);
 
         this.tabs.add(tab);
-        layout();
+        this.layoutTabs();
         return this;
     }
 
@@ -80,18 +75,18 @@ public class TabsWidget extends WidgetBase implements
         if (tabs.isEmpty())
             return this;
 
-        int offset = this.tabs.size();
         if (this.tabs.isEmpty()) {
             GuiTab first = tabs.get(0);
             setActiveTab(first);
         }
 
         this.tabs.addAll(tabs);
-        layout();
+        this.layoutTabs();
         return this;
     }
 
-    public Rectangle2d getLayoutArea() {
+    @Override
+    public Rectangle2d getBounds() {
         return this.bounds;
     }
 
@@ -114,7 +109,26 @@ public class TabsWidget extends WidgetBase implements
                 .collect(Collectors.toSet());
     }
 
-    public void layout() {
+    public void layout(Rectangle2d parentBounds) {
+        this.bounds = new Rectangle2d(0, 0,
+                parentScreen.getBounds().getWidth(),
+                28 + 15);
+
+        int paginationWidgetY = 0;
+        if (screenSide == EnumTabWidgetSide.BOTTOM)
+            paginationWidgetY = MathHelper.floor(bounds.getHeight() - PaginationWidget.height());
+
+        pages.layout(this.bounds);
+
+        int px = pages.getBounds().getX();
+        pages.setPosition(px, paginationWidgetY);
+    }
+
+    private void layoutTabs() {
+        double numVisible = Math.floorDiv(bounds.getWidth(), 28);
+        int numPages = MathHelper.ceil(tabs.size() / numVisible);
+        pages.setNumberPages(numPages);
+
         for (GuiTab tab : this.tabs) {
             tab.setPosition(Vector2f.MIN);
             tab.setVisible(false);
@@ -131,70 +145,16 @@ public class TabsWidget extends WidgetBase implements
                 tab.setVisible(true);
             }
         }
+    }
 
-        double numVisible = Math.floorDiv(bounds.getWidth(), 28);
-        this.numPages = MathHelper.ceil(tabs.size() / numVisible);
-
-        // int yOffsetArrows = getArrowOffsetY();
-        int parentWidth = (int) parentScreen.getScreenSize().x;
-
-        int yOffsetArrows = 0;
-        if (screenSide == EnumTabWidgetSide.BOTTOM)
-            yOffsetArrows = MathHelper.floor(bounds.getHeight() - ARROW_TEXTURE_SIZE.y);
-
-        this.leftArrowArea = new Rectangle2d(
-                (parentWidth / 2) - (int) (ARROW_TEXTURE_SIZE.x) - 20,
-                yOffsetArrows,
-                (int) ARROW_TEXTURE_SIZE.x,
-                (int) ARROW_TEXTURE_SIZE.y
-        );
-
-        this.rightArrowArea = new Rectangle2d(
-                (parentWidth / 2) + 20,
-                yOffsetArrows,
-                (int) ARROW_TEXTURE_SIZE.x,
-                (int) ARROW_TEXTURE_SIZE.y
-        );
-
-        switch (screenSide) {
-            case TOP:
-                leftArrowRenderArea = new Rectangle2d(
-                        leftArrowArea.getX(),
-                        -bounds.getHeight(),
-                        leftArrowArea.getWidth(),
-                        leftArrowArea.getHeight()
-                );
-
-                rightArrowRenderArea = new Rectangle2d(
-                        rightArrowArea.getX(),
-                        -bounds.getHeight(),
-                        rightArrowArea.getWidth(),
-                        rightArrowArea.getHeight()
-                );
-
-                break;
-
-            case BOTTOM:
-                this.leftArrowRenderArea = new Rectangle2d(
-                        leftArrowArea.getX(),
-                        leftArrowArea.getY(),
-                        leftArrowArea.getWidth(),
-                        leftArrowArea.getHeight()
-                );
-
-                this.rightArrowRenderArea = new Rectangle2d(
-                        rightArrowArea.getX(),
-                        rightArrowArea.getY(),
-                        rightArrowArea.getWidth(),
-                        rightArrowArea.getHeight()
-                );
-
-                break;
-        }
+    @Override
+    public void setPosition(int x, int y) {
+        this.bounds = new Rectangle2d(x, y, bounds.getWidth(), bounds.getHeight());
     }
 
     public TabsWidget withSide(EnumTabWidgetSide side) {
         this.screenSide = side;
+        this.layout(parentScreen.getBounds());
         return this;
     }
 
@@ -228,15 +188,9 @@ public class TabsWidget extends WidgetBase implements
 
         // If navigation shown, do nav checks
         if (hasNavigation()) {
-            if (leftArrowArea.contains((int) widgetCoords.x, (int) widgetCoords.y)) {
-                this.previousPage();
+            boolean pageHandled = pages.mouseClicked(widgetCoords.x, widgetCoords.y, button);
+            if(pageHandled)
                 return true;
-            }
-
-            if (rightArrowArea.contains((int) widgetCoords.x, (int) widgetCoords.y)) {
-                this.nextPage();
-                return true;
-            }
         }
 
         // Do Tab Mouse Click checks
@@ -255,93 +209,35 @@ public class TabsWidget extends WidgetBase implements
         return true;
     }
 
-    private void nextPage() {
-        int numVisible = bounds.getWidth() / 28;
-        if (this.currentPage < this.numPages - 1) {
-            currentPage++;
-            this.setActiveTab(tabs.get(currentPage * numVisible));
-            this.layout();
-        }
-    }
 
-    private void previousPage() {
-        int numVisible = bounds.getWidth() / 28;
-        if (this.currentPage > 0) {
-            currentPage--;
-            this.setActiveTab(tabs.get(currentPage * numVisible));
-            this.layout();
-        }
-    }
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        if (this.hasNavigation())
-            renderPageNavigation(matrixStack, mouseX, mouseY);
+        Vector3d realMouse = getRealRelativePos(mouseX, mouseY);
+        if (this.hasNavigation()) {
+            matrixStack.pushPose();
+            switch(screenSide) {
+                case TOP:
+                    matrixStack.translate(0, -bounds.getHeight(), 0);
+                    break;
+
+                case BOTTOM:
+                    matrixStack.translate(
+                            0,
+                            (parentHeight + bounds.getHeight()) - pages.getBounds().getHeight(),
+                            0
+                    );
+                    break;
+            }
+
+            pages.render(matrixStack, (int) realMouse.x, (int) realMouse.y, partialTicks);
+            matrixStack.popPose();
+        }
     }
 
     public boolean hasNavigation() {
-        return this.numPages > 1;
-    }
-
-    private void renderPageNavigation(MatrixStack matrixStack, int mouseX, int mouseY) {
-        FontRenderer font = Minecraft.getInstance().font;
-
-        String page = String.format("%d/%d", currentPage + 1, numPages);
-        int width = font.width(page);
-
-        int xOffset = (bounds.getWidth() / 2) - (width / 2);
-        int yOffset = -bounds.getHeight() + (font.lineHeight / 2);
-
-
-        matrixStack.pushPose();
-        if (this.screenSide == EnumTabWidgetSide.BOTTOM) {
-            matrixStack.translate(0, parentHeight, 0);
-            yOffset = bounds.getHeight() - font.lineHeight - Math.round(font.lineHeight / 4.0f);
-        }
-
-        Vector3d realMouse = getRealRelativePos(mouseX, mouseY);
-        font.drawShadow(matrixStack,
-                new StringTextComponent(page),
-                xOffset, yOffset, 0xFFFFFFFF);
-
-        Minecraft.getInstance().getTextureManager().bind(TEXTURE);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1);
-
-
-        float arrowLeftU = ARROW_OFFSET_X;
-        float arrowLeftV = ARROW_OFFSET_Y + ARROW_TEXTURE_SIZE.y;
-
-        float arrowRightU = ARROW_OFFSET_X;
-
-        boolean mouseOverAL = leftArrowArea.contains((int) realMouse.x, (int) realMouse.y);
-        boolean mouseOverAR = rightArrowArea.contains((int) realMouse.x, (int) realMouse.y);
-
-        if (mouseOverAL)
-            arrowLeftU += (ARROW_OFFSET_HOVERED * ARROW_TEXTURE_SIZE.x);
-
-        if (mouseOverAR)
-            arrowRightU += (ARROW_OFFSET_HOVERED * ARROW_TEXTURE_SIZE.x);
-
-
-        // left arrow
-        if (this.currentPage > 0) {
-            AbstractGui.blit(matrixStack,
-                    leftArrowRenderArea.getX(), leftArrowRenderArea.getY(), 0,
-                    arrowLeftU, arrowLeftV,
-                    leftArrowRenderArea.getWidth(), leftArrowRenderArea.getHeight(),
-                    256, 256);
-        }
-
-        if (this.currentPage + 1 < numPages) {
-            // right arrow
-            AbstractGui.blit(matrixStack,
-                    rightArrowRenderArea.getX(), rightArrowRenderArea.getY(), 0,
-                    arrowRightU, ARROW_OFFSET_Y,
-                    rightArrowRenderArea.getWidth(), rightArrowRenderArea.getHeight(),
-                    256, 256);
-        }
-
-        matrixStack.popPose();
+        return true;
+        // return this.pages.getNumberPages() > 1;
     }
 
     @Override
