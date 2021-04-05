@@ -18,10 +18,7 @@ import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.StringTextComponent;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -40,19 +37,20 @@ public class TabsWidget extends WidgetBase implements
     protected final Vector2f ARROW_TEXTURE_SIZE = new Vector2f(10, 15);
 
     protected Rectangle2d bounds;
-    protected Map<Integer, GuiTab> tabs;
+    protected List<GuiTab> tabs;
     private IWidgetScreen parentScreen;
     private final float parentHeight;
     private EnumTabWidgetSide screenSide;
     private GuiTab activeTab;
-    private int currentPage;
-    private int numPages;
 
+    private int numPages;
+    private int currentPage;
     protected Rectangle2d leftArrowArea;
     protected Rectangle2d rightArrowArea;
-    private Rectangle2d leftArrowRenderArea;
-    private Rectangle2d rightArrowRenderArea;
+    protected Rectangle2d leftArrowRenderArea;
+    protected Rectangle2d rightArrowRenderArea;
 
+    protected Set<GuiTab> currentScreenTabs;
 
     public TabsWidget(IWidgetScreen screen) {
         this.parentScreen = screen;
@@ -60,7 +58,7 @@ public class TabsWidget extends WidgetBase implements
                 (int) parentScreen.getScreenSize().x,
                 28 + 15);
 
-        this.tabs = new HashMap<>();
+        this.tabs = new ArrayList<>();
         this.screenSide = EnumTabWidgetSide.TOP;
         this.parentHeight = parentScreen.getScreenSize().y;
         this.currentPage = 0;
@@ -70,14 +68,25 @@ public class TabsWidget extends WidgetBase implements
 
     public TabsWidget addTab(GuiTab tab) {
         boolean firstAdded = tabs.isEmpty();
-
-        this.tabs.put(tabs.size(), tab);
-        Vector2f bake = getTabPosition(tab);
-        tab.setPosition(bake);
-
         if (firstAdded)
             setActiveTab(tab);
 
+        this.tabs.add(tab);
+        layout();
+        return this;
+    }
+
+    public TabsWidget addTabs(List<GuiTab> tabs) {
+        if (tabs.isEmpty())
+            return this;
+
+        int offset = this.tabs.size();
+        if (this.tabs.isEmpty()) {
+            GuiTab first = tabs.get(0);
+            setActiveTab(first);
+        }
+
+        this.tabs.addAll(tabs);
         layout();
         return this;
     }
@@ -86,32 +95,35 @@ public class TabsWidget extends WidgetBase implements
         return this.bounds;
     }
 
-    // TODO - Call this once during layout and cache
+    protected int getNumVisibleTabs() {
+        return bounds.getWidth() / 28;
+    }
+
     protected Set<GuiTab> getCurrentScreenTabs() {
         int numTabs = getNumberTabs();
-        int numTabsPerRow = bounds.getWidth() / 28;
+        if(numTabs == 0)
+            return Collections.emptySet();
 
-        int start = currentPage * numTabsPerRow;
-        int end = Math.min(numTabs, numTabsPerRow * (currentPage + 1));
+        int numVisible = getNumVisibleTabs();
+        int start = currentPage * numVisible;
+        int end = Math.min(numTabs - 1, start + numVisible - 1);
 
         return IntStream.rangeClosed(start, end)
                 .mapToObj(i -> tabs.get(i))
                 .filter(Objects::nonNull)
-                .filter(t -> !this.isActive(t))
                 .collect(Collectors.toSet());
     }
 
     public void layout() {
-        for(GuiTab tab : this.tabs.values()) {
-            tab.setPosition(Vector2f.ZERO);
-            if(!this.isActive(tab))
-                tab.setVisible(false);
+        for (GuiTab tab : this.tabs) {
+            tab.setPosition(Vector2f.MIN);
+            tab.setVisible(false);
         }
 
-        Set<GuiTab> currentScreenTabs = getCurrentScreenTabs();
-        if(!currentScreenTabs.isEmpty()) {
+        this.currentScreenTabs = getCurrentScreenTabs();
+        if (!currentScreenTabs.isEmpty()) {
             for (GuiTab tab : currentScreenTabs) {
-                if(tab == null)
+                if (tab == null)
                     continue;
 
                 Vector2f bake = getTabPosition(tab);
@@ -120,8 +132,8 @@ public class TabsWidget extends WidgetBase implements
             }
         }
 
-        int numVisible = bounds.getWidth() / 28;
-        this.numPages = tabs.size() / numVisible;
+        double numVisible = Math.floorDiv(bounds.getWidth(), 28);
+        this.numPages = MathHelper.ceil(tabs.size() / numVisible);
 
         // int yOffsetArrows = getArrowOffsetY();
         int parentWidth = (int) parentScreen.getScreenSize().x;
@@ -233,8 +245,7 @@ public class TabsWidget extends WidgetBase implements
                     bounds.getHeight() - 28, 0);
         }
 
-        Set<GuiTab> currentScreen = getCurrentScreenTabs();
-        for (GuiTab tab : currentScreen) {
+        for (GuiTab tab : this.currentScreenTabs) {
             if (tab.isOver(widgetCoords.x, widgetCoords.y)) {
                 Vector3d tabCoords = widgetCoords.subtract(tab.screenPosition.x, tab.screenPosition.y, 0);
                 tab.mouseClicked(tabCoords.x, tabCoords.y, button);
@@ -313,7 +324,7 @@ public class TabsWidget extends WidgetBase implements
 
 
         // left arrow
-        if(this.currentPage > 0) {
+        if (this.currentPage > 0) {
             AbstractGui.blit(matrixStack,
                     leftArrowRenderArea.getX(), leftArrowRenderArea.getY(), 0,
                     arrowLeftU, arrowLeftV,
@@ -321,7 +332,7 @@ public class TabsWidget extends WidgetBase implements
                     256, 256);
         }
 
-        if(this.currentPage + 1 < numPages) {
+        if (this.currentPage + 1 < numPages) {
             // right arrow
             AbstractGui.blit(matrixStack,
                     rightArrowRenderArea.getX(), rightArrowRenderArea.getY(), 0,
@@ -335,13 +346,12 @@ public class TabsWidget extends WidgetBase implements
 
     @Override
     public void renderPreBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        Set<GuiTab> currentScreen = getCurrentScreenTabs();
-        if (!currentScreen.isEmpty()) {
+        if (!this.currentScreenTabs.isEmpty()) {
             matrixStack.pushPose();
             if (this.screenSide == EnumTabWidgetSide.BOTTOM)
                 matrixStack.translate(0, parentHeight, 0);
 
-            for (GuiTab tab : currentScreen)
+            for (GuiTab tab : currentScreenTabs)
                 tab.renderPreBackground(matrixStack, mouseX, mouseY, partialTicks);
 
             matrixStack.popPose();
@@ -350,8 +360,7 @@ public class TabsWidget extends WidgetBase implements
 
     @Override
     public void renderPostBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        Set<GuiTab> currentScreen = getCurrentScreenTabs();
-        if (!currentScreen.isEmpty()) {
+        if (!currentScreenTabs.isEmpty()) {
             matrixStack.pushPose();
             if (this.screenSide == EnumTabWidgetSide.BOTTOM)
                 matrixStack.translate(0, parentHeight, 0);
@@ -371,17 +380,8 @@ public class TabsWidget extends WidgetBase implements
         return this.screenSide;
     }
 
-    protected int getTabIndex(GuiTab tab) {
-        for (Map.Entry<Integer, GuiTab> t : tabs.entrySet()) {
-            if (t.getValue() == tab)
-                return t.getKey();
-        }
-
-        return -1;
-    }
-
     public Vector2f getTabPosition(GuiTab tab) {
-        int index = getTabIndex(tab);
+        int index = tabs.indexOf(tab);
 
         if (index == -1)
             return Vector2f.MIN;

@@ -42,8 +42,6 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
         Minecraft mc = Minecraft.getInstance();
         this.itemRenderer = mc.getItemRenderer();
         this.fontRenderer = mc.font;
-
-        this.container.addTab(this);
     }
 
     public GuiTab onClicked(Consumer<GuiTab> handler) {
@@ -171,5 +169,17 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
 
     public void setVisible(boolean b) {
         this.visible = b;
+    }
+
+    @Override
+    public String toString() {
+        if(icon != null)
+            return String.format("GuiTab {icon: %s}", icon.toString());
+
+        return "GuiTab {none}";
+    }
+
+    public boolean isVisible() {
+        return this.visible;
     }
 }

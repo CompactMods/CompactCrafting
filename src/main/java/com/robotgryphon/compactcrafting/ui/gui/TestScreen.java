@@ -21,6 +21,9 @@ import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TestScreen extends ContainerWidgetScreen<TestContainer> implements IWidgetScreen {
 
     private ResourceLocation GUI = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/edit-screen.png");
@@ -45,15 +48,17 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
         TabsWidget tabsTop = new TabsWidget(this)
                 .withSide(EnumTabWidgetSide.TOP);
 
-        for(int i = 0; i < 12; i++)
-            new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
+        List<GuiTab> oTabs = new ArrayList<GuiTab>();
+        for (int i = 0; i < 23; i++)
+            oTabs.add(new GuiTab(tabsTop, new ItemStack(Items.GLASS)));
 
-        new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
+        GuiTab pro = new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {
                     player.displayClientMessage(new StringTextComponent("hi!"), true);
                 });
 
-
+        oTabs.add(pro);
+        tabsTop.addTabs(oTabs);
         this.widgets.add(tabsTop);
     }
 
