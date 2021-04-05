@@ -22,8 +22,8 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     private Rectangle2d bounds;
 
     private int currentPage;
-    private int numPages;
-    private Consumer<Integer> changedConsumer;
+    private int pageCount;
+    private Consumer<Integer> pageChangedConsumer;
 
     protected Rectangle2d leftArrowArea;
     protected Rectangle2d rightArrowArea;
@@ -44,7 +44,7 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     }
 
     public PaginationWidget onPageChanged(Consumer<Integer> a) {
-        this.changedConsumer = a;
+        this.pageChangedConsumer = a;
         return this;
     }
 
@@ -102,7 +102,7 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     }
 
     private int getNumberPages() {
-        return this.numPages;
+        return this.pageCount;
     }
 
     @Override
@@ -121,16 +121,16 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     }
 
     private void nextPage() {
-        if (this.currentPage < this.numPages - 1) {
+        if (this.currentPage < this.pageCount - 1) {
             currentPage++;
-            changedConsumer.accept(currentPage);
+            pageChangedConsumer.accept(currentPage);
         }
     }
 
     private void previousPage() {
         if (this.currentPage > 0) {
             currentPage--;
-            changedConsumer.accept(currentPage);
+            pageChangedConsumer.accept(currentPage);
         }
     }
 
@@ -138,7 +138,7 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         FontRenderer font = Minecraft.getInstance().font;
 
-        String page = String.format("%d/%d", currentPage + 1, numPages);
+        String page = String.format("%d/%d", currentPage + 1, pageCount);
         int width = font.width(page);
 
         int xOffset = (bounds.getWidth() / 2) - (width / 2);
@@ -179,7 +179,7 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
                     256, 256);
         }
 
-        if (currentPage + 1 < numPages) {
+        if (currentPage + 1 < pageCount) {
             // right arrow
             AbstractGui.blit(matrixStack,
                     rightArrowRenderArea.getX(), rightArrowRenderArea.getY(), 0,
@@ -197,6 +197,10 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
     }
 
     public void setNumberPages(int numPages) {
-        this.numPages = numPages;
+        this.pageCount = numPages;
+    }
+
+    public int getPageCount() {
+        return this.pageCount;
     }
 }

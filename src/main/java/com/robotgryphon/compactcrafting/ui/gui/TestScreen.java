@@ -47,11 +47,16 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
         this.widgets = new WidgetHolder();
 
         TabsWidget tabsTop = new TabsWidget(this)
-                .withSide(EnumTabWidgetSide.TOP);
+                .withSide(EnumTabWidgetSide.TOP)
+                .onTabChanged((tab -> {
+                    player.displayClientMessage(
+                            new StringTextComponent(tab.toString()),
+                            false
+                    );
+                }));
 
         List<GuiTab> oTabs = new ArrayList<GuiTab>();
-        for (int i = 0; i < 8; i++)
-            oTabs.add(new GuiTab(tabsTop, new ItemStack(Items.GLASS)));
+        oTabs.add(new GuiTab(tabsTop, new ItemStack(Items.GLASS)));
 
         GuiTab pro = new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {

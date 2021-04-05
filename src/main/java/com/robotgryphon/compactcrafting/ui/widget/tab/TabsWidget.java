@@ -15,6 +15,7 @@ import net.minecraft.util.math.vector.Vector2f;
 import net.minecraft.util.math.vector.Vector3d;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -37,6 +38,7 @@ public class TabsWidget extends WidgetBase implements
 
 
     protected Set<GuiTab> currentScreenTabs;
+    private Consumer<GuiTab> changeListener;
 
     public TabsWidget(IWidgetScreen screen) {
         this.parentScreen = screen;
@@ -50,16 +52,14 @@ public class TabsWidget extends WidgetBase implements
         this.activeTab = null;
 
         this.pages = new PaginationWidget()
-            .onPageChanged((page) -> {
-                this.currentPage = page;
-                this.setActiveTab(tabs.get(currentPage * this.getNumVisibleTabs()));
-                this.layoutTabs();
-            });
+                .onPageChanged((page) -> {
+                    this.currentPage = page;
+                    this.setActiveTab(tabs.get(currentPage * this.getNumVisibleTabs()));
+                    this.layoutTabs();
+                });
 
         this.layout(screen.getBounds());
     }
-
-
 
     public TabsWidget addTab(GuiTab tab) {
         boolean firstAdded = tabs.isEmpty();
@@ -202,14 +202,19 @@ public class TabsWidget extends WidgetBase implements
         for (GuiTab tab : this.currentScreenTabs) {
             if (tab.isOver(widgetCoords.x, widgetCoords.y)) {
                 Vector3d tabCoords = widgetCoords.subtract(tab.screenPosition.x, tab.screenPosition.y, 0);
-                tab.mouseClicked(tabCoords.x, tabCoords.y, button);
+                boolean handled = tab.mouseClicked(tabCoords.x, tabCoords.y, button);
+                if(handled)
+                    return true;
             }
         }
 
-        return true;
+        return false;
     }
 
-
+    public TabsWidget onTabChanged(Consumer<GuiTab> listener) {
+        this.changeListener = listener;
+        return this;
+    }
 
     @Override
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
@@ -236,8 +241,7 @@ public class TabsWidget extends WidgetBase implements
     }
 
     public boolean hasNavigation() {
-        return true;
-        // return this.pages.getNumberPages() > 1;
+        return this.pages.getPageCount() > 1;
     }
 
     @Override
@@ -304,5 +308,7 @@ public class TabsWidget extends WidgetBase implements
     public void setActiveTab(GuiTab tab) {
         tab.setVisible(true);
         this.activeTab = tab;
+        if(this.changeListener != null)
+            changeListener.accept(tab);
     }
 }
