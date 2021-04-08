@@ -3,15 +3,16 @@ package com.robotgryphon.compactcrafting.ui.container;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Container;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class TestContainer extends Container {
+public class ExampleTabbedContainer extends Container {
     private IItemHandler playerInventory;
 
-    public TestContainer(int cid, World world, PlayerInventory inv, PlayerEntity player) {
+    public ExampleTabbedContainer(int cid, World world, PlayerInventory inv, PlayerEntity player) {
         super(ContainerRegistration.TEST_CONTAINER.get(), cid);
         this.playerInventory = new InvWrapper(inv);
 
@@ -21,6 +22,11 @@ public class TestContainer extends Container {
     @Override
     public boolean stillValid(PlayerEntity player) {
         return true;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(PlayerEntity p_82846_1_, int p_82846_2_) {
+        return ItemStack.EMPTY;
     }
 
     private int addSlotRange(IItemHandler handler, int index, int x, int y, int amount, int dx) {

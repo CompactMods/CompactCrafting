@@ -63,14 +63,14 @@ public class PaginationWidget extends WidgetBase implements IGuiEventListener {
 
     private void layoutArrows() {
         this.leftArrowArea = new Rectangle2d(
-                (bounds.getWidth() / 2) - (int) (ARROW_TEXTURE_SIZE.x) - 20,
+                0,
                 bounds.getY(),
                 (int) ARROW_TEXTURE_SIZE.x,
                 (int) ARROW_TEXTURE_SIZE.y
         );
 
         this.rightArrowArea = new Rectangle2d(
-                (bounds.getWidth() / 2) + 20,
+                (int) (bounds.getWidth() - ARROW_TEXTURE_SIZE.x),
                 bounds.getY(),
                 (int) ARROW_TEXTURE_SIZE.x,
                 (int) ARROW_TEXTURE_SIZE.y

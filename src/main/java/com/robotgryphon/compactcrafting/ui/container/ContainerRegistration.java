@@ -14,10 +14,10 @@ public class ContainerRegistration {
     public static final DeferredRegister<ContainerType<?>> CONTAINERS =
             DeferredRegister.create(ForgeRegistries.CONTAINERS, CompactCrafting.MOD_ID);
 
-    public static final RegistryObject<ContainerType<TestContainer>> TEST_CONTAINER = CONTAINERS.register("test",
+    public static final RegistryObject<ContainerType<ExampleTabbedContainer>> TEST_CONTAINER = CONTAINERS.register("test",
             () -> IForgeContainerType.create((windowId, inv, data) -> {
                 World world = inv.player.level;
-                return new TestContainer(windowId, world, inv, inv.player);
+                return new ExampleTabbedContainer(windowId, world, inv, inv.player);
             }));
 
     public static void init(IEventBus evt) {

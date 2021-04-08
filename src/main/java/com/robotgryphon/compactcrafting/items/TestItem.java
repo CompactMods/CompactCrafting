@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.items;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.ui.container.TestContainer;
+import com.robotgryphon.compactcrafting.ui.container.ExampleTabbedContainer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;
@@ -35,7 +35,7 @@ public class TestItem extends Item {
                 @Nullable
                 @Override
                 public Container createMenu(int cid, PlayerInventory playerInv, PlayerEntity player) {
-                    return new TestContainer(cid, level, playerInv, player);
+                    return new ExampleTabbedContainer(cid, level, playerInv, player);
                 }
             };
 
