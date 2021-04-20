@@ -1,5 +1,5 @@
 # Creates releases on Curseforge and Github Releases based on v* tags
-name: Tagged Commit Release
+name: Latest Tag
 
 on:
   push:
