@@ -37,3 +37,5 @@ config/
 options.txt
 usercache.json
 usernamecache.json
+
+build-out/

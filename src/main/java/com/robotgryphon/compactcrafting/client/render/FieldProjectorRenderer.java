@@ -231,7 +231,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             drawCubeFace(builder, mx, cube, color, direction);
         }
         // This is a yucky workaround to keep consistent behavior vs. sometimes randomly flashing shit
-        Minecraft.getInstance().renderBuffers().bufferSource().endBatch(RenderTypesExtensions.PROJECTION_FIELD);
+        Minecraft.getInstance().renderBuffers().bufferSource().endBatch(CCRenderTypes.PROJECTION_FIELD);
     }
 
     /**
@@ -239,7 +239,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      */
     private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
 
-        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.lines());
+        IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
         double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
@@ -361,7 +361,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
 
         try {
-            IVertexBuilder builder = buffer.getBuffer(RenderTypesExtensions.PROJECTION_FIELD);
+            IVertexBuilder builder = buffer.getBuffer(CCRenderTypes.PROJECTION_FIELD);
 
             Color fieldColor = new Color(0x88FF6A00, true);
 
@@ -372,86 +372,86 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             Vector3f bl = new Vector3f(0, 0, 0);
             Vector3f tr = new Vector3f(1, 1, 0);
 
-            //            mx.push();
+//            mx.push();
 
-            //            float angle = facing.getHorizontalAngle() - 90;
-            //            mx.rotate(Vector3f.YN.rotationDegrees(angle));
-            //
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), bl.getY(), bl.getZ()));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), bl.getY(), tr.getZ()));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), tr.getY(), tr.getZ()));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), tr.getY(), bl.getZ()));
-            //
-            //
-            //
-            //            mx.pop();
+//            float angle = facing.getHorizontalAngle() - 90;
+//            mx.rotate(Vector3f.YN.rotationDegrees(angle));
+//
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), bl.getY(), bl.getZ()));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), bl.getY(), tr.getZ()));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), tr.getY(), tr.getZ()));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), tr.getY(), bl.getZ()));
+//
+//
+//
+//            mx.pop();
 
 
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 1, .5f));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 1, .5f));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
-            //            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 1, .5f));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 1, .5f));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
+//            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
 
-            //            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //
-            //            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();w
-            //            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //
-            //            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-            //            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//
+//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();w
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//
+//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
+//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
         } catch (Exception ex) {
         }
 
         // Render projection planes
-        //        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.maxY - cube.minY);
-        //        double y3 = y1 + zAngle;
-        //        float cA2 = 0.105f;
+//        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.maxY - cube.minY);
+//        double y3 = y1 + zAngle;
+//        float cA2 = 0.105f;
 
         // Ensure both sides of the plane are visible
-        //        GlStateManager.disableCull();
-        //        GL11.glDisable(GL11.GL_CULL_FACE);
-        //        // north -> south
-        //        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2-(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x1+(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-        //
-        //        // east -> west
-        //        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2+(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2+(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-        //
-        //        // south -> north
-        //        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x2-(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x1+(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-        //
-        //        // west -> east
-        //        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x1-(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-        //        buffer.pos(x1-(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
+//        GlStateManager.disableCull();
+//        GL11.glDisable(GL11.GL_CULL_FACE);
+//        // north -> south
+//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2-(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x1+(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
+//
+//        // east -> west
+//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
+//
+//        // south -> north
+//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x2-(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x1+(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
+//
+//        // west -> east
+//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
+//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
 
-        //        GlStateManager.enableCull();
+//        GlStateManager.enableCull();
     }
 
     @Override
