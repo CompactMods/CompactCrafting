@@ -1,25 +1,33 @@
 package com.robotgryphon.compactcrafting.recipes.components;
 
+import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.Property;
 import net.minecraft.state.StateContainer;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class RecipeBlockStateComponent extends RecipeComponent {
-
-    public Block block;
+    private final Block block;
+    private BlockState blockState;
     private final Map<String, Predicate<Comparable<?>>> filters;
-    private final HashMap<String, List<String>> allowedValues;
-
+    private final Map<String, List<String>> allowedValues;
     public static final Codec<RecipeBlockStateComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
             ResourceLocation.CODEC.fieldOf("block").forGetter(RecipeBlockStateComponent::getBlockName),
             Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(RecipeBlockStateComponent::getProperties)
@@ -31,6 +39,15 @@ public class RecipeBlockStateComponent extends RecipeComponent {
 
     private ResourceLocation getBlockName() {
         return block.getRegistryName();
+    }
+
+    public RecipeBlockStateComponent(BlockState state) {
+        this(state.getBlock());
+
+        state.getValues().forEach((prop, comp) -> {
+            this.filters.put(prop.getName(), comp::equals);
+            this.allowedValues.put(prop.getName(), Lists.newArrayList(((Property) prop).getName(comp)));
+        });
     }
 
     public RecipeBlockStateComponent(Block b) {
@@ -55,8 +72,8 @@ public class RecipeBlockStateComponent extends RecipeComponent {
                 List<String> userFilteredProps = entry.getValue();
 
                 Property<?> prop = stateContainer.getProperty(propertyName);
-                if (prop != null) {
 
+                if (prop != null) {
                     List<Object> userAllowed = new ArrayList<>();
                     List<String> propertyAcceptableValues = new ArrayList<>();
                     for (String userValue : userFilteredProps) {
@@ -120,5 +137,33 @@ public class RecipeBlockStateComponent extends RecipeComponent {
 
     public Block getBlock() {
         return this.block;
+    }
+
+    /**
+     * Get a state with any directions that are only one possible value already applied.
+     *
+     * @return
+     */
+    public BlockState getStateWithDirections() {
+        if (this.blockState == null) {
+            this.blockState = this.block.defaultBlockState();
+            List<DirectionProperty> dirProperties = this.blockState.getProperties().stream()
+                    .filter(DirectionProperty.class::isInstance)
+                    .map(DirectionProperty.class::cast)
+                    .collect(Collectors.toList());
+            if (dirProperties.isEmpty())
+                return this.blockState;
+
+            for (DirectionProperty prop : dirProperties) {
+                List<String> allowed = this.allowedValues.get(prop.getName());
+                if (allowed != null && allowed.size() == 1) {
+                    Optional<Direction> opt = prop.getValue(allowed.get(0));
+                    if (opt.isPresent())
+                        this.blockState = this.blockState.setValue(prop, opt.get());
+                }
+            }
+        }
+
+        return this.blockState;
     }
 }

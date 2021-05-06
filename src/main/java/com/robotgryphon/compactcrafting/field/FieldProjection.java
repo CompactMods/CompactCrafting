@@ -2,6 +2,8 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
 import net.minecraft.block.Blocks;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -19,9 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FieldProjection {
-
-    private FieldProjectionSize size;
-    private BlockPos center;
+    private final FieldProjectionSize size;
+    private final BlockPos center;
 
     private FieldProjection(FieldProjectionSize size, BlockPos center) {
         this.center = center;
@@ -37,15 +38,11 @@ public class FieldProjection {
     }
 
     public BlockPos getCenterPosition() {
-        return center;
+        return this.center;
     }
 
     public AxisAlignedBB getBounds() {
-        FieldProjectionSize size = this.size;
-        BlockPos center = getCenterPosition();
-        AxisAlignedBB bounds = new AxisAlignedBB(center).inflate(size.getSize());
-
-        return bounds;
+        return new AxisAlignedBB(this.center).inflate(this.size.getMagnitude());
     }
 
     /**
@@ -124,7 +121,7 @@ public class FieldProjection {
     }
 
     public BlockPos getProjectorInDirection(Direction direction) {
-        return center.relative(direction, size.getProjectorDistance() + 1);
+        return center.relative(direction, size.getProjectorOffset());
     }
 
     public void clearBlocks(IWorld world) {
@@ -139,8 +136,24 @@ public class FieldProjection {
                     if(world instanceof ServerWorld) {
                         ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
                                 blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                                1,0d, 0.05D, 0D, 0.25d);
+                                1, 0.0d, 0.05d, 0.0d, 0.25d);
                     }
                 });
+    }
+
+    public CompoundNBT write() {
+        CompoundNBT compound = new CompoundNBT();
+
+        compound.putString("size", this.size.getName());
+        compound.put("center", NBTUtil.writeBlockPos(this.center));
+
+        return compound;
+    }
+
+    public static FieldProjection read(CompoundNBT compound) {
+        FieldProjectionSize size = FieldProjectionSize.getSizeByName(compound.getString("size"));
+        BlockPos center = NBTUtil.readBlockPos(compound.getCompound("center"));
+
+        return new FieldProjection(size, center);
     }
 }

@@ -3,7 +3,20 @@
 
   "block.compactcrafting.field_projector": "Field Projector",
 
+  "container.miniaturization.copy": "Copy Recipe",
+  "container.miniaturization.view": "View Recipe",
+
   "compactcrafting.jei.miniaturization.title": "Miniaturization Crafting",
   "compactcrafting.jei.miniaturization.component": "Material Component: Placed in world.",
-  "compactcrafting.jei.miniaturization.catalyst": "Throw this item into the miniaturization field to start crafting."
+  "compactcrafting.jei.miniaturization.catalyst": "Throw this item into the miniaturization field to start crafting.",
+
+  "commands.compactcrafting.recipe.copy.no_projector": "You are not looking at a field projector!",
+  "commands.compactcrafting.recipe.copy.no_field": "The field projector selected does not have a valid field!",
+  "commands.compactcrafting.recipe.copy.empty_field": "The field selected is empty!",
+  "commands.compactcrafting.recipe.copy.invalid_component_key": "A valid component key could not be determined for the block id %s. Please report to the developers.",
+  "commands.compactcrafting.recipe.view.invalid": "The recipe provided does not exist!",
+
+  "gui.compactcrafting.copy": "Copy",
+  "gui.compactcrafting.copy.tooltip": "Copies the JSON for this recipe to the clipboard.",
+  "gui.compactcrafting.copy.success": "Copied!"
 }

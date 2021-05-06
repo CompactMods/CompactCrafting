@@ -3,7 +3,8 @@ package com.robotgryphon.compactcrafting.crafting;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.ItemStack;
 
-public abstract class CraftingHelper {
+public class CraftingHelper {
+    private CraftingHelper() {}
 
     /**
      * Consumes a number of items from a stack in the world.

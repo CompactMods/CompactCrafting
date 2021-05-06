@@ -11,16 +11,14 @@ import net.minecraft.world.storage.WorldSavedData;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ProjectionFieldSavedData extends WorldSavedData {
-
-    public final static String DATA_NAME = CompactCrafting.MOD_ID + "_projectionfields";
-    public HashMap<BlockPos, ProjectorFieldData> ACTIVE_FIELDS;
+    public static final String DATA_NAME = CompactCrafting.MOD_ID + "_projectionfields";
+    private final Map<BlockPos, ProjectorFieldData> activeFields = new HashMap<>();
 
     public ProjectionFieldSavedData() {
         super(DATA_NAME);
-
-        ACTIVE_FIELDS = new HashMap<>();
     }
 
     @Override
@@ -29,7 +27,7 @@ public class ProjectionFieldSavedData extends WorldSavedData {
         for(INBT fieldTag : fields) {
             ProjectorFieldData fd = ProjectorFieldData.deserialize(fieldTag);
             if(fd != null)
-                ACTIVE_FIELDS.put(fd.fieldCenter, fd);
+                this.activeFields.put(fd.fieldCenter, fd);
         }
     }
 
@@ -37,7 +35,7 @@ public class ProjectionFieldSavedData extends WorldSavedData {
     public CompoundNBT save(CompoundNBT compound) {
         ListNBT list = new ListNBT();
 
-        for(ProjectorFieldData pf : ACTIVE_FIELDS.values()) {
+        for(ProjectorFieldData pf : this.activeFields.values()) {
             CompoundNBT data = pf.serialize();
             list.add(data);
         }
@@ -52,7 +50,11 @@ public class ProjectionFieldSavedData extends WorldSavedData {
     }
 
     public void unregister(BlockPos center) {
-        this.ACTIVE_FIELDS.remove(center);
+        this.activeFields.remove(center);
         this.setDirty();
+    }
+
+    public Map<BlockPos, ProjectorFieldData> getActiveFields() {
+        return this.activeFields;
     }
 }

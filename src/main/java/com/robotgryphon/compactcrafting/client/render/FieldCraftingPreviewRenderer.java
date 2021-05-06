@@ -1,10 +1,10 @@
 package com.robotgryphon.compactcrafting.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.tiles.FieldCraftingPreviewTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
@@ -25,7 +25,6 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
     @Override
     public void render(FieldCraftingPreviewTile tile, float partialTicks, MatrixStack mx, IRenderTypeBuffer buffers, int light, int overlay) {
-
         BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
         Optional<MiniaturizationRecipe> recipe = tile.getRecipe();
@@ -37,7 +36,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             // progress, ticks required
             double craftProgress = tile.getProgress();
 
-            double progress = 1.0d - (craftProgress / (double)rec.getTicks());
+            double progress = 1.0d - (craftProgress / rec.getTickDuration());
 
             double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f));
 
@@ -64,9 +63,10 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
                         Optional<String> component = l.getRequiredComponentKeyForPosition(filledPos);
                         Optional<RecipeBlockStateComponent> recipeComponent = rec.getRecipeBlockComponent(component.get());
 
-                        recipeComponent.ifPresent(state -> {
+                        recipeComponent.ifPresent(comp -> {
                             // TODO - Render switching
-                            BlockState state1 = state.block.defaultBlockState();
+                            BlockState state1 = comp.getStateWithDirections();
+
                             blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
                         });
                         mx.popPose();

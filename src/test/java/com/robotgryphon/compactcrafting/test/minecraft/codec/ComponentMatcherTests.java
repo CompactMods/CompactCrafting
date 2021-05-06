@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.tests.minecraft.codecs;
+package com.robotgryphon.compactcrafting.test.minecraft.codec;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;

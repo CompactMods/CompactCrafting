@@ -14,9 +14,9 @@ public interface RecipeLayerType<L extends IRecipeLayer> extends IForgeRegistryE
     Codec<RecipeLayerType> CODEC = new Codec<RecipeLayerType>() {
         @Override
         public <T> DataResult<Pair<RecipeLayerType, T>> decode(DynamicOps<T> ops, T input) {
-            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !Registration.RECIPE_LAYER_TYPES.containsKey(keyValuePair.getFirst()) ?
+            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !Registration.getRecipeLayerTypes().containsKey(keyValuePair.getFirst()) ?
                     DataResult.error("Unknown registry key: " + keyValuePair.getFirst()) :
-                    DataResult.success(keyValuePair.mapFirst(Registration.RECIPE_LAYER_TYPES::getValue)));
+                    DataResult.success(keyValuePair.mapFirst(Registration.getRecipeLayerTypes()::getValue)));
         }
 
         @Override

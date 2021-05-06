@@ -21,7 +21,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public abstract class JsonUtil {
+public class JsonUtil {
+    private JsonUtil() {}
 
     public static Optional<ItemStack> getItemStack(JsonObject json) {
         return ItemStack.CODEC.decode(JsonOps.INSTANCE, json)

@@ -2,6 +2,9 @@ package com.robotgryphon.compactcrafting.blocks;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
+import com.robotgryphon.compactcrafting.tiles.DummyFieldProjectorTile;
+import com.robotgryphon.compactcrafting.tiles.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.tiles.MainFieldProjectorTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -29,10 +32,7 @@ import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
 
-import net.minecraft.block.AbstractBlock.Properties;
-
 public class FieldProjectorBlock extends Block {
-
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
 
     public FieldProjectorBlock(Properties properties) {
@@ -80,12 +80,10 @@ public class FieldProjectorBlock extends Block {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         BlockState base = super.getStateForPlacement(context);
+        Direction looking = context.getHorizontalDirection();
 
-        Direction looking = context.getNearestLookingDirection();
-        if(!looking.getAxis().isHorizontal())
-            looking = Direction.NORTH;
-
-        return base.setValue(FACING, looking);
+        // Place facing towards the player
+        return base.setValue(FACING, looking.getOpposite());
     }
 
     @Override

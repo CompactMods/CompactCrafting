@@ -1,88 +1,76 @@
 package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.*;
-import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
+import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewBlock;
+import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.inventory.MiniaturizationRecipeContainer;
+import com.robotgryphon.compactcrafting.item.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.components.SimpleRecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
-import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
-import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayerMatcher;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
+import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.HollowComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
+import com.robotgryphon.compactcrafting.tiles.DummyFieldProjectorTile;
+import com.robotgryphon.compactcrafting.tiles.FieldCraftingPreviewTile;
+import com.robotgryphon.compactcrafting.tiles.MainFieldProjectorTile;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.material.Material;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.ToolType;
-import net.minecraftforge.event.RegistryEvent;
+import net.minecraft.util.SoundEvent;
+import net.minecraftforge.common.extensions.IForgeContainerType;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.RegistryObject;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import net.minecraftforge.registries.RegistryBuilder;
 
 import java.util.function.Supplier;
 
-import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
-
-@SuppressWarnings("unchecked")
-@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class Registration {
-
     // ================================================================================================================
     //   REGISTRIES
     // ================================================================================================================
-
-
-    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
-    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
-    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MOD_ID);
-    private static final DeferredRegister<IRecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MOD_ID);
-
-    public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, MOD_ID);
-    public static IForgeRegistry<RecipeLayerType<?>> RECIPE_LAYER_TYPES;
-
-    public static DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create((Class) RecipeComponentType.class, MOD_ID);
-    public static IForgeRegistry<RecipeComponentType<?>> RECIPE_COMPONENT_TYPES;
-
-    static {
-        RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
-                .setName(new ResourceLocation(MOD_ID, "recipe_layers"))
-                .setType(c(RecipeLayerType.class))
-                .tagFolder("recipe_layers"));
-
-        RECIPE_COMPONENTS.makeRegistry("recipe_components", () -> new RegistryBuilder<RecipeComponentType<?>>()
-                .setName(new ResourceLocation(MOD_ID, "recipe_components"))
-                .setType(c(RecipeComponentType.class))
-                .tagFolder("recipe_components"));
-    }
+    private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<IRecipeSerializer<?>> RECIPES = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<ContainerType<?>> CONTAINERS = DeferredRegister.create(ForgeRegistries.CONTAINERS, CompactCrafting.MOD_ID);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static final DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, CompactCrafting.MOD_ID);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static final DeferredRegister<IRecipeLayerMatcher<?>> RECIPE_LAYER_MATCHERS = DeferredRegister.create((Class) IRecipeLayerMatcher.class, CompactCrafting.MOD_ID);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static final DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create((Class) RecipeComponentType.class, CompactCrafting.MOD_ID);
+    private static final Supplier<IForgeRegistry<RecipeLayerType<?>>> RECIPE_LAYERS_REGISTRY = makeRegistry(RECIPE_LAYERS, "recipe_layers");
+    private static final Supplier<IForgeRegistry<IRecipeLayerMatcher<?>>> RECIPE_LAYER_MATCHERS_REGISTRY = makeRegistry(RECIPE_LAYER_MATCHERS, "recipe_matchers");
+    private static final Supplier<IForgeRegistry<RecipeComponentType<?>>> RECIPE_COMPONENTS_REGISTRY = makeRegistry(RECIPE_COMPONENTS, "recipe_components");
 
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
-    private static AbstractBlock.Properties MACHINE_BLOCK_PROPS = AbstractBlock.Properties
-            .of(Material.METAL)
-            .strength(8.0F, 20.0F)
-            .lightLevel(state -> 1)
-            .harvestLevel(1)
-            .harvestTool(ToolType.PICKAXE)
-            .requiresCorrectToolForDrops();
-
-    private static Supplier<Item.Properties> BASIC_ITEM_PROPS = () -> new Item.Properties()
-            .tab(CompactCrafting.ITEM_GROUP);
+    // private static Block.Properties MACHINE_BLOCK_PROPS = Block.Properties
+    //         .of(Material.METAL)
+    //         .strength(8.0F, 20.0F)
+    //         .lightLevel(state -> 1)
+    //         .harvestLevel(1)
+    //         .harvestTool(ToolType.PICKAXE)
+    //         .requiresCorrectToolForDrops();
 
     // ================================================================================================================
     //   BLOCKS
@@ -93,7 +81,11 @@ public class Registration {
             ));
 
     public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
-            new FieldCraftingPreviewBlock(AbstractBlock.Properties.copy(Blocks.BARRIER)));
+            new FieldCraftingPreviewBlock(AbstractBlock.Properties.of(Material.BARRIER)
+                    .noCollission()
+                    .noDrops()
+                    .noOcclusion()
+            ));
 
     // ================================================================================================================
     //   ITEMS
@@ -104,7 +96,7 @@ public class Registration {
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
-    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
+    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> MAIN_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
             TileEntityType.Builder
                     .of(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
@@ -120,18 +112,27 @@ public class Registration {
                     .build(null));
 
     // ================================================================================================================
+    //   SOUNDS
+    // ================================================================================================================
+    public static final RegistryObject<SoundEvent> MINIATURIZATION_CRAFTING_SOUND = registerSound("miniaturization_crafting");
+
+    // ================================================================================================================
+    //   CONTAINER TYPES
+    // ================================================================================================================
+    public static final RegistryObject<ContainerType<MiniaturizationRecipeContainer>> MINIATURIZATION_RECIPE_CONTAINER_TYPE = CONTAINERS.register("miniaturization", () ->
+            IForgeContainerType.create(MiniaturizationRecipeContainer::new));
+
+    // ================================================================================================================
     //   MINIATURIZATION RECIPES
     // ================================================================================================================
     public static final RegistryObject<IRecipeSerializer<MiniaturizationRecipe>> MINIATURIZATION_SERIALIZER = RECIPES.register("miniaturization", MiniaturizationRecipeSerializer::new);
 
-    public static final ResourceLocation MINIATURIZATION_RECIPE_TYPE_ID = new ResourceLocation(MOD_ID, "miniaturization_recipe");
-
-    public static final BaseRecipeType<MiniaturizationRecipe> MINIATURIZATION_RECIPE_TYPE = new BaseRecipeType<>(MINIATURIZATION_RECIPE_TYPE_ID);
+    public static final BaseRecipeType<MiniaturizationRecipe> MINIATURIZATION_RECIPE_TYPE = new BaseRecipeType<>(MINIATURIZATION_SERIALIZER);
 
     // ================================================================================================================
-    //   RECIPE LAYER SERIALIZERS
+    //   RECIPE LAYER TYPES
     // ================================================================================================================
-    public static final RegistryObject<RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
+    public static final RegistryObject<RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_TYPE =
             RECIPE_LAYERS.register("filled", () -> new SimpleRecipeLayerType<>(FilledComponentRecipeLayer.CODEC));
 
     public static final RegistryObject<RecipeLayerType<HollowComponentRecipeLayer>> HOLLOW_LAYER_TYPE =
@@ -139,6 +140,18 @@ public class Registration {
 
     public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", () -> new SimpleRecipeLayerType<>(MixedComponentRecipeLayer.CODEC));
+
+    // ================================================================================================================
+    //   RECIPE LAYER MATCHERS
+    // ================================================================================================================
+    public static final RegistryObject<IRecipeLayerMatcher<FilledComponentRecipeLayer>> FILLED_LAYER_MATCHER =
+            RECIPE_LAYER_MATCHERS.register("filled", FilledComponentRecipeLayer.Matcher::new);
+
+    public static final RegistryObject<IRecipeLayerMatcher<HollowComponentRecipeLayer>> HOLLOW_LAYER_MATCHER =
+            RECIPE_LAYER_MATCHERS.register("hollow", HollowComponentRecipeLayer.Matcher::new);
+
+    public static final RegistryObject<IRecipeLayerMatcher<MixedComponentRecipeLayer>> MIXED_LAYER_MATCHER =
+            RECIPE_LAYER_MATCHERS.register("mixed", MixedComponentRecipeLayer.Matcher::new);
 
     // ================================================================================================================
     //   RECIPE COMPONENTS
@@ -149,8 +162,6 @@ public class Registration {
     // ================================================================================================================
     //   INITIALIZATION
     // ================================================================================================================
-    private static <T> Class<T> c(Class<?> cls) { return (Class<T>)cls; }
-
     public static void init() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
@@ -158,23 +169,36 @@ public class Registration {
         ITEMS.register(eventBus);
         TILE_ENTITIES.register(eventBus);
         RECIPES.register(eventBus);
+        SOUNDS.register(eventBus);
+        CONTAINERS.register(eventBus);
 
         // Recipe Types (Forge Registry setup does not call this yet)
         MINIATURIZATION_RECIPE_TYPE.register();
 
         RECIPE_LAYERS.register(eventBus);
+        RECIPE_LAYER_MATCHERS.register(eventBus);
         RECIPE_COMPONENTS.register(eventBus);
     }
 
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public static void onRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
-        RECIPE_LAYER_TYPES = evt.getRegistry();
+    private Registration() {}
+
+    private static <T extends IForgeRegistryEntry<T>> Supplier<IForgeRegistry<T>> makeRegistry(DeferredRegister<T> register, String name) {
+        return register.makeRegistry(name, () -> new RegistryBuilder<T>().tagFolder(name));
     }
 
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public static void onComponentRegistration(RegistryEvent.Register<RecipeComponentType<?>> evt) {
-        RECIPE_COMPONENT_TYPES = evt.getRegistry();
+    private static RegistryObject<SoundEvent> registerSound(String name) {
+        return SOUNDS.register(name, () -> new SoundEvent(new ResourceLocation(CompactCrafting.MOD_ID, name)));
+    }
+
+    public static IForgeRegistry<RecipeLayerType<?>> getRecipeLayerTypes() {
+        return RECIPE_LAYERS_REGISTRY.get();
+    }
+
+    public static IForgeRegistry<RecipeComponentType<?>> getRecipeComponentTypes() {
+        return RECIPE_COMPONENTS_REGISTRY.get();
+    }
+
+    public static IForgeRegistry<IRecipeLayerMatcher<?>> getRecipeLayerMatchers() {
+        return RECIPE_LAYER_MATCHERS_REGISTRY.get();
     }
 }

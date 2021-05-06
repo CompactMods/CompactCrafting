@@ -3,84 +3,33 @@ package com.robotgryphon.compactcrafting.recipes.layers.impl;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayerMatcher;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayerMatcher;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeLayer {
-
-    private String componentKey;
-    private AxisAlignedBB recipeDimensions;
-    private Collection<BlockPos> filledPositions;
-
+public class HollowComponentRecipeLayer extends AbstractSimpleDynamicRecipeLayer {
     public static final Codec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponent)
+            Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponentKey)
     ).apply(i, HollowComponentRecipeLayer::new));
 
-    public HollowComponentRecipeLayer(String component) {
-        this.componentKey = component;
+    public HollowComponentRecipeLayer(String componentKey) {
+        super(componentKey);
     }
 
-    @Override
-    public RecipeLayerType<?> getType() {
-        return Registration.HOLLOW_LAYER_TYPE.get();
+    protected Collection<BlockPos> recalculatePositions() {
+        return getWallPositions(this.recipeDimensions);
     }
 
-    public Map<String, Integer> getComponentTotals() {
-        return Collections.singletonMap(componentKey, getNumberFilledPositions());
-    }
-
-    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
-        return Optional.ofNullable(componentKey);
-    }
-
-    /**
-     * Get a collection of positions that are filled by a given component.
-     *
-     * @param component
-     * @return
-     */
-    public Collection<BlockPos> getPositionsForComponent(String component) {
-        return filledPositions;
-    }
-
-    public Collection<BlockPos> getFilledPositions() {
-        return this.filledPositions;
-    }
-
-    public boolean isPositionFilled(BlockPos pos) {
-        return true;
-    }
-
-    public int getNumberFilledPositions() {
-        return filledPositions.size();
-    }
-
-    public void setComponent(String component) {
-        this.componentKey = component;
-    }
-
-    @Override
-    public void setRecipeDimensions(AxisAlignedBB dimensions) {
-        this.recipeDimensions = dimensions;
-        this.recalculateRequirements();
-    }
-
-    /**
-     * Used to recalculate dynamic-sized recipe layers. Expected to be called
-     * any time components or base recipe dimensions change.
-     */
-    @Override
-    public void recalculateRequirements() {
-        this.filledPositions = getWallPositions();
-    }
-
-    public Collection<BlockPos> getWallPositions() {
+    private static Collection<BlockPos> getWallPositions(AxisAlignedBB recipeDimensions) {
         AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXsize() - 1, 0, recipeDimensions.getZsize() - 1);
         AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
 
@@ -96,7 +45,20 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicRecipeL
         return positions;
     }
 
-    public String getComponent() {
-        return this.componentKey;
+    @Override
+    public RecipeLayerType<?> getType() {
+        return Registration.HOLLOW_LAYER_TYPE.get();
+    }
+
+    public static class Matcher extends ForgeRegistryEntry<IRecipeLayerMatcher<?>> implements IDynamicRecipeLayerMatcher<HollowComponentRecipeLayer> {
+        public HollowComponentRecipeLayer getMatch(Map<BlockPos, String> compMap, AxisAlignedBB recipeDimensions) {
+            Set<String> componentKeys = new HashSet<>(compMap.values());
+            if (compMap.keySet().equals(getWallPositions(recipeDimensions)) && componentKeys.size() == 1) {
+                HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer(componentKeys.iterator().next());
+                layer.setRecipeDimensions(recipeDimensions);
+                return layer;
+            }
+            return null;
+        }
     }
 }

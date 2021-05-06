@@ -6,11 +6,20 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.codecs.PrimitiveCodec;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponent;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,24 +59,23 @@ public class RecipeLayerComponentPositionLookup {
         public <T> T write(DynamicOps<T> ops, RecipeLayerComponentPositionLookup value) {
             AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(value.getAllPositions());
 
-            HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXsize());
-            for(int x = 0; x < boundsForBlocks.getXsize(); x++)
-                revMap.putIfAbsent(x, new ArrayList<>());
+            // Use TreeMaps for sorting ints naturally from lowest to highest
+            Map<Integer, Map<Integer, String>> revMap = new TreeMap<>();
 
             value.components.forEach((pos, comp) -> {
-                List<String> xList = revMap.get(pos.getX());
-                xList.add(pos.getZ(), comp);
+                Map<Integer, String> zMap = revMap.computeIfAbsent(pos.getX(), x -> new TreeMap<>());
+                zMap.put(pos.getZ(), comp);
             });
 
             List<List<String>> fin = new ArrayList<>(revMap.size());
-            revMap.forEach(fin::add);
+            for (Map<Integer, String> xMap : revMap.values()) {
+                fin.add(new ArrayList<>(xMap.values()));
+            }
 
             DataResult<T> encoded = Codec.STRING.listOf().listOf().encode(fin, ops, ops.empty());
 
             return encoded
-                    .resultOrPartial(err -> CompactCrafting.LOGGER.error(
-                            String.format("Failed to encode layer component position lookup: %s", err)
-                    ))
+                    .resultOrPartial(err -> CompactCrafting.LOGGER.error("Failed to encode layer component position lookup: {}", err))
                     .get();
         }
     };
@@ -78,6 +86,10 @@ public class RecipeLayerComponentPositionLookup {
 
     public void add(BlockPos location, String component) {
         components.putIfAbsent(location, component);
+    }
+
+    public void addAll(Map<BlockPos, String> compMap) {
+        components.putAll(compMap);
     }
 
     public Collection<String> getComponents() {
@@ -96,22 +108,14 @@ public class RecipeLayerComponentPositionLookup {
         return this.components.entrySet().stream();
     }
 
-    public Map<String, Integer> getComponentTotals() {
-        if(this.totalCache != null)
-            return this.totalCache;
-
-        Map<String, Integer> totals = new HashMap<>();
-        components.forEach((pos, comp) -> {
-            int prev = 0;
-            if(!totals.containsKey(comp))
-                totals.put(comp, 0);
-            else
-                prev = totals.get(comp);
-
-            totals.replace(comp, prev + 1);
-        });
-
-        this.totalCache = totals;
+    public Map<String, Integer> getComponentTotals(Map<String, ? extends RecipeComponent> componentMap) {
+        if (this.totalCache == null) {
+            this.totalCache = components
+                    .entrySet()
+                    .stream()
+                    .filter(e -> componentMap.containsKey(e.getValue())) // Filter out invalid components like "_" for air
+                    .collect(Collectors.toMap(Map.Entry::getValue, e -> 1, Integer::sum));
+        }
 
         return this.totalCache;
     }

@@ -8,8 +8,8 @@ import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.client.render.RenderTypesExtensions;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -18,6 +18,7 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
@@ -30,7 +31,6 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
@@ -47,6 +47,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<MiniaturizationRecipe> {
@@ -118,20 +119,21 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     //region Recipe Slots and Items
     @Override
     public void setIngredients(MiniaturizationRecipe recipe, IIngredients ing) {
-        List<ItemStack> inputs = new ArrayList<>();
+        Set<Block> blockInputs = new LinkedHashSet<>();
 
         for (String compKey : recipe.getComponentKeys()) {
             Optional<RecipeBlockStateComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
-            requiredBlock.ifPresent(bs -> {
-                Item bi = Item.byBlock(bs.getBlock());
-                inputs.add(new ItemStack(bi));
-            });
+            requiredBlock.map(RecipeBlockStateComponent::getBlock).ifPresent(blockInputs::add);
         }
 
+        List<ItemStack> inputs = new ArrayList<>();
+        for (Block block : blockInputs) {
+            inputs.add(new ItemStack(block));
+        }
         inputs.add(recipe.getCatalyst());
 
         ing.setInputs(VanillaTypes.ITEM, inputs);
-        ing.setOutputs(VanillaTypes.ITEM, Arrays.asList(recipe.getOutputs()));
+        ing.setOutputs(VanillaTypes.ITEM, recipe.getOutputs());
     }
 
     @Override
@@ -198,19 +200,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         recipe.getRecipeComponentTotals()
                 .entrySet()
                 .stream()
-                .filter(comp -> comp.getValue() > 0)
+                .filter(entry -> entry.getValue() > 0)
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .forEach((comp) -> {
-                    String component = comp.getKey();
-                    int required = comp.getValue();
-                    int finalInputOffset = inputOffset.get();
-
-                    RecipeBlockStateComponent bs = recipe.getRecipeBlockComponent(component).get();
-                    Item bi = Item.byBlock(bs.getBlock());
-                    guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
-
-                    inputOffset.getAndIncrement();
-                });
+                .collect(Collectors.toMap(e -> recipe.getRecipeBlockComponent(e.getKey()).get().getBlock(), Map.Entry::getValue, Integer::sum, LinkedHashMap::new))
+                .forEach((block, amount) -> guiItemStacks.set(inputOffset.getAndIncrement(), new ItemStack(block, amount)));
     }
 
     private void addOutputSlots(MiniaturizationRecipe recipe, int GUTTER_X, int OFFSET_Y, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
@@ -462,7 +455,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             recipeComponent.ifPresent(state -> {
                 // renderer.render(renderTe, pos.getX(), pos.getY(), pos.getZ(), 0.0f);
                 // TODO - Render switching at fixed interval
-                BlockState state1 = state.block.defaultBlockState();
+                BlockState state1 = state.getStateWithDirections();
                 // Thanks Immersive, Astral, and others
                 blocks.renderBlock(state1, mx, RenderTypesExtensions.disableLighting(buffers),
                         0xf000f0, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);

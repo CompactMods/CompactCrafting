@@ -15,7 +15,8 @@ import java.util.stream.Stream;
 /**
  * Contains utility methods for working with a set of projectors in a given space.
  */
-public abstract class ProjectorHelper {
+public class ProjectorHelper {
+    private ProjectorHelper() {}
 
     public static Stream<BlockPos> getPossibleCenters(IWorldReader world, BlockPos initial, Direction facing) {
         return Stream.of(FieldProjectionSize.values())
@@ -64,18 +65,18 @@ public abstract class ProjectorHelper {
 
         Direction fieldDirection = facing.get();
 
-        BlockPos center = initial.relative(fieldDirection, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(fieldDirection, size.getProjectorOffset());
         return Optional.of(center);
     }
 
     public static Optional<BlockPos> getCenterForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
-        BlockPos center = initial.relative(facing, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(facing, size.getProjectorOffset());
         return Optional.of(center);
     }
 
     public static Optional<BlockPos> getOppositePositionForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
-        BlockPos center = initial.relative(facing, size.getProjectorDistance() + 1);
-        BlockPos opp = center.relative(facing, size.getProjectorDistance() + 1);
+        BlockPos center = initial.relative(facing, size.getProjectorOffset());
+        BlockPos opp = center.relative(facing, size.getProjectorOffset());
 
         return Optional.of(opp);
     }
@@ -127,7 +128,7 @@ public abstract class ProjectorHelper {
     }
 
     public static BlockPos getProjectorLocationForDirection(BlockPos center, Direction direction, FieldProjectionSize size) {
-        BlockPos location = center.relative(direction, size.getProjectorDistance() + 1);
+        BlockPos location = center.relative(direction, size.getProjectorOffset());
         return location;
     }
 
@@ -233,7 +234,7 @@ public abstract class ProjectorHelper {
         return Arrays.stream(FieldProjectionSize.values())
                 .filter(size -> {
                     // Try to match the positions, if so we found a valid size
-                    BlockPos location = fieldCenter.relative(Direction.NORTH, size.getProjectorDistance() + 1);
+                    BlockPos location = fieldCenter.relative(Direction.NORTH, size.getProjectorOffset());
                     return location == aProjector;
                 }).findFirst();
 

@@ -1,5 +1,6 @@
-package com.robotgryphon.compactcrafting.blocks;
+package com.robotgryphon.compactcrafting.tiles;
 
+import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
 import net.minecraft.block.BlockState;
@@ -8,6 +9,7 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.Constants;
 
 import java.util.Optional;
 
@@ -15,13 +17,13 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     private BlockPos mainProjector;
     private BlockPos fieldCenter;
 
-    private void setMainProjector(BlockPos main) {
-        this.mainProjector = main;
+    public DummyFieldProjectorTile() {
+        super(Registration.DUMMY_FIELD_PROJECTOR_TILE.get());
     }
 
     @Override
     public Optional<BlockPos> getMainProjectorPosition() {
-        return Optional.ofNullable(mainProjector);
+        return Optional.ofNullable(this.mainProjector);
     }
 
     @Override
@@ -59,10 +61,10 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     public CompoundNBT save(CompoundNBT compound) {
         CompoundNBT nbt = super.save(compound);
 
-        if(mainProjector != null)
+        if (mainProjector != null)
             nbt.put("main", NBTUtil.writeBlockPos(mainProjector));
 
-        if(fieldCenter != null)
+        if (fieldCenter != null)
             nbt.put("center", NBTUtil.writeBlockPos(fieldCenter));
 
         return nbt;
@@ -72,10 +74,10 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     public void load(BlockState state, CompoundNBT nbt) {
         super.load(state, nbt);
 
-        if(nbt.contains("main"))
+        if (nbt.contains("main", Constants.NBT.TAG_COMPOUND))
             mainProjector = NBTUtil.readBlockPos(nbt.getCompound("main"));
 
-        if(nbt.contains("center"))
+        if (nbt.contains("center", Constants.NBT.TAG_COMPOUND))
             fieldCenter = NBTUtil.readBlockPos(nbt.getCompound("center"));
     }
 }

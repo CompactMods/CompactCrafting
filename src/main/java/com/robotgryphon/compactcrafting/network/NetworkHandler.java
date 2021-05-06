@@ -26,5 +26,9 @@ public class NetworkHandler {
         MAIN_CHANNEL.registerMessage(index++, FieldDeactivatedPacket.class,
                 FieldDeactivatedPacket::encode, FieldDeactivatedPacket::decode,
                 FieldDeactivatedPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+
+        MAIN_CHANNEL.registerMessage(index++, PlayMiniaturizationSoundPacket.class,
+                PlayMiniaturizationSoundPacket::encode, PlayMiniaturizationSoundPacket::decode,
+                PlayMiniaturizationSoundPacket::handle, Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 }

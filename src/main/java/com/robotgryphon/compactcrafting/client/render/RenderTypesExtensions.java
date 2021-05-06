@@ -4,19 +4,17 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.RenderState.DepthTestState;
-import net.minecraft.client.renderer.RenderState.DiffuseLightingState;
-
-public class RenderTypesExtensions extends RenderType {
+public abstract class RenderTypesExtensions extends RenderType {
     // Dummy
-    public RenderTypesExtensions(String name, VertexFormat format, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable runnablePre, Runnable runnablePost) {
-        super(name, format, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, runnablePre, runnablePost);
+    protected RenderTypesExtensions(String name, VertexFormat fmt, int glMode, int size, boolean doCrumbling, boolean depthSorting, Runnable onEnable, Runnable onDisable) {
+        super(name, fmt, glMode, size, doCrumbling, depthSorting, onEnable, onDisable);
     }
 
     /**
@@ -30,24 +28,24 @@ public class RenderTypesExtensions extends RenderType {
         RenderSystem.defaultBlendFunc();
     });
 
-    public static final RenderType PROJECTION_FIELD_RENDERTYPE = create("projection_field",
+    public static final RenderType PROJECTION_FIELD = create("projection_field",
             DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
             RenderType.State.builder()
                     .setTransparencyState(PROJECTION_TRANSPARENCY)
                     .setOutputState(RenderState.MAIN_TARGET)
-                    .setCullState(RenderState.CULL)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setDepthTestState(DepthTestState.LEQUAL_DEPTH_TEST) // Default, but let's make sure it stays that way
-                    .createCompositeState(false));
+                    .setCullState(RenderState.NO_CULL) // Cull = field disappears when inside; No cull = field still renders when inside
+                    .setWriteMaskState(RenderState.COLOR_WRITE)
+                    .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST) // Default, but let's make sure it stays that way
+                    .createCompositeState(true));
 
-    public static final RenderType FIELD_PROJECTION_ARC = create("projection_field_arc",
+    public static final RenderType PROJECTION_FIELD_ARC = create("projection_field_arc",
             DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
             RenderType.State.builder()
                     .setTransparencyState(PROJECTION_TRANSPARENCY)
                     .setOutputState(RenderState.MAIN_TARGET)
                     .setCullState(RenderState.NO_CULL)
-                    .setWriteMaskState(COLOR_WRITE)
-                    .setDepthTestState(DepthTestState.LEQUAL_DEPTH_TEST) // Default, but let's make sure it stays that way
+                    .setWriteMaskState(RenderState.COLOR_WRITE)
+                    .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST) // Default, but let's make sure it stays that way
                     .createCompositeState(false));
 
     public static final RenderType MULTIBLOCK_GUI = create(CompactCrafting.MOD_ID + ":multiblock_gui",
@@ -57,8 +55,8 @@ public class RenderTypesExtensions extends RenderType {
                     .setOutputState(RenderState.MAIN_TARGET)
                     .setCullState(RenderState.CULL)
                     .setWriteMaskState(RenderState.COLOR_WRITE)
-                    .setDiffuseLightingState(DiffuseLightingState.NO_DIFFUSE_LIGHTING)
-                    .setDepthTestState(DepthTestState.LEQUAL_DEPTH_TEST)
+                    .setDiffuseLightingState(RenderState.NO_DIFFUSE_LIGHTING)
+                    .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
                     .createCompositeState(false));
 
     public static IRenderTypeBuffer disableLighting(IRenderTypeBuffer in)

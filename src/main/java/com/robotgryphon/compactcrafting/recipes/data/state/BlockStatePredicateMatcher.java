@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.data.states;
+package com.robotgryphon.compactcrafting.recipes.data.state;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.block.Block;

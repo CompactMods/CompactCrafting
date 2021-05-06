@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.tests.util;
+package com.robotgryphon.compactcrafting.test.util;
 
 import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
 import net.minecraft.util.math.BlockPos;

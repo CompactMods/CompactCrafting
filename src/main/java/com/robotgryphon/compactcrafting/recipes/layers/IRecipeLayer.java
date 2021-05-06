@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponent;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Collection;
@@ -7,7 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface IRecipeLayer {
-    Map<String, Integer> getComponentTotals();
+    Map<String, Integer> getComponentTotals(Map<String, ? extends RecipeComponent> componentMap);
 
     /**
      * Gets a component key for the given (normalized) position.
@@ -36,7 +37,7 @@ public interface IRecipeLayer {
 
     boolean isPositionFilled(BlockPos pos);
 
-    int getNumberFilledPositions();
+    int getNumberFilledPositions(Map<String, ? extends RecipeComponent> componentMap);
 
     RecipeLayerType<?> getType();
 }

@@ -1,16 +1,16 @@
 package com.robotgryphon.compactcrafting.client;
 
-import com.robotgryphon.compactcrafting.blocks.MainFieldProjectorTile;
+import com.robotgryphon.compactcrafting.client.sound.MiniaturizationSound;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.ProjectorHelper;
+import com.robotgryphon.compactcrafting.tiles.MainFieldProjectorTile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public abstract class ClientPacketHandler {
-
     public static void handleFieldActivation(BlockPos center, FieldProjectionSize fieldSize) {
         BlockPos mainProjector = ProjectorHelper.getProjectorLocationForDirection(center, Direction.NORTH, fieldSize);
 
@@ -35,5 +35,9 @@ public abstract class ClientPacketHandler {
             return;
 
         mainTile.invalidateField();
+    }
+
+    public static void handlePlayMiniaturizationSound(BlockPos fieldPreviewPos) {
+        Minecraft.getInstance().getSoundManager().queueTickingSound(new MiniaturizationSound(fieldPreviewPos));
     }
 }
