@@ -224,7 +224,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles rendering the main projection cube in the center of the projection area. Should only be called by the main projector (typically the NORTH projector)
      */
     private void renderProjectionCube(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube) {
-        IVertexBuilder builder = buffers.getBuffer(RenderTypesExtensions.PROJECTION_FIELD);
+        IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.PROJECTION_FIELD);
 
         Color color = tile.getProjectionColor(EnumProjectorColorType.FIELD);
         for (Direction direction : Direction.values()) {

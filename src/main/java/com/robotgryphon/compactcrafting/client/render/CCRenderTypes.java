@@ -10,12 +10,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.RenderState.DepthTestState;
-import net.minecraft.client.renderer.RenderState.DiffuseLightingState;
-
-public class CCRenderTypes extends RenderType {
+public abstract class CCRenderTypes extends RenderType {
     // Dummy
-    protected RenderTypesExtensions(String name, VertexFormat fmt, int glMode, int size, boolean doCrumbling, boolean depthSorting, Runnable onEnable, Runnable onDisable) {
+    protected CCRenderTypes(String name, VertexFormat fmt, int glMode, int size, boolean doCrumbling, boolean depthSorting, Runnable onEnable, Runnable onDisable) {
         super(name, fmt, glMode, size, doCrumbling, depthSorting, onEnable, onDisable);
     }
 
