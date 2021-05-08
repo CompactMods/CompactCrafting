@@ -22,7 +22,7 @@ public class ClientSetup {
         ClientRegistry.bindTileEntityRenderer(Registration.MAIN_FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
         ClientRegistry.bindTileEntityRenderer(Registration.DUMMY_FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
         ClientRegistry.bindTileEntityRenderer(Registration.FIELD_CRAFTING_PREVIEW_TILE.get(), FieldCraftingPreviewRenderer::new);
-        ScreenManager.register(Registration.MINIATURIZATION_RECIPE_CONTAINER_TYPE.get(), MiniaturizationRecipeScreen::new);
+        event.enqueueWork(() -> ScreenManager.register(Registration.MINIATURIZATION_RECIPE_CONTAINER_TYPE.get(), MiniaturizationRecipeScreen::new));
     }
 
     @SubscribeEvent
