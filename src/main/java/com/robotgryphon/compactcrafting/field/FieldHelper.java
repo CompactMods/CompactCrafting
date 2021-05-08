@@ -46,7 +46,8 @@ public abstract class FieldHelper {
 
             // Not a field projector tile. Somehow.
             if (tile == null) {
-                CompactCrafting.LOGGER.warn("Warning: Got a projector block but there was no field projector TE on the same position. Position: " + p.toShortString());
+                // toShortString() is client only, so let's just use toString()
+                CompactCrafting.LOGGER.warn("Warning: Got a projector block but there was no field projector TE on the same position. Position: {}", p);
                 continue;
             }
 
