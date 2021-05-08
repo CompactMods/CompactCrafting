@@ -70,9 +70,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
      * Invalidates the current field projection and attempts to rebuild it from this position as an initial.
      */
     public void doFieldCheck() {
-        if (this.field != null)
-            return;
-
         Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(level, this.worldPosition);
         if (field.isPresent()) {
             this.field = field.get();
@@ -104,11 +101,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
             ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
             data.unregister(center);
-            if (this.level.getBlockState(center).getBlock() == Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get()) {
-                // Remove so players don't have floating blocks they can't destroy in their world
-                // Also serves as a fallback if the preview block gets out of sync somehow that they can delete it by invalidating the field
-                this.level.setBlockAndUpdate(center, Blocks.AIR.defaultBlockState());
-            }
 
             PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
                     .with(() -> level.getChunkAt(this.worldPosition));

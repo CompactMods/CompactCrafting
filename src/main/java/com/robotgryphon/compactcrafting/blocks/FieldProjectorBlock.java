@@ -157,38 +157,26 @@ public class FieldProjectorBlock extends Block {
                 0, 0, 0, 0);
     }
 
+    @SuppressWarnings("deprecation")
     @Override
-    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void onPlace(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean isMoving) {
         FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
 
         // If we don't have a valid field, search again
         if(tile == null)
             return;
 
+        Optional<MainFieldProjectorTile> previousMain = tile.getMainProjectorTile();
         if(tile instanceof DummyFieldProjectorTile) {
 
             DummyFieldProjectorTile dummy = (DummyFieldProjectorTile) tile;
             dummy.onInitialPlacement();
         }
 
+        // Check the old one too just in case (e.g. wrenches)
+        previousMain.ifPresent(MainFieldProjectorTile::doFieldCheck);
         tile.getMainProjectorTile().ifPresent(MainFieldProjectorTile::doFieldCheck);
 
         // Add owner information to field projector
-    }
-
-    @Override
-    public void destroy(IWorld worldIn, BlockPos pos, BlockState state) {
-        super.destroy(worldIn, pos, state);
-
-        Direction ogFacing = state.getValue(FACING);
-        ProjectorHelper.getPossibleMainProjectors(worldIn, pos, ogFacing)
-                .forEach(projPos -> {
-                    TileEntity tileProj = worldIn.getBlockEntity(projPos);
-                    if (!(tileProj instanceof MainFieldProjectorTile))
-                        return;
-
-                    MainFieldProjectorTile fTile = (MainFieldProjectorTile) tileProj;
-                    fTile.invalidateField();
-                });
     }
 }

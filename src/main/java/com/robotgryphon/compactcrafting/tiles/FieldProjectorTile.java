@@ -65,6 +65,14 @@ public abstract class FieldProjectorTile extends TileEntity {
     }
 
     @Override
+    public void setRemoved() {
+        super.setRemoved();
+
+        // Do field check
+        this.getMainProjectorTile().ifPresent(MainFieldProjectorTile::invalidateField);
+    }
+
+    @Override
     public SUpdateTileEntityPacket getUpdatePacket() {
         return new SUpdateTileEntityPacket(worldPosition, 0, getUpdateTag());
     }

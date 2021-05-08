@@ -2,7 +2,6 @@ package com.robotgryphon.compactcrafting.tiles;
 
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.network.PlayMiniaturizationSoundPacket;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
@@ -88,16 +87,14 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         }
 
         if (this.craftingProgress >= this.recipe.getTickDuration()) {
-            Optional<FieldProjection> field = this.masterProjector.getField();
-            this.masterProjector.updateCraftingState(EnumCraftingState.DONE);
-            this.masterProjector.setRecipe(null);
+            if (!this.masterProjector.isRemoved()) {
+                this.masterProjector.updateCraftingState(EnumCraftingState.DONE);
+                this.masterProjector.setRecipe(null);
+            }
 
-            if (field.isPresent()) {
-                BlockPos fieldCenter = field.get().getCenterPosition();
-                for (ItemStack is : this.recipe.getOutputs()) {
-                    ItemEntity itemEntity = new ItemEntity(this.level, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
-                    this.level.addFreshEntity(itemEntity);
-                }
+            for (ItemStack is : this.recipe.getOutputs()) {
+                ItemEntity itemEntity = new ItemEntity(this.level, this.worldPosition.getX() + 0.5f, this.worldPosition.getY() + 0.5f, this.worldPosition.getZ() + 0.5f, is);
+                this.level.addFreshEntity(itemEntity);
             }
 
             this.level.setBlockAndUpdate(this.worldPosition, Blocks.AIR.defaultBlockState());
