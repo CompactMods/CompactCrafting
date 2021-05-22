@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.recipes.components;
 import com.mojang.serialization.Codec;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class SimpleRecipeComponentType<C extends RecipeComponent>
+public class SimpleRecipeComponentType<C extends IRecipeComponent>
         extends ForgeRegistryEntry<RecipeComponentType<?>>
         implements RecipeComponentType<C> {
 

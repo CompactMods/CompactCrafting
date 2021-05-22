@@ -3,18 +3,14 @@ package com.robotgryphon.compactcrafting.core;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
-import com.robotgryphon.compactcrafting.items.TestItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.impl.RecipeBlockStateComponent;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
-import com.robotgryphon.compactcrafting.recipes.components.SimpleRecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
-import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
-import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
+import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.FilledComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.HollowComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.impl.MixedComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -56,19 +52,13 @@ public class Registration {
     public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, MOD_ID);
     public static IForgeRegistry<RecipeLayerType<?>> RECIPE_LAYER_TYPES;
 
-    public static DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create((Class) RecipeComponentType.class, MOD_ID);
-    public static IForgeRegistry<RecipeComponentType<?>> RECIPE_COMPONENT_TYPES;
-
     static {
         RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
                 .setName(new ResourceLocation(MOD_ID, "recipe_layers"))
                 .setType(c(RecipeLayerType.class))
                 .tagFolder("recipe_layers"));
 
-        RECIPE_COMPONENTS.makeRegistry("recipe_components", () -> new RegistryBuilder<RecipeComponentType<?>>()
-                .setName(new ResourceLocation(MOD_ID, "recipe_components"))
-                .setType(c(RecipeComponentType.class))
-                .tagFolder("recipe_components"));
+
     }
 
     // ================================================================================================================
@@ -102,7 +92,7 @@ public class Registration {
     public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
             new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
-    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+//    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
     // ================================================================================================================
     //   TILE ENTITIES
@@ -143,11 +133,7 @@ public class Registration {
     public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", () -> new SimpleRecipeLayerType<>(MixedComponentRecipeLayer.CODEC));
 
-    // ================================================================================================================
-    //   RECIPE COMPONENTS
-    // ================================================================================================================
-    public static final RegistryObject<RecipeComponentType<RecipeBlockStateComponent>> BLOCKSTATE_COMPONENT =
-            RECIPE_COMPONENTS.register("block", () -> new SimpleRecipeComponentType<>(RecipeBlockStateComponent.CODEC));
+
 
     // ================================================================================================================
     //   INITIALIZATION
@@ -166,18 +152,11 @@ public class Registration {
         MINIATURIZATION_RECIPE_TYPE.register();
 
         RECIPE_LAYERS.register(eventBus);
-        RECIPE_COMPONENTS.register(eventBus);
     }
 
     @SubscribeEvent
     @SuppressWarnings("unused")
     public static void onRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
         RECIPE_LAYER_TYPES = evt.getRegistry();
-    }
-
-    @SubscribeEvent
-    @SuppressWarnings("unused")
-    public static void onComponentRegistration(RegistryEvent.Register<RecipeComponentType<?>> evt) {
-        RECIPE_COMPONENT_TYPES = evt.getRegistry();
     }
 }

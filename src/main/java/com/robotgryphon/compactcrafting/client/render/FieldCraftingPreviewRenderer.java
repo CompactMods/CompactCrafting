@@ -3,7 +3,8 @@ package com.robotgryphon.compactcrafting.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.impl.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.BlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -62,11 +63,11 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
                         mx.pushPose();
                         mx.translate(filledPos.getX(), 0, filledPos.getZ());
                         Optional<String> component = l.getRequiredComponentKeyForPosition(filledPos);
-                        Optional<RecipeBlockStateComponent> recipeComponent = rec.getRecipeBlockComponent(component.get());
+                        Optional<IRecipeBlockComponent> recipeComponent = rec.getRecipeBlockComponent(component.get());
 
-                        recipeComponent.ifPresent(state -> {
+                        recipeComponent.ifPresent(comp -> {
                             // TODO - Render switching
-                            BlockState state1 = state.block.defaultBlockState();
+                            BlockState state1 = comp.getRenderState();
                             blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
                         });
                         mx.popPose();

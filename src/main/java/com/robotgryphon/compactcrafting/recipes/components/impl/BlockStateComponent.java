@@ -3,8 +3,9 @@ package com.robotgryphon.compactcrafting.recipes.components.impl;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeComponent;
+import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
+import com.robotgryphon.compactcrafting.recipes.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.recipes.components.IRecipeComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -16,16 +17,16 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class RecipeBlockStateComponent extends RecipeComponent {
+public class BlockStateComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     public Block block;
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
 
-    public static final Codec<RecipeBlockStateComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.fieldOf("block").forGetter(RecipeBlockStateComponent::getBlockName),
-            Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(RecipeBlockStateComponent::getProperties)
-    ).apply(i, RecipeBlockStateComponent::new));
+    public static final Codec<BlockStateComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
+            ResourceLocation.CODEC.fieldOf("block").forGetter(BlockStateComponent::getBlockName),
+            Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(BlockStateComponent::getProperties)
+    ).apply(i, BlockStateComponent::new));
 
     private Optional<Map<String, List<String>>> getProperties() {
         return Optional.of(allowedValues);
@@ -35,14 +36,14 @@ public class RecipeBlockStateComponent extends RecipeComponent {
         return block.getRegistryName();
     }
 
-    public RecipeBlockStateComponent(Block b) {
+    public BlockStateComponent(Block b) {
         this.block = b;
         this.filters = new HashMap<>();
         this.allowedValues = new HashMap<>();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
-    public RecipeBlockStateComponent(ResourceLocation blockId, Optional<Map<String, List<String>>> propertyRequirements) {
+    public BlockStateComponent(ResourceLocation blockId, Optional<Map<String, List<String>>> propertyRequirements) {
         this.block = ForgeRegistries.BLOCKS.getValue(blockId);
         if (this.block == null)
             throw new IllegalArgumentException("Block identifier does not exist.");
@@ -96,7 +97,7 @@ public class RecipeBlockStateComponent extends RecipeComponent {
         filters.put(property, val);
     }
 
-    public boolean filterMatches(BlockState state) {
+    public boolean matches(BlockState state) {
         if(state.getBlock().getRegistryName() != this.block.getRegistryName())
             return false;
 
@@ -117,10 +118,15 @@ public class RecipeBlockStateComponent extends RecipeComponent {
 
     @Override
     public RecipeComponentType<?> getType() {
-        return Registration.BLOCKSTATE_COMPONENT.get();
+        return ComponentRegistration.BLOCKSTATE_COMPONENT.get();
     }
 
     public Block getBlock() {
         return this.block;
+    }
+
+    @Override
+    public BlockState getRenderState() {
+        return block.defaultBlockState();
     }
 }

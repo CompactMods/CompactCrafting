@@ -4,19 +4,18 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import com.robotgryphon.compactcrafting.core.Registration;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistryEntry;
 
-public interface RecipeComponentType<C extends RecipeComponent>
+public interface RecipeComponentType<C extends IRecipeComponent>
         extends IForgeRegistryEntry<RecipeComponentType<?>> {
     // Lifted and modified from a Forge PR #7668, temporary until Forge itself supports the Codec interface
     Codec<RecipeComponentType> CODEC = new Codec<RecipeComponentType>() {
         @Override
         public <T> DataResult<Pair<RecipeComponentType, T>> decode(DynamicOps<T> ops, T input) {
-            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !Registration.RECIPE_COMPONENT_TYPES.containsKey(keyValuePair.getFirst()) ?
+            return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !ComponentRegistration.RECIPE_COMPONENT_TYPES.containsKey(keyValuePair.getFirst()) ?
                     DataResult.error("Unknown registry key: " + keyValuePair.getFirst()) :
-                    DataResult.success(keyValuePair.mapFirst(Registration.RECIPE_COMPONENT_TYPES::getValue)));
+                    DataResult.success(keyValuePair.mapFirst(ComponentRegistration.RECIPE_COMPONENT_TYPES::getValue)));
         }
 
         @Override
