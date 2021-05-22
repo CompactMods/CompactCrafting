@@ -1,9 +1,9 @@
-package com.robotgryphon.compactcrafting.tests.minecraft.codecs;
+package com.robotgryphon.compactcrafting.tests.recipes;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -11,6 +11,7 @@ import net.minecraft.block.StairsBlock;
 import net.minecraft.state.properties.Half;
 import net.minecraft.state.properties.StairsShape;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class ComponentMatcherTests {
 
     @Test
+    @Tag("minecraft")
     void CanMatchBlock() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
 
@@ -57,6 +59,7 @@ public class ComponentMatcherTests {
     }
 
     @Test
+    @Tag("minecraft")
     void CanMatchBlockNoProperties() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_no_properties.json");
 
@@ -87,6 +90,7 @@ public class ComponentMatcherTests {
     }
 
     @Test
+    @Tag("minecraft")
     void CanReserializeComponentMatcher() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
 

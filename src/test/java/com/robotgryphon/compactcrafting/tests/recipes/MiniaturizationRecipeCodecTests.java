@@ -1,16 +1,17 @@
-package com.robotgryphon.compactcrafting.tests.minecraft.codecs;
+package com.robotgryphon.compactcrafting.tests.recipes;
 
 import com.google.gson.JsonElement;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;
 import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.NBTDynamicOps;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -18,21 +19,8 @@ import java.util.Optional;
 
 public class MiniaturizationRecipeCodecTests {
 
-    private MiniaturizationRecipe getRecipeFromFile(String filename) {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile(filename);
-
-        Optional<Pair<MiniaturizationRecipe, JsonElement>> loaded = MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(CompactCrafting.LOGGER::info);
-
-        if (!loaded.isPresent()) {
-            Assertions.fail("Recipe did not load from file.");
-            return null;
-        } else {
-            return loaded.get().getFirst();
-        }
-    }
-
     @Test
+    @Tag("minecraft")
     void LoadsRecipeFromJson() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("layers.json");
 
@@ -45,8 +33,9 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
+    @Tag("minecraft")
     void LoadsRecipeLayersCorrectly() {
-        MiniaturizationRecipe recipe = getRecipeFromFile("layers.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("layers.json");
         if (recipe == null) {
             Assertions.fail("No recipe was loaded.");
         } else {
@@ -73,8 +62,9 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
+    @Tag("minecraft")
     void MakesRoundTripThroughNbtCorrectly() {
-        MiniaturizationRecipe recipe = getRecipeFromFile("layers.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("layers.json");
         if (recipe == null) {
             Assertions.fail("No recipe was loaded.");
         } else {

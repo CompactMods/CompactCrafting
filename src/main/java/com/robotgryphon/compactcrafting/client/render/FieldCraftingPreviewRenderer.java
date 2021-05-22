@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.client.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;

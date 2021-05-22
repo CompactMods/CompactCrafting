@@ -225,8 +225,7 @@ publishing {
 }
 
 test {
-    useJUnitPlatform()
-    filter {
-        exclude "com/robotgryphon/compactcrafting/tests/minecraft/**"
+    useJUnitPlatform() {
+        excludeTags "minecraft"
     }
 }

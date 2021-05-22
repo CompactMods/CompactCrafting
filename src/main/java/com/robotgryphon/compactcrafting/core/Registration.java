@@ -5,7 +5,7 @@ import com.robotgryphon.compactcrafting.blocks.*;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.items.TestItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeBlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.RecipeBlockStateComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.components.SimpleRecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.data.MiniaturizationRecipeSerializer;
