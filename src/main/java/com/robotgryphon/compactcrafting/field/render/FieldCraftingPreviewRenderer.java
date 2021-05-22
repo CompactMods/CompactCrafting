@@ -1,7 +1,7 @@
-package com.robotgryphon.compactcrafting.client.render;
+package com.robotgryphon.compactcrafting.field.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.robotgryphon.compactcrafting.blocks.FieldCraftingPreviewTile;
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
@@ -38,12 +38,13 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             double craftProgress = tile.getProgress();
 
             double progress = 1.0d - (craftProgress / (double)rec.getTicks());
+            long gameTime = tile.getLevel().getGameTime();
 
-            double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f));
+            double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f));
 
             mx.scale((float) scale, (float) scale, (float) scale);
 
-            double angle = RenderTickCounter.renderTicks * (45.0f / 64.0f);
+            double angle = gameTime * (45.0f / 64.0f);
             mx.mulPose(Vector3f.YP.rotationDegrees((float) angle));
 
             AxisAlignedBB dimensions = rec.getDimensions();

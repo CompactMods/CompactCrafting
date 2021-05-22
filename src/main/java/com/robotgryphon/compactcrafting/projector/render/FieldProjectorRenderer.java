@@ -1,12 +1,15 @@
-package com.robotgryphon.compactcrafting.client.render;
+package com.robotgryphon.compactcrafting.projector.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
-import com.robotgryphon.compactcrafting.blocks.*;
-import com.robotgryphon.compactcrafting.core.Constants;
-import com.robotgryphon.compactcrafting.core.EnumProjectorColorType;
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
+import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -18,6 +21,7 @@ import net.minecraft.client.renderer.model.ModelManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.util.Direction;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
@@ -47,6 +51,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             return speed;
         }
     }
+
+    public static final ResourceLocation FIELD_DISH_RL = new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector_dish");
 
     private IBakedModel bakedModelCached;
 
@@ -91,7 +97,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
                         double progress = 1.0d - (craftProgress / (double) mainTile.getCurrentRecipe().get().getTicks());
 
-                        scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / 2000) + 1.0f) * 0.1f)));
+                        long gameTime = tile.getLevel().getGameTime();
+                        scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
                     }
 
                     matrixStack.pushPose();
@@ -115,7 +122,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                     .getModelManager();
 
 
-            bakedModelCached = models.getModel(Constants.FIELD_DISH_RL);
+            bakedModelCached = models.getModel(FIELD_DISH_RL);
         }
 
         return bakedModelCached;
@@ -235,7 +242,10 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         mx.translate(.5, 0, .5);
 
         RotationSpeed speed = RotationSpeed.SLOW;
-        double yaw = Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / speed.getSpeed()) * 10;
+
+        double gameTime = te.getLevel().getGameTime();
+
+        double yaw = Math.sin(Math.toDegrees(gameTime) / speed.getSpeed()) * 10;
         // double yaw = Math.random();
 
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
@@ -317,7 +327,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
-        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
+        double gameTime = tile.getLevel().getGameTime();
+
+        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
         Vector3d centerPos = cube.getCenter();
@@ -416,12 +428,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     private void drawScanLines(MainFieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
         IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
+        double gameTime = tile.getLevel().getGameTime();
+
         mx.pushPose();
 
         translateRendererToCube(tile, mx, cube, cubeSize);
 
         // Get the height of the scan line
-        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.getYsize());
+        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
         AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
@@ -430,111 +444,6 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         drawRing(builder, mx, scanLineMain, colorScanLine);
 
         mx.popPose();
-    }
-
-    /**
-     * @param mx
-     * @param buffer
-     * @param cube
-     * @param extraLength
-     */
-    private void renderFaces(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffer, AxisAlignedBB cube, double extraLength) {
-
-        BlockState state = tile.getBlockState();
-        Direction facing = state.getValue(FieldProjectorBlock.FACING);
-
-        try {
-            IVertexBuilder builder = buffer.getBuffer(CCRenderTypes.PROJECTION_FIELD_RENDERTYPE);
-
-            Color fieldColor = new Color(0x88FF6A00, true);
-
-            // Draw the faces
-            Vector3d start = new Vector3d(cube.minX, cube.minY, cube.minZ);
-            Vector3d end = new Vector3d(cube.maxX, cube.maxY, cube.maxZ);
-
-            Vector3f bl = new Vector3f(0, 0, 0);
-            Vector3f tr = new Vector3f(1, 1, 0);
-
-//            mx.push();
-
-//            float angle = facing.getHorizontalAngle() - 90;
-//            mx.rotate(Vector3f.YN.rotationDegrees(angle));
-//
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), bl.getY(), bl.getZ()));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), bl.getY(), tr.getZ()));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(tr.getX(), tr.getY(), tr.getZ()));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(bl.getX(), tr.getY(), bl.getZ()));
-//
-//
-//
-//            mx.pop();
-
-
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 1, .5f));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 1, .5f));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(1, 0, .5f));
-//            addColoredVertex(builder, mx, fieldColor, new Vector3f(0, 0, .5f));
-
-//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//
-//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();w
-//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//
-//            lines.pos(x1, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x1, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y2, z1).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y2, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-//            lines.pos(x2, y1, z2).color(fieldColor.getRed(), fieldColor.getGreen(), fieldColor.getBlue(), fieldColor.getAlpha()).endVertex();
-        } catch (Exception ex) {
-        }
-
-        // Render projection planes
-//        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.maxY - cube.minY);
-//        double y3 = y1 + zAngle;
-//        float cA2 = 0.105f;
-
-        // Ensure both sides of the plane are visible
-//        GlStateManager.disableCull();
-//        GL11.glDisable(GL11.GL_CULL_FACE);
-//        // north -> south
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2-(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1+(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // east -> west
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // south -> north
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2-(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1+(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // west -> east
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-
-//        GlStateManager.enableCull();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.core;
+package com.robotgryphon.compactcrafting.projector;
 
 public enum EnumProjectorColorType {
     FIELD,

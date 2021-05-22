@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.client.render;
+package com.robotgryphon.compactcrafting.projector.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;

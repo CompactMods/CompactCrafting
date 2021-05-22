@@ -1,5 +1,6 @@
-package com.robotgryphon.compactcrafting.blocks;
+package com.robotgryphon.compactcrafting.projector.tile;
 
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;

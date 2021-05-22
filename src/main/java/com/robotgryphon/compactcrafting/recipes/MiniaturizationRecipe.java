@@ -4,18 +4,18 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
+import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
-import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
@@ -57,7 +57,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             RecipeLayerType.CODEC.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
 
     private static final Codec<IRecipeComponent> COMPONENT_CODEC =
-            ComponentRegistration.RECIPE_TYPE_CODEC.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
+            RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
     public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("recipeSize").forGetter(MiniaturizationRecipe::getRecipeSize),

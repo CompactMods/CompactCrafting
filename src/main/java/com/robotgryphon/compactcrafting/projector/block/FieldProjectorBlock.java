@@ -1,7 +1,10 @@
-package com.robotgryphon.compactcrafting.blocks;
+package com.robotgryphon.compactcrafting.projector.block;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.ProjectorHelper;
+import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
+import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -28,8 +31,6 @@ import net.minecraft.world.server.ServerWorld;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.Random;
-
-import net.minecraft.block.AbstractBlock.Properties;
 
 public class FieldProjectorBlock extends Block {
 

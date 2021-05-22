@@ -1,7 +1,6 @@
 package com.robotgryphon.compactcrafting;
 
 import com.robotgryphon.compactcrafting.client.ClientSetup;
-import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.config.ClientConfig;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
@@ -38,7 +37,6 @@ public class CompactCrafting
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        forgeBus.register(RenderTickCounter.class);
         forgeBus.register(ClientSetup.class);
 
         modBus.addListener(this::setup);

@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.world;
 
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.ProjectorHelper;
+import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.NBTUtil;

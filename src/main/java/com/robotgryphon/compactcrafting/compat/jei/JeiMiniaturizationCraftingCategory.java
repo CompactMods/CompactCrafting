@@ -4,15 +4,15 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.client.render.CCRenderTypes;
-import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
-import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
+import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.ITickTimer;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -37,8 +37,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.*;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
@@ -55,6 +54,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public static final ResourceLocation UID = new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization");
     private final IDrawable icon;
     private final BlockRendererDispatcher blocks;
+
+    private ITickTimer timer;
+
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
@@ -87,6 +89,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
+
+        // 180 = approx. 9 seconds to full rotation
+        this.timer = guiHelper.createTickTimer(45, 180, false);
     }
 
     //region JEI implementation requirements
@@ -125,7 +130,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             Optional<IRecipeBlockComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
             requiredBlock.ifPresent(bs -> {
                 // TODO - Abstract this better, need to be more flexible for other component types in the future
-                if(bs instanceof BlockComponent) {
+                if (bs instanceof BlockComponent) {
                     BlockComponent bsc = (BlockComponent) bs;
                     Item bi = Item.byBlock(bsc.getBlock());
                     inputs.add(new ItemStack(bi));
@@ -211,7 +216,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int finalInputOffset = inputOffset.get();
 
                     IRecipeBlockComponent bs = recipe.getRecipeBlockComponent(component).get();
-                    if(bs instanceof BlockComponent) {
+                    if (bs instanceof BlockComponent) {
                         BlockComponent bsc = (BlockComponent) bs;
                         Item bi = Item.byBlock(bsc.getBlock());
                         guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
@@ -346,38 +351,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 (int) (background.getHeight() - slotHeight - 27)
         );
 
-        //region JEI controls
-        mx.pushPose();
-        mx.translate(0, 0, 500);
+        renderPreviewControls(mx, dims);
 
-        ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
+        renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
+    }
 
-        if (exploded) {
-            drawScaledTexture(mx, sprites, explodeToggle, 20, 0, 20, 20, 120, 20);
-        } else {
-            drawScaledTexture(mx, sprites, explodeToggle, 0, 0, 20, 20, 120, 20);
-        }
-
-        // Layer change buttons
-        if (singleLayer) {
-            drawScaledTexture(mx, sprites, layerSwap, 60, 0, 20, 20, 120, 20);
-        } else {
-            drawScaledTexture(mx, sprites, layerSwap, 40, 0, 20, 20, 120, 20);
-        }
-
-        if (singleLayer) {
-            if (singleLayerOffset < dims.getYsize() - 1)
-                drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 120, 20);
-
-            if (singleLayerOffset > 0) {
-                drawScaledTexture(mx, sprites, layerDown, 100, 0, 20, 20, 120, 20);
-            }
-        }
-
-        mx.popPose();
-
-        //endregion
-
+    private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, Rectangle scissorBounds) {
         try {
             AbstractGui.fill(
                     mx,
@@ -406,7 +385,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             mx.scale(10, -10, 10);
 
             mx.mulPose(new Quaternion(35f,
-                    -(RenderTickCounter.renderTicks),
+                    -timer.getValue(),
                     0,
                     true));
 
@@ -429,12 +408,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     -(dims.getZsize() / 2) * explodeMulti - 0.5
             );
 
-            // ZORN NO
-            //if(exploded) {
-            //    float s = 1 / (float) explodeMulti;
-            //    mx.scale(s, s, s);
-            //}
-
             for (int y : renderLayers) {
                 Optional<IRecipeLayer> layer = recipe.getLayer(y);
                 layer.ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
@@ -449,6 +422,37 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         } catch (Exception ex) {
             CompactCrafting.LOGGER.warn(ex);
         }
+    }
+
+    private void renderPreviewControls(MatrixStack mx, AxisAlignedBB dims) {
+        mx.pushPose();
+        mx.translate(0, 0, 500);
+
+        ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
+
+        if (exploded) {
+            drawScaledTexture(mx, sprites, explodeToggle, 20, 0, 20, 20, 120, 20);
+        } else {
+            drawScaledTexture(mx, sprites, explodeToggle, 0, 0, 20, 20, 120, 20);
+        }
+
+        // Layer change buttons
+        if (singleLayer) {
+            drawScaledTexture(mx, sprites, layerSwap, 60, 0, 20, 20, 120, 20);
+        } else {
+            drawScaledTexture(mx, sprites, layerSwap, 40, 0, 20, 20, 120, 20);
+        }
+
+        if (singleLayer) {
+            if (singleLayerOffset < dims.getYsize() - 1)
+                drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 120, 20);
+
+            if (singleLayerOffset > 0) {
+                drawScaledTexture(mx, sprites, layerDown, 100, 0, 20, 20, 120, 20);
+            }
+        }
+
+        mx.popPose();
     }
 
     private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {

@@ -1,8 +1,12 @@
 package com.robotgryphon.compactcrafting.core;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.*;
+import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
+import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
@@ -54,11 +58,7 @@ public class Registration {
 
     static {
         RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
-                .setName(new ResourceLocation(MOD_ID, "recipe_layers"))
-                .setType(c(RecipeLayerType.class))
                 .tagFolder("recipe_layers"));
-
-
     }
 
     // ================================================================================================================

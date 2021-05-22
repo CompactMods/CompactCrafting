@@ -118,7 +118,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     @Override
     public RecipeComponentType<?> getType() {
-        return ComponentRegistration.BLOCKSTATE_COMPONENT.get();
+        return ComponentRegistration.BLOCK_COMPONENT.get();
     }
 
     public Block getBlock() {

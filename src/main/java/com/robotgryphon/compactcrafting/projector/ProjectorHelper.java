@@ -1,6 +1,7 @@
-package com.robotgryphon.compactcrafting.field;
+package com.robotgryphon.compactcrafting.projector;
 
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;

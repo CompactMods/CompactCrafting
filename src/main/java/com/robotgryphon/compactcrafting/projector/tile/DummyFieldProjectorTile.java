@@ -1,7 +1,7 @@
-package com.robotgryphon.compactcrafting.blocks;
+package com.robotgryphon.compactcrafting.projector.tile;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.ProjectorHelper;
+import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
