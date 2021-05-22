@@ -1,22 +1,22 @@
 buildscript {
     repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://maven.minecraftforge.net' }
         jcenter()
         mavenCentral()
     }
+
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath "net.minecraftforge.gradle:ForgeGradle:4.1.12"
     }
 }
 
 plugins {
     id "idea"
+    id "eclipse"
+    id "maven-publish"
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+apply plugin: "net.minecraftforge.gradle"
 
 version = mod_version
 group = "com.robotgryphon"
@@ -42,7 +42,7 @@ minecraft {
     // Simply re-run your setup task after changing the mappings to update your workspace.
     mappings channel: 'official', version: minecraft_version
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-    
+
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     // Default run configurations.
@@ -100,19 +100,19 @@ minecraft {
 
         unitTests {
             parent runs.server // This run config inherits settings from the server config
-            workingDirectory project.file('run/server')
+            workingDirectory project.file('run/test')
             main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
             ideaModule "${project.name}.test" // Tell IDEA to use the classpath of the test module
             property 'forge.logging.console.level', 'unittest' // This logging level prevents any other server information messages and leaves only the unit test output
             environment 'MOD_CLASSES', String.join(File.pathSeparator,
                     "${mod_id}%%${sourceSets.main.output.resourcesDir}",
-                    "${mod_id}%%${sourceSets.main.output.classesDir}",
+                    "${mod_id}%%${sourceSets.main.output.classesDirs[0]}",
                     "${mod_id}%%${sourceSets.test.output.resourcesDir}",
-                    "${mod_id}%%${sourceSets.test.output.classesDir}",
+                    "${mod_id}%%${sourceSets.test.output.classesDirs[0]}",
             ) // Forge will ignore all test sources unless we explicitly tell it to include them as mod sources
             environment 'target', 'fmltestserver' // This is a custom service used to launch with ModLauncher's transforming class loader
             mods {
-                compactcrafting { // The mod that is being tested - Replace this with your mod ID!
+                examplemod { // The mod that is being tested - Replace this with your mod ID!
                     sources sourceSets.main
                 }
             }
@@ -197,8 +197,17 @@ jar {
     }
 }
 
+task apiJar(type: Jar) {
+    // Sources included because of MinecraftForge/ForgeGradle#369
+    from(sourceSets.main.allJava)
+    from(sourceSets.main.output)
+    include 'com/robotgryphon/compactcrafting/api/**'
+    archiveClassifier = 'api'
+    destinationDirectory = file("$rootDir/build-out")
+}
+
 artifacts {
-    archives jar
+    archives jar, apiJar
 }
 
 publishing {
@@ -207,6 +216,9 @@ publishing {
             artifactId = mod_id
             artifacts {
                 artifact jar
+                artifact(apiJar) {
+                    classifier = "api"
+                }
             }
         }
     }

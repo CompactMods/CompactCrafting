@@ -8,9 +8,9 @@ import com.robotgryphon.compactcrafting.client.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.recipes.components.impl.BlockStateComponent;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -125,8 +125,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             Optional<IRecipeBlockComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
             requiredBlock.ifPresent(bs -> {
                 // TODO - Abstract this better, need to be more flexible for other component types in the future
-                if(bs instanceof BlockStateComponent) {
-                    BlockStateComponent bsc = (BlockStateComponent) bs;
+                if(bs instanceof BlockComponent) {
+                    BlockComponent bsc = (BlockComponent) bs;
                     Item bi = Item.byBlock(bsc.getBlock());
                     inputs.add(new ItemStack(bi));
                 }
@@ -211,8 +211,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int finalInputOffset = inputOffset.get();
 
                     IRecipeBlockComponent bs = recipe.getRecipeBlockComponent(component).get();
-                    if(bs instanceof BlockStateComponent) {
-                        BlockStateComponent bsc = (BlockStateComponent) bs;
+                    if(bs instanceof BlockComponent) {
+                        BlockComponent bsc = (BlockComponent) bs;
                         Item bi = Item.byBlock(bsc.getBlock());
                         guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
 

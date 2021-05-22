@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.api.layers;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;

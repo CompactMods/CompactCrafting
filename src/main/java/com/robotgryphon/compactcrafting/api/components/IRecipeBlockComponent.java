@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.components;
+package com.robotgryphon.compactcrafting.api.components;
 
 import net.minecraft.block.BlockState;
 

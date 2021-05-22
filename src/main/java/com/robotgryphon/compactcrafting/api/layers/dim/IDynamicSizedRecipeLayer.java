@@ -1,8 +1,8 @@
-package com.robotgryphon.compactcrafting.recipes.layers.dim;
+package com.robotgryphon.compactcrafting.api.layers.dim;
 
 import net.minecraft.util.math.AxisAlignedBB;
 
-public interface IDynamicRecipeLayer {
+public interface IDynamicSizedRecipeLayer {
     /**
      * Used to update a recipe layer to change the size of the recipe base.
      * @param dimensions The new dimensions of the recipe.

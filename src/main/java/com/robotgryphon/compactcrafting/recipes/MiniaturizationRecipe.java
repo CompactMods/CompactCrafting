@@ -4,17 +4,18 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.core.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
-import com.robotgryphon.compactcrafting.recipes.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.recipes.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentType;
+import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
+import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.recipes.layers.dim.IDynamicRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
@@ -56,7 +57,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             RecipeLayerType.CODEC.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
 
     private static final Codec<IRecipeComponent> COMPONENT_CODEC =
-            RecipeComponentType.CODEC.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
+            ComponentRegistration.RECIPE_TYPE_CODEC.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
     public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.INT.fieldOf("recipeSize").forGetter(MiniaturizationRecipe::getRecipeSize),
@@ -135,7 +136,7 @@ public class MiniaturizationRecipe extends RecipeBase {
         int x = 0;
         int z = 0;
 
-        boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IRigidRecipeLayer);
+        boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
         if (!hasAnyRigidLayers) {
             try {
                 setFluidDimensions(new AxisAlignedBB(0, 0, 0, minRecipeDimensions, height, minRecipeDimensions));
@@ -145,8 +146,8 @@ public class MiniaturizationRecipe extends RecipeBase {
         } else {
             for (IRecipeLayer l : this.layers.values()) {
                 // We only need to worry about fixed-dimension layers; the fluid layers will adapt
-                if (l instanceof IRigidRecipeLayer) {
-                    AxisAlignedBB dimensions = ((IRigidRecipeLayer) l).getDimensions();
+                if (l instanceof IFixedSizedRecipeLayer) {
+                    AxisAlignedBB dimensions = ((IFixedSizedRecipeLayer) l).getDimensions();
                     if (dimensions.getXsize() > x)
                         x = (int) Math.ceil(dimensions.getXsize());
 
@@ -165,8 +166,8 @@ public class MiniaturizationRecipe extends RecipeBase {
         // Update all the dynamic recipe layers
         this.layers.values()
                 .stream()
-                .filter(l -> l instanceof IDynamicRecipeLayer)
-                .forEach(dl -> ((IDynamicRecipeLayer) dl).setRecipeDimensions(dimensions));
+                .filter(l -> l instanceof IDynamicSizedRecipeLayer)
+                .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(dimensions));
     }
 
     /**
@@ -397,7 +398,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public void setFluidDimensions(AxisAlignedBB dimensions) throws MiniaturizationRecipeException {
-        boolean hasRigidLayer = this.layers.values().stream().anyMatch(layer -> layer instanceof IRigidRecipeLayer);
+        boolean hasRigidLayer = this.layers.values().stream().anyMatch(layer -> layer instanceof IFixedSizedRecipeLayer);
         if (!hasRigidLayer) {
             this.dimensions = dimensions;
             updateFluidLayerDimensions();

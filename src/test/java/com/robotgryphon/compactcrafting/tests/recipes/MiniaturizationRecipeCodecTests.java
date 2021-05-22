@@ -5,7 +5,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;
 import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.nbt.INBT;

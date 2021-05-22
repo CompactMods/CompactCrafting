@@ -1,12 +1,11 @@
-package com.robotgryphon.compactcrafting.recipes.layers.impl;
+package com.robotgryphon.compactcrafting.recipes.layers;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
+import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.core.Registration;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerComponentPositionLookup;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.recipes.layers.dim.IRigidRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -15,7 +14,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 
-public class MixedComponentRecipeLayer implements IRecipeLayer, IRigidRecipeLayer {
+public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer {
     private AxisAlignedBB dimensions;
     private RecipeLayerComponentPositionLookup componentLookup;
 

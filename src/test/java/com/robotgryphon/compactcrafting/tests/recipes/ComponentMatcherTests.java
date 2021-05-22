@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.tests.recipes;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.components.impl.BlockStateComponent;
+import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
 import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -26,10 +26,10 @@ public class ComponentMatcherTests {
     void CanMatchBlock() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
 
-        BlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
+        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
-                    BlockStateComponent matcher = res.getFirst();
+                    BlockComponent matcher = res.getFirst();
 
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
                             .getStateDefinition()
@@ -63,10 +63,10 @@ public class ComponentMatcherTests {
     void CanMatchBlockNoProperties() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_no_properties.json");
 
-        BlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
+        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
-                    BlockStateComponent matcher = res.getFirst();
+                    BlockComponent matcher = res.getFirst();
 
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
                             .getStateDefinition()
@@ -94,12 +94,12 @@ public class ComponentMatcherTests {
     void CanReserializeComponentMatcher() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("block_properties.json");
 
-        BlockStateComponent.CODEC.decode(JsonOps.INSTANCE, json)
+        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
                 .ifPresent(res -> {
-                    BlockStateComponent matcher = res.getFirst();
+                    BlockComponent matcher = res.getFirst();
 
-                    BlockStateComponent.CODEC
+                    BlockComponent.CODEC
                             .encodeStart(JsonOps.INSTANCE, matcher)
                             .resultOrPartial(Assertions::fail)
                             .ifPresent(jsonE -> {

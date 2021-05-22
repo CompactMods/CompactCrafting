@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.data;
+package com.robotgryphon.compactcrafting.recipes;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;

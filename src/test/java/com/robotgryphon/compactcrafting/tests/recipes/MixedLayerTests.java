@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.tests.recipes;
 
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;

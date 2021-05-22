@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes.layers;
+package com.robotgryphon.compactcrafting.api.layers;
 
 import net.minecraft.util.math.BlockPos;
 
