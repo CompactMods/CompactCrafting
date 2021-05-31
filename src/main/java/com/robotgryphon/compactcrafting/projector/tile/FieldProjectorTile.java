@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
-import com.robotgryphon.compactcrafting.config.ClientConfig;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.client.ClientConfig;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;

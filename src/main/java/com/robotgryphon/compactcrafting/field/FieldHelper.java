@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;

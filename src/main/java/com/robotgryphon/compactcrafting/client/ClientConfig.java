@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.config;
+package com.robotgryphon.compactcrafting.client;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraftforge.common.ForgeConfigSpec;

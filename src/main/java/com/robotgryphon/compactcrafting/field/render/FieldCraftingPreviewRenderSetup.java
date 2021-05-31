@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.field.render;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;

@@ -57,4 +57,5 @@ public enum FieldProjectionSize {
     public static FieldProjectionSize maximum() {
         return LARGE;
     }
+
 }

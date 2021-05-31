@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting.field.tile;
 
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;

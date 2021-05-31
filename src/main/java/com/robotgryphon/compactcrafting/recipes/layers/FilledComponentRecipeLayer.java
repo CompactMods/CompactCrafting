@@ -2,8 +2,9 @@ package com.robotgryphon.compactcrafting.recipes.layers;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -73,6 +74,18 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public int getNumberFilledPositions() {
         return (int) Math.ceil(recipeDimensions.getXsize() * recipeDimensions.getZsize());
+    }
+
+    @Override
+    public boolean matches(IRecipeLayerBlocks blocks) {
+        Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
+        if(totalsInWorld.size() != 1)
+            return false;
+
+        if(!totalsInWorld.containsKey(this.componentKey))
+            return false;
+
+        return this.getNumberFilledPositions() == totalsInWorld.get(componentKey);
     }
 
     public RecipeLayerType<?> getType() {

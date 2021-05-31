@@ -5,7 +5,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MutableBoundingBox;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IWorldReader;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,19 +14,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class BlockSpaceUtil {
-
-    public static BlockPos[] getFilledBlocksByLayer(IWorldReader world, AxisAlignedBB fieldFilledBounds, int layer) {
-        // Outside of field bounds, ignore
-        if(layer < 0 || layer > fieldFilledBounds.maxY)
-            return new BlockPos[0];
-
-        AxisAlignedBB layerFilledBounds = getLayerBoundsByYOffset(fieldFilledBounds, layer);
-       return BlockPos.betweenClosedStream(layerFilledBounds)
-                .filter(pos -> pos.getY() == layerFilledBounds.minY)
-                .filter(pos -> !world.isEmptyBlock(pos))
-                .map(BlockPos::immutable)
-                .toArray(BlockPos[]::new);
-    }
 
     public static AxisAlignedBB getLayerBoundsByYOffset(AxisAlignedBB fullBounds, int yOffset) {
         return new AxisAlignedBB(

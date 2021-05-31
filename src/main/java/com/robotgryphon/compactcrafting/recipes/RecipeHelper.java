@@ -52,16 +52,4 @@ public abstract class RecipeHelper {
         return map;
     }
 
-    public static Map<String, Integer> getComponentCounts(Map<BlockPos, String> map) {
-        Map<String, Integer> counts = new HashMap<>();
-
-        map.forEach((key, value) -> {
-            counts.putIfAbsent(value, 0);
-            int prev = counts.get(value);
-            counts.replace(value, prev + 1);
-        });
-
-        return counts;
-    }
-
 }

@@ -1,19 +1,18 @@
-package com.robotgryphon.compactcrafting.core;
+package com.robotgryphon.compactcrafting;
 
-import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
-import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.layers.FilledComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.HollowComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -133,12 +132,6 @@ public class Registration {
     public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", () -> new SimpleRecipeLayerType<>(MixedComponentRecipeLayer.CODEC));
 
-
-
-    // ================================================================================================================
-    //   INITIALIZATION
-    // ================================================================================================================
-    private static <T> Class<T> c(Class<?> cls) { return (Class<T>)cls; }
 
     public static void init() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();

@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.ui.gui;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.ui.container.TestContainer;
 import com.robotgryphon.compactcrafting.ui.widget.ContainerWidgetScreen;
 import com.robotgryphon.compactcrafting.ui.widget.IWidgetScreen;

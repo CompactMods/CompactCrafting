@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.recipes;
+package com.robotgryphon.compactcrafting.recipes.setup;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.IInventory;

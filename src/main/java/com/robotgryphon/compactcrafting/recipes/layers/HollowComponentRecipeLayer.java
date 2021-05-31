@@ -3,9 +3,10 @@ package com.robotgryphon.compactcrafting.recipes.layers;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -59,6 +60,11 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public int getNumberFilledPositions() {
         return filledPositions.size();
+    }
+
+    @Override
+    public boolean matches(IRecipeLayerBlocks blocks) {
+        return false;
     }
 
     public void setComponent(String component) {

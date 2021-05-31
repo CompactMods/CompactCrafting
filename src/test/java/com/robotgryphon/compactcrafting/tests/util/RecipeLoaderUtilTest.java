@@ -16,15 +16,6 @@ class RecipeLoaderUtilTest {
         Map<BlockPos, String> map = RecipeHelper.convertMultiArrayToMap(array);
     }
 
-    @Test
-    void convertsMapToComponentCounts() {
-        String[][] array = getTargetArray();
-
-        Map<BlockPos, String> map = RecipeHelper.convertMultiArrayToMap(array);
-
-        RecipeHelper.getComponentCounts(map);
-    }
-
     // =========================================================================================================
     // =                                                                                                       =
     // =========================================================================================================

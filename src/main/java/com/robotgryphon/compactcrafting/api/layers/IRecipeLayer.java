@@ -38,5 +38,7 @@ public interface IRecipeLayer {
 
     int getNumberFilledPositions();
 
+    boolean matches(IRecipeLayerBlocks blocks);
+
     RecipeLayerType<?> getType();
 }

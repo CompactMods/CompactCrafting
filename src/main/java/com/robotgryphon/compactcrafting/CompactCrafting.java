@@ -1,8 +1,7 @@
 package com.robotgryphon.compactcrafting;
 
 import com.robotgryphon.compactcrafting.client.ClientSetup;
-import com.robotgryphon.compactcrafting.config.ClientConfig;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
 import com.robotgryphon.compactcrafting.ui.container.ContainerRegistration;
