@@ -22,7 +22,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.ToolType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -33,8 +32,6 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
-
-import java.util.function.Supplier;
 
 import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 
@@ -63,16 +60,6 @@ public class Registration {
     // ================================================================================================================
     //   PROPERTIES
     // ================================================================================================================
-    private static AbstractBlock.Properties MACHINE_BLOCK_PROPS = AbstractBlock.Properties
-            .of(Material.METAL)
-            .strength(8.0F, 20.0F)
-            .lightLevel(state -> 1)
-            .harvestLevel(1)
-            .harvestTool(ToolType.PICKAXE)
-            .requiresCorrectToolForDrops();
-
-    private static Supplier<Item.Properties> BASIC_ITEM_PROPS = () -> new Item.Properties()
-            .tab(CompactCrafting.ITEM_GROUP);
 
     // ================================================================================================================
     //   BLOCKS

@@ -9,7 +9,7 @@ import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
+import com.robotgryphon.compactcrafting.recipes.components.BlockComponent;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.ITickTimer;
@@ -33,6 +33,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -132,8 +133,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 // TODO - Abstract this better, need to be more flexible for other component types in the future
                 if (bs instanceof BlockComponent) {
                     BlockComponent bsc = (BlockComponent) bs;
-                    Item bi = Item.byBlock(bsc.getBlock());
-                    inputs.add(new ItemStack(bi));
+                    Item bi = bsc.getBlock().asItem();
+                    if(bi != Items.AIR)
+                        inputs.add(new ItemStack(bi));
                 }
             });
         }
@@ -218,10 +220,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     IRecipeBlockComponent bs = recipe.getRecipeBlockComponent(component).get();
                     if (bs instanceof BlockComponent) {
                         BlockComponent bsc = (BlockComponent) bs;
-                        Item bi = Item.byBlock(bsc.getBlock());
-                        guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
-
-                        inputOffset.getAndIncrement();
+                        Item bi = bsc.getBlock().asItem();
+                        if(bi != Items.AIR) {
+                            guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
+                            inputOffset.getAndIncrement();
+                        }
                     }
                 });
     }

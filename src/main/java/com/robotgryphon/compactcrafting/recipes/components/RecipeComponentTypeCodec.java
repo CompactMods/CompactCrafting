@@ -9,25 +9,30 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
-public class RecipeComponentTypeCodec implements Codec<RecipeComponentType<?>> {
+public final class RecipeComponentTypeCodec implements Codec<RecipeComponentType<?>> {
     // Lifted and modified from a Forge PR #7668, temporary until Forge itself supports the Codec interface
 
     public static final RecipeComponentTypeCodec INSTANCE = new RecipeComponentTypeCodec();
 
-    private RecipeComponentTypeCodec() {}
+    private RecipeComponentTypeCodec() {
+    }
 
     @Override
     public <T> DataResult<Pair<RecipeComponentType<?>, T>> decode(DynamicOps<T> ops, T input) {
         IForgeRegistry<RecipeComponentType<?>> reg = RegistryManager.ACTIVE.getRegistry(ComponentRegistration.RECIPE_COMPONENTS_ID);
-        return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !reg.containsKey(keyValuePair.getFirst()) ?
-                DataResult.error("Unknown registry key: " + keyValuePair.getFirst()) :
-                DataResult.success(keyValuePair.mapFirst(reg::getValue)));
+        return ResourceLocation.CODEC.decode(ops, input).flatMap(rl -> {
+            ResourceLocation resource = rl.getFirst();
+            if (reg.containsKey(resource))
+                return DataResult.success(rl.mapFirst(reg::getValue));
+
+            return DataResult.error("Unknown registry key: " + rl.getFirst());
+        });
     }
 
     @Override
     public <T> DataResult<T> encode(RecipeComponentType<?> input, DynamicOps<T> ops, T prefix) {
         ResourceLocation key = input.getRegistryName();
-        if(key == null)
+        if (key == null)
             return DataResult.error("Unknown registry element " + input);
 
         T toMerge = ops.createString(key.toString());

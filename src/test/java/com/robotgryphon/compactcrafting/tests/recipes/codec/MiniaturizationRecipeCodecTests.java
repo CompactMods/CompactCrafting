@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.tests.recipes;
+package com.robotgryphon.compactcrafting.tests.recipes.codec;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;

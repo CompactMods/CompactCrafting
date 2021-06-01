@@ -2,8 +2,6 @@ package com.robotgryphon.compactcrafting.recipes.components;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
-import com.robotgryphon.compactcrafting.recipes.components.impl.BlockComponent;
-import com.robotgryphon.compactcrafting.recipes.components.impl.EmptyBlockComponent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;

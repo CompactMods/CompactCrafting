@@ -25,12 +25,7 @@ public class CompactCrafting
 
     public static final String MOD_ID = "compactcrafting";
 
-    public static ItemGroup ITEM_GROUP = new ItemGroup(MOD_ID) {
-        @Override
-        public ItemStack makeIcon() {
-            return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
-        }
-    };
+    public static final ItemGroup ITEM_GROUP = new CCItemGroup();
 
     public CompactCrafting() {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
@@ -51,5 +46,16 @@ public class CompactCrafting
     private void setup(final FMLCommonSetupEvent event)
     {
         NetworkHandler.initialize();
+    }
+
+    public static class CCItemGroup extends ItemGroup {
+        public CCItemGroup() {
+            super(CompactCrafting.MOD_ID);
+        }
+
+        @Override
+        public ItemStack makeIcon() {
+            return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
+        }
     }
 }
