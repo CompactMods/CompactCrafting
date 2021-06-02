@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
@@ -10,10 +11,7 @@ import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
@@ -31,6 +29,11 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public String getComponent() {
         return this.componentKey;
+    }
+
+    @Override
+    public Set<String> getRequiredComponents() {
+        return ImmutableSet.of(componentKey);
     }
 
     public Map<String, Integer> getComponentTotals() {

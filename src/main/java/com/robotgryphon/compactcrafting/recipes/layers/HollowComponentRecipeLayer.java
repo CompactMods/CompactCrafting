@@ -1,12 +1,13 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.Registration;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -30,6 +31,11 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     @Override
     public RecipeLayerType<?> getType() {
         return Registration.HOLLOW_LAYER_TYPE.get();
+    }
+
+    @Override
+    public Set<String> getRequiredComponents() {
+        return ImmutableSet.of(componentKey);
     }
 
     public Map<String, Integer> getComponentTotals() {

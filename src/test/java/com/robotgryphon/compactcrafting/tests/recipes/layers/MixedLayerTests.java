@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.tests.recipes;
+package com.robotgryphon.compactcrafting.tests.recipes.layers;
 
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;

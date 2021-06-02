@@ -15,6 +15,7 @@ import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.recipes.components.EmptyBlockComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerBlocks;
@@ -89,7 +90,6 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     private void applyComponents(Map<String, IRecipeComponent> compMap) {
-        final Map<String, IRecipeBlockComponent> blockComponents;
         this.blockComponents = new HashMap<>();
         this.otherComponents = new HashMap<>();
         for (Map.Entry<String, IRecipeComponent> comp : compMap.entrySet()) {
@@ -100,6 +100,25 @@ public class MiniaturizationRecipe extends RecipeBase {
             }
 
             this.otherComponents.put(comp.getKey(), comp.getValue());
+        }
+
+        // Loop through layers, remap unknown components and warn
+        for(IRecipeLayer layer : this.layers.values()) {
+            Set<String> layerComponents = layer.getRequiredComponents();
+
+            // Skip empty/malformed layer component requirements
+            if(layerComponents == null || layerComponents.isEmpty())
+                continue;
+
+            for(String comp : layerComponents) {
+                if(!blockComponents.containsKey(comp)) {
+                    CompactCrafting.LOGGER.warn(
+                            "Warning: Unmapped component found in recipe {}; component '{}' being remapped to an empty block component.",
+                            this.id, comp);
+
+                    this.blockComponents.put(comp, new EmptyBlockComponent());
+                }
+            }
         }
     }
 
