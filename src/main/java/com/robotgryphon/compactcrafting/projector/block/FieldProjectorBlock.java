@@ -80,13 +80,8 @@ public class FieldProjectorBlock extends Block {
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
-        BlockState base = super.getStateForPlacement(context);
-
-        Direction looking = context.getNearestLookingDirection();
-        if(!looking.getAxis().isHorizontal())
-            looking = Direction.NORTH;
-
-        return base.setValue(FACING, looking);
+        Direction looking = context.getHorizontalDirection();
+        return defaultBlockState().setValue(FACING, looking);
     }
 
     @Override
