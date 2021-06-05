@@ -1,10 +1,9 @@
 package com.robotgryphon.compactcrafting.field.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -66,14 +65,16 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
                     BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
                         mx.pushPose();
                         mx.translate(filledPos.getX(), 0, filledPos.getZ());
-                        Optional<String> component = l.getComponentForPosition(filledPos);
-                        Optional<IRecipeBlockComponent> recipeComponent = rec.getRecipeBlockComponent(component.get());
 
-                        recipeComponent.ifPresent(comp -> {
-                            // TODO - Render switching
-                            BlockState state1 = comp.getRenderState();
-                            blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
-                        });
+                        BlockPos zeroedPos = filledPos.below(finalY);
+                        l.getComponentForPosition(zeroedPos)
+                            .flatMap(rec::getRecipeBlockComponent)
+                            .ifPresent(comp -> {
+                                // TODO - Render switching
+                                BlockState state1 = comp.getRenderState();
+                                blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
+                            });
+
                         mx.popPose();
                     });
                 });
