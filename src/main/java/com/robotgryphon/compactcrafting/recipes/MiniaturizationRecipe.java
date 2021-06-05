@@ -19,6 +19,7 @@ import com.robotgryphon.compactcrafting.recipes.components.EmptyBlockComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerBlocks;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
@@ -63,7 +64,7 @@ public class MiniaturizationRecipe extends RecipeBase {
     private Map<String, IRecipeComponent> otherComponents;
 
     private static final Codec<IRecipeLayer> LAYER_CODEC =
-            RecipeLayerType.CODEC.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
+            RecipeLayerTypeCodec.INSTANCE.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
 
     private static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
