@@ -1,27 +1,21 @@
 package com.robotgryphon.compactcrafting.field;
 
-import com.robotgryphon.compactcrafting.recipes.RecipeHelper;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
-import java.util.stream.Stream;
-
 public class MiniaturizationFieldBlockData {
 
-    private AxisAlignedBB fieldBounds;
     private AxisAlignedBB filledBounds;
 
     private BlockPos[] filledPositions;
-    private BlockPos[] relativeFilledPositions;
 
-    private MiniaturizationFieldBlockData(AxisAlignedBB fieldBounds) {
-        this.fieldBounds = fieldBounds;
+    private MiniaturizationFieldBlockData() {
     }
 
     public static MiniaturizationFieldBlockData getFromField(IWorldReader world, AxisAlignedBB field) {
-        MiniaturizationFieldBlockData fb = new MiniaturizationFieldBlockData(field);
+        MiniaturizationFieldBlockData fb = new MiniaturizationFieldBlockData();
 
         BlockPos[] nonAirPositions = BlockPos.betweenClosedStream(field)
                 .filter(p -> !world.isEmptyBlock(p))
@@ -31,8 +25,6 @@ public class MiniaturizationFieldBlockData {
         fb.filledPositions = nonAirPositions;
 
         fb.filledBounds = BlockSpaceUtil.getBoundsForBlocks(nonAirPositions);
-
-        fb.relativeFilledPositions = RecipeHelper.normalizeFieldPositions(fb);
 
         return fb;
     }
@@ -45,11 +37,4 @@ public class MiniaturizationFieldBlockData {
         return filledPositions.length;
     }
 
-    public BlockPos[] getFilledBlocks() {
-        return this.filledPositions;
-    }
-
-    public Stream<BlockPos> getRelativeFilledBlocks() {
-        return Stream.of(relativeFilledPositions);
-    }
 }

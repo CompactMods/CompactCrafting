@@ -1,9 +1,8 @@
 package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.core.BlockUpdateType;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -20,7 +19,7 @@ import java.util.Optional;
  * Provides utilities to help with projector field management.
  */
 public abstract class FieldHelper {
-    public static void checkBlockPlacement(IWorld world, BlockPos pos, BlockUpdateType type) {
+    public static void checkBlockPlacement(IWorld world, BlockPos pos) {
         // We don't care about client worlds RN
         if(world.isClientSide())
             return;

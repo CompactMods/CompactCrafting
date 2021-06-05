@@ -1,6 +1,5 @@
 package com.robotgryphon.compactcrafting.recipes.setup;
 
-import com.robotgryphon.compactcrafting.recipes.FakeInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.ResourceLocation;

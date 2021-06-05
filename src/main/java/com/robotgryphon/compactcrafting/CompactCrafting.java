@@ -1,10 +1,10 @@
 package com.robotgryphon.compactcrafting;
 
 import com.robotgryphon.compactcrafting.client.ClientSetup;
-import com.robotgryphon.compactcrafting.client.render.RenderTickCounter;
-import com.robotgryphon.compactcrafting.config.ClientConfig;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
+import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
+import com.robotgryphon.compactcrafting.ui.container.ContainerRegistration;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
@@ -25,18 +25,12 @@ public class CompactCrafting
 
     public static final String MOD_ID = "compactcrafting";
 
-    public static ItemGroup ITEM_GROUP = new ItemGroup(MOD_ID) {
-        @Override
-        public ItemStack makeIcon() {
-            return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
-        }
-    };
+    public static final ItemGroup ITEM_GROUP = new CCItemGroup();
 
     public CompactCrafting() {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        forgeBus.register(RenderTickCounter.class);
         forgeBus.register(ClientSetup.class);
 
         modBus.addListener(this::setup);
@@ -45,10 +39,23 @@ public class CompactCrafting
         mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
 
         Registration.init();
+        ComponentRegistration.init(modBus);
+        ContainerRegistration.init(modBus);
     }
 
     private void setup(final FMLCommonSetupEvent event)
     {
         NetworkHandler.initialize();
+    }
+
+    public static class CCItemGroup extends ItemGroup {
+        public CCItemGroup() {
+            super(CompactCrafting.MOD_ID);
+        }
+
+        @Override
+        public ItemStack makeIcon() {
+            return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
+        }
     }
 }

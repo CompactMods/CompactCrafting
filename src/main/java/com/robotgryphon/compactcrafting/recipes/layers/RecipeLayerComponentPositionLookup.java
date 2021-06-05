@@ -30,10 +30,10 @@ public class RecipeLayerComponentPositionLookup {
 
                 String[][] mappedToArray = new String[zSize][];
 
-                for(int z = 0; z < zSize; z++) {
+                for (int z = 0; z < zSize; z++) {
                     List<String> layerComponents = layerList.get(z);
                     String[] xValues = new String[layerComponents.size()];
-                    for(int x = 0; x < layerComponents.size(); x++) {
+                    for (int x = 0; x < layerComponents.size(); x++) {
                         xValues[x] = layerComponents.get(x);
                     }
 
@@ -51,7 +51,7 @@ public class RecipeLayerComponentPositionLookup {
             AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(value.getAllPositions());
 
             HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXsize());
-            for(int x = 0; x < boundsForBlocks.getXsize(); x++)
+            for (int x = 0; x < boundsForBlocks.getXsize(); x++)
                 revMap.putIfAbsent(x, new ArrayList<>());
 
             value.components.forEach((pos, comp) -> {
@@ -97,13 +97,13 @@ public class RecipeLayerComponentPositionLookup {
     }
 
     public Map<String, Integer> getComponentTotals() {
-        if(this.totalCache != null)
+        if (this.totalCache != null)
             return this.totalCache;
 
         Map<String, Integer> totals = new HashMap<>();
         components.forEach((pos, comp) -> {
             int prev = 0;
-            if(!totals.containsKey(comp))
+            if (!totals.containsKey(comp))
                 totals.put(comp, 0);
             else
                 prev = totals.get(comp);
@@ -117,10 +117,7 @@ public class RecipeLayerComponentPositionLookup {
     }
 
     public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
-        if(components.containsKey(pos))
-            return Optional.ofNullable(components.get(pos));
-
-        return Optional.empty();
+        return Optional.ofNullable(components.get(pos));
     }
 
     /**
@@ -130,7 +127,7 @@ public class RecipeLayerComponentPositionLookup {
      * @return
      */
     public Collection<BlockPos> getPositionsForComponent(String component) {
-        if(component == null)
+        if (component == null)
             return Collections.emptySet();
 
         return components.entrySet()

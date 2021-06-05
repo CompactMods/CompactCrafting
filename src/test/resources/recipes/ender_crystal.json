@@ -1,0 +1,56 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "version": 1,
+  "recipeSize": 5,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "G"
+    },
+    {
+      "type": "compactcrafting:hollow",
+      "wall": "G"
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["G", "G", "G", "G", "G"],
+        ["G", "-", "-", "-", "G"],
+        ["G", "-", "O", "-", "G"],
+        ["G", "-", "-", "-", "G"],
+        ["G", "G", "G", "G", "G"]
+      ]
+    },
+    {
+      "type": "compactcrafting:hollow",
+      "wall": "G"
+    },
+    {
+      "type": "compactcrafting:filled",
+      "component": "G"
+    }
+  ],
+
+  "catalyst": {
+    "id": "minecraft:ender_pearl",
+    "Count": 1
+  },
+
+  "components": {
+    "G": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    },
+    "O": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:obsidian"
+    }
+  },
+
+  "outputs": [
+    {
+      "id": "minecraft:end_crystal",
+      "Count": 4
+    }
+  ]
+}

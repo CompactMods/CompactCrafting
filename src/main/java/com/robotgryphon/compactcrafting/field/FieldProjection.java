@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.field;
 
-import com.robotgryphon.compactcrafting.blocks.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.block.Blocks;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;

@@ -1,6 +1,8 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
 import com.mojang.serialization.Codec;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public class SimpleRecipeLayerType<T extends IRecipeLayer>

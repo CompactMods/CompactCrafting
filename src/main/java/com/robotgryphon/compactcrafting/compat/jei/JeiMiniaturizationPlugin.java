@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.core.Registration;
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
