@@ -29,7 +29,7 @@ public class MixedLayerTests {
                     Assertions.assertNotNull(layer);
                     int filled = layer.getNumberFilledPositions();
 
-                    Assertions.assertEquals(17, filled);
+                    Assertions.assertEquals(25, filled);
                 });
     }
 
