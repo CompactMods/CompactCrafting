@@ -3,16 +3,18 @@ package com.robotgryphon.compactcrafting.recipes.layers;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
-import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
+import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
+import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
 
@@ -32,7 +34,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     @Override
-    public Set<String> getRequiredComponents() {
+    public Set<String> getComponents() {
         return ImmutableSet.of(componentKey);
     }
 
@@ -40,39 +42,11 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
-        return Optional.ofNullable(componentKey);
-    }
+    public Optional<String> getComponentForPosition(BlockPos pos) {
+        if(recipeDimensions.contains(pos.getX(), pos.getY(), pos.getZ()))
+            return Optional.ofNullable(componentKey);
 
-    /**
-     * Get a collection of positions that are filled by a given component.
-     *
-     * @param component
-     * @return
-     */
-    public Collection<BlockPos> getPositionsForComponent(String component) {
-        if (component == this.componentKey)
-            return getFilledPositions();
-
-        return Collections.emptySet();
-    }
-
-    /**
-     * Gets a set of non-air positions that are required for the layer to match.
-     * This is expected to trim the air positions off the edges and return the positions with NW
-     * in the 0, 0 position.
-     *
-     * @return
-     */
-    public Collection<BlockPos> getFilledPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXsize() - 1, 1, recipeDimensions.getZsize() - 1);
-        return BlockPos.betweenClosedStream(layerBounds)
-                .map(BlockPos::immutable)
-                .collect(Collectors.toSet());
-    }
-
-    public boolean isPositionFilled(BlockPos pos) {
-        return true;
+        return Optional.empty();
     }
 
     public int getNumberFilledPositions() {

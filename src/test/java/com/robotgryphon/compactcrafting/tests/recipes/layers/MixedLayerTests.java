@@ -1,8 +1,13 @@
 package com.robotgryphon.compactcrafting.tests.recipes.layers;
 
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;
+import com.robotgryphon.compactcrafting.tests.util.FileHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -12,6 +17,21 @@ import java.util.Optional;
 import java.util.Set;
 
 public class MixedLayerTests {
+
+    @Test
+    @Tag("minecraft")
+    void CanCreateLayerInstance() {
+        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile("layers/mixed/mixed.json");
+
+        DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
+        parsed.resultOrPartial(Assertions::fail)
+                .ifPresent(layer -> {
+                    Assertions.assertNotNull(layer);
+                    int filled = layer.getNumberFilledPositions();
+
+                    Assertions.assertEquals(17, filled);
+                });
+    }
 
     @Test
     @Tag("minecraft")

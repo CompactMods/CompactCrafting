@@ -20,17 +20,16 @@ import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCo
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerTypeCodec;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerUtil;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 
@@ -105,7 +104,7 @@ public class MiniaturizationRecipe extends RecipeBase {
 
         // Loop through layers, remap unknown components and warn
         for(IRecipeLayer layer : this.layers.values()) {
-            Set<String> layerComponents = layer.getRequiredComponents();
+            Set<String> layerComponents = layer.getComponents();
 
             // Skip empty/malformed layer component requirements
             if(layerComponents == null || layerComponents.isEmpty())
@@ -244,7 +243,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             IRecipeLayerBlocks blocks = RecipeLayerBlocks.create(world, this, bounds);
 
             if(rot != Rotation.NONE)
-                blocks = blocks.rotate(rot);
+                blocks = RecipeLayerUtil.rotate(blocks, rot);
 
             IRecipeLayer targetLayer = layer.get();
 
@@ -252,34 +251,6 @@ public class MiniaturizationRecipe extends RecipeBase {
 
             if(!layerMatched)
                 return false;
-
-            // TODO - Impl
-            // Check that the rotated positions are correct
-//            boolean layerMatches = areLayerPositionsCorrect(layer.get(), filledBounds, layerRotated.values().toArray(new BlockPos[0]));
-//            if (!layerMatches)
-//                return false;
-//
-//            // Check the states are correct
-//            for (BlockPos unrotatedPos : layerFilled) {
-//                BlockPos rotatedPos = layerRotated.get(unrotatedPos);
-//                BlockPos normalizedRotatedPos = BlockSpaceUtil.normalizeLayerPosition(filledBounds, rotatedPos).below(offset);
-//
-//                BlockState actualState = world.getBlockState(unrotatedPos);
-//
-//                IRecipeLayer l = layer.get();
-//                String requiredComponentKeyForPosition = l.getRequiredComponentKeyForPosition(normalizedRotatedPos).get();
-//                Optional<String> recipeComponentKey = this.getRecipeComponentKey(actualState);
-//
-//                if (!recipeComponentKey.isPresent()) {
-//                    // At this point we don't have a lookup for the state that's at the position
-//                    // No match can be made here
-//                    return false;
-//                }
-//
-//                boolean statesEqual = recipeComponentKey.get().equals(requiredComponentKeyForPosition);
-//                if (!statesEqual)
-//                    return false;
-//            }
         }
 
         return true;
@@ -349,41 +320,6 @@ public class MiniaturizationRecipe extends RecipeBase {
         return this.dimensions;
     }
 
-    /**
-     * Checks if a given recipe layer matches all the positions for a rotation.
-     *
-     * @param fieldFilledBounds The boundaries of all filled blocks in the field.
-     * @param filledPositions   The filled positions on the layer to check.
-     * @return
-     */
-    public boolean areLayerPositionsCorrect(IRecipeLayer layer, AxisAlignedBB fieldFilledBounds, BlockPos[] filledPositions) {
-        // Recipe layers using this method must define at least one filled space
-        if (filledPositions.length == 0)
-            return false;
-
-        int totalFilled = filledPositions.length;
-        int requiredFilled = layer.getNumberFilledPositions();
-
-        // Early exit if we don't have the correct number of blocks in the layer
-        if (totalFilled != requiredFilled)
-            return false;
-
-        BlockPos[] fieldNormalizedPositionsFieldOffset = BlockSpaceUtil.normalizeLayerPositions(fieldFilledBounds, filledPositions);
-
-        int extraYOffset = fieldNormalizedPositionsFieldOffset[0].getY();
-
-        // We'll need an extra offset layer to match against the recipe layer's Y=0
-        BlockPos[] fieldNormalizedPositionsLayerOffset = Stream.of(fieldNormalizedPositionsFieldOffset)
-                .parallel()
-                .map(p -> p.relative(Direction.DOWN, extraYOffset))
-                .map(BlockPos::immutable)
-                .toArray(BlockPos[]::new);
-
-        return Arrays.stream(fieldNormalizedPositionsLayerOffset)
-                .parallel()
-                .allMatch(layer::isPositionFilled);
-    }
-
     public Optional<IRecipeLayer> getLayer(int y) {
         if (y < 0 || y > this.layers.size() - 1)
             return Optional.empty();
@@ -436,5 +372,9 @@ public class MiniaturizationRecipe extends RecipeBase {
     @Override
     public void setId(ResourceLocation recipeId) {
         this.id = recipeId;
+    }
+
+    public Map<String, IRecipeBlockComponent> getBlockComponents() {
+        return blockComponents;
     }
 }

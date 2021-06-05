@@ -49,10 +49,6 @@ public class MiniaturizationRecipeCodecTests {
             }
 
             IRecipeLayer lay = topLayer.get();
-            int filledCount = lay.getNumberFilledPositions();
-
-            // Layer only has one spot (redstone dust)
-            Assertions.assertEquals(1, filledCount);
 
             // Top Layer should be a redstone dust, so one 'R' component
             Map<String, Integer> componentTotals = lay.getComponentTotals();
@@ -87,10 +83,6 @@ public class MiniaturizationRecipeCodecTests {
             }
 
             IRecipeLayer lay = topLayer.get();
-            int filledCount = lay.getNumberFilledPositions();
-
-            // Layer only has one spot (redstone dust)
-            Assertions.assertEquals(1, filledCount);
 
             // Top Layer should be a redstone dust, so one 'R' component
             Map<String, Integer> componentTotals = lay.getComponentTotals();

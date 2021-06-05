@@ -34,7 +34,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     @Override
-    public Set<String> getRequiredComponents() {
+    public Set<String> getComponents() {
         return ImmutableSet.of(componentKey);
     }
 
@@ -42,26 +42,11 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
         return Collections.singletonMap(componentKey, getNumberFilledPositions());
     }
 
-    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
-        return Optional.ofNullable(componentKey);
-    }
+    public Optional<String> getComponentForPosition(BlockPos pos) {
+        if(filledPositions.contains(pos))
+            return Optional.ofNullable(componentKey);
 
-    /**
-     * Get a collection of positions that are filled by a given component.
-     *
-     * @param component
-     * @return
-     */
-    public Collection<BlockPos> getPositionsForComponent(String component) {
-        return filledPositions;
-    }
-
-    public Collection<BlockPos> getFilledPositions() {
-        return this.filledPositions;
-    }
-
-    public boolean isPositionFilled(BlockPos pos) {
-        return true;
+        return Optional.empty();
     }
 
     public int getNumberFilledPositions() {
@@ -70,7 +55,19 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public boolean matches(IRecipeLayerBlocks blocks) {
-        return false;
+        Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
+
+        // Need at least one empty component and the wall component
+        if(totalsInWorld.size() < 2)
+            return false;
+
+        if(!totalsInWorld.containsKey(this.componentKey))
+            return false;
+
+        int targetCount = totalsInWorld.get(componentKey);
+        int layerCount = filledPositions.size();
+
+        return layerCount == targetCount;
     }
 
     public void setComponent(String component) {

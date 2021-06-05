@@ -4,34 +4,60 @@ import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
 
     private final AxisAlignedBB layerBounds;
     private Map<String, Integer> componentTotals;
-    private Map<BlockPos, BlockState> states;
-    private Map<BlockPos, String> componentKeys;
-    private Set<BlockPos> unmatched;
+    private final Map<BlockPos, BlockState> states;
+    private final Map<BlockPos, String> componentKeys;
+    private final Set<BlockPos> unmatchedStates;
 
-    private RecipeLayerBlocks(AxisAlignedBB bounds) {
+    protected RecipeLayerBlocks(AxisAlignedBB bounds) {
         layerBounds = bounds;
         states = new HashMap<>();
         componentTotals = new HashMap<>();
         componentKeys = new HashMap<>();
-        unmatched = new HashSet<>();
+        unmatchedStates = new HashSet<>();
+    }
+
+    public RecipeLayerBlocks(IRecipeLayerBlocks original) {
+        this(original.getBounds());
+
+        // Loops all block positions inside bounds, for-each
+        BlockPos.betweenClosedStream(layerBounds).forEach(pos -> {
+            Optional<String> key = original.getComponentAtPosition(pos);
+            if (key.isPresent()) componentKeys.put(pos, key.get());
+            else unmatchedStates.add(pos);
+
+            original.getStateAtPosition(pos).ifPresent(state -> states.put(pos, state));
+        });
+    }
+
+    RecipeLayerBlocks(AxisAlignedBB bounds, Map<BlockPos, BlockState> states,
+        Map<BlockPos, String> components, Set<BlockPos> unmatchedStates) {
+        this.layerBounds = bounds;
+        this.states = states;
+        this.componentKeys = components;
+        this.unmatchedStates = unmatchedStates;
+
+        this.rebuildComponentTotals();
     }
 
     public static RecipeLayerBlocks create(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB bounds) {
         RecipeLayerBlocks instance = new RecipeLayerBlocks(bounds);
 
         BlockPos.betweenClosedStream(bounds).forEach(pos -> {
+            if(!bounds.contains(pos.getX(), pos.getY(), pos.getZ()))
+                return;
+
             BlockState state = world.getBlockState(pos);
 
             BlockPos normalizedPos = BlockSpaceUtil.normalizeLayerPosition(bounds, pos);
@@ -43,7 +69,7 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
             if (compKey.isPresent())
                 instance.componentKeys.put(normalizedPos, compKey.get());
             else
-                instance.unmatched.add(normalizedPos);
+                instance.unmatchedStates.add(normalizedPos);
 
         });
 
@@ -51,67 +77,41 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
         return instance;
     }
 
-    private void rebuildComponentTotals() {
+    @Override
+    public AxisAlignedBB getBounds() {
+        return this.layerBounds;
+    }
+
+    void rebuildComponentTotals() {
         this.componentTotals = componentKeys.entrySet()
-                .stream()
-                .collect(
-                        Collectors.groupingBy(
-                                // Group by map value (aka component key)
-                                Map.Entry::getValue,
+            .stream()
+            .collect(
+                Collectors.groupingBy(
+                    // Group by map value (aka component key)
+                    Map.Entry::getValue,
 
-                                // Map keys (the blockpos entries) are summed up (like list::size)
-                                Collectors.mapping(
-                                        Map.Entry::getKey,
-                                        Collectors.reducing(0, e -> 1, Integer::sum)
-                                )
-                        )
-                );
+                    // Map keys (the blockpos entries) are summed up (like list::size)
+                    Collectors.mapping(
+                        Map.Entry::getKey,
+                        Collectors.reducing(0, e -> 1, Integer::sum)
+                    )
+                )
+            );
     }
 
     @Override
-    public IRecipeLayerBlocks rotate(Rotation rotation) {
-        if (rotation == Rotation.NONE) {
-            try {
-                return (IRecipeLayerBlocks) this.clone();
-            } catch (CloneNotSupportedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        BlockPos[] originalPositions = states.keySet().toArray(new BlockPos[0]);
-        Map<BlockPos, BlockPos> layerRotated = BlockSpaceUtil.rotatePositionsInPlace(originalPositions, rotation);
-
-        RecipeLayerBlocks rotBlocks = new RecipeLayerBlocks(this.layerBounds);
-        for (BlockPos originalPos : layerRotated.keySet()) {
-            BlockPos rotatedPos = layerRotated.get(originalPos);
-
-            // Add original block state from world info
-            BlockState state = this.states.get(originalPos);
-            rotBlocks.states.put(rotatedPos, state);
-
-            // If the state was previously unmatched, copy that over
-            if (this.unmatched.contains(originalPos)) {
-                rotBlocks.unmatched.add(rotatedPos);
-                continue;
-            }
-
-            // Copy over the matched component key to the new position
-            String key = this.componentKeys.get(originalPos);
-            rotBlocks.componentKeys.put(rotatedPos, key);
-        }
-
-        rotBlocks.rebuildComponentTotals();
-        return rotBlocks;
+    public Optional<String> getComponentAtPosition(BlockPos relative) {
+        return Optional.ofNullable(componentKeys.get(relative));
     }
 
     @Override
-    public BlockState getRelativeState(BlockPos relativePos) {
-        return states.get(relativePos);
+    public Optional<BlockState> getStateAtPosition(BlockPos relative) {
+        return Optional.ofNullable(states.get(relative));
     }
 
     @Override
-    public int getNumberFilled() {
-        return this.componentKeys.keySet().size();
+    public Stream<BlockPos> getPositions() {
+        return states.keySet().stream();
     }
 
     /**
@@ -127,15 +127,5 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
     @Override
     public Map<String, Integer> getComponentTotals() {
         return componentTotals;
-    }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        RecipeLayerBlocks clone = new RecipeLayerBlocks(this.layerBounds);
-        clone.unmatched = new HashSet<>(this.unmatched);
-        clone.componentKeys = new HashMap<>(this.componentKeys);
-        clone.states = new HashMap<>(this.states);
-
-        return clone;
     }
 }

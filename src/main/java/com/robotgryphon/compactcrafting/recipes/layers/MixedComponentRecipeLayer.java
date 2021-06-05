@@ -12,7 +12,6 @@ import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,30 +40,12 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
         return this.componentLookup;
     }
 
-    public void addComponentAtLocation(String component, BlockPos location) {
-        componentLookup.add(location, component);
-        this.dimensions = BlockSpaceUtil.getBoundsForBlocks(componentLookup.getAllPositions());
-    }
-
-    public void addMultiple(String component, Collection<BlockPos> locations) {
-        boolean recalc = false;
-        for(BlockPos loc : locations) {
-            if(!componentLookup.containsLocation(loc)) {
-                componentLookup.add(loc, component);
-                recalc = true;
-            }
-        }
-
-        if(recalc)
-            this.dimensions = BlockSpaceUtil.getBoundsForBlocks(componentLookup.getAllPositions());
-    }
-
     public AxisAlignedBB getDimensions() {
         return this.dimensions;
     }
 
     @Override
-    public Set<String> getRequiredComponents() {
+    public Set<String> getComponents() {
         return ImmutableSet.copyOf(componentLookup.getComponents());
     }
 
@@ -78,33 +59,8 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
      * @param pos
      * @return
      */
-    public Optional<String> getRequiredComponentKeyForPosition(BlockPos pos) {
+    public Optional<String> getComponentForPosition(BlockPos pos) {
         return componentLookup.getRequiredComponentKeyForPosition(pos);
-    }
-
-    /**
-     * Get a collection of positions that are filled by a given component.
-     *
-     * @param component
-     * @return
-     */
-    public Collection<BlockPos> getPositionsForComponent(String component) {
-        return componentLookup.getPositionsForComponent(component);
-    }
-
-    /**
-     * Gets a set of non-air positions that are required for the layer to match.
-     * This is expected to trim the air positions off the edges and return the positions with NW
-     * in the 0, 0 position.
-     *
-     * @return
-     */
-    public Collection<BlockPos> getFilledPositions() {
-        return componentLookup.getFilledPositions();
-    }
-
-    public boolean isPositionFilled(BlockPos pos) {
-        return componentLookup.isPositionFilled(pos);
     }
 
     public int getNumberFilledPositions() {
@@ -116,7 +72,10 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public boolean matches(IRecipeLayerBlocks blocks) {
-        return false;
+        return componentLookup.stream()
+                .allMatch(e -> blocks.getComponentAtPosition(e.getKey())
+                    .map(e.getValue()::equals)
+                    .orElse(false));
     }
 
     @Override
