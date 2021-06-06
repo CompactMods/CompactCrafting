@@ -507,7 +507,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             // create fake world instance
             // get tile entity - extend EmptyBlockReader with impl
             TileEntity be = previewLevel.getBlockEntity(filledPos);
-            data = be.getModelData();
+            if(be != null)
+                data = be.getModelData();
         }
 
         try {
