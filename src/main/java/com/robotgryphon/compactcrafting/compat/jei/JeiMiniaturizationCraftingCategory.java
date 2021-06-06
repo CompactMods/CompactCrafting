@@ -7,6 +7,7 @@ import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.client.fakeworld.RenderingWorld;
 import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.BlockComponent;
@@ -34,6 +35,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -44,6 +46,7 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
+import net.minecraftforge.client.model.data.IModelData;
 
 import java.awt.*;
 import java.util.List;
@@ -56,6 +59,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public static final ResourceLocation UID = new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization");
     private final IDrawable icon;
     private final BlockRendererDispatcher blocks;
+    private RenderingWorld previewLevel;
 
     private ITickTimer timer;
 
@@ -91,6 +95,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
+        this.previewLevel = null;
 
         // 180 = approx. 9 seconds to full rotation
         this.timer = guiHelper.createTickTimer(45, 180, false);
@@ -149,6 +154,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     @Override
     public void setRecipe(IRecipeLayout recipeLayout, MiniaturizationRecipe recipe, IIngredients iIngredients) {
+        previewLevel = new RenderingWorld(recipe);
+
         singleLayer = false;
         singleLayerOffset = 0;
 
@@ -357,7 +364,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         renderPreviewControls(mx, dims);
 
-        renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
+        if(previewLevel != null)
+            renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
     }
 
     private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, Rectangle scissorBounds) {
@@ -476,7 +484,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             Optional<String> componentForPosition = l.getComponentForPosition(zeroedPos);
             componentForPosition
                     .flatMap(recipe::getRecipeBlockComponent)
-                    .ifPresent(comp -> renderComponent(mx, buffers, comp));
+                    .ifPresent(comp -> renderComponent(mx, buffers, comp, filledPos));
 
             mx.popPose();
         });
@@ -485,16 +493,25 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         mx.popPose();
     }
 
-    private void renderComponent(MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeBlockComponent state) {
+    private void renderComponent(MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeBlockComponent state, BlockPos filledPos) {
         // TODO - Render switching at fixed interval
         BlockState state1 = state.getRenderState();
         // Thanks Immersive, Astral, and others
         IRenderTypeBuffer light = CCRenderTypes.disableLighting(buffers);
+
+        IModelData data = EmptyModelData.INSTANCE;
+        if(previewLevel != null && state1.hasTileEntity()) {
+            // create fake world instance
+            // get tile entity - extend EmptyBlockReader with impl
+            TileEntity be = previewLevel.getBlockEntity(filledPos);
+            data = be.getModelData();
+        }
+
         blocks.renderBlock(state1,
                 mx,
                 light,
                 0xf000f0,
                 OverlayTexture.NO_OVERLAY,
-                EmptyModelData.INSTANCE);
+                data);
     }
 }
