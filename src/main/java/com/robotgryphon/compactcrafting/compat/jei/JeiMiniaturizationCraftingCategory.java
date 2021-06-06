@@ -495,6 +495,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     private void renderComponent(MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeBlockComponent state, BlockPos filledPos) {
         // TODO - Render switching at fixed interval
+        if(state.didErrorRendering())
+            return;
+
         BlockState state1 = state.getRenderState();
         // Thanks Immersive, Astral, and others
         IRenderTypeBuffer light = CCRenderTypes.disableLighting(buffers);
@@ -507,11 +510,20 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             data = be.getModelData();
         }
 
-        blocks.renderBlock(state1,
-                mx,
-                light,
-                0xf000f0,
-                OverlayTexture.NO_OVERLAY,
-                data);
+        try {
+            blocks.renderBlock(state1,
+                    mx,
+                    light,
+                    0xf000f0,
+                    OverlayTexture.NO_OVERLAY,
+                    data);
+        }
+
+        catch(Exception e) {
+            state.markRenderingErrored();
+
+            CompactCrafting.LOGGER.warn("Error rendering block in preview: {}", state1.getBlock().getRegistryName());
+            CompactCrafting.LOGGER.error("Stack Trace", e);
+        }
     }
 }

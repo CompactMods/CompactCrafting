@@ -18,11 +18,12 @@ import java.util.function.Predicate;
 public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     public Block block;
+    private boolean erroredRendering = false;
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
 
     public static final Codec<BlockComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
-           CodecExtensions.BLOCK_ID_CODEC.fieldOf("block").forGetter(BlockComponent::getBlock),
+            CodecExtensions.BLOCK_ID_CODEC.fieldOf("block").forGetter(BlockComponent::getBlock),
             Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(BlockComponent::getProperties)
     ).apply(i, BlockComponent::new));
 
@@ -51,8 +52,8 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
                         prop.getValue(userValue).ifPresent(u -> {
                             // We keep two values here - the actual property value for comparison,
                             // and the string value the user provided (for re-serialization in the CODEC)
-                             propertyAcceptableValues.add(userValue);
-                             userAllowed.add(u);
+                            propertyAcceptableValues.add(userValue);
+                            userAllowed.add(u);
                         });
                     }
 
@@ -66,7 +67,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     }
 
     public boolean matches(BlockState state) {
-        if(state.getBlock().getRegistryName() != this.block.getRegistryName())
+        if (state.getBlock().getRegistryName() != this.block.getRegistryName())
             return false;
 
         for (Property<?> prop : state.getProperties()) {
@@ -96,6 +97,16 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     @Override
     public BlockState getRenderState() {
         return block.defaultBlockState();
+    }
+
+    @Override
+    public boolean didErrorRendering() {
+        return erroredRendering;
+    }
+
+    @Override
+    public void markRenderingErrored() {
+        erroredRendering = true;
     }
 
     public boolean hasFilter(String property) {

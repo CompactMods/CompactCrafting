@@ -73,4 +73,10 @@ public class RecipeChunk extends EmptyChunk {
     public TileEntity getBlockEntity(BlockPos pos) {
         return tileCache.get(pos);
     }
+
+    @Nullable
+    @Override
+    public TileEntity getBlockEntity(BlockPos pos, CreateEntityType createType) {
+        return tileCache.get(pos);
+    }
 }
