@@ -10,7 +10,7 @@ import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 public class DataGeneration {
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
+    public static void gatherData(final GatherDataEvent event) {
         if (event.includeServer())
             registerServerProviders(event.getGenerator(), event);
 
@@ -20,6 +20,7 @@ public class DataGeneration {
 
     private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
         generator.addProvider(new LootTableGenerator(generator));
+        generator.addProvider(new RecipeGenerator(generator));
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
