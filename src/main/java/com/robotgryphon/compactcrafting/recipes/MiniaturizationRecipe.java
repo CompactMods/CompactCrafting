@@ -30,6 +30,7 @@ import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
 
@@ -376,5 +377,10 @@ public class MiniaturizationRecipe extends RecipeBase {
 
     public Map<String, IRecipeBlockComponent> getBlockComponents() {
         return blockComponents;
+    }
+
+    public Stream<BlockPos> getRelativeBlockPositions() {
+        AxisAlignedBB realBounds = dimensions.contract(1, 1, 1);
+        return BlockPos.betweenClosedStream(realBounds);
     }
 }

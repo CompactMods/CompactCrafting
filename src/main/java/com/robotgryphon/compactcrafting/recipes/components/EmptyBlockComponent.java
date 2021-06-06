@@ -25,6 +25,15 @@ public class EmptyBlockComponent implements IRecipeComponent, IRecipeBlockCompon
     }
 
     @Override
+    public boolean didErrorRendering() {
+        return false;
+    }
+
+    @Override
+    public void markRenderingErrored() {
+    }
+
+    @Override
     public RecipeComponentType<?> getType() {
         return ComponentRegistration.EMPTY_BLOCK_COMPONENT.get();
     }

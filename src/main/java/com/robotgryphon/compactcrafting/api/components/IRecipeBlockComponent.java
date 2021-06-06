@@ -6,4 +6,7 @@ public interface IRecipeBlockComponent extends IRecipeComponent {
     boolean matches(BlockState state);
 
     BlockState getRenderState();
+
+    boolean didErrorRendering();
+    void markRenderingErrored();
 }
