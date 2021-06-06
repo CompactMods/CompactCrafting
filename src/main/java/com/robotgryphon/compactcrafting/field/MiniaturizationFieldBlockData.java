@@ -17,7 +17,8 @@ public class MiniaturizationFieldBlockData {
     public static MiniaturizationFieldBlockData getFromField(IWorldReader world, AxisAlignedBB field) {
         MiniaturizationFieldBlockData fb = new MiniaturizationFieldBlockData();
 
-        BlockPos[] nonAirPositions = BlockPos.betweenClosedStream(field)
+        // we contract here due to betweenClosedStream returning excess block positions
+        BlockPos[] nonAirPositions = BlockPos.betweenClosedStream(field.contract(1, 1, 1))
                 .filter(p -> !world.isEmptyBlock(p))
                 .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);

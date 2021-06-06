@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
+import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
@@ -132,7 +133,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          * we remove all the recipes that are definitely larger than the currently
          * filled space.
          */
-        Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
+         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
                 .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
@@ -142,6 +143,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          * All the recipes we have registered won't fit in the filled bounds -
          * blocks were placed in a larger space than the max recipe size
          */
+        CompactCrafting.LOGGER.trace("Matched a total of {} possible recipes.", recipes.size());
         if (recipes.isEmpty()) {
             this.currentRecipe = null;
             updateCraftingState(EnumCraftingState.NOT_MATCHED);

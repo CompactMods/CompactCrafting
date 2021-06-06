@@ -128,20 +128,24 @@ public class FieldProjection {
         return center.relative(direction, size.getProjectorDistance() + 1);
     }
 
+    public Stream<BlockPos> getFilledBlocks(IWorldReader level) {
+        return BlockPos.betweenClosedStream(getBounds().contract(1, 1, 1))
+                .filter(p -> !level.isEmptyBlock(p))
+                .map(BlockPos::immutable);
+    }
+
     public void clearBlocks(IWorld world) {
         // Remove blocks from the world
-        BlockPos.betweenClosedStream(getBounds())
-                .filter(pos -> !world.isEmptyBlock(pos))
-                .map(BlockPos::immutable)
-                .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
-                .forEach(blockPos -> {
-                    world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
+        getFilledBlocks(world)
+            .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
+            .forEach(blockPos -> {
+                world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
-                    if(world instanceof ServerWorld) {
-                        ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
-                                blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                                1,0d, 0.05D, 0D, 0.25d);
-                    }
-                });
+                if(world instanceof ServerWorld) {
+                    ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
+                            blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
+                            1,0d, 0.05D, 0D, 0.25d);
+                }
+            });
     }
 }
