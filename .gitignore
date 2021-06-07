@@ -39,3 +39,5 @@ usercache.json
 usernamecache.json
 
 build-out/
+
+*.lnk
