@@ -2,7 +2,6 @@ package com.robotgryphon.compactcrafting.compat.jei;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
@@ -11,6 +10,7 @@ import com.robotgryphon.compactcrafting.client.fakeworld.RenderingWorld;
 import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.BlockComponent;
+import com.robotgryphon.compactcrafting.ui.ScreenArea;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
@@ -41,14 +41,12 @@ import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 
-import java.awt.*;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -70,10 +68,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private int singleLayerOffset = 0;
     private boolean debugMode = false;
 
-    private Rectangle explodeToggle = new Rectangle(0, 0, 10, 10);
-    private Rectangle layerUp = new Rectangle(0, 25, 10, 10);
-    private Rectangle layerSwap = new Rectangle(0, 37, 10, 10);
-    private Rectangle layerDown = new Rectangle(0, 49, 10, 10);
+    private ScreenArea explodeToggle = new ScreenArea(0, 0, 10, 10);
+    private ScreenArea layerUp = new ScreenArea(0, 25, 10, 10);
+    private ScreenArea layerSwap = new ScreenArea(0, 37, 10, 10);
+    private ScreenArea layerDown = new ScreenArea(0, 49, 10, 10);
 
     /**
      * Whether or not the preview is exploded (expanded) or not.
@@ -293,7 +291,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     //region Rendering help
     private void drawScaledTexture(
             MatrixStack matrixStack,
-            ResourceLocation texture, Rectangle bounds,
+            ResourceLocation texture,
+            ScreenArea area,
             float u, float v,
             int uWidth, int vHeight,
             int textureWidth, int textureHeight) {
@@ -302,40 +301,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         minecraft.getTextureManager().bind(texture);
 
         RenderSystem.enableDepthTest();
-        Screen curr = Minecraft.getInstance().screen;
-        AbstractGui.blit(matrixStack, bounds.x, bounds.y, bounds.width, bounds.height,
+        AbstractGui.blit(matrixStack, area.x, area.y, area.width, area.height,
                 u, v, uWidth, vHeight, textureWidth, textureHeight);
-//        if (this.isHovered()) {
-//            this.renderToolTip(matrixStack, mouseX, mouseY);
-//        }
     }
 
-    private void addColoredVertex(IVertexBuilder renderer, Color color, Vector3d position) {
-        renderer.vertex(position.x(), position.y(), position.z())
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
-                .uv2(0, 240)
-                .normal(1, 0, 0)
-                .endVertex();
-    }
-
-    private void drawRectOutline(IVertexBuilder renderer, Color color, Rectangle rect) {
-        Vector3d bottomLeft = new Vector3d((float) rect.getMinX(), (float) rect.getMinY(), 0);
-        Vector3d bottomRight = bottomLeft.add(rect.width, 0, 0);
-        Vector3d topRight = bottomLeft.add(rect.width, rect.height, 0);
-        Vector3d topLeft = bottomLeft.add(0, rect.height, 0);
-
-        addColoredVertex(renderer, color, bottomLeft);
-        addColoredVertex(renderer, color, bottomRight);
-
-        addColoredVertex(renderer, color, bottomRight);
-        addColoredVertex(renderer, color, topRight);
-
-        addColoredVertex(renderer, color, topRight);
-        addColoredVertex(renderer, color, topLeft);
-
-        addColoredVertex(renderer, color, topLeft);
-        addColoredVertex(renderer, color, bottomLeft);
-    }
     //endregion
 
     @Override
@@ -356,7 +325,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         int scissorY = (curr.height / 2) - (background.getHeight() / 2) + slotHeight;
 
         double guiScaleFactor = mainWindow.getGuiScale();
-        Rectangle scissorBounds = new Rectangle(
+        ScreenArea scissorBounds = new ScreenArea(
                 scissorX, scissorY,
                 winWidth - 22,
                 (int) (background.getHeight() - slotHeight - 27)
@@ -368,7 +337,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
     }
 
-    private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, Rectangle scissorBounds) {
+    private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, ScreenArea scissorBounds) {
         try {
             AbstractGui.fill(
                     mx,
@@ -376,7 +345,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     14, 0,
                     scissorBounds.width + 16,
                     scissorBounds.height + 1,
-                    Color.darkGray.getRGB()
+                    0xFF404040
             );
 
             IRenderTypeBuffer.Impl buffers = Minecraft.getInstance().renderBuffers().bufferSource();

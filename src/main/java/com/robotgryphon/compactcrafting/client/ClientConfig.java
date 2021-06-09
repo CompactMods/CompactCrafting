@@ -6,15 +6,13 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 
-import java.awt.*;
-
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientConfig {
 
     public static ForgeConfigSpec CONFIG;
 
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
-    public static Color projectorColor = Color.white;
+    public static int projectorColor = 0xFFFFFFFF;
 
     static {
         generateConfig();
@@ -43,6 +41,20 @@ public class ClientConfig {
 
     @SubscribeEvent
     public static void onLoad(final ModConfig.ModConfigEvent configEvent) {
-        projectorColor = Color.decode(PROJECTOR_COLOR.get());
+        String tempColor = PROJECTOR_COLOR.get();
+        int finalColor = 0xFFFFFFFF;
+        try {
+            if(tempColor.startsWith("#"))
+                finalColor = Integer.parseInt(tempColor.substring(1), 16);
+            else
+                finalColor = 0x00FF6A00;
+        }
+
+        catch(NumberFormatException nfe) {
+            CompactCrafting.LOGGER.warn("Bad config value for projector color: {}", tempColor);
+            finalColor = 0x00FF6A00;
+        }
+
+        projectorColor = finalColor;
     }
 }
