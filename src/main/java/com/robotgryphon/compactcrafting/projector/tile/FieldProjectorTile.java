@@ -13,7 +13,7 @@ import java.util.Optional;
 public abstract class FieldProjectorTile extends TileEntity {
 
     public FieldProjectorTile() {
-        super(Registration.FIELD_PROJECTOR_TILE.get());
+        super(Registration.MAIN_FIELD_PROJECTOR_TILE.get());
     }
 
     public Direction getFacing() {

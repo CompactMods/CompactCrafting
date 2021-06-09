@@ -1,16 +1,17 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
@@ -20,6 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
@@ -67,6 +69,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.setDirty();
+                this.setChanged();
 
                 PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
                         .with(() -> level.getChunkAt(this.worldPosition));
@@ -77,7 +80,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         } else {
             this.invalidateField();
         }
-
     }
 
     public void invalidateField() {
@@ -163,6 +165,10 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         this.currentRecipe = matchedRecipe;
     }
 
+    /**
+     * Used by clients to update field information on activation/deactivation.
+     * @param field
+     */
     public void setFieldInfo(MiniaturizationField field) {
         this.field = field;
         this.setChanged();
@@ -311,8 +317,13 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (field != null) {
             CompoundNBT fieldInfo = new CompoundNBT();
             fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
+            fieldInfo.putString("size", this.field.getFieldSize().name());
             nbt.put("fieldInfo", fieldInfo);
         }
+
+        nbt.putString("craftingState", this.craftingState.name());
+        if(this.currentRecipe != null)
+            nbt.putString("recipe", this.currentRecipe.getId().toString());
 
         return nbt;
     }
@@ -324,13 +335,24 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if(nbt.contains("fieldInfo")) {
             CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+            FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
 
-            if(this.level != null && !this.level.isClientSide) {
-                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
-                ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
+            this.field = MiniaturizationField.fromSizeAndCenter(size, center);
+        }
 
-                this.field = MiniaturizationField.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
-            }
+        if(nbt.contains("craftingState")) {
+            this.craftingState = EnumCraftingState.valueOf(nbt.getString("craftingState"));
+        }
+
+        if(nbt.contains("recipe")){
+            ResourceLocation rid = new ResourceLocation(nbt.getString("recipe"));
+            Optional<RecipeBase> recipe = level.getRecipeManager()
+                    .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
+                    .stream()
+                    .filter(r -> r.getId().equals(rid))
+                    .findFirst();
+
+            recipe.ifPresent(rec -> this.currentRecipe = (MiniaturizationRecipe) rec);
         }
     }
 }
