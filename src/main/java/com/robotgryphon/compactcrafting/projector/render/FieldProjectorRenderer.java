@@ -3,8 +3,9 @@ package com.robotgryphon.compactcrafting.projector.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.model.IBakedModel;
 import net.minecraft.client.renderer.model.ModelManager;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.util.ColorHelper;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -31,7 +33,6 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 
-import java.awt.*;
 import java.util.Optional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
@@ -66,9 +67,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         if (tile instanceof MainFieldProjectorTile) {
             MainFieldProjectorTile mainTile = (MainFieldProjectorTile) tile;
-            Optional<FieldProjection> fieldProjection = mainTile.getField();
+            Optional<MiniaturizationField> fieldProjection = mainTile.getField();
             if (fieldProjection.isPresent()) {
-                FieldProjection fp = fieldProjection.get();
+                MiniaturizationField fp = fieldProjection.get();
                 BlockPos center = fp.getCenterPosition();
                 int fieldSize = fp.getFieldSize().getSize();
 
@@ -128,15 +129,15 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         return bakedModelCached;
     }
 
-    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, Color color, Vector3f position) {
+    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, int color, Vector3f position) {
         renderer.vertex(stack.last().pose(), position.x(), position.y(), position.z())
-                .color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha())
+                .color(ColorHelper.PackedColor.red(color), ColorHelper.PackedColor.green(color), ColorHelper.PackedColor.blue(color), ColorHelper.PackedColor.alpha(color))
                 .uv2(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
     }
 
-    private void drawRing(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB bounds, Color color) {
+    private void drawRing(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB bounds, int color) {
         addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.minZ));
         addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.minZ));
 
@@ -158,7 +159,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * @param cube
      * @param color
      */
-    private void drawCube(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, Color color) {
+    private void drawCube(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, int color) {
         drawCubeFace(builder, mx, cube, color, Direction.NORTH);
         drawCubeFace(builder, mx, cube, color, Direction.SOUTH);
         drawCubeFace(builder, mx, cube, color, Direction.WEST);
@@ -167,7 +168,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         drawCubeFace(builder, mx, cube, color, Direction.DOWN);
     }
 
-    private void drawCubeFace(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, Color color, Direction face) {
+    private void drawCubeFace(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, int color, Direction face) {
         Vector3f BOTTOM_RIGHT = null,
                 TOP_RIGHT = null,
                 TOP_LEFT = null,
@@ -259,10 +260,10 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         mx.translate(-.5, 0, -.5);
 
-        Color faceColor = te.getProjectionColor(EnumProjectorColorType.PROJECTOR_FACE);
-        float red = faceColor.getRed() / 255f;
-        float green = faceColor.getGreen() / 255f;
-        float blue = faceColor.getBlue() / 255f;
+        int faceColor = getProjectionColor(EnumProjectorColorType.PROJECTOR_FACE);
+        float red = ColorHelper.PackedColor.red(faceColor) / 255f;
+        float green = ColorHelper.PackedColor.green(faceColor) / 255f;
+        float blue = ColorHelper.PackedColor.blue(faceColor) / 255f;
 
         blockRenderer.getModelRenderer()
                 .renderModel(mx.last(), cutoutBlocks, state,
@@ -314,7 +315,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .expandTowards(expansion, expansion, expansion)
                 .expandTowards(-expansion, -expansion, -expansion);
 
-        drawCube(builder, mx, slightlyBiggerBecauseFoxes, tile.getProjectionColor(EnumProjectorColorType.FIELD));
+        drawCube(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD));
 
         mx.popPose();
     }
@@ -344,7 +345,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         mx.mulPose(rotation);
 
-        Color colorProjectionArc = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
+        int colorProjectionArc = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
         // 0, 0, 0 is now the edge of the projector's space
         addColoredVertex(builder, mx, colorProjectionArc, new Vector3f(0f, 0f, 0f));
@@ -440,7 +441,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
 
-        Color colorScanLine = tile.getProjectionColor(EnumProjectorColorType.SCAN_LINE);
+        int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
         drawRing(builder, mx, scanLineMain, colorScanLine);
 
         mx.popPose();
@@ -449,5 +450,24 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     @Override
     public boolean shouldRenderOffScreen(FieldProjectorTile te) {
         return true;
+    }
+
+    public int getProjectionColor(EnumProjectorColorType type) {
+        int base = ClientConfig.projectorColor;
+        // Color base = Color.red.brighter();
+        int red = ColorHelper.PackedColor.red(base);
+        int green = ColorHelper.PackedColor.green(base);
+        int blue = ColorHelper.PackedColor.blue(base);
+
+        switch (type) {
+            case FIELD:
+            case SCAN_LINE:
+                return ColorHelper.PackedColor.color(100, red, green, blue);
+
+            case PROJECTOR_FACE:
+                return ColorHelper.PackedColor.color(250, red, green, blue);
+        }
+
+        return 0x00FFFFFF;
     }
 }

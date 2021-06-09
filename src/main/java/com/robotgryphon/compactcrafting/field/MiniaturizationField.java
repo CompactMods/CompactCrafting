@@ -1,7 +1,8 @@
 package com.robotgryphon.compactcrafting.field;
 
-import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.Blocks;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.Direction;
@@ -19,18 +20,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FieldProjection {
+/**
+ * Represents an active miniaturization field in the world.
+ */
+public class MiniaturizationField {
 
     private FieldProjectionSize size;
     private BlockPos center;
 
-    private FieldProjection(FieldProjectionSize size, BlockPos center) {
+    private MiniaturizationField(FieldProjectionSize size, BlockPos center) {
         this.center = center;
         this.size = size;
     }
 
-    public static FieldProjection fromSizeAndCenter(FieldProjectionSize fieldSize, BlockPos center) {
-        return new FieldProjection(fieldSize, center);
+    public static MiniaturizationField fromSizeAndCenter(FieldProjectionSize fieldSize, BlockPos center) {
+        return new MiniaturizationField(fieldSize, center);
     }
 
     public FieldProjectionSize getFieldSize() {
@@ -82,7 +86,7 @@ public class FieldProjection {
         return ProjectorHelper.checkProjectorsValid(world, center.get(), size);
     }
 
-    public static Optional<FieldProjection> tryCreateFromPosition(IWorldReader world, BlockPos position) {
+    public static Optional<MiniaturizationField> tryCreateFromProjector(IWorldReader world, BlockPos position) {
         Optional<Direction> dir = FieldProjectorBlock.getDirection(world, position);
 
         // No direction found - probably not a field projector at this location
@@ -117,7 +121,7 @@ public class FieldProjection {
 
             // Found a valid size?
             if(crossAxisValid)
-                return Optional.of(new FieldProjection(potSize, center.get()));
+                return Optional.of(new MiniaturizationField(potSize, center.get()));
         }
 
         // No cross axis tests were successful
@@ -132,6 +136,11 @@ public class FieldProjection {
         return BlockPos.betweenClosedStream(getBounds().contract(1, 1, 1))
                 .filter(p -> !level.isEmptyBlock(p))
                 .map(BlockPos::immutable);
+    }
+
+    public AxisAlignedBB getFilledBounds(IWorldReader level) {
+        BlockPos[] filled = getFilledBlocks(level).toArray(BlockPos[]::new);
+        return BlockSpaceUtil.getBoundsForBlocks(filled);
     }
 
     public void clearBlocks(IWorld world) {

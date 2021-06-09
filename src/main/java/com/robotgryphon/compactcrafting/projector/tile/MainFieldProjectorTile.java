@@ -1,17 +1,17 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
 import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
@@ -21,6 +21,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.server.ServerWorld;
@@ -30,11 +31,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MainFieldProjectorTile extends FieldProjectorTile implements ITickableTileEntity {
 
     private EnumCraftingState craftingState = EnumCraftingState.NOT_MATCHED;
-    private FieldProjection field = null;
+    private MiniaturizationField field = null;
     private MiniaturizationRecipe currentRecipe = null;
 
     @Override
@@ -59,7 +61,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.field != null)
             return;
 
-        Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(level, this.worldPosition);
+        Optional<MiniaturizationField> field = MiniaturizationField.tryCreateFromProjector(level, this.worldPosition);
         if (field.isPresent()) {
             this.field = field.get();
 
@@ -67,6 +69,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
                 data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
                 data.setDirty();
+                this.setChanged();
 
                 PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
                         .with(() -> level.getChunkAt(this.worldPosition));
@@ -77,7 +80,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         } else {
             this.invalidateField();
         }
-
     }
 
     public void invalidateField() {
@@ -112,12 +114,10 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.level == null)
             return;
 
-        AxisAlignedBB fieldBounds = field.getBounds();
-
-        MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(level, fieldBounds);
+        Stream<BlockPos> filledBlocks = field.getFilledBlocks(level);
 
         // If no positions filled, exit early
-        if (fieldBlocks.getNumberFilledBlocks() == 0) {
+        if (filledBlocks.count() == 0) {
             this.currentRecipe = null;
             updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
@@ -136,7 +136,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
-                .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
+                .filter(recipe -> recipe.fitsInDimensions(field.getFilledBounds(level)))
                 .collect(Collectors.toSet());
 
         /*
@@ -153,7 +153,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
         for (MiniaturizationRecipe recipe : recipes) {
-            boolean recipeMatches = recipe.matches(level, field.getFieldSize(), fieldBlocks);
+            boolean recipeMatches = recipe.matches(level, field.getFieldSize(), field);
             if (!recipeMatches)
                 continue;
 
@@ -165,7 +165,11 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         this.currentRecipe = matchedRecipe;
     }
 
-    public void setFieldInfo(FieldProjection field) {
+    /**
+     * Used by clients to update field information on activation/deactivation.
+     * @param field
+     */
+    public void setFieldInfo(MiniaturizationField field) {
         this.field = field;
         this.setChanged();
     }
@@ -263,7 +267,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         return Optional.of(this);
     }
 
-    public Optional<FieldProjection> getField() {
+    public Optional<MiniaturizationField> getField() {
         return Optional.ofNullable(this.field);
     }
 
@@ -302,7 +306,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             String sizeName = fieldInfo.getString("size");
             FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
 
-            this.field = FieldProjection.fromSizeAndCenter(size, fCenter);
+            this.field = MiniaturizationField.fromSizeAndCenter(size, fCenter);
         }
     }
 
@@ -313,8 +317,13 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (field != null) {
             CompoundNBT fieldInfo = new CompoundNBT();
             fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
+            fieldInfo.putString("size", this.field.getFieldSize().name());
             nbt.put("fieldInfo", fieldInfo);
         }
+
+        nbt.putString("craftingState", this.craftingState.name());
+        if(this.currentRecipe != null)
+            nbt.putString("recipe", this.currentRecipe.getId().toString());
 
         return nbt;
     }
@@ -326,13 +335,24 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if(nbt.contains("fieldInfo")) {
             CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+            FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
 
-            if(this.level != null && !this.level.isClientSide) {
-                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
-                ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
+            this.field = MiniaturizationField.fromSizeAndCenter(size, center);
+        }
 
-                this.field = FieldProjection.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
-            }
+        if(nbt.contains("craftingState")) {
+            this.craftingState = EnumCraftingState.valueOf(nbt.getString("craftingState"));
+        }
+
+        if(nbt.contains("recipe")){
+            ResourceLocation rid = new ResourceLocation(nbt.getString("recipe"));
+            Optional<RecipeBase> recipe = level.getRecipeManager()
+                    .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
+                    .stream()
+                    .filter(r -> r.getId().equals(rid))
+                    .findFirst();
+
+            recipe.ifPresent(rec -> this.currentRecipe = (MiniaturizationRecipe) rec);
         }
     }
 }

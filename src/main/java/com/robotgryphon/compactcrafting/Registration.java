@@ -83,7 +83,7 @@ public class Registration {
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
-    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
+    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> MAIN_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
             TileEntityType.Builder
                     .of(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));

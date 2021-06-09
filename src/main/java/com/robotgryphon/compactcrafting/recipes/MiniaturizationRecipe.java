@@ -14,7 +14,7 @@ import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.components.EmptyBlockComponent;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.exceptions.MiniaturizationRecipeException;
@@ -203,12 +203,12 @@ public class MiniaturizationRecipe extends RecipeBase {
         return fits;
     }
 
-    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, MiniaturizationFieldBlockData fieldBlocks) {
+    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, MiniaturizationField field) {
         if (!fitsInFieldSize(fieldSize))
             return false;
 
         // We know that the recipe will at least fit inside the current projection field
-        AxisAlignedBB filledBounds = fieldBlocks.getFilledBounds();
+        AxisAlignedBB filledBounds = field.getFilledBounds(world);
 
         Rotation[] validRotations = new Rotation[]{
                 Rotation.NONE,

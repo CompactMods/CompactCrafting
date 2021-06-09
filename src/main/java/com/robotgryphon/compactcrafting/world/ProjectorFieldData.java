@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting.world;
 
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.nbt.CompoundNBT;
@@ -28,7 +28,7 @@ public class ProjectorFieldData {
         this.size = fieldSize;
     }
 
-    public static ProjectorFieldData fromInstance(FieldProjection pf) {
+    public static ProjectorFieldData fromInstance(MiniaturizationField pf) {
         BlockPos center = pf.getCenterPosition();
         BlockPos main = pf.getProjectorInDirection(Direction.NORTH);
 

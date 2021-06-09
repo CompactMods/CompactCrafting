@@ -1,43 +1,19 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
-import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
-import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 
-import java.awt.*;
 import java.util.Optional;
 
 public abstract class FieldProjectorTile extends TileEntity {
 
     public FieldProjectorTile() {
-        super(Registration.FIELD_PROJECTOR_TILE.get());
-    }
-
-    public Color getProjectionColor(EnumProjectorColorType type) {
-        Color base = ClientConfig.projectorColor;
-        new Color(255, 106, 0, 100);
-        // Color base = Color.red.brighter();
-        int red = base.getRed();
-        int green = base.getGreen();
-        int blue = base.getBlue();
-
-        switch (type) {
-            case FIELD:
-            case SCAN_LINE:
-                return new Color(red, green, blue, 100);
-
-            case PROJECTOR_FACE:
-                // return new Color(Color.cyan.getRed(), Color.cyan.getGreen(), Color.cyan.getBlue(), 100);
-                return new Color(red, green, blue, 250);
-        }
-
-        return Color.WHITE;
+        super(Registration.MAIN_FIELD_PROJECTOR_TILE.get());
     }
 
     public Direction getFacing() {
@@ -61,7 +37,7 @@ public abstract class FieldProjectorTile extends TileEntity {
 
     public abstract Optional<MainFieldProjectorTile> getMainProjectorTile();
 
-    public Optional<FieldProjection> getField() {
+    public Optional<MiniaturizationField> getField() {
         return getMainProjectorTile().flatMap(MainFieldProjectorTile::getField);
     }
 }
