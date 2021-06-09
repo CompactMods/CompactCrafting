@@ -5,9 +5,8 @@ import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.MiniaturizationFieldBlockData;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
@@ -30,11 +29,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MainFieldProjectorTile extends FieldProjectorTile implements ITickableTileEntity {
 
     private EnumCraftingState craftingState = EnumCraftingState.NOT_MATCHED;
-    private FieldProjection field = null;
+    private MiniaturizationField field = null;
     private MiniaturizationRecipe currentRecipe = null;
 
     @Override
@@ -59,7 +59,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.field != null)
             return;
 
-        Optional<FieldProjection> field = FieldProjection.tryCreateFromPosition(level, this.worldPosition);
+        Optional<MiniaturizationField> field = MiniaturizationField.tryCreateFromProjector(level, this.worldPosition);
         if (field.isPresent()) {
             this.field = field.get();
 
@@ -112,12 +112,10 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (this.level == null)
             return;
 
-        AxisAlignedBB fieldBounds = field.getBounds();
-
-        MiniaturizationFieldBlockData fieldBlocks = MiniaturizationFieldBlockData.getFromField(level, fieldBounds);
+        Stream<BlockPos> filledBlocks = field.getFilledBlocks(level);
 
         // If no positions filled, exit early
-        if (fieldBlocks.getNumberFilledBlocks() == 0) {
+        if (filledBlocks.count() == 0) {
             this.currentRecipe = null;
             updateCraftingState(EnumCraftingState.NOT_MATCHED);
             return;
@@ -136,7 +134,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
-                .filter(recipe -> recipe.fitsInDimensions(fieldBlocks.getFilledBounds()))
+                .filter(recipe -> recipe.fitsInDimensions(field.getFilledBounds(level)))
                 .collect(Collectors.toSet());
 
         /*
@@ -153,7 +151,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
         for (MiniaturizationRecipe recipe : recipes) {
-            boolean recipeMatches = recipe.matches(level, field.getFieldSize(), fieldBlocks);
+            boolean recipeMatches = recipe.matches(level, field.getFieldSize(), field);
             if (!recipeMatches)
                 continue;
 
@@ -165,7 +163,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         this.currentRecipe = matchedRecipe;
     }
 
-    public void setFieldInfo(FieldProjection field) {
+    public void setFieldInfo(MiniaturizationField field) {
         this.field = field;
         this.setChanged();
     }
@@ -263,7 +261,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         return Optional.of(this);
     }
 
-    public Optional<FieldProjection> getField() {
+    public Optional<MiniaturizationField> getField() {
         return Optional.ofNullable(this.field);
     }
 
@@ -302,7 +300,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             String sizeName = fieldInfo.getString("size");
             FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
 
-            this.field = FieldProjection.fromSizeAndCenter(size, fCenter);
+            this.field = MiniaturizationField.fromSizeAndCenter(size, fCenter);
         }
     }
 
@@ -331,7 +329,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
                 ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
                 ProjectorFieldData fieldData = data.ACTIVE_FIELDS.get(center);
 
-                this.field = FieldProjection.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
+                this.field = MiniaturizationField.fromSizeAndCenter(fieldData.size, fieldData.fieldCenter);
             }
         }
     }

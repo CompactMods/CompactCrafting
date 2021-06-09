@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.client;
 
 import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.client.Minecraft;
@@ -14,7 +14,7 @@ public abstract class ClientPacketHandler {
     public static void handleFieldActivation(BlockPos center, FieldProjectionSize fieldSize) {
         BlockPos mainProjector = ProjectorHelper.getProjectorLocationForDirection(center, Direction.NORTH, fieldSize);
 
-        FieldProjection fp = FieldProjection.fromSizeAndCenter(fieldSize, center);
+        MiniaturizationField fp = MiniaturizationField.fromSizeAndCenter(fieldSize, center);
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
             World w = Minecraft.getInstance().level;

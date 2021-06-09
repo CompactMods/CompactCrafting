@@ -50,7 +50,7 @@ public abstract class FieldHelper {
                 continue;
             }
 
-            Optional<FieldProjection> field = tile.getField();
+            Optional<MiniaturizationField> field = tile.getField();
 
             if(field.isPresent()) {
                 AxisAlignedBB fieldBounds = field.get().getBounds();

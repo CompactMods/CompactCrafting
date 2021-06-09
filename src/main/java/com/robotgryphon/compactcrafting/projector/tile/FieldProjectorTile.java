@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.projector.tile;
 
 import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
@@ -61,7 +61,7 @@ public abstract class FieldProjectorTile extends TileEntity {
 
     public abstract Optional<MainFieldProjectorTile> getMainProjectorTile();
 
-    public Optional<FieldProjection> getField() {
+    public Optional<MiniaturizationField> getField() {
         return getMainProjectorTile().flatMap(MainFieldProjectorTile::getField);
     }
 }

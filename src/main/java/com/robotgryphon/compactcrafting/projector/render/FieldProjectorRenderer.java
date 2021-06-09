@@ -4,7 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjection;
+import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
@@ -66,9 +66,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         if (tile instanceof MainFieldProjectorTile) {
             MainFieldProjectorTile mainTile = (MainFieldProjectorTile) tile;
-            Optional<FieldProjection> fieldProjection = mainTile.getField();
+            Optional<MiniaturizationField> fieldProjection = mainTile.getField();
             if (fieldProjection.isPresent()) {
-                FieldProjection fp = fieldProjection.get();
+                MiniaturizationField fp = fieldProjection.get();
                 BlockPos center = fp.getCenterPosition();
                 int fieldSize = fp.getFieldSize().getSize();
 
