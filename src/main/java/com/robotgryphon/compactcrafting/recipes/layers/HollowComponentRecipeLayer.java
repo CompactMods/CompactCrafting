@@ -57,8 +57,8 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     public boolean matches(IRecipeLayerBlocks blocks) {
         Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
 
-        // Need at least one empty component and the wall component
-        if(totalsInWorld.size() < 2)
+        // Hollow layers only match a single component type
+        if(totalsInWorld.size() > 1)
             return false;
 
         if(!totalsInWorld.containsKey(this.componentKey))
