@@ -62,6 +62,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             this.field = field.get();
 
             if (level != null && !level.isClientSide) {
+                doRecipeScan();
                 this.setChanged();
 
                 PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
