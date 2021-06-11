@@ -5,10 +5,6 @@ Compact Crafting
   <a href="https://discord.gg/abca3pDPvu">
     <img src="https://img.shields.io/discord/765363477186740234?label=Discord&amp;logo=discord&amp;logoColor=white&amp;style=for-the-badge" alt="Discord" />
   </a>
-  &nbsp;&nbsp; 
-  <a href="https://www.curseforge.com/minecraft/mc-mods/compact-crafting">
-    <img src="https://img.shields.io/badge/dynamic/json?label=%20&suffix=+downloads&query=$.downloads.total&url=https://api.cfwidget.com/429735&labelColor=E04E14&style=for-the-badge&logo=curseforge&color=black" />
-  </a>
 </p>
 
 This mod is based off of the Miniaturization Crafting mechanic from Compact Machines pre-1.13. It's still
