@@ -54,6 +54,8 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
             return;
         }
 
+        // TODO - Clean this up, potential for crash
+        // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
         if(this.craftingProgress >= 200) {
             if(masterProjector != null) {
                 masterProjector.updateCraftingState(EnumCraftingState.DONE);
