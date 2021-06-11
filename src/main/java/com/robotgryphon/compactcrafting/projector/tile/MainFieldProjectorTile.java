@@ -11,9 +11,6 @@ import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
-import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
-import com.robotgryphon.compactcrafting.world.ProjectionFieldSavedData;
-import com.robotgryphon.compactcrafting.world.ProjectorFieldData;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -24,7 +21,6 @@ import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.List;
@@ -66,9 +62,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             this.field = field.get();
 
             if (level != null && !level.isClientSide) {
-                ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
-                data.ACTIVE_FIELDS.put(this.field.getCenterPosition(), ProjectorFieldData.fromInstance(this.field));
-                data.setDirty();
                 this.setChanged();
 
                 PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
@@ -89,9 +82,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (level != null && !level.isClientSide) {
             BlockPos center = this.field.getCenterPosition();
             FieldProjectionSize size = this.field.getFieldSize();
-
-            ProjectionFieldSavedData data = ProjectionFieldSavedData.get((ServerWorld) level);
-            data.unregister(center);
 
             PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
                     .with(() -> level.getChunkAt(this.worldPosition));
@@ -344,15 +334,16 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             this.craftingState = EnumCraftingState.valueOf(nbt.getString("craftingState"));
         }
 
+        // TODO - This needs to move to a recipeId RL field and handled on-demand instead of doing the below
         if(nbt.contains("recipe")){
             ResourceLocation rid = new ResourceLocation(nbt.getString("recipe"));
-            Optional<RecipeBase> recipe = level.getRecipeManager()
-                    .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
-                    .stream()
-                    .filter(r -> r.getId().equals(rid))
-                    .findFirst();
-
-            recipe.ifPresent(rec -> this.currentRecipe = (MiniaturizationRecipe) rec);
+//            Optional<RecipeBase> recipe = level.getRecipeManager()
+//                    .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
+//                    .stream()
+//                    .filter(r -> r.getId().equals(rid))
+//                    .findFirst();
+//
+//            recipe.ifPresent(rec -> this.currentRecipe = (MiniaturizationRecipe) rec);
         }
     }
 }
