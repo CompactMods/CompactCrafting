@@ -1,8 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.robotgryphon.compactcrafting.CompactCrafting;
@@ -22,12 +20,13 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
 
     @Override
     public MiniaturizationRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
-        Optional<Pair<MiniaturizationRecipe, JsonElement>> p = MiniaturizationRecipe.CODEC.decode(JsonOps.INSTANCE, json)
+        CompactCrafting.LOGGER.debug("Beginning deserialization of recipe: {}", recipeId.toString());
+        Optional<MiniaturizationRecipe> p = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(err -> {
                     CompactCrafting.LOGGER.error("Error loading recipe: " + err);
                 });
 
-        MiniaturizationRecipe r = p.map(Pair::getFirst).orElse(null);
+        MiniaturizationRecipe r = p.orElse(null);
         if (r != null) r.setId(recipeId);
         return r;
     }

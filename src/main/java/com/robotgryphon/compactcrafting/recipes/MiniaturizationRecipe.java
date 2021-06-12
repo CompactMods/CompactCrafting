@@ -114,8 +114,8 @@ public class MiniaturizationRecipe extends RecipeBase {
             for(String comp : layerComponents) {
                 if(!blockComponents.containsKey(comp)) {
                     CompactCrafting.LOGGER.warn(
-                            "Warning: Unmapped component found in recipe {}; component '{}' being remapped to an empty block component.",
-                            this.id, comp);
+                            "Warning: Unmapped component found in recipe; component '{}' being remapped to an empty block component.",
+                            comp);
 
                     this.blockComponents.put(comp, new EmptyBlockComponent());
                 }

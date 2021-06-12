@@ -14,7 +14,6 @@ import com.robotgryphon.compactcrafting.ui.ScreenArea;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.ITickTimer;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -47,7 +46,6 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 
-import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -58,8 +56,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private final IDrawable icon;
     private final BlockRendererDispatcher blocks;
     private RenderingWorld previewLevel;
-
-    private ITickTimer timer;
 
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
@@ -94,9 +90,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
         this.previewLevel = null;
-
-        // 180 = approx. 9 seconds to full rotation
-        this.timer = guiHelper.createTickTimer(45, 180, false);
     }
 
     //region JEI implementation requirements
@@ -365,8 +358,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
             mx.scale(10, -10, 10);
 
+            double gameTime = Minecraft.getInstance().level.getGameTime();
+            double test = Math.toDegrees(gameTime) / 15;
             mx.mulPose(new Quaternion(35f,
-                    -timer.getValue(),
+                    (float) -test,
                     0,
                     true));
 
