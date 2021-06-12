@@ -12,6 +12,7 @@ import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
+import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -92,7 +93,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
 
                 if (tile.isMainProjector()) {
-                    EnumCraftingState state = mainTile.getCraftingState();
+                    EnumCraftingState state = fp.getCraftingState();
                     if (state == EnumCraftingState.CRAFTING) {
                         FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
                                 .getLevel()
@@ -104,8 +105,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
                         double craftProgress = preview.getProgress();
 
-                        double progress = 1.0d - (craftProgress / (double) mainTile.getCurrentRecipe().get().getTicks());
+                        double recipeProgress = (double) fp.getCurrentRecipe().map(MiniaturizationRecipe::getTicks).orElse(100);
 
+                        double progress = 1.0d - (craftProgress / recipeProgress);
                         long gameTime = tile.getLevel().getGameTime();
                         scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
                     }

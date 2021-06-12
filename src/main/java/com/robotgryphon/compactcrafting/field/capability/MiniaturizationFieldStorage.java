@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
+import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
@@ -36,6 +37,12 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
         fieldInfo.put("center", NBTUtil.writeBlockPos(instance.getCenterPosition()));
         fieldInfo.putString("size", instance.getFieldSize().name());
 
+        fieldInfo.putString("craftingState", instance.getCraftingState().name());
+
+        instance.getCurrentRecipe().ifPresent(rec -> {
+            fieldInfo.putString("recipe", rec.getId().toString());
+        });
+
         return fieldInfo;
     }
 
@@ -65,6 +72,11 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
 
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
             FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
+
+            if (fieldInfo.contains("craftingState")) {
+                EnumCraftingState state = EnumCraftingState.valueOf(fieldInfo.getString("craftingState"));
+                instance.setCraftingState(state);
+            }
 
             instance.setCenter(center);
             instance.setSize(size);

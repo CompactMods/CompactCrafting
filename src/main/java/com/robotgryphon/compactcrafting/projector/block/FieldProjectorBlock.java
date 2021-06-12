@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.projector.block;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
@@ -61,7 +62,11 @@ public class FieldProjectorBlock extends Block {
         if (tile == null)
             return;
 
-        tile.getMainProjectorTile().ifPresent(MainFieldProjectorTile::doRecipeScan);
+        // TODO - Stop referencing main projector
+        tile.getMainProjectorTile()
+            .map(main -> main.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD))
+            .get()
+            .ifPresent(field -> field.doRecipeScan(worldIn));
     }
 
 
@@ -160,10 +165,10 @@ public class FieldProjectorBlock extends Block {
         FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
 
         // If we don't have a valid field, search again
-        if(tile == null)
+        if (tile == null)
             return;
 
-        if(tile instanceof DummyFieldProjectorTile) {
+        if (tile instanceof DummyFieldProjectorTile) {
 
             DummyFieldProjectorTile dummy = (DummyFieldProjectorTile) tile;
             dummy.onInitialPlacement();

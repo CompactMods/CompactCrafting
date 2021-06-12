@@ -31,55 +31,64 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
         MiniaturizationRecipe recipe = tile.getRecipe();
 
+        if(recipe == null)
+            return;
+
         mx.pushPose();
 
         mx.translate(0.5, 0.5, 0.5);
 
-        // progress, ticks required
-        double craftProgress = tile.getProgress();
+        try {
+            // progress, ticks required
+            double craftProgress = tile.getProgress();
 
-        double progress = 1.0d - (craftProgress / (double) recipe.getTicks());
-        long gameTime = tile.getLevel().getGameTime();
+            double progress = 1.0d - (craftProgress / (double) recipe.getTicks());
+            long gameTime = tile.getLevel().getGameTime();
 
-        double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f));
+            double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f));
 
-        mx.scale((float) scale, (float) scale, (float) scale);
+            mx.scale((float) scale, (float) scale, (float) scale);
 
-        double angle = gameTime * (45.0f / 64.0f);
-        mx.mulPose(Vector3f.YP.rotationDegrees((float) angle));
+            double angle = gameTime * (45.0f / 64.0f);
+            mx.mulPose(Vector3f.YP.rotationDegrees((float) angle));
 
-        AxisAlignedBB dimensions = recipe.getDimensions();
-        mx.translate(-(dimensions.getXsize() / 2), -(dimensions.getYsize() / 2), -(dimensions.getZsize() / 2));
+            AxisAlignedBB dimensions = recipe.getDimensions();
+            mx.translate(-(dimensions.getXsize() / 2), -(dimensions.getYsize() / 2), -(dimensions.getZsize() / 2));
 
 
-        double ySize = recipe.getDimensions().getYsize();
+            double ySize = recipe.getDimensions().getYsize();
 
-        for (int y = 0; y < ySize; y++) {
-            mx.pushPose();
-            mx.translate(0, y, 0);
+            for (int y = 0; y < ySize; y++) {
+                mx.pushPose();
+                mx.translate(0, y, 0);
 
-            Optional<IRecipeLayer> layer = recipe.getLayer(y);
-            int finalY = y;
-            layer.ifPresent(l -> {
-                AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBoundsByYOffset(recipe.getDimensions(), finalY);
-                BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
-                    mx.pushPose();
-                    mx.translate(filledPos.getX(), 0, filledPos.getZ());
+                Optional<IRecipeLayer> layer = recipe.getLayer(y);
+                int finalY = y;
+                layer.ifPresent(l -> {
+                    AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBoundsByYOffset(recipe.getDimensions(), finalY);
+                    BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
+                        mx.pushPose();
+                        mx.translate(filledPos.getX(), 0, filledPos.getZ());
 
-                    BlockPos zeroedPos = filledPos.below(finalY);
-                    l.getComponentForPosition(zeroedPos)
-                            .flatMap(recipe::getRecipeBlockComponent)
-                            .ifPresent(comp -> {
-                                // TODO - Render switching
-                                BlockState state1 = comp.getRenderState();
-                                blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
-                            });
+                        BlockPos zeroedPos = filledPos.below(finalY);
+                        l.getComponentForPosition(zeroedPos)
+                                .flatMap(recipe::getRecipeBlockComponent)
+                                .ifPresent(comp -> {
+                                    // TODO - Render switching
+                                    BlockState state1 = comp.getRenderState();
+                                    blockRenderer.renderBlock(state1, mx, buffers, light, overlay, EmptyModelData.INSTANCE);
+                                });
 
-                    mx.popPose();
+                        mx.popPose();
+                    });
                 });
-            });
 
-            mx.popPose();
+                mx.popPose();
+            }
+        }
+
+        catch(Exception ex) {
+            ex.printStackTrace();
         }
 
         mx.popPose();

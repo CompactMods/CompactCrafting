@@ -203,8 +203,8 @@ public class MiniaturizationRecipe extends RecipeBase {
         return fits;
     }
 
-    public boolean matches(IWorldReader world, FieldProjectionSize fieldSize, MiniaturizationField field) {
-        if (!fitsInFieldSize(fieldSize))
+    public boolean matches(IWorldReader world, MiniaturizationField field) {
+        if (!fitsInFieldSize(field.getFieldSize()))
             return false;
 
         // We know that the recipe will at least fit inside the current projection field

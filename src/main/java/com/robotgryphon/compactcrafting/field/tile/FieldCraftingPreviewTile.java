@@ -1,8 +1,7 @@
 package com.robotgryphon.compactcrafting.field.tile;
 
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -16,9 +15,13 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.util.LazyOptional;
+
+import javax.annotation.Nonnull;
 
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
-    private MainFieldProjectorTile masterProjector;
+    @Nonnull
+    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
     private int craftingProgress = 0;
     private MiniaturizationRecipe recipe;
 
@@ -34,9 +37,17 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         return recipe;
     }
 
-    public void setMasterProjector(MainFieldProjectorTile master) {
-        this.masterProjector = master;
-        this.recipe = master.getCurrentRecipe().get();
+    public void setField(IMiniaturizationField field) {
+        this.field = LazyOptional.of(() -> field);
+
+        this.recipe = field.getCurrentRecipe().orElse(null);
+
+        // Add invalidation listener so if the field invalidates, this block vanishes and the craft is lost
+        this.field.addListener(f -> {
+            if(level != null)
+                level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
+        });
+
         this.setChanged();
     }
 
@@ -55,14 +66,14 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         // TODO - Clean this up, potential for crash
         // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
         if (this.craftingProgress >= 60) {
-            if (masterProjector != null) {
-                masterProjector.updateCraftingState(EnumCraftingState.DONE);
-            }
+            field.ifPresent(IMiniaturizationField::completeCraft);
 
             BlockPos center = this.worldPosition;
-            for (ItemStack is : recipe.getOutputs()) {
-                ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
-                level.addFreshEntity(itemEntity);
+            if(recipe != null) {
+                for (ItemStack is : recipe.getOutputs()) {
+                    ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
+                    level.addFreshEntity(itemEntity);
+                }
             }
 
             level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
