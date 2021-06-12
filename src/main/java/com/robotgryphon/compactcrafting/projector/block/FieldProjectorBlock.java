@@ -1,7 +1,6 @@
 package com.robotgryphon.compactcrafting.projector.block;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
@@ -31,7 +30,6 @@ import net.minecraft.world.server.ServerWorld;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.Random;
 
 public class FieldProjectorBlock extends Block {
 
@@ -54,21 +52,6 @@ public class FieldProjectorBlock extends Block {
         Direction facing = positionState.getValue(FieldProjectorBlock.FACING);
         return Optional.of(facing);
     }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void tick(BlockState state, ServerWorld worldIn, BlockPos pos, Random rand) {
-        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
-        if (tile == null)
-            return;
-
-        // TODO - Stop referencing main projector
-        tile.getMainProjectorTile()
-            .map(main -> main.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD))
-            .get()
-            .ifPresent(field -> field.doRecipeScan(worldIn));
-    }
-
 
     @Override
     @SuppressWarnings("deprecation")

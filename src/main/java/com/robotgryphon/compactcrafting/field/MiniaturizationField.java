@@ -200,6 +200,11 @@ public class MiniaturizationField implements IMiniaturizationField {
         return craftingState;
     }
 
+    @Override
+    public void tick(World level) {
+        tickCrafting(level);
+    }
+
     public void tickCrafting(World level) {
         AxisAlignedBB fieldBounds = getBounds();
 

@@ -3,14 +3,15 @@ package com.robotgryphon.compactcrafting.projector.tile;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.field.capability.IActiveWorldFields;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.ITickableTileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -22,7 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
-public class MainFieldProjectorTile extends FieldProjectorTile implements ITickableTileEntity {
+public class MainFieldProjectorTile extends FieldProjectorTile {
 
     private MiniaturizationField field = null;
 
@@ -40,12 +41,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         invalidateField();
     }
 
-    @Override
-    public void tick() {
-        if (this.field != null)
-            field.tickCrafting(this.level);
-    }
-
     /**
      * Invalidates the current field projection and attempts to rebuild it from this position as an initial.
      */
@@ -59,6 +54,14 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             this.field = field.get();
             this.fieldCap.invalidate();
             this.fieldCap = LazyOptional.of(() -> this.field);
+
+            LazyOptional<IActiveWorldFields> activeFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+
+            activeFields.ifPresent(af -> af.activateField(field.get()));
+            this.fieldCap.addListener(f -> {
+                activeFields.ifPresent(fc ->
+                        fc.deactivateField(field.get()));
+            });
 
             if (level != null && !level.isClientSide) {
                 this.field.doRecipeScan(level);
@@ -111,7 +114,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         this.field = field;
         this.setChanged();
     }
-
 
 
     @Override

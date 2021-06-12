@@ -37,4 +37,6 @@ public interface IMiniaturizationField {
     void doRecipeScan(World level);
 
     void setCraftingState(EnumCraftingState state);
+
+    default void tick(World level) {}
 }
