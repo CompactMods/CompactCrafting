@@ -11,4 +11,8 @@ public interface IMiniaturizationField {
     FieldProjectionSize getFieldSize();
 
     BlockPos getCenterPosition();
+
+    void setCenter(BlockPos center);
+
+    void setSize(FieldProjectionSize size);
 }

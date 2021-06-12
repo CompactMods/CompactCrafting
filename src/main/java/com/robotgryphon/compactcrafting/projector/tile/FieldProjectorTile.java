@@ -1,9 +1,9 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
-import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 
@@ -11,8 +11,8 @@ import java.util.Optional;
 
 public abstract class FieldProjectorTile extends TileEntity {
 
-    public FieldProjectorTile() {
-        super(Registration.MAIN_FIELD_PROJECTOR_TILE.get());
+    public FieldProjectorTile(TileEntityType<?> p_i48289_1_) {
+        super(p_i48289_1_);
     }
 
     public Direction getFacing() {

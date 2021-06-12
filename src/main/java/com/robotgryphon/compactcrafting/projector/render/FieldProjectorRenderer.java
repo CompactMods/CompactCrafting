@@ -57,6 +57,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     private IBakedModel bakedModelCached;
 
+    private LazyOptional<IMiniaturizationField> field;
+
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
     }
@@ -67,8 +69,16 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         if (tile instanceof MainFieldProjectorTile) {
             MainFieldProjectorTile mainTile = (MainFieldProjectorTile) tile;
-            LazyOptional<IMiniaturizationField> fieldProjection = mainTile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
-            fieldProjection.ifPresent(fp -> {
+
+            if(field == null) {
+                field = mainTile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
+                field.addListener(f -> this.field = null);
+            }
+
+            if(field == null)
+                return;
+
+            field.ifPresent(fp -> {
                 int fieldSize = fp.getFieldSize().getSize();
 
                 float scale = 1f;

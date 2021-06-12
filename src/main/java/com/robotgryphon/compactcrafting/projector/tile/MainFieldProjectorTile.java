@@ -43,6 +43,10 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     private LazyOptional<MiniaturizationField> fieldCap = LazyOptional.empty();
 
+    public MainFieldProjectorTile() {
+        super(Registration.MAIN_FIELD_PROJECTOR_TILE.get());
+    }
+
     @Override
     public void setRemoved() {
         super.setRemoved();
@@ -87,21 +91,29 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     }
 
     public void invalidateField() {
-        if (field == null)
+        if (field == null) {
+            fieldCap.invalidate();
+            fieldCap = LazyOptional.empty();
             return;
-
-        if (level != null && !level.isClientSide) {
-            BlockPos center = this.field.getCenterPosition();
-            FieldProjectionSize size = this.field.getFieldSize();
-
-            PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
-                    .with(() -> level.getChunkAt(this.worldPosition));
-
-            NetworkHandler.MAIN_CHANNEL
-                    .send(trk, new FieldDeactivatedPacket(center, size));
         }
 
+        BlockPos center = this.field.getCenterPosition();
+        FieldProjectionSize size = this.field.getFieldSize();
+
         this.field = null;
+        this.fieldCap.invalidate();
+        this.fieldCap = LazyOptional.empty();
+
+        if (level == null || level.isClientSide)
+            return;
+
+        PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
+                .with(() -> level.getChunkAt(this.worldPosition));
+
+        // TODO - Change to the projector positions instead of the field info
+        NetworkHandler.MAIN_CHANNEL
+                .send(trk, new FieldDeactivatedPacket(center, size));
+
         this.setChanged();
     }
 
@@ -314,19 +326,15 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
             FieldProjectionSize size = FieldProjectionSize.valueOf(sizeName);
 
             this.field = MiniaturizationField.fromSizeAndCenter(size, fCenter);
+            this.fieldCap = LazyOptional.of(() -> this.field);
+        } else {
+            this.invalidateField();
         }
     }
 
     @Override
     public CompoundNBT save(CompoundNBT compound) {
         CompoundNBT nbt = super.save(compound);
-
-        if (field != null) {
-            CompoundNBT fieldInfo = new CompoundNBT();
-            fieldInfo.put("center", NBTUtil.writeBlockPos(this.field.getCenterPosition()));
-            fieldInfo.putString("size", this.field.getFieldSize().name());
-            nbt.put("fieldInfo", fieldInfo);
-        }
 
         nbt.putString("craftingState", this.craftingState.name());
         if (this.currentRecipe != null)
@@ -338,15 +346,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     @Override
     public void load(BlockState state, CompoundNBT nbt) {
         super.load(state, nbt);
-
-        if (nbt.contains("fieldInfo")) {
-            CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
-            BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
-            FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
-
-            this.field = MiniaturizationField.fromSizeAndCenter(size, center);
-            this.fieldCap = LazyOptional.of(() -> this.field);
-        }
 
         if (nbt.contains("craftingState")) {
             this.craftingState = EnumCraftingState.valueOf(nbt.getString("craftingState"));

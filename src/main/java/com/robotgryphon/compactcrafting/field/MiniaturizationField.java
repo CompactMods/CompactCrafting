@@ -45,6 +45,16 @@ public class MiniaturizationField implements IMiniaturizationField {
         return center;
     }
 
+    @Override
+    public void setCenter(BlockPos center) {
+        this.center = center;
+    }
+
+    @Override
+    public void setSize(FieldProjectionSize size) {
+        this.size = size;
+    }
+
     public AxisAlignedBB getBounds() {
         FieldProjectionSize size = this.size;
         BlockPos center = getCenterPosition();

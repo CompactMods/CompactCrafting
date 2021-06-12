@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
+import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import net.minecraft.block.BlockState;
@@ -15,8 +16,19 @@ public class DummyFieldProjectorTile extends FieldProjectorTile {
     private BlockPos mainProjector;
     private BlockPos fieldCenter;
 
+    public DummyFieldProjectorTile() {
+        super(Registration.DUMMY_FIELD_PROJECTOR_TILE.get());
+    }
+
     private void setMainProjector(BlockPos main) {
         this.mainProjector = main;
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+
+        this.getMainProjectorTile().ifPresent(MainFieldProjectorTile::invalidateField);
     }
 
     @Override

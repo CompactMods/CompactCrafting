@@ -1,7 +1,11 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
@@ -28,7 +32,11 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
     @Nullable
     @Override
     public INBT writeNBT(Capability<IMiniaturizationField> capability, IMiniaturizationField instance, Direction side) {
-        return null;
+        CompoundNBT fieldInfo = new CompoundNBT();
+        fieldInfo.put("center", NBTUtil.writeBlockPos(instance.getCenterPosition()));
+        fieldInfo.putString("size", instance.getFieldSize().name());
+
+        return fieldInfo;
     }
 
     /**
@@ -52,6 +60,14 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
      */
     @Override
     public void readNBT(Capability<IMiniaturizationField> capability, IMiniaturizationField instance, Direction side, INBT nbt) {
+        if(nbt instanceof CompoundNBT) {
+            CompoundNBT fieldInfo = (CompoundNBT) nbt;
 
+            BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
+            FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
+
+            instance.setCenter(center);
+            instance.setSize(size);
+        }
     }
 }
