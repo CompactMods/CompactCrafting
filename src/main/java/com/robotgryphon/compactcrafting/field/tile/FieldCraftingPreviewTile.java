@@ -17,8 +17,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.Optional;
-
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
     private MainFieldProjectorTile masterProjector;
     private int craftingProgress = 0;
@@ -32,8 +30,8 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         return this.craftingProgress;
     }
 
-    public Optional<MiniaturizationRecipe> getRecipe() {
-        return Optional.ofNullable(recipe);
+    public MiniaturizationRecipe getRecipe() {
+        return recipe;
     }
 
     public void setMasterProjector(MainFieldProjectorTile master) {
@@ -50,24 +48,21 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     @Override
     public void tick() {
         this.craftingProgress++;
-        if(level.isClientSide) {
+        if (level.isClientSide) {
             return;
         }
 
         // TODO - Clean this up, potential for crash
         // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
-        if(this.craftingProgress >= 200) {
-            if(masterProjector != null) {
+        if (this.craftingProgress >= 60) {
+            if (masterProjector != null) {
                 masterProjector.updateCraftingState(EnumCraftingState.DONE);
+            }
 
-                BlockPos fieldCenter = masterProjector.getField().get().getCenterPosition();
-
-                getRecipe().ifPresent(recipe -> {
-                    for (ItemStack is : recipe.getOutputs()) {
-                        ItemEntity itemEntity = new ItemEntity(level, fieldCenter.getX() + 0.5f, fieldCenter.getY() + 0.5f, fieldCenter.getZ() + 0.5f, is);
-                        level.addFreshEntity(itemEntity);
-                    }
-                });
+            BlockPos center = this.worldPosition;
+            for (ItemStack is : recipe.getOutputs()) {
+                ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
+                level.addFreshEntity(itemEntity);
             }
 
             level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
@@ -80,7 +75,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
         craftingProgress = compound.getInt("progress");
 
-        if(compound.contains("recipe")) {
+        if (compound.contains("recipe")) {
             ResourceLocation recipeId = new ResourceLocation(compound.getString("recipe"));
             level.getRecipeManager()
                     .byKey(recipeId)
@@ -91,7 +86,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     @Override
     public CompoundNBT save(CompoundNBT compound) {
         super.save(compound);
-        if(recipe != null) {
+        if (recipe != null) {
             compound.putString("recipe", recipe.getId().toString());
         }
 
