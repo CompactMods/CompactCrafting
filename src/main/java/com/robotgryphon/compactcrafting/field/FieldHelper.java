@@ -2,15 +2,17 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationFieldProvider;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.TickPriority;
-
-import java.util.Optional;
+import net.minecraftforge.common.util.LazyOptional;
 
 /**
  * Provides utilities to help with projector field management.
@@ -36,6 +38,8 @@ public abstract class FieldHelper {
             if(tile instanceof DummyFieldProjectorTile)
                 continue;
 
+            MainFieldProjectorTile main = (MainFieldProjectorTile) tile;
+
             // CompactCrafting.LOGGER.debug("Got a block placed near a projector: " + p.getCoordinatesAsString());
 
             // Not a field projector tile. Somehow.
@@ -45,23 +49,22 @@ public abstract class FieldHelper {
                 continue;
             }
 
-            Optional<MiniaturizationField> field = tile.getField();
-
-            if(field.isPresent()) {
-                AxisAlignedBB fieldBounds = field.get().getBounds();
+            LazyOptional<IMiniaturizationFieldProvider> field = main.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD, null);
+            field.ifPresent(f -> {
+                AxisAlignedBB fieldBounds = f.getField().getBounds();
 
                 // Is the block update INSIDE the current field?
                 boolean blockInField = fieldBounds
                         .contains(pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f);
 
                 if(!blockInField)
-                    continue;;
+                    return;
 
                 // Schedule an update tick for half a second out, handles blocks breaking better
                 world
-                    .getBlockTicks()
-                    .scheduleTick(p, Registration.FIELD_PROJECTOR_BLOCK.get(), 10, TickPriority.NORMAL);
-            }
+                        .getBlockTicks()
+                        .scheduleTick(p, Registration.FIELD_PROJECTOR_BLOCK.get(), 10, TickPriority.NORMAL);
+            });
         }
     }
 

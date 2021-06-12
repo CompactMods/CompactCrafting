@@ -6,6 +6,8 @@ import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.field.capability.MiniaturizationFieldProvider;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
@@ -18,11 +20,16 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.ITickableTileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -34,6 +41,8 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     private EnumCraftingState craftingState = EnumCraftingState.NOT_MATCHED;
     private MiniaturizationField field = null;
     private MiniaturizationRecipe currentRecipe = null;
+
+    private LazyOptional<MiniaturizationFieldProvider> fieldCap = LazyOptional.empty();
 
     @Override
     public void setRemoved() {
@@ -60,6 +69,8 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         Optional<MiniaturizationField> field = MiniaturizationField.tryCreateFromProjector(level, this.worldPosition);
         if (field.isPresent()) {
             this.field = field.get();
+            this.fieldCap.invalidate();
+            this.fieldCap = LazyOptional.of(() -> new MiniaturizationFieldProvider(field.get()));
 
             if (level != null && !level.isClientSide) {
                 doRecipeScan();
@@ -258,10 +269,6 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         return Optional.of(this);
     }
 
-    public Optional<MiniaturizationField> getField() {
-        return Optional.ofNullable(this.field);
-    }
-
     public Optional<MiniaturizationRecipe> getCurrentRecipe() {
         return Optional.ofNullable(this.currentRecipe);
     }
@@ -272,6 +279,15 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     public EnumCraftingState getCraftingState() {
         return this.craftingState;
+    }
+
+    @Nonnull
+    @Override
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+        if(cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+            return fieldCap.cast();
+
+        return super.getCapability(cap, side);
     }
 
     @Override
