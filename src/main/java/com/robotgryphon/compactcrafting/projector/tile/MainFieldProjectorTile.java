@@ -7,7 +7,6 @@ import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import com.robotgryphon.compactcrafting.field.capability.MiniaturizationFieldProvider;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
@@ -42,7 +41,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     private MiniaturizationField field = null;
     private MiniaturizationRecipe currentRecipe = null;
 
-    private LazyOptional<MiniaturizationFieldProvider> fieldCap = LazyOptional.empty();
+    private LazyOptional<MiniaturizationField> fieldCap = LazyOptional.empty();
 
     @Override
     public void setRemoved() {
@@ -70,7 +69,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         if (field.isPresent()) {
             this.field = field.get();
             this.fieldCap.invalidate();
-            this.fieldCap = LazyOptional.of(() -> new MiniaturizationFieldProvider(field.get()));
+            this.fieldCap = LazyOptional.of(() -> this.field);
 
             if (level != null && !level.isClientSide) {
                 doRecipeScan();
@@ -135,7 +134,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
          * we remove all the recipes that are definitely larger than the currently
          * filled space.
          */
-         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
+        Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
                 .filter(recipe -> recipe.fitsInDimensions(field.getFilledBounds(level)))
@@ -169,6 +168,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
 
     /**
      * Used by clients to update field information on activation/deactivation.
+     *
      * @param field
      */
     public void setFieldInfo(MiniaturizationField field) {
@@ -284,7 +284,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if(cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+        if (cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
             return fieldCap.cast();
 
         return super.getCapability(cap, side);
@@ -329,7 +329,7 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
         }
 
         nbt.putString("craftingState", this.craftingState.name());
-        if(this.currentRecipe != null)
+        if (this.currentRecipe != null)
             nbt.putString("recipe", this.currentRecipe.getId().toString());
 
         return nbt;
@@ -339,20 +339,21 @@ public class MainFieldProjectorTile extends FieldProjectorTile implements ITicka
     public void load(BlockState state, CompoundNBT nbt) {
         super.load(state, nbt);
 
-        if(nbt.contains("fieldInfo")) {
+        if (nbt.contains("fieldInfo")) {
             CompoundNBT fieldInfo = nbt.getCompound("fieldInfo");
             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
             FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
 
             this.field = MiniaturizationField.fromSizeAndCenter(size, center);
+            this.fieldCap = LazyOptional.of(() -> this.field);
         }
 
-        if(nbt.contains("craftingState")) {
+        if (nbt.contains("craftingState")) {
             this.craftingState = EnumCraftingState.valueOf(nbt.getString("craftingState"));
         }
 
         // TODO - This needs to move to a recipeId RL field and handled on-demand instead of doing the below
-        if(nbt.contains("recipe")){
+        if (nbt.contains("recipe")) {
             ResourceLocation rid = new ResourceLocation(nbt.getString("recipe"));
 //            Optional<RecipeBase> recipe = level.getRecipeManager()
 //                    .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)

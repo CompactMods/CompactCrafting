@@ -6,7 +6,7 @@ import net.minecraftforge.common.capabilities.Capability;
 
 import javax.annotation.Nullable;
 
-public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniaturizationFieldProvider> {
+public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniaturizationField> {
     /**
      * Serialize the capability instance to a NBTTag.
      * This allows for a central implementation of saving the data.
@@ -27,7 +27,7 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
      */
     @Nullable
     @Override
-    public INBT writeNBT(Capability<IMiniaturizationFieldProvider> capability, IMiniaturizationFieldProvider instance, Direction side) {
+    public INBT writeNBT(Capability<IMiniaturizationField> capability, IMiniaturizationField instance, Direction side) {
         return null;
     }
 
@@ -51,7 +51,7 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
      * @param nbt        A NBT holding the data. Must not be null, as doesn't make sense to call this function with nothing to read...
      */
     @Override
-    public void readNBT(Capability<IMiniaturizationFieldProvider> capability, IMiniaturizationFieldProvider instance, Direction side, INBT nbt) {
+    public void readNBT(Capability<IMiniaturizationField> capability, IMiniaturizationField instance, Direction side, INBT nbt) {
 
     }
 }

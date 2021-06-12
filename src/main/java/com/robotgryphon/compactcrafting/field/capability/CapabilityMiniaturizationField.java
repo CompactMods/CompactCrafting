@@ -4,6 +4,6 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 
 public class CapabilityMiniaturizationField {
-    @CapabilityInject(IMiniaturizationFieldProvider.class)
-    public static Capability<IMiniaturizationFieldProvider> MINIATURIZATION_FIELD = null;
+    @CapabilityInject(IMiniaturizationField.class)
+    public static Capability<IMiniaturizationField> MINIATURIZATION_FIELD = null;
 }

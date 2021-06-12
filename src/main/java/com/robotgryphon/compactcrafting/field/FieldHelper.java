@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.field;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationFieldProvider;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
@@ -49,9 +49,9 @@ public abstract class FieldHelper {
                 continue;
             }
 
-            LazyOptional<IMiniaturizationFieldProvider> field = main.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD, null);
+            LazyOptional<IMiniaturizationField> field = main.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD, null);
             field.ifPresent(f -> {
-                AxisAlignedBB fieldBounds = f.getField().getBounds();
+                AxisAlignedBB fieldBounds = f.getBounds();
 
                 // Is the block update INSIDE the current field?
                 boolean blockInField = fieldBounds

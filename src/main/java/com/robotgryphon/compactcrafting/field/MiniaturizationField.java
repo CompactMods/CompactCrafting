@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.field;
 
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
@@ -20,13 +21,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Represents an active miniaturization field in the world.
- */
-public class MiniaturizationField {
+public class MiniaturizationField implements IMiniaturizationField {
 
     private FieldProjectionSize size;
     private BlockPos center;
+
+    public MiniaturizationField() {}
 
     private MiniaturizationField(FieldProjectionSize size, BlockPos center) {
         this.center = center;
@@ -146,15 +146,15 @@ public class MiniaturizationField {
     public void clearBlocks(IWorld world) {
         // Remove blocks from the world
         getFilledBlocks(world)
-            .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
-            .forEach(blockPos -> {
-                world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
+                .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
+                .forEach(blockPos -> {
+                    world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
-                if(world instanceof ServerWorld) {
-                    ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
-                            blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
-                            1,0d, 0.05D, 0D, 0.25d);
-                }
-            });
+                    if(world instanceof ServerWorld) {
+                        ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
+                                blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
+                                1,0d, 0.05D, 0D, 0.25d);
+                    }
+                });
     }
 }
