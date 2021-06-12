@@ -151,13 +151,7 @@ public class FieldProjectorBlock extends Block {
         if (tile == null)
             return;
 
-        if (tile instanceof DummyFieldProjectorTile) {
-
-            DummyFieldProjectorTile dummy = (DummyFieldProjectorTile) tile;
-            dummy.onInitialPlacement();
-        }
-
-        tile.getMainProjectorTile().ifPresent(MainFieldProjectorTile::doFieldCheck);
+        tile.doFieldCheck();
 
         // Add owner information to field projector
     }
