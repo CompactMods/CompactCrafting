@@ -15,8 +15,7 @@ public class FieldProjectorRenderSetup {
 
     @SubscribeEvent
     public static void init(final FMLClientSetupEvent event) {
-        ClientRegistry.bindTileEntityRenderer(Registration.MAIN_FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
-        ClientRegistry.bindTileEntityRenderer(Registration.DUMMY_FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+        ClientRegistry.bindTileEntityRenderer(Registration.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
 
     }
 

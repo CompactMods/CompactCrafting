@@ -1,5 +1,11 @@
 package com.robotgryphon.compactcrafting.field;
 
+import net.minecraft.util.Direction;
+import net.minecraft.util.math.BlockPos;
+
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public enum FieldProjectionSize {
     /**
      * 3x3x3 Crafting Field Size (Magnitude 1)
@@ -58,4 +64,31 @@ public enum FieldProjectionSize {
         return LARGE;
     }
 
+    public BlockPos getCenterFromProjector(BlockPos projector, Direction facing) {
+        return projector.relative(facing, this.getProjectorDistance() + 1);
+    }
+
+    public BlockPos getProjectorLocationForDirection(BlockPos center, Direction direction) {
+        return center.relative(direction, this.getProjectorDistance() + 1);
+    }
+
+    public Stream<BlockPos> getProjectorLocations(BlockPos center) {
+        return Arrays
+                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
+                .filter(d -> d.getAxis().isHorizontal())
+                .map(hor -> getProjectorLocationForDirection(center, hor));
+    }
+
+    public Stream<BlockPos> getProjectorLocationsForAxis(BlockPos center, Direction.Axis axis) {
+        Direction posdir = Direction.get(Direction.AxisDirection.POSITIVE, axis);
+        BlockPos posLocation = getProjectorLocationForDirection(center, posdir);
+        BlockPos negLocation = getProjectorLocationForDirection(center, posdir.getOpposite());
+
+        return Stream.of(posLocation, negLocation);
+    }
+
+    public BlockPos getOppositeProjectorPosition(BlockPos projectorPos, Direction projectorFacing) {
+        BlockPos center = getCenterFromProjector(projectorPos, projectorFacing);
+        return getProjectorLocationForDirection(center, projectorFacing);
+    }
 }

@@ -11,7 +11,6 @@ import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -58,7 +57,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     private IBakedModel bakedModelCached;
 
-    private LazyOptional<IMiniaturizationField> field;
+    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
     public FieldProjectorRenderer(TileEntityRendererDispatcher rendererDispatcherIn) {
         super(rendererDispatcherIn);
@@ -68,61 +67,48 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
 
-        if (tile instanceof MainFieldProjectorTile) {
-            MainFieldProjectorTile mainTile = (MainFieldProjectorTile) tile;
+        field = tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
 
-            if(field == null) {
-                field = mainTile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
-                field.addListener(f -> this.field = null);
+        field.ifPresent(fp -> {
+            float scale = 1f;
+
+            int fieldSize = fp.getFieldSize().getSize();
+
+            AxisAlignedBB cube = fp.getBounds();
+
+            // TODO - WIP ARC CODE
+            // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
+
+            if (tile.getProjectorSide() == Direction.SOUTH) {
+                EnumCraftingState state = fp.getCraftingState();
+                if (state == EnumCraftingState.CRAFTING) {
+                    FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
+                            .getLevel()
+                            .getBlockEntity(fp.getCenterPosition());
+
+                    // No preview tile found, not actually crafting rn
+                    if (preview == null)
+                        return;
+
+                    double craftProgress = preview.getProgress();
+
+                    double recipeProgress = (double) fp.getCurrentRecipe().map(MiniaturizationRecipe::getTicks).orElse(100);
+
+                    double progress = 1.0d - (craftProgress / recipeProgress);
+                    long gameTime = tile.getLevel().getGameTime();
+                    scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
+                }
             }
 
-            if(field == null)
-                return;
+            matrixStack.pushPose();
 
-            field.ifPresent(fp -> {
-                int fieldSize = fp.getFieldSize().getSize();
+            matrixStack.scale(scale, scale, scale);
 
-                float scale = 1f;
+            drawScanLine(tile, fp, matrixStack, buffers, cube, fieldSize);
+            drawCubeFace(tile, fp, matrixStack, buffers, cube, fieldSize);
 
-
-                AxisAlignedBB cube = fp.getBounds();
-
-                // renderFaces(tile, matrixStack, buffers, cube, 0);
-
-                // TODO - WIP ARC CODE
-                // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
-
-                if (tile.isMainProjector()) {
-                    EnumCraftingState state = fp.getCraftingState();
-                    if (state == EnumCraftingState.CRAFTING) {
-                        FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
-                                .getLevel()
-                                .getBlockEntity(fp.getCenterPosition());
-
-                        // No preview tile found, not actually crafting rn
-                        if (preview == null)
-                            return;
-
-                        double craftProgress = preview.getProgress();
-
-                        double recipeProgress = (double) fp.getCurrentRecipe().map(MiniaturizationRecipe::getTicks).orElse(100);
-
-                        double progress = 1.0d - (craftProgress / recipeProgress);
-                        long gameTime = tile.getLevel().getGameTime();
-                        scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
-                    }
-
-                    matrixStack.pushPose();
-
-                    matrixStack.scale(scale, scale, scale);
-
-                    drawScanLines(tile, fp, matrixStack, buffers, cube, fieldSize);
-                    renderProjectionCube(tile, fp, matrixStack, buffers, cube, fieldSize);
-
-                    matrixStack.popPose();
-                }
-            });
-        }
+            matrixStack.popPose();
+        });
     }
 
     private IBakedModel getModel() {
@@ -145,37 +131,6 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .uv2(0, 240)
                 .normal(1, 0, 0)
                 .endVertex();
-    }
-
-    private void drawRing(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB bounds, int color) {
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.minZ));
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.minZ));
-
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.minZ));
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.maxZ));
-
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.maxZ));
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.minZ));
-
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.minX, (float) bounds.minY, (float) bounds.maxZ));
-        addColoredVertex(builder, mx, color, new Vector3f((float) bounds.maxX, (float) bounds.minY, (float) bounds.maxZ));
-    }
-
-    /**
-     * Draws a cube given a vertex builder, matrix, color, and cube bounds.
-     *
-     * @param builder
-     * @param mx
-     * @param cube
-     * @param color
-     */
-    private void drawCube(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, int color) {
-        drawCubeFace(builder, mx, cube, color, Direction.NORTH);
-        drawCubeFace(builder, mx, cube, color, Direction.SOUTH);
-        drawCubeFace(builder, mx, cube, color, Direction.WEST);
-        drawCubeFace(builder, mx, cube, color, Direction.EAST);
-        drawCubeFace(builder, mx, cube, color, Direction.UP);
-        drawCubeFace(builder, mx, cube, color, Direction.DOWN);
     }
 
     private void drawCubeFace(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, int color, Direction face) {
@@ -313,7 +268,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void renderProjectionCube(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void drawCubeFace(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
         mx.pushPose();
 
         translateRendererToCube(tile, field, mx, cube, cubeSize);
@@ -325,7 +280,21 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 .expandTowards(expansion, expansion, expansion)
                 .expandTowards(-expansion, -expansion, -expansion);
 
-        drawCube(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD));
+        Direction projectorDir = tile.getBlockState().getValue(FieldProjectorBlock.FACING);
+
+        // Each projector renders its face
+        // North and South projectors render the top and bottom faces
+        switch(projectorDir) {
+            case NORTH:
+                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.UP);
+
+            case SOUTH:
+                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.DOWN);
+
+            default:
+                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), projectorDir.getOpposite());
+                break;
+        }
 
         mx.popPose();
     }
@@ -436,9 +405,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLines(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void drawScanLine(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
         IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
-
 
         double gameTime = Minecraft.getInstance().level.getGameTime();
 
@@ -450,10 +418,29 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -5000) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
-        AxisAlignedBB scanLineMain = new AxisAlignedBB(cube.minX, scanHeight, cube.minZ, cube.maxX, scanHeight, cube.maxZ);
-
         int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
-        drawRing(builder, mx, scanLineMain, colorScanLine);
+
+        switch(tile.getProjectorSide().getOpposite()) {
+            case NORTH:
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.minZ));
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.minZ));
+                break;
+
+            case SOUTH:
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.maxZ));
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.maxZ));
+                break;
+
+            case WEST:
+                addColoredVertex(builder, mx, 0xFFFF0000, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.maxZ));
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.minZ));
+                break;
+
+            case EAST:
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.maxZ));
+                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.minZ));
+                break;
+        }
 
         mx.popPose();
     }

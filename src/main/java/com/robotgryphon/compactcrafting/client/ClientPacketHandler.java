@@ -4,7 +4,6 @@ import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
-import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.math.BlockPos;
@@ -20,7 +19,7 @@ public abstract class ClientPacketHandler {
                     .ifPresent(fields -> {
                         fields.activateField(fp);
                         LazyOptional<IMiniaturizationField> lazy = fields.getLazy(fp.getCenterPosition());
-                        ProjectorHelper.getProjectorLocations(fp.getCenterPosition(), fp.getFieldSize())
+                        fp.getFieldSize().getProjectorLocations(fp.getCenterPosition())
                                 .forEach(projectorPos -> {
                                     FieldProjectorTile tile = (FieldProjectorTile) mc.level.getBlockEntity(projectorPos);
                                     if(tile == null)

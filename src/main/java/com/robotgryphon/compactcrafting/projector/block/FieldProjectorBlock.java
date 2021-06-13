@@ -1,16 +1,14 @@
 package com.robotgryphon.compactcrafting.projector.block;
 
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
-import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
+import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
@@ -23,7 +21,6 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-import net.minecraft.world.IWorld;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
@@ -80,8 +77,7 @@ public class FieldProjectorBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        Direction fac = state.getValue(FACING);
-        return fac == Direction.SOUTH ? new MainFieldProjectorTile() : new DummyFieldProjectorTile();
+        return new FieldProjectorTile();
     }
 
     @Override
@@ -90,85 +86,57 @@ public class FieldProjectorBlock extends Block {
         if (world.isClientSide)
             return ActionResultType.SUCCESS;
 
-        FieldProjectorTile tile = (FieldProjectorTile) world.getBlockEntity(pos);
+        ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING))
+            .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));
 
-        // Shouldn't happen, but safety
-        if (tile == null)
-            return ActionResultType.PASS;
+        // Uncomment for debug block placement
+//        Arrays.stream(FieldProjectionSize.values()).forEach(size -> {
+//            BlockPos center = size.getCenterFromProjector(pos, projectorFacing);
+//
+//            serverWorld.setBlock(center, Blocks.ORANGE_STAINED_GLASS.defaultBlockState(), 3);
+//
+//            size.getProjectorLocations(center).forEach(proj -> {
+//                serverWorld.setBlock(proj.above(), Blocks.CYAN_STAINED_GLASS.defaultBlockState(), 3);
+//            });
+//        });
 
-
-        Optional<FieldProjectionSize> fieldSize = ProjectorHelper.getClosestOppositeSize(world, pos);
-        if (!fieldSize.isPresent()) {
-            // Spawn particle in valid places
-            ProjectorHelper.getValidOppositePositions(world, pos)
-                    .forEach(opp -> spawnPlacementParticle((ServerWorld) world, opp));
-
-        } else {
-            FieldProjectionSize size = fieldSize.get();
-
-            Optional<BlockPos> centerForSize = ProjectorHelper.getCenterForSize(world, pos, size);
-            centerForSize.ifPresent(center -> {
-                Direction.Axis a = state.getValue(FACING).getAxis();
-                Direction.Axis opp;
-                switch (a) {
-                    case X:
-                        opp = Direction.Axis.Z;
-                        break;
-
-                    case Z:
-                        opp = Direction.Axis.X;
-                        break;
-
-                    default:
-                        return;
-                }
-
-                ProjectorHelper.getProjectorLocationsForAxis(center, opp, size)
-                        .forEach(loc -> spawnPlacementParticle((ServerWorld) world, loc));
-            });
-
-        }
         return ActionResultType.SUCCESS;
     }
 
-    private static void spawnPlacementParticle(ServerWorld world, BlockPos opp) {
-        if (world.getBlockState(opp).getBlock() instanceof FieldProjectorBlock)
+    private static void spawnPlacementParticle(ServerWorld world, BlockPos location, IParticleData particle) {
+        if (world.getBlockState(location).getBlock() instanceof FieldProjectorBlock)
             return;
 
-        world.sendParticles(ParticleTypes.BARRIER,
-                opp.getX() + 0.5f,
-                opp.getY() + 0.5f,
-                opp.getZ() + 0.5f,
+        world.sendParticles(particle,
+                location.getX() + 0.5f,
+                location.getY() + 0.5f,
+                location.getZ() + 0.5f,
                 1,
                 0, 0, 0, 0);
     }
 
     @Override
     public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+        if(worldIn.isClientSide)
+            return;
+
+        ServerWorld serverWorld = (ServerWorld) worldIn;
+
         FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
 
         // If we don't have a valid field, search again
         if (tile == null)
             return;
 
-        tile.doFieldCheck();
+        final Optional<BlockPos> firstMissingProjector = ProjectorHelper
+                .getMissingProjectors(worldIn, pos, state.getValue(FACING))
+                .findAny();
+
+        // No missing projectors? Activate the field.
+        if(!firstMissingProjector.isPresent()) {
+            tile.tryActivateField();
+        }
 
         // Add owner information to field projector
-    }
-
-    @Override
-    public void destroy(IWorld worldIn, BlockPos pos, BlockState state) {
-        super.destroy(worldIn, pos, state);
-
-        Direction ogFacing = state.getValue(FACING);
-        ProjectorHelper.getPossibleMainProjectors(worldIn, pos, ogFacing)
-                .forEach(projPos -> {
-                    TileEntity tileProj = worldIn.getBlockEntity(projPos);
-                    if (!(tileProj instanceof MainFieldProjectorTile))
-                        return;
-
-                    MainFieldProjectorTile fTile = (MainFieldProjectorTile) tileProj;
-                    fTile.invalidateField();
-                });
     }
 }

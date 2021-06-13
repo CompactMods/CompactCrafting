@@ -5,8 +5,7 @@ import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.projector.tile.DummyFieldProjectorTile;
-import com.robotgryphon.compactcrafting.projector.tile.MainFieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.FilledComponentRecipeLayer;
@@ -83,14 +82,9 @@ public class Registration {
     // ================================================================================================================
     //   TILE ENTITIES
     // ================================================================================================================
-    public static final RegistryObject<TileEntityType<MainFieldProjectorTile>> MAIN_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("main_field_projector", () ->
+    public static final RegistryObject<TileEntityType<FieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
             TileEntityType.Builder
-                    .of(MainFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
-                    .build(null));
-
-    public static final RegistryObject<TileEntityType<DummyFieldProjectorTile>> DUMMY_FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("dummy_field_projector", () ->
-            TileEntityType.Builder
-                    .of(DummyFieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
+                    .of(FieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
     public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
