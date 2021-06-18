@@ -26,7 +26,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -64,6 +63,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
+    private final IDrawableStatic arrowOutputs;
+
     private boolean singleLayer = false;
     private int singleLayerOffset = 0;
     private boolean debugMode = false;
@@ -91,6 +92,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.background = guiHelper.createBlankDrawable(width, height);
         this.slotDrawable = guiHelper.getSlotDrawable();
         this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
+        this.arrowOutputs = guiHelper.createDrawable(new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"), 0, 0, 24, 19);
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
         this.previewLevel = null;
@@ -310,14 +312,17 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
         AxisAlignedBB dims = recipe.getDimensions();
 
-        Screen curr = Minecraft.getInstance().screen;
-
         MainWindow mainWindow = Minecraft.getInstance().getWindow();
-        int scaledWidth = mainWindow.getGuiScaledWidth();
-        int scaledHeight = mainWindow.getGuiScaledHeight();
 
-        int winWidth = background.getWidth();
-        int bottom = 0;
+        drawScaledTexture(mx,
+                new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-field.png"),
+                new ScreenArea(7, 20, 17, 22),
+                0, 0, 17, 22, 17, 22);
+
+        drawScaledTexture(mx,
+                new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"),
+                new ScreenArea(100, 25, 24, 19),
+                0, 0, 24, 19, 24, 19);
 
         int scissorX = 27;
         int scissorY = 0;
