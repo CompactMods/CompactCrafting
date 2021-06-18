@@ -14,7 +14,6 @@ import com.robotgryphon.compactcrafting.ui.ScreenArea;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
-import mezz.jei.api.gui.ITickTimer;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
 import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
@@ -40,14 +39,17 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Matrix4f;
 import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
+import org.lwjgl.BufferUtils;
 
-import java.util.List;
+import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -59,8 +61,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private final BlockRendererDispatcher blocks;
     private RenderingWorld previewLevel;
 
-    private ITickTimer timer;
-
     private IGuiHelper guiHelper;
     private final IDrawableStatic background;
     private final IDrawableStatic slotDrawable;
@@ -68,10 +68,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private int singleLayerOffset = 0;
     private boolean debugMode = false;
 
-    private ScreenArea explodeToggle = new ScreenArea(0, 0, 10, 10);
-    private ScreenArea layerUp = new ScreenArea(0, 25, 10, 10);
-    private ScreenArea layerSwap = new ScreenArea(0, 37, 10, 10);
-    private ScreenArea layerDown = new ScreenArea(0, 49, 10, 10);
+    private ScreenArea explodeToggle = new ScreenArea(30, 75, 10, 10);
+    private ScreenArea layerUp = new ScreenArea(55, 75, 10, 10);
+    private ScreenArea layerSwap = new ScreenArea(70, 75, 10, 10);
+    private ScreenArea layerDown = new ScreenArea(85, 75, 10, 10);
 
     /**
      * Whether or not the preview is exploded (expanded) or not.
@@ -85,7 +85,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     public JeiMiniaturizationCraftingCategory(IGuiHelper guiHelper) {
         int width = (9 * 18) + 10;
-        int height = 150 + (10 + (18 * 3) + 5);
+        int height = 60 + (10 + (18 * 3) + 5);
 
         this.guiHelper = guiHelper;
         this.background = guiHelper.createBlankDrawable(width, height);
@@ -94,9 +94,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
         this.previewLevel = null;
-
-        // 180 = approx. 9 seconds to full rotation
-        this.timer = guiHelper.createTickTimer(45, 180, false);
     }
 
     //region JEI implementation requirements
@@ -158,7 +155,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         singleLayerOffset = 0;
 
         int GUTTER_X = 5;
-        int OFFSET_Y = 150;
+        int OFFSET_Y = 65;
 
         IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
         int numComponentSlots = 18;
@@ -166,9 +163,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         try {
             addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
 
-            catalystSlot = addCatalystSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+            catalystSlot = addCatalystSlots(recipe, 0, 0, guiItemStacks, numComponentSlots);
 
-            addOutputSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+            addOutputSlots(recipe, this.background.getWidth() - (18 * 2) - GUTTER_X, 15, guiItemStacks, numComponentSlots);
         } catch (Exception ex) {
             CompactCrafting.LOGGER.error(recipe.getId());
             CompactCrafting.LOGGER.error("Error displaying recipe", ex);
@@ -237,8 +234,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     private void addOutputSlots(MiniaturizationRecipe recipe, int GUTTER_X, int OFFSET_Y, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
         int outputOffset = numComponentSlots;
-        for (int outputNum = 0; outputNum < 5; outputNum++) {
-            guiItemStacks.init(outputOffset + outputNum, false, GUTTER_X + (outputNum * 18) + (4 * 18), OFFSET_Y);
+        for (int outputNum = 0; outputNum < 6; outputNum++) {
+            int x = (18 * (outputNum % 2)) + GUTTER_X;
+            int y = (18 * (outputNum / 2)) + OFFSET_Y;
+            guiItemStacks.init(outputOffset + outputNum, false, x, y);
             guiItemStacks.setBackground(outputOffset + outputNum, this.slotDrawable);
         }
 
@@ -317,82 +316,77 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         int scaledWidth = mainWindow.getGuiScaledWidth();
         int scaledHeight = mainWindow.getGuiScaledHeight();
 
-        int winWidth = (9 * 18) + 10;
+        int winWidth = background.getWidth();
+        int bottom = 0;
 
-        int slotHeight = (18 * 3) - 8;
-
-        int scissorX = (curr.width / 2) - (background.getWidth() / 2) + 15;
-        int scissorY = (curr.height / 2) - (background.getHeight() / 2) + slotHeight;
+        int scissorX = 27;
+        int scissorY = 0;
 
         double guiScaleFactor = mainWindow.getGuiScale();
         ScreenArea scissorBounds = new ScreenArea(
                 scissorX, scissorY,
-                winWidth - 22,
-                (int) (background.getHeight() - slotHeight - 27)
+                70,
+                70
         );
 
         renderPreviewControls(mx, dims);
 
-        if(previewLevel != null)
-            renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
+        if (previewLevel != null) renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
     }
 
     private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, ScreenArea scissorBounds) {
         try {
             AbstractGui.fill(
                     mx,
-                    // scissorBounds.x, scissorBounds.y,
-                    14, 0,
-                    scissorBounds.width + 16,
-                    scissorBounds.height + 1,
+                     scissorBounds.x, scissorBounds.y,
+                    scissorBounds.x + scissorBounds.width,
+                    scissorBounds.height,
                     0xFF404040
             );
 
             IRenderTypeBuffer.Impl buffers = Minecraft.getInstance().renderBuffers().bufferSource();
 
-            RenderSystem.enableScissor(
-                    (int) (scissorBounds.x * guiScaleFactor),
-                    (int) (scissorBounds.y * guiScaleFactor),
-                    (int) (scissorBounds.width * guiScaleFactor),
-                    (int) (scissorBounds.height * guiScaleFactor));
+            final double scale = Minecraft.getInstance().getWindow().getGuiScale();
+            final Matrix4f matrix = mx.last().pose();
+            final FloatBuffer buf = BufferUtils.createFloatBuffer(16);
+            matrix.store(buf);
+
+            // { x, y, z }
+            Vector3d translation = new Vector3d(
+                    buf.get(12) * scale,
+                    buf.get(13) * scale,
+                    buf.get(14) * scale);
+
+            scissorBounds.x *= scale;
+            scissorBounds.y *= scale;
+            scissorBounds.width *= scale;
+            scissorBounds.height *= scale;
+            final int scissorX = Math.round(Math.round(translation.x + scissorBounds.x));
+            final int scissorY = Math.round(Math.round(Minecraft.getInstance().getWindow().getHeight() - scissorBounds.y - scissorBounds.height - translation.y));
+            final int scissorW = Math.round(scissorBounds.width);
+            final int scissorH = Math.round(scissorBounds.height);
+            RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
 
             mx.pushPose();
 
             mx.translate(
-                    (background.getWidth() / 2) + 6,
-                    70,
+                    27 + (35),
+                    scissorBounds.y + (35),
                     400);
 
-            mx.scale(10, -10, 10);
+            // 13 = 1
+            // 11 = 3
+            // 09 = 5
+            // 07 = 7
+            // 05 = 9
+            // 03 = 11
+            // 01 = 13
+            Vector3d dimsVec = new Vector3d(dims.getXsize(), dims.getYsize(), dims.getZsize());
+            float recipeAvgDim = (float) dimsVec.length();
+            float previewScale = (float) (3 + Math.exp(3 - (recipeAvgDim / 5)));
+            mx.scale(previewScale, -previewScale, previewScale);
 
-            mx.mulPose(new Quaternion(35f,
-                    -timer.getValue(),
-                    0,
-                    true));
-
-            double ySize = recipe.getDimensions().getYsize();
-
-            // Variable explode based on mouse position (clamped)
-            // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
-
-
-            int[] renderLayers;
-            if (!singleLayer) {
-                renderLayers = IntStream.range(0, (int) ySize).toArray();
-            } else {
-                renderLayers = new int[]{singleLayerOffset};
-            }
-
-            mx.translate(
-                    -(dims.getXsize() / 2) * explodeMulti - 0.5,
-                    -(dims.getYsize() / 2) * explodeMulti - 0.5,
-                    -(dims.getZsize() / 2) * explodeMulti - 0.5
-            );
-
-            for (int y : renderLayers) {
-                recipe.getLayer(y).ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
-            }
-
+            drawActualRecipe(recipe, mx, dims, buffers);
 
             mx.popPose();
 
@@ -401,6 +395,38 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             RenderSystem.disableScissor();
         } catch (Exception ex) {
             CompactCrafting.LOGGER.warn(ex);
+        }
+    }
+
+    private void drawActualRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, IRenderTypeBuffer.Impl buffers) {
+        double gameTime = Minecraft.getInstance().level.getGameTime();
+        double test = Math.toDegrees(gameTime) / 15;
+        mx.mulPose(new Quaternion(35f,
+                (float) -test,
+                0,
+                true));
+
+        double ySize = recipe.getDimensions().getYsize();
+
+        // Variable explode based on mouse position (clamped)
+        // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
+
+
+        int[] renderLayers;
+        if (!singleLayer) {
+            renderLayers = IntStream.range(0, (int) ySize).toArray();
+        } else {
+            renderLayers = new int[]{singleLayerOffset};
+        }
+
+        mx.translate(
+                -(dims.getXsize() / 2) * explodeMulti - 0.5,
+                -(dims.getYsize() / 2) * explodeMulti - 0.5,
+                -(dims.getZsize() / 2) * explodeMulti - 0.5
+        );
+
+        for (int y : renderLayers) {
+            recipe.getLayer(y).ifPresent(l -> renderRecipeLayer(recipe, mx, buffers, l, y));
         }
     }
 
@@ -464,7 +490,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     private void renderComponent(MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeBlockComponent state, BlockPos filledPos) {
         // TODO - Render switching at fixed interval
-        if(state.didErrorRendering())
+        if (state.didErrorRendering())
             return;
 
         BlockState state1 = state.getRenderState();
@@ -472,11 +498,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         IRenderTypeBuffer light = CCRenderTypes.disableLighting(buffers);
 
         IModelData data = EmptyModelData.INSTANCE;
-        if(previewLevel != null && state1.hasTileEntity()) {
+        if (previewLevel != null && state1.hasTileEntity()) {
             // create fake world instance
             // get tile entity - extend EmptyBlockReader with impl
             TileEntity be = previewLevel.getBlockEntity(filledPos);
-            if(be != null)
+            if (be != null)
                 data = be.getModelData();
         }
 
@@ -487,9 +513,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     0xf000f0,
                     OverlayTexture.NO_OVERLAY,
                     data);
-        }
-
-        catch(Exception e) {
+        } catch (Exception e) {
             state.markRenderingErrored();
 
             CompactCrafting.LOGGER.warn("Error rendering block in preview: {}", state1.getBlock().getRegistryName());
