@@ -372,7 +372,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             mx.translate(
                     27 + (35),
                     scissorBounds.y + (35),
-                    400);
+                    100);
 
             // 13 = 1
             // 11 = 3
@@ -433,7 +433,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     private void renderPreviewControls(MatrixStack mx, AxisAlignedBB dims) {
         mx.pushPose();
-        mx.translate(0, 0, 500);
+        mx.translate(0, 0, 10);
 
         ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
 
