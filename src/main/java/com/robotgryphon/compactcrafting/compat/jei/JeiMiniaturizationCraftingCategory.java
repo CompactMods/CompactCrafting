@@ -164,8 +164,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
 
             catalystSlot = addCatalystSlots(recipe, 0, 0, guiItemStacks, numComponentSlots);
-
-            addOutputSlots(recipe, this.background.getWidth() - (18 * 2) - GUTTER_X, 15, guiItemStacks, numComponentSlots);
+            int fromRightEdge = this.background.getWidth() - (18 * 2) - GUTTER_X;
+            addOutputSlots(recipe, fromRightEdge, 8, guiItemStacks, numComponentSlots);
         } catch (Exception ex) {
             CompactCrafting.LOGGER.error(recipe.getId());
             CompactCrafting.LOGGER.error("Error displaying recipe", ex);
@@ -381,9 +381,10 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             // 05 = 9
             // 03 = 11
             // 01 = 13
+
             Vector3d dimsVec = new Vector3d(dims.getXsize(), dims.getYsize(), dims.getZsize());
             float recipeAvgDim = (float) dimsVec.length();
-            float previewScale = (float) (3 + Math.exp(3 - (recipeAvgDim / 5)));
+            float previewScale = (float) ((3 + Math.exp(3 - (recipeAvgDim / 5))) / explodeMulti);
             mx.scale(previewScale, -previewScale, previewScale);
 
             drawActualRecipe(recipe, mx, dims, buffers);
