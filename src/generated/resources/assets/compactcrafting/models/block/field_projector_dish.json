@@ -1,0 +1,153 @@
+{
+  "textures": {
+    "dish_front": "compactcrafting:block/projector_dish_front",
+    "dish_front_sides": "compactcrafting:block/projector_dish_front_sides",
+    "dish_back": "compactcrafting:block/projector_dish_back",
+    "pole": "compactcrafting:block/projector_pole",
+    "particle": "compactcrafting:block/projector_base_bottom"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        8,
+        3
+      ],
+      "to": [
+        6,
+        16,
+        13
+      ],
+      "faces": {
+        "down": {
+          "texture": "#dish_front_sides",
+          "uv": [
+            1.0,
+            9.0,
+            11.0,
+            10.0
+          ]
+        },
+        "up": {
+          "texture": "#dish_front_sides",
+          "uv": [
+            1.0,
+            0.0,
+            11.0,
+            1.0
+          ]
+        },
+        "north": {
+          "texture": "#dish_front_sides",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            9.0
+          ]
+        },
+        "south": {
+          "texture": "#dish_front_sides",
+          "uv": [
+            11.0,
+            1.0,
+            12.0,
+            9.0
+          ]
+        },
+        "west": {
+          "texture": "#dish_front_sides",
+          "uv": [
+            1.0,
+            1.0,
+            11.0,
+            9.0
+          ]
+        },
+        "east": {
+          "texture": "#dish_back",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            8.0
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        8,
+        3
+      ],
+      "to": [
+        5,
+        16,
+        13
+      ],
+      "faces": {
+        "down": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "up"
+        },
+        "up": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "down"
+        },
+        "north": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "south"
+        },
+        "south": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            10.0,
+            8.0
+          ],
+          "tintindex": 0
+        },
+        "east": {
+          "texture": "#dish_front",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "west"
+        }
+      }
+    }
+  ]
+}

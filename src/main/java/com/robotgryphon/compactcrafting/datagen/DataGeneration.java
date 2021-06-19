@@ -24,6 +24,6 @@ public class DataGeneration {
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
-
+        generator.addProvider(new ProjectorStateGenerator(generator, event.getExistingFileHelper()));
     }
 }

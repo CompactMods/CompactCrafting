@@ -132,6 +132,7 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     public void setField(LazyOptional<IMiniaturizationField> field) {
+        this.fieldCap.invalidate();
         this.fieldCap = field;
         field.addListener(f -> {
             this.fieldCap = LazyOptional.empty();

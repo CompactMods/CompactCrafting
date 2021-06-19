@@ -10,6 +10,7 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
@@ -18,6 +19,7 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
@@ -31,12 +33,14 @@ import java.util.Optional;
 public class FieldProjectorBlock extends Block {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
+    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
     public FieldProjectorBlock(Properties properties) {
         super(properties);
 
         registerDefaultState(getStateDefinition().any()
-                .setValue(FACING, Direction.NORTH));
+            .setValue(FACING, Direction.NORTH)
+            .setValue(ACTIVE, false));
     }
 
     public static Optional<Direction> getDirection(IWorldReader world, BlockPos position) {
@@ -51,6 +55,11 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
+    public VoxelShape getShape(BlockState p_220053_1_, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
+        return super.getShape(p_220053_1_, p_220053_2_, p_220053_3_, p_220053_4_);
+    }
+
+    @Override
     @SuppressWarnings("deprecation")
     public VoxelShape getOcclusionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
         return VoxelShapes.empty();
@@ -59,7 +68,7 @@ public class FieldProjectorBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(FACING);
+        builder.add(FACING).add(ACTIVE);
     }
 
     @Nullable
