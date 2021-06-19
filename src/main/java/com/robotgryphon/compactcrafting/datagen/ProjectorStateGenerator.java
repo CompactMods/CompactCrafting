@@ -89,79 +89,17 @@ public class ProjectorStateGenerator extends BlockStateProvider {
 
     private void projectorDishModel() {
         /**
-         * "elements": [
-         *     {
-         *       "name": "Dish",
-         *       "faces": {
-         *         "north": {
-         *           "uv": [12.5, 8, 13.5, 11.5],
-         *           "texture": "#0"
-         *         },
-         *         "east": {
-         *           "uv": [8, 12, 13, 16],
-         *           "texture": "#0"
-         *         },
-         *         "south": {
-         *           "uv": [12.5, 8, 13.5, 11.5],
-         *           "texture": "#0"
-         *         },
-         *         "west": {
-         *           "uv": [8, 8, 13, 12],
-         *           "texture": "#0",
-         *           "tintindex": 0
-         *         },
-         *         "up": {
-         *           "uv": [8, 11.5, 13, 12.5],
-         *           "texture": "#0",
-         *           "rotation": 90
-         *         },
-         *         "down": {
-         *           "uv": [8, 11.5, 13, 12.5],
-         *           "texture": "#0",
-         *           "rotation": 90
-         *         }
-         *       }
-         *     },
-         *     {
-         *       "name": "Connector",
-         *       "from": [6, 11, 7],
-         *       "to": [7, 13, 9],
-         *       "shade": true,
-         *       "faces": {
-         *         "north": {
-         *           "uv": [4.5, 10, 5, 11],
-         *           "texture": "#0"
-         *         },
-         *         "east": {
-         *           "uv": [4, 10, 5, 11],
-         *           "texture": "#0"
-         *         },
-         *         "south": {
-         *           "uv": [4.5, 10, 5, 11],
-         *           "texture": "#0"
-         *         },
-         *         "west": {
-         *           "uv": [0, 0, 2, 2],
-         *           "texture": "#0"
-         *         },
-         *         "up": {
-         *           "uv": [4.5, 10, 5, 11],
-         *           "texture": "#0"
-         *         },
-         *         "down": {
-         *           "uv": [4.5, 10, 5, 11],
-         *           "texture": "#0"
-         *         }
-         *       }
-         *     }
-         *   ],
+         * WEST = FRONT
+         * EAST = BACK
+         * NORTH = LEFT SIDE
+         * SOUTH = EAST SIDE
          */
         BlockModelBuilder builder = models().getBuilder("block/field_projector_dish")
                 .texture("dish_front", modLoc("block/projector_dish_front"))
                 .texture("dish_front_sides", modLoc("block/projector_dish_front_sides"))
                 .texture("dish_back", modLoc("block/projector_dish_back"))
-                .texture("pole", modLoc("block/projector_pole"))
-                .texture("particle", modLoc("block/projector_base_bottom"));
+                .texture("dish_connector", modLoc("block/projector_dish_connector"))
+                .texture("particle", modLoc("block/projector_dish_back"));
 
         // Dish
         builder.element()
@@ -207,6 +145,35 @@ public class ProjectorStateGenerator extends BlockStateProvider {
                     } else {
                         face.texture("#dish_front").uvs(0, 0, 1, 1)
                                 .cullface(dir.getOpposite()).end();
+                    }
+                })
+                .end();
+
+        builder.element()
+                .from(6, 11, 7)
+                .to(7, 13, 9)
+                .allFaces((dir, face) -> {
+                    switch(dir) {
+                        case UP:
+                            face.texture("#dish_connector").uvs(1, 0, 3, 1).end();
+                            break;
+
+                        case DOWN:
+                            face.texture("#dish_connector").uvs(1, 3, 3, 4).end();
+                            break;
+
+                        case EAST:
+                            // back
+                            face.texture("#dish_connector").uvs(1, 1, 3, 3).end();
+                            break;
+
+                        case NORTH:
+                            face.texture("#dish_connector").uvs(0, 1, 1, 3).end();
+                            break;
+
+                        case SOUTH:
+                            face.texture("#dish_connector").uvs(3, 1, 4, 3).end();
+                            break;
                     }
                 })
                 .end();

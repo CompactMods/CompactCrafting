@@ -3,8 +3,8 @@
     "dish_front": "compactcrafting:block/projector_dish_front",
     "dish_front_sides": "compactcrafting:block/projector_dish_front_sides",
     "dish_back": "compactcrafting:block/projector_dish_back",
-    "pole": "compactcrafting:block/projector_pole",
-    "particle": "compactcrafting:block/projector_base_bottom"
+    "dish_connector": "compactcrafting:block/projector_dish_connector",
+    "particle": "compactcrafting:block/projector_dish_back"
   },
   "elements": [
     {
@@ -146,6 +146,68 @@
             1.0
           ],
           "cullface": "west"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        11,
+        7
+      ],
+      "to": [
+        7,
+        13,
+        9
+      ],
+      "faces": {
+        "down": {
+          "texture": "#dish_connector",
+          "uv": [
+            1.0,
+            3.0,
+            3.0,
+            4.0
+          ]
+        },
+        "up": {
+          "texture": "#dish_connector",
+          "uv": [
+            1.0,
+            0.0,
+            3.0,
+            1.0
+          ]
+        },
+        "north": {
+          "texture": "#dish_connector",
+          "uv": [
+            0.0,
+            1.0,
+            1.0,
+            3.0
+          ]
+        },
+        "south": {
+          "texture": "#dish_connector",
+          "uv": [
+            3.0,
+            1.0,
+            4.0,
+            3.0
+          ]
+        },
+        "west": {
+          "texture": "minecraft:missingno"
+        },
+        "east": {
+          "texture": "#dish_connector",
+          "uv": [
+            1.0,
+            1.0,
+            3.0,
+            3.0
+          ]
         }
       }
     }
