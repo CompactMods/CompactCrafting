@@ -108,7 +108,12 @@ public class FieldProjectorBlock extends Block {
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
         Direction looking = context.getHorizontalDirection();
-        return defaultBlockState().setValue(FACING, looking);
+
+        // Hold shift to make the projector face you; else face away
+        if(context.getPlayer().isShiftKeyDown())
+            return defaultBlockState().setValue(FACING, looking.getOpposite());
+        else
+            return defaultBlockState().setValue(FACING, looking);
     }
 
     @Override
