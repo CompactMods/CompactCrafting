@@ -35,12 +35,28 @@ public class FieldProjectorBlock extends Block {
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
+    private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
+
+    private static final VoxelShape POLE = VoxelShapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
+
+    private static final VoxelShape DISH_WEST = VoxelShapes.box(3/16d, 0.5d, 3/16d,
+            7/16d, 1, 13/16d);
+
+    private static final VoxelShape DISH_EAST = VoxelShapes.box(9/16d, 0.5d, 3/16d,
+            13/16d, 1, 13/16d);
+
+    private static final VoxelShape DISH_NORTH = VoxelShapes.box(3/16d, 0.5d, 3/16d,
+            13/16d, 1, 7/16d);
+
+    private static final VoxelShape DISH_SOUTH = VoxelShapes.box(3/16d, 0.5d, 9/16d,
+            13/16d, 1, 13/16d);
+
     public FieldProjectorBlock(Properties properties) {
         super(properties);
 
         registerDefaultState(getStateDefinition().any()
-            .setValue(FACING, Direction.NORTH)
-            .setValue(ACTIVE, false));
+                .setValue(FACING, Direction.NORTH)
+                .setValue(ACTIVE, false));
     }
 
     public static Optional<Direction> getDirection(IWorldReader world, BlockPos position) {
@@ -55,8 +71,25 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
-    public VoxelShape getShape(BlockState p_220053_1_, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
-        return super.getShape(p_220053_1_, p_220053_2_, p_220053_3_, p_220053_4_);
+    @SuppressWarnings("deprecation")
+    public VoxelShape getShape(BlockState state, IBlockReader levelReader, BlockPos pos, ISelectionContext ctx) {
+        Direction dir = state.getValue(FieldProjectorBlock.FACING);
+
+        switch(dir) {
+            case WEST:
+                return VoxelShapes.or(BASE, POLE, DISH_WEST);
+
+            case NORTH:
+                return VoxelShapes.or(BASE, POLE, DISH_NORTH);
+
+            case EAST:
+                return VoxelShapes.or(BASE, POLE, DISH_EAST);
+
+            case SOUTH:
+                return VoxelShapes.or(BASE, POLE, DISH_SOUTH);
+        }
+
+        return VoxelShapes.or(BASE, POLE);
     }
 
     @Override
@@ -96,7 +129,7 @@ public class FieldProjectorBlock extends Block {
             return ActionResultType.SUCCESS;
 
         ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING))
-            .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));
+                .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));
 
         // Uncomment for debug block placement
 //        Arrays.stream(FieldProjectionSize.values()).forEach(size -> {
@@ -126,7 +159,7 @@ public class FieldProjectorBlock extends Block {
 
     @Override
     public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if(worldIn.isClientSide)
+        if (worldIn.isClientSide)
             return;
 
         ServerWorld serverWorld = (ServerWorld) worldIn;
@@ -142,7 +175,7 @@ public class FieldProjectorBlock extends Block {
                 .findAny();
 
         // No missing projectors? Activate the field.
-        if(!firstMissingProjector.isPresent()) {
+        if (!firstMissingProjector.isPresent()) {
             tile.tryActivateField();
         }
 
