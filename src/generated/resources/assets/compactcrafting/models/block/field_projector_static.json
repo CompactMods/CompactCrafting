@@ -1,12 +1,110 @@
 {
   "textures": {
-    "particle": "compactcrafting:block/projector_dish_back",
+    "particle": "compactcrafting:block/projector_base_bottom",
+    "base_top": "compactcrafting:block/projector_base_top",
+    "base_bottom": "compactcrafting:block/projector_base_bottom",
+    "base_side": "compactcrafting:block/projector_base_side",
+    "pole": "compactcrafting:block/projector_pole",
     "dish_front": "compactcrafting:block/projector_dish_front",
     "dish_front_sides": "compactcrafting:block/projector_dish_front_sides",
     "dish_back": "compactcrafting:block/projector_dish_back",
     "dish_connector": "compactcrafting:block/projector_dish_connector"
   },
   "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        6,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#base_bottom"
+        },
+        "up": {
+          "texture": "#base_top"
+        },
+        "north": {
+          "texture": "#base_side"
+        },
+        "south": {
+          "texture": "#base_side"
+        },
+        "west": {
+          "texture": "#base_side"
+        },
+        "east": {
+          "texture": "#base_side"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        6,
+        7
+      ],
+      "to": [
+        9,
+        12,
+        9
+      ],
+      "faces": {
+        "down": {
+          "texture": "minecraft:missingno"
+        },
+        "up": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "north": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        }
+      }
+    },
     {
       "from": [
         4,

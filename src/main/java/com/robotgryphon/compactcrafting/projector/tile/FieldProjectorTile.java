@@ -21,6 +21,7 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
 
@@ -93,6 +94,15 @@ public class FieldProjectorTile extends TileEntity {
         BlockPos center = foundSize.getCenterFromProjector(this.worldPosition, getFacing());
 
         MiniaturizationField f = MiniaturizationField.fromSizeAndCenter(foundSize, center);
+
+        f.getProjectorPositions().forEach(pos -> {
+            if(level == null) return;
+            BlockState state = level.getBlockState(pos);
+            if (state.getBlock() instanceof FieldProjectorBlock) {
+                BlockState newState = state.setValue(FieldProjectorBlock.ACTIVE, true);
+                level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT);
+            }
+        });
 
         levelFields.ifPresent(af -> {
             af.activateField(f);

@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "active=false,facing=north": {
+      "model": "compactcrafting:block/field_projector_static",
+      "y": 90
+    },
+    "active=true,facing=north": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "active=false,facing=south": {
+      "model": "compactcrafting:block/field_projector_static",
+      "y": -90
+    },
+    "active=true,facing=south": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "active=false,facing=west": {
+      "model": "compactcrafting:block/field_projector_static"
+    },
+    "active=true,facing=west": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "active=false,facing=east": {
+      "model": "compactcrafting:block/field_projector_static",
+      "y": 180
+    },
+    "active=true,facing=east": {
+      "model": "compactcrafting:block/field_projector"
+    }
+  }
+}

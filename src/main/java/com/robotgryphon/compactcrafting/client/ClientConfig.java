@@ -12,7 +12,10 @@ public class ClientConfig {
     public static ForgeConfigSpec CONFIG;
 
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
+    private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
+
     public static int projectorColor = 0xFFFFFFFF;
+    public static int projectorOffColor = 0xFFFFFFFF;
 
     static {
         generateConfig();
@@ -25,14 +28,16 @@ public class ClientConfig {
                 .comment("Projector Settings")
                 .push("projectors");
 
-        String sep = System.lineSeparator();
-
         PROJECTOR_COLOR = builder
                 .comment(
                         "The color for the projector fields. (HEX format)",
                         "Examples: Orange - #FF6A00, Violet - #32174D, Green - #00A658, Blue - #3A7FE1"
                 )
                 .define("projectorColor", "#FF6A00");
+
+        PROJECTOR_OFF_COLOR = builder
+                .comment("The color for the projectors when not active. (HEX format)")
+                .define("projectorOffColor", "#898989");
 
         builder.pop();
 
@@ -41,20 +46,19 @@ public class ClientConfig {
 
     @SubscribeEvent
     public static void onLoad(final ModConfig.ModConfigEvent configEvent) {
-        String tempColor = PROJECTOR_COLOR.get();
-        int finalColor = 0xFFFFFFFF;
+        projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
+        projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
+    }
+
+    private static int extractHexColor(String hex, int def) {
         try {
-            if(tempColor.startsWith("#"))
-                finalColor = Integer.parseInt(tempColor.substring(1), 16);
+            if (hex.startsWith("#"))
+                return Integer.parseInt(hex.substring(1), 16);
             else
-                finalColor = 0x00FF6A00;
+                return def;
+        } catch (NumberFormatException nfe) {
+            CompactCrafting.LOGGER.warn("Bad config value for projector color: {}", hex);
+            return def;
         }
-
-        catch(NumberFormatException nfe) {
-            CompactCrafting.LOGGER.warn("Bad config value for projector color: {}", tempColor);
-            finalColor = 0x00FF6A00;
-        }
-
-        projectorColor = finalColor;
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface IMiniaturizationField {
 
@@ -21,9 +22,8 @@ public interface IMiniaturizationField {
 
     void setSize(FieldProjectionSize size);
 
-    // TODO
-    default BlockPos[] getProjectorPositions() {
-        return new BlockPos[0];
+    default Stream<BlockPos> getProjectorPositions() {
+        return Stream.empty();
     }
 
     Optional<MiniaturizationRecipe> getCurrentRecipe();

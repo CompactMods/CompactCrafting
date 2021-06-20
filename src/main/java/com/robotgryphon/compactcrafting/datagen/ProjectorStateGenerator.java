@@ -1,10 +1,13 @@
 package com.robotgryphon.compactcrafting.datagen;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.util.Direction;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class ProjectorStateGenerator extends BlockStateProvider {
@@ -18,28 +21,47 @@ public class ProjectorStateGenerator extends BlockStateProvider {
 
         projectorBaseModel();
         projectorDishModel();
+        projectorStaticModel();
 
-//        this.getVariantBuilder(Registration.FIELD_PROJECTOR_BLOCK.get())
-//                .forAllStates(state -> {
-//                    Direction dir = state.getValue(FieldProjectorBlock.FACING);
-//                    return ConfiguredModel.builder()
-//                            .modelFile(modelFunc.apply(state))
-//                            .rotationX(dir == Direction.DOWN ? 180 : dir.getAxis().isHorizontal() ? 90 : 0)
-//                            .rotationY(dir.getAxis().isVertical() ? 0 : (((int) dir.toYRot()) + angleOffset) % 360)
-//                            .build();
-//                })
+        this.getVariantBuilder(Registration.FIELD_PROJECTOR_BLOCK.get())
+                .forAllStates(state -> {
+                    Direction dir = state.getValue(FieldProjectorBlock.FACING);
+                    boolean active = state.getValue(FieldProjectorBlock.ACTIVE);
+
+                    if(active) {
+                        return ConfiguredModel.builder()
+                                .modelFile(models().getExistingFile(modLoc("block/field_projector")))
+                                .build();
+                    } else {
+                        return ConfiguredModel.builder()
+                                .modelFile(models().getExistingFile(modLoc("block/field_projector_static")))
+                                .rotationY(((int) dir.toYRot() - 90) % 360)
+                                .build();
+                    }
+                });
+    }
+
+    private void projectorStaticModel() {
+        BlockModelBuilder builder = models().getBuilder("block/field_projector_static")
+                .texture("particle", modLoc("block/projector_base_bottom"));
+
+        addProjectorBase(builder);
+        addDishModel(builder);
     }
 
     private void projectorBaseModel() {
         BlockModelBuilder builder = models().getBuilder("block/field_projector")
+                .texture("particle", modLoc("block/projector_base_bottom"));
+
+        addProjectorBase(builder);
+    }
+
+    private void addProjectorBase(BlockModelBuilder builder) {
+        builder
                 .texture("base_top", modLoc("block/projector_base_top"))
                 .texture("base_bottom", modLoc("block/projector_base_bottom"))
                 .texture("base_side", modLoc("block/projector_base_side"))
-                .texture("dish_front", modLoc("block/projector_dish_front"))
-                .texture("dish_front_sides", modLoc("block/projector_dish_front_sides"))
-                .texture("dish_back", modLoc("block/projector_dish_back"))
-                .texture("pole", modLoc("block/projector_pole"))
-                .texture("particle", modLoc("block/projector_base_bottom"));
+                .texture("pole", modLoc("block/projector_pole"));
 
         // Base
         builder.element()
@@ -95,13 +117,19 @@ public class ProjectorStateGenerator extends BlockStateProvider {
          * SOUTH = EAST SIDE
          */
         BlockModelBuilder builder = models().getBuilder("block/field_projector_dish")
-                .texture("dish_front", modLoc("block/projector_dish_front"))
-                .texture("dish_front_sides", modLoc("block/projector_dish_front_sides"))
-                .texture("dish_back", modLoc("block/projector_dish_back"))
-                .texture("dish_connector", modLoc("block/projector_dish_connector"))
                 .texture("particle", modLoc("block/projector_dish_back"));
 
         // Dish
+        addDishModel(builder);
+    }
+
+    private void addDishModel(BlockModelBuilder builder) {
+        builder
+                .texture("dish_front", modLoc("block/projector_dish_front"))
+                .texture("dish_front_sides", modLoc("block/projector_dish_front_sides"))
+                .texture("dish_back", modLoc("block/projector_dish_back"))
+                .texture("dish_connector", modLoc("block/projector_dish_connector"));
+
         builder.element()
                 .from(4, 8, 3)
                 .to(6, 16, 13)

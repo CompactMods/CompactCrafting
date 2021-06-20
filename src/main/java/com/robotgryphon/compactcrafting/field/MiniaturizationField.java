@@ -66,6 +66,11 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.size = size;
     }
 
+    @Override
+    public Stream<BlockPos> getProjectorPositions() {
+        return this.size.getProjectorLocations(center);
+    }
+
     public AxisAlignedBB getBounds() {
         FieldProjectionSize size = this.size;
         BlockPos center = getCenterPosition();
