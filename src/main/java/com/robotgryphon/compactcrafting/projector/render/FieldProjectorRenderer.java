@@ -26,7 +26,6 @@ import net.minecraft.util.ColorHelper;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.world.IWorldReader;
@@ -169,30 +168,12 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         mx.popPose();
     }
 
-    private void translateRendererToCube(FieldProjectorTile tile, MatrixStack mx, IMiniaturizationField field) {
-        BlockPos center = field.getCenterPosition();
-
-        AxisAlignedBB cube = field.getBounds();
-        int fieldDim = field.getFieldSize().getSize();
-
-        // Center on projector
-        mx.translate(-cube.minX, -cube.minY, -cube.minZ);
-        mx.translate(-fieldDim, -fieldDim, -fieldDim);
-
-        // Now move to actual center
-        BlockPos projectorPos = tile.getBlockPos();
-        BlockPos offsetToCenter = center.subtract(projectorPos);
-
-        mx.translate(offsetToCenter.getX(), offsetToCenter.getY(), offsetToCenter.getZ());
-    }
-
     /**
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
     private void drawFieldFace(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers) {
 
-        IVertexBuilder lineBuilder = buffers.getBuffer(RenderType.lines());
         Direction projectorDir = tile.getProjectorSide();
 
         Vector3d tilePos = new Vector3d(
@@ -201,40 +182,37 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 tile.getBlockPos().getZ()
         );
 
-        Vector3d debugOrigin = new Vector3d(.5, .5, .5);
+//        Vector3d debugOrigin = new Vector3d(.5, .5, .5);
+//
+//        Vector3d bottomLeft = CubeRenderHelper
+//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
+//                .subtract(tilePos);
+//
+//        Vector3d bottomRight = CubeRenderHelper
+//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
+//                .subtract(tilePos);
+//
+//        Vector3d topLeft = CubeRenderHelper
+//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_LEFT)
+//                .subtract(tilePos);
+//
+//        Vector3d topRight = CubeRenderHelper
+//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
+//                .subtract(tilePos);
 
-        Vector3d bottomLeft = CubeRenderHelper
-                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
-                .subtract(tilePos);
-
-        Vector3d bottomRight = CubeRenderHelper
-                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
-                .subtract(tilePos);
-
-        Vector3d topLeft = CubeRenderHelper
-                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_LEFT)
-                .subtract(tilePos);
-
-        Vector3d topRight = CubeRenderHelper
-                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
-                .subtract(tilePos);
-        mx.popPose();
-
-        mx.pushPose();
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
-
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
-
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
-
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
-        mx.popPose();
-
-        mx.pushPose();
+//        mx.pushPose();
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
+//
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
+//
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
+//
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
+//        mx.popPose();
 
         IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 

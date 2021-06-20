@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.projector.render;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
@@ -15,12 +16,20 @@ public class CCRenderTypes extends RenderType {
         super(p_i225992_1_, p_i225992_2_, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, p_i225992_7_, p_i225992_8_);
     }
 
-    public static final RenderType FIELD_RENDER_TYPE = create("CopyPasteRenderBlock",
-            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
+    public static final RenderState.TransparencyState FIELD_TRANSPARENCY = new RenderState.TransparencyState("field_transparency", () -> {
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+    }, () -> {
+        RenderSystem.disableBlend();
+        RenderSystem.defaultBlendFunc();
+    });
+
+    public static final RenderType FIELD_RENDER_TYPE = create("projection_field",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 512,
             RenderType.State.builder()
                     .setLightmapState(NO_LIGHTMAP)
                     .setLayeringState(RenderState.POLYGON_OFFSET_LAYERING)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setTransparencyState(FIELD_TRANSPARENCY)
                     .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
                     .setTextureState(NO_TEXTURE)
                     .setCullState(RenderState.NO_CULL)
