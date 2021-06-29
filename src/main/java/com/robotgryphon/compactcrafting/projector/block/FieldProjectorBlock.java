@@ -1,17 +1,19 @@
 package com.robotgryphon.compactcrafting.projector.block;
 
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
+import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.ItemStack;
 import net.minecraft.particles.IParticleData;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.DirectionProperty;
+import net.minecraft.state.EnumProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
@@ -26,14 +28,18 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class FieldProjectorBlock extends Block {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+    public static final EnumProperty<FieldProjectionSize> SIZE = EnumProperty.create("field", FieldProjectionSize.class);
 
     private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
@@ -56,7 +62,7 @@ public class FieldProjectorBlock extends Block {
 
         registerDefaultState(getStateDefinition().any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(ACTIVE, false));
+                .setValue(SIZE, FieldProjectionSize.INACTIVE));
     }
 
     public static Optional<Direction> getDirection(IWorldReader world, BlockPos position) {
@@ -101,30 +107,53 @@ public class FieldProjectorBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(FACING).add(ACTIVE);
+        builder.add(FACING).add(SIZE);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context) {
+        World level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
         Direction looking = context.getHorizontalDirection();
 
         // Hold shift to make the projector face you; else face away
-        if(context.getPlayer().isShiftKeyDown())
-            return defaultBlockState().setValue(FACING, looking.getOpposite());
-        else
-            return defaultBlockState().setValue(FACING, looking);
+        if(context.getPlayer() != null && context.getPlayer().isShiftKeyDown())
+            looking = looking.getOpposite();
+
+        Stream<BlockPos> missing = ProjectorHelper.getMissingProjectors(level, pos, looking);
+        BlockPos[] missingSpots = missing.toArray(BlockPos[]::new);
+        boolean hasMissing = Arrays.stream(missingSpots).anyMatch(p -> !p.equals(pos));
+
+        BlockState state = defaultBlockState().setValue(FACING, looking);
+        if(!hasMissing) {
+            FieldProjectionSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
+                    .orElse(FieldProjectionSize.INACTIVE);
+
+            state = state.setValue(SIZE, size);
+        } else {
+            state = state.setValue(SIZE, FieldProjectionSize.INACTIVE);
+        }
+
+        return state;
+    }
+
+    public static boolean isActive(BlockState state) {
+        return state.getValue(SIZE) != FieldProjectionSize.INACTIVE;
     }
 
     @Override
     public boolean hasTileEntity(BlockState state) {
-        return true;
+        return isActive(state);
     }
 
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new FieldProjectorTile();
+        if(isActive(state))
+            return new FieldProjectorTile(state.getValue(SIZE));
+
+        return null;
     }
 
     @Override
@@ -162,28 +191,37 @@ public class FieldProjectorBlock extends Block {
                 0, 0, 0, 0);
     }
 
+    public static void deactivateProjector(World level, BlockPos pos) {
+        BlockState currentState = level.getBlockState(pos);
+        level.setBlock(pos, currentState.setValue(SIZE, FieldProjectionSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+    }
+
+    public static void activateProjector(World level, BlockPos pos, FieldProjectionSize fieldSize) {
+        BlockState currentState = level.getBlockState(pos);
+        if(currentState.getValue(SIZE) != fieldSize)
+            level.setBlock(pos, currentState.setValue(SIZE, fieldSize), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+    }
+
     @Override
-    public void setPlacedBy(World worldIn, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
-        if (worldIn.isClientSide)
-            return;
+    public void onPlace(BlockState state, World level, BlockPos pos, BlockState oldState, boolean b) {
+        if(isActive(state) && !level.isClientSide) {
+            FieldProjectionSize fieldSize = state.getValue(SIZE);
+            BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
 
-        ServerWorld serverWorld = (ServerWorld) worldIn;
+            fieldSize.getProjectorLocations(fieldCenter)
+                    .forEach(proj -> activateProjector(level, proj, fieldSize));
 
-        FieldProjectorTile tile = (FieldProjectorTile) worldIn.getBlockEntity(pos);
+            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+                    .ifPresent(fields -> {
+                        fields.get(fieldCenter).ifPresent(field -> {
+                            field.checkLoaded(level);
+                        });
+                    });
 
-        // If we don't have a valid field, search again
-        if (tile == null)
-            return;
-
-        final Optional<BlockPos> firstMissingProjector = ProjectorHelper
-                .getMissingProjectors(worldIn, pos, state.getValue(FACING))
-                .findAny();
-
-        // No missing projectors? Activate the field.
-        if (!firstMissingProjector.isPresent()) {
-            tile.tryActivateField();
+            // Send activation packet to clients
+            NetworkHandler.MAIN_CHANNEL.send(
+                    PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(pos)),
+                    new FieldActivatedPacket(fieldSize, fieldCenter));
         }
-
-        // Add owner information to field projector
     }
 }

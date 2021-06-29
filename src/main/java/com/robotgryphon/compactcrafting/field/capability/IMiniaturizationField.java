@@ -16,7 +16,7 @@ public interface IMiniaturizationField {
 
     FieldProjectionSize getFieldSize();
 
-    BlockPos getCenterPosition();
+    BlockPos getCenter();
 
     void setCenter(BlockPos center);
 
@@ -39,4 +39,10 @@ public interface IMiniaturizationField {
     void setCraftingState(EnumCraftingState state);
 
     default void tick(World level) {}
+
+    boolean isLoaded();
+
+    default void checkLoaded(World world) {}
+
+    void markFieldChanged(World world);
 }

@@ -1,30 +1,66 @@
 {
   "variants": {
-    "active=false,facing=north": {
+    "facing=north,field=inactive": {
       "model": "compactcrafting:block/field_projector_static",
       "y": 90
     },
-    "active=true,facing=north": {
-      "model": "compactcrafting:block/field_projector"
-    },
-    "active=false,facing=south": {
+    "facing=south,field=inactive": {
       "model": "compactcrafting:block/field_projector_static",
       "y": -90
     },
-    "active=true,facing=south": {
-      "model": "compactcrafting:block/field_projector"
-    },
-    "active=false,facing=west": {
+    "facing=west,field=inactive": {
       "model": "compactcrafting:block/field_projector_static"
     },
-    "active=true,facing=west": {
-      "model": "compactcrafting:block/field_projector"
-    },
-    "active=false,facing=east": {
+    "facing=east,field=inactive": {
       "model": "compactcrafting:block/field_projector_static",
       "y": 180
     },
-    "active=true,facing=east": {
+    "facing=north,field=small": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=south,field=small": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=west,field=small": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=east,field=small": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=north,field=medium": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=south,field=medium": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=west,field=medium": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=east,field=medium": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=north,field=large": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=south,field=large": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=west,field=large": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=east,field=large": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=north,field=absurd": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=south,field=absurd": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=west,field=absurd": {
+      "model": "compactcrafting:block/field_projector"
+    },
+    "facing=east,field=absurd": {
       "model": "compactcrafting:block/field_projector"
     }
   }

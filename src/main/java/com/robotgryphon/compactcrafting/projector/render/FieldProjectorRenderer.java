@@ -4,14 +4,12 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -26,12 +24,17 @@ import net.minecraft.util.ColorHelper;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.world.IWorldReader;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.common.util.LazyOptional;
+
+import java.util.Optional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
 
@@ -63,26 +66,22 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     @Override
     public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
-
-        if (!tile.getBlockState().getValue(FieldProjectorBlock.ACTIVE))
-            return;
-
         long gameTime = tile.getLevel().getGameTime();
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        field = tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
+        Optional<AxisAlignedBB> fieldBounds = tile.getFieldBounds();
 
-        field.ifPresent(fp -> {
-            float scale = getCraftingScale(tile.getLevel(), fp, gameTime);
+        fieldBounds.ifPresent(fp -> {
+            float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(fp.getCenter()));
 
             matrixStack.pushPose();
 
             matrixStack.scale(scale, scale, scale);
 
-            drawScanLine(tile, fp, matrixStack, buffers, gameTime);
-            drawProjectorArcs(tile, matrixStack, buffers, fp.getBounds(), fp.getFieldSize().getSize(), gameTime);
-            drawFieldFace(tile, fp, matrixStack, buffers);
+            drawScanLine(tile, matrixStack, buffers, fp, gameTime);
+            drawProjectorArcs(tile, matrixStack, buffers, fp, gameTime);
+            drawFieldFace(tile, matrixStack, buffers, fp);
 
             matrixStack.popPose();
         });
@@ -102,22 +101,19 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         return bakedModelCached;
     }
 
-    private float getCraftingScale(IWorldReader level, IMiniaturizationField field, double gameTime) {
-        EnumCraftingState state = field.getCraftingState();
-        if (state == EnumCraftingState.CRAFTING) {
-            FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) level
-                    .getBlockEntity(field.getCenterPosition());
+    private double getCraftingScale(IWorldReader level, BlockPos fieldCenter) {
+        BlockState centerState = level.getBlockState(fieldCenter);
+        if (centerState.getBlock() instanceof FieldCraftingPreviewBlock) {
+            FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) level.getBlockEntity(fieldCenter);
 
             // No preview tile found, not actually crafting rn
             if (preview == null)
                 return 1;
 
-            double craftProgress = preview.getProgress();
+            double craftProgress = Math.max(0, preview.getProgress());
+            double requiredTime = Math.max(1, preview.getRecipe().getTicks());
 
-            double recipeProgress = (double) field.getCurrentRecipe().map(MiniaturizationRecipe::getTicks).orElse(100);
-
-            double progress = 1.0d - (craftProgress / recipeProgress);
-            return (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
+            return Math.min(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime)));
         }
 
         return 1;
@@ -172,7 +168,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void drawFieldFace(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers) {
+    private void drawFieldFace(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds) {
 
         Direction projectorDir = tile.getProjectorSide();
 
@@ -182,42 +178,53 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                 tile.getBlockPos().getZ()
         );
 
-//        Vector3d debugOrigin = new Vector3d(.5, .5, .5);
-//
-//        Vector3d bottomLeft = CubeRenderHelper
-//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
-//                .subtract(tilePos);
-//
-//        Vector3d bottomRight = CubeRenderHelper
-//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
-//                .subtract(tilePos);
-//
-//        Vector3d topLeft = CubeRenderHelper
-//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_LEFT)
-//                .subtract(tilePos);
-//
-//        Vector3d topRight = CubeRenderHelper
-//                .getCubeFacePoint(field.getBounds(), projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
-//                .subtract(tilePos);
+        boolean hoveringProjector = false;
 
-//        mx.pushPose();
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
-//
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
-//
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
-//
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
-//        CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
-//        mx.popPose();
+        RayTraceResult hr = Minecraft.getInstance().hitResult;
+        if (hr instanceof BlockRayTraceResult) {
+            hoveringProjector = ((BlockRayTraceResult) hr).getBlockPos().equals(tile.getBlockPos());
+        }
+
+        if (ClientConfig.doDebugRender() && hoveringProjector) {
+            IVertexBuilder lineBuilder = buffers.getBuffer(RenderType.lines());
+
+            Vector3d debugOrigin = new Vector3d(.5, .5, .5);
+
+            Vector3d bottomLeft = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
+                    .subtract(tilePos);
+
+            Vector3d bottomRight = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
+                    .subtract(tilePos);
+
+            Vector3d topLeft = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_LEFT)
+                    .subtract(tilePos);
+
+            Vector3d topRight = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
+                    .subtract(tilePos);
+
+            mx.pushPose();
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
+            mx.popPose();
+        }
 
         IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
         double expansion = 0.005;
-        AxisAlignedBB slightlyBiggerBecauseFoxes = field.getBounds()
+        AxisAlignedBB slightlyBiggerBecauseFoxes = fieldBounds
                 .expandTowards(expansion, expansion, expansion)
                 .expandTowards(-expansion, -expansion, -expansion)
                 .move(tilePos.reverse());
@@ -227,10 +234,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         int color = getProjectionColor(EnumProjectorColorType.FIELD);
         switch (projectorDir) {
             case NORTH:
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.UP);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.UP);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
 
             case SOUTH:
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.DOWN);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.DOWN);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
 
             default:
                 CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
@@ -242,11 +253,11 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles drawing the projection arcs that connect the projector blocks to the main projection
      * in the center of the crafting area.
      */
-    private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int fieldSize, double gameTime) {
+    private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds, double gameTime) {
 
         IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
-        Direction facing = tile.getBlockState().getValue(FieldProjectorBlock.FACING);
+        Direction facing = tile.getProjectorSide();
 
         Vector3d tilePos = new Vector3d(
                 tile.getBlockPos().getX() + 0.5d,
@@ -262,8 +273,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         int colorProjectionArc = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
-        Vector3d scanLeft = CubeRenderHelper.getScanLineRight(facing.getOpposite(), cube, gameTime).subtract(tilePos);
-        Vector3d scanRight = CubeRenderHelper.getScanLineLeft(facing.getOpposite(), cube, gameTime).subtract(tilePos);
+        Vector3d scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime).subtract(tilePos);
+        Vector3d scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
 
         // 0, 0, 0 is now the edge of the projector's space
         CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, Vector3d.ZERO);
@@ -278,7 +289,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLine(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, double gameTime) {
+    private void drawScanLine(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds, double gameTime) {
         IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
         Vector3d tilePos = new Vector3d(
@@ -293,8 +304,8 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
         Direction face = tile.getProjectorSide();
-        Vector3d left = CubeRenderHelper.getScanLineLeft(face, field.getBounds(), gameTime).subtract(tilePos);
-        Vector3d right = CubeRenderHelper.getScanLineRight(face, field.getBounds(), gameTime).subtract(tilePos);
+        Vector3d left = CubeRenderHelper.getScanLineLeft(face, fieldBounds, gameTime).subtract(tilePos);
+        Vector3d right = CubeRenderHelper.getScanLineRight(face, fieldBounds, gameTime).subtract(tilePos);
 
         CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, left);
         CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, right);
@@ -317,7 +328,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         switch (type) {
             case FIELD:
             case SCAN_LINE:
-                return ColorHelper.PackedColor.color(100, red, green, blue);
+                return ColorHelper.PackedColor.color(50, red, green, blue);
 
             case PROJECTOR_FACE:
                 return ColorHelper.PackedColor.color(250, red, green, blue);

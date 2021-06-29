@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.client;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -14,11 +15,17 @@ public class ClientConfig {
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
 
+    public static ForgeConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
+
     public static int projectorColor = 0xFFFFFFFF;
     public static int projectorOffColor = 0xFFFFFFFF;
 
     static {
         generateConfig();
+    }
+
+    public static boolean doDebugRender() {
+        return Minecraft.getInstance().options.renderDebug && ENABLE_DEBUG_ON_F3.get();
     }
 
     private static void generateConfig() {
@@ -38,6 +45,10 @@ public class ClientConfig {
         PROJECTOR_OFF_COLOR = builder
                 .comment("The color for the projectors when not active. (HEX format)")
                 .define("projectorOffColor", "#898989");
+
+        ENABLE_DEBUG_ON_F3 = builder
+                .comment("Whether or not activating F3 will enable debug renderers.")
+                .define("projectorDebugger", false);
 
         builder.pop();
 

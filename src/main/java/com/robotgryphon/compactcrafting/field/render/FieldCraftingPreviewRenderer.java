@@ -42,10 +42,10 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             // progress, ticks required
             double craftProgress = tile.getProgress();
 
-            double progress = 1.0d - (craftProgress / (double) recipe.getTicks());
             long gameTime = tile.getLevel().getGameTime();
 
-            double scale = progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f));
+            double trig = recipe.getTicks() - craftProgress - (1.8 * Math.sin(craftProgress + recipe.getTicks()));
+            double scale = Math.max(0.1d, (trig / recipe.getTicks()));
 
             mx.scale((float) scale, (float) scale, (float) scale);
 

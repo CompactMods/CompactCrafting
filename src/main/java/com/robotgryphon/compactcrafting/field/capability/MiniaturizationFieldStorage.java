@@ -34,7 +34,7 @@ public class MiniaturizationFieldStorage implements Capability.IStorage<IMiniatu
     @Override
     public INBT writeNBT(Capability<IMiniaturizationField> capability, IMiniaturizationField instance, Direction side) {
         CompoundNBT fieldInfo = new CompoundNBT();
-        fieldInfo.put("center", NBTUtil.writeBlockPos(instance.getCenterPosition()));
+        fieldInfo.put("center", NBTUtil.writeBlockPos(instance.getCenter()));
         fieldInfo.putString("size", instance.getFieldSize().name());
 
         fieldInfo.putString("craftingState", instance.getCraftingState().name());

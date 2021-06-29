@@ -1,43 +1,34 @@
 package com.robotgryphon.compactcrafting.client;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.field.MiniaturizationField;
-import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
-import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.util.LazyOptional;
 
 public abstract class ClientPacketHandler {
 
-    public static void handleFieldActivation(BlockPos center, FieldProjectionSize fieldSize) {
-        MiniaturizationField fp = MiniaturizationField.fromSizeAndCenter(fieldSize, center);
+    public static void handleFieldActivation(BlockPos[] projectorLocations, FieldProjectionSize fieldSize) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
-            mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                    .ifPresent(fields -> {
-                        fields.activateField(fp);
-                        LazyOptional<IMiniaturizationField> lazy = fields.getLazy(fp.getCenterPosition());
-                        fp.getFieldSize().getProjectorLocations(fp.getCenterPosition())
-                                .forEach(projectorPos -> {
-                                    FieldProjectorTile tile = (FieldProjectorTile) mc.level.getBlockEntity(projectorPos);
-                                    if(tile == null)
-                                        return;
-
-                                    tile.setField(lazy);
-                                });
-                    });
+            ClientWorld cw = mc.level;
+            for(BlockPos proj : projectorLocations) {
+                if(cw.getBlockState(proj).getBlock() instanceof FieldProjectorBlock) {
+                    FieldProjectorBlock.activateProjector(cw, proj, fieldSize);
+                }
+            }
         });
     }
 
-    public static void handleFieldDeactivation(BlockPos center, FieldProjectionSize fieldSize) {
+    public static void handleFieldDeactivation(BlockPos[] projectorLocations) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
-            mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                .ifPresent(fields -> {
-                    fields.getLazy(center).invalidate();
-                });
+            ClientWorld cw = mc.level;
+            for(BlockPos proj : projectorLocations) {
+                if(cw.getBlockState(proj).getBlock() instanceof FieldProjectorBlock) {
+                    FieldProjectorBlock.deactivateProjector(cw, proj);
+                }
+            }
         });
     }
 }

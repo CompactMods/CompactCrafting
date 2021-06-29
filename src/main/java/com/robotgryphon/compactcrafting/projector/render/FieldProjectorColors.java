@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.projector.render;
 
 import com.robotgryphon.compactcrafting.client.ClientConfig;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.renderer.color.IBlockColor;
@@ -15,7 +16,7 @@ public class FieldProjectorColors implements IBlockColor {
         if (!(state.getBlock() instanceof FieldProjectorBlock))
             return 0;
 
-        boolean active = state.getValue(FieldProjectorBlock.ACTIVE);
+        boolean active = state.getValue(FieldProjectorBlock.SIZE) != FieldProjectionSize.INACTIVE;
         if (active) return 0;
 
         if (tintIndex != 0) return 0;

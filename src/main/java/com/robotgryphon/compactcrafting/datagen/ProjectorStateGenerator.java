@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.datagen;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.util.Direction;
@@ -26,7 +27,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
         this.getVariantBuilder(Registration.FIELD_PROJECTOR_BLOCK.get())
                 .forAllStates(state -> {
                     Direction dir = state.getValue(FieldProjectorBlock.FACING);
-                    boolean active = state.getValue(FieldProjectorBlock.ACTIVE);
+                    boolean active = state.getValue(FieldProjectorBlock.SIZE) != FieldProjectionSize.INACTIVE;
 
                     if(active) {
                         return ConfiguredModel.builder()

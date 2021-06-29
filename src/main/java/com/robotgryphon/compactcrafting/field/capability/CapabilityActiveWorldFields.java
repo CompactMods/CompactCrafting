@@ -32,7 +32,7 @@ public class CapabilityActiveWorldFields {
                                     // do stuff
                                     CompoundNBT nbt = new CompoundNBT();
                                     nbt.putString("size", field.getFieldSize().name());
-                                    nbt.put("center", NBTUtil.writeBlockPos(field.getCenterPosition()));
+                                    nbt.put("center", NBTUtil.writeBlockPos(field.getCenter()));
                                     return nbt;
                                 })
                             .collect(NbtListCollector.toNbtList());
@@ -56,7 +56,7 @@ public class CapabilityActiveWorldFields {
                             BlockPos center = NBTUtil.readBlockPos(f.getCompound("center"));
 
                             MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
-                            instance.activateField(field);
+                            instance.registerField(field);
                         });
                     }
                 },

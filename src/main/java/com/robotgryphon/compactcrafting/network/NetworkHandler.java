@@ -6,6 +6,7 @@ import net.minecraftforge.fml.network.NetworkDirection;
 import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 
+import java.io.IOException;
 import java.util.Optional;
 
 public class NetworkHandler {
