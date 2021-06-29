@@ -61,7 +61,7 @@ jobs:
   nightly:
     name: Publish Nightly
     runs-on: ubuntu-20.04
-    needs: [ vars ]
+    needs: [ vars, tests ]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -84,7 +84,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishNightlyMavenPublicationToMavenLocal
+        run: ./gradlew publishNightlyMavenPublicationToGitHubPackagesRepository
         env:
           CM_RELEASE: false
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
