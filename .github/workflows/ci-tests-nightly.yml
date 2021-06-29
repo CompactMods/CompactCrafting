@@ -1,4 +1,4 @@
-name: Nightly Build
+name: Gradle Tests and Nightly (CI)
 
 on: push
 
@@ -27,8 +27,8 @@ jobs:
           path: './gradle.properties'
           property: 'mod_version'
 
-  jar:
-    name: Publish JAR
+  gradle:
+    name: Setup Gradle
     runs-on: ubuntu-20.04
     needs: [vars]
     steps:
@@ -48,12 +48,29 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-gradle-
-
+      
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+  tests:
+    name: Gradle Tests
+    runs-on: ubuntu-20.04
+    needs: [ vars, gradle ]
+    steps:
+      - name: Test JAR with Gradle
+        run: ./gradlew test
+        env:
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  nightly:
+    name: Publish Nightly
+    runs-on: ubuntu-20.04
+    needs: [ vars, gradle ]
+    steps:
       - name: Publish gradle nightly jar
         run: ./gradlew publishNightlyMavenPublicationToMavenLocal
         env:
+          CM_RELEASE: false
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
