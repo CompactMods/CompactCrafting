@@ -130,6 +130,7 @@ jobs:
       - name: Build JAR with Gradle
         run: ./gradlew build -x test
         env:
+          CM_RELEASE: true
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -235,5 +236,6 @@ jobs:
       - name: Publish package
         run: ./gradlew publish -x test
         env:
+          CM_RELEASE: true
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
