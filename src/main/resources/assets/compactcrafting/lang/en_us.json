@@ -5,5 +5,7 @@
 
   "compactcrafting.jei.miniaturization.title": "Miniaturization Crafting",
   "compactcrafting.jei.miniaturization.component": "Material Component: Placed in world.",
-  "compactcrafting.jei.miniaturization.catalyst": "Throw this item into the miniaturization field to start crafting."
+  "compactcrafting.jei.miniaturization.catalyst": "Throw this item into the miniaturization field to start crafting.",
+
+  "compactcrafting.top.current_recipe": "Recipe: "
 }
