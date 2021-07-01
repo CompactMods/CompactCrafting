@@ -27,8 +27,7 @@ public abstract class ProjectorHelper {
     }
 
     public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader level, BlockPos initial, Direction facing) {
-        return Stream.of(FieldProjectionSize.values())
-                .filter(size -> size != FieldProjectionSize.INACTIVE)
+        return Stream.of(FieldProjectionSize.VALID_SIZES)
                 .filter(size -> {
                     BlockPos oppPos = size.getOppositeProjectorPosition(initial, facing);
                     BlockState oppState = level.getBlockState(oppPos);
@@ -43,7 +42,7 @@ public abstract class ProjectorHelper {
     }
 
     public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader world, BlockPos initial) {
-        for (FieldProjectionSize size : FieldProjectionSize.values()) {
+        for (FieldProjectionSize size : FieldProjectionSize.VALID_SIZES) {
             if (hasProjectorOpposite(world, initial, size)) {
                 return Optional.of(size);
             }
@@ -85,7 +84,7 @@ public abstract class ProjectorHelper {
     }
 
     public static Stream<BlockPos> getValidOppositePositions(BlockPos initial, Direction facing) {
-        return Stream.of(FieldProjectionSize.values())
+        return Stream.of(FieldProjectionSize.VALID_SIZES)
                 .map(s -> s.getOppositeProjectorPosition(initial, facing));
     }
 
@@ -128,7 +127,7 @@ public abstract class ProjectorHelper {
         } else {
             // No opposing projector to limit field size.
             // Scan for a cross-axis projector to try to limit.
-            Optional<FieldProjectionSize> firstMatchedSize = Stream.of(FieldProjectionSize.values())
+            Optional<FieldProjectionSize> firstMatchedSize = Stream.of(FieldProjectionSize.VALID_SIZES)
                     .filter(size -> hasValidCrossProjector(level, initialProjector, projectorFacing, size))
                     .findFirst();
 

@@ -27,7 +27,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
         this.getVariantBuilder(Registration.FIELD_PROJECTOR_BLOCK.get())
                 .forAllStates(state -> {
                     Direction dir = state.getValue(FieldProjectorBlock.FACING);
-                    boolean active = state.getValue(FieldProjectorBlock.SIZE) != FieldProjectionSize.INACTIVE;
+                    boolean active = FieldProjectorBlock.isActive(state);
 
                     if(active) {
                         return ConfiguredModel.builder()

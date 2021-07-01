@@ -45,6 +45,10 @@ public enum FieldProjectionSize implements IStringSerializable {
 
     private String name;
 
+    public static final FieldProjectionSize[] VALID_SIZES = new FieldProjectionSize[] {
+            SMALL, MEDIUM, LARGE, ABSURD
+    };
+
     FieldProjectionSize(String name, int size, int distance) {
         this.size = size;
         this.projectorDistance = distance;

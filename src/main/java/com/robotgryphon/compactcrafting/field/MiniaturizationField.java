@@ -266,6 +266,10 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void markFieldChanged(World w) {
+        // clear the recipe immediately so people can't dupe items or juke the projectors
+        this.clearRecipe();
+
+        // set a distant rescan duration to make the field revalidate itself after a second or two
         this.rescanTime = w.getGameTime() + 30;
     }
 }

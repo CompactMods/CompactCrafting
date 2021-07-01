@@ -16,7 +16,7 @@ public class FieldProjectorColors implements IBlockColor {
         if (!(state.getBlock() instanceof FieldProjectorBlock))
             return 0;
 
-        boolean active = state.getValue(FieldProjectorBlock.SIZE) != FieldProjectionSize.INACTIVE;
+        boolean active = FieldProjectorBlock.isActive(state);
         if (active) return 0;
 
         if (tintIndex != 0) return 0;
