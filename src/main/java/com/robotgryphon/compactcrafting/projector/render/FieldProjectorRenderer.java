@@ -72,16 +72,17 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         Optional<AxisAlignedBB> fieldBounds = tile.getFieldBounds();
 
-        fieldBounds.ifPresent(fp -> {
-            float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(fp.getCenter()));
+        fieldBounds.ifPresent(bounds -> {
+            float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(bounds.getCenter()));
+
+            bounds = bounds.deflate(1 - scale);
 
             matrixStack.pushPose();
 
-            matrixStack.scale(scale, scale, scale);
 
-            drawScanLine(tile, matrixStack, buffers, fp, gameTime);
-            drawProjectorArcs(tile, matrixStack, buffers, fp, gameTime);
-            drawFieldFace(tile, matrixStack, buffers, fp);
+            drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
+            drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+            drawFieldFace(tile, matrixStack, buffers, bounds);
 
             matrixStack.popPose();
         });
@@ -113,7 +114,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             double craftProgress = Math.max(0, preview.getProgress());
             double requiredTime = Math.max(1, preview.getRecipe().getTicks());
 
-            return Math.min(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime)));
+            return Math.min(1, Math.max(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime))));
         }
 
         return 1;

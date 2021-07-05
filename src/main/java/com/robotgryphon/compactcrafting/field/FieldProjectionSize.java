@@ -36,14 +36,14 @@ public enum FieldProjectionSize implements IStringSerializable {
      */
     ABSURD("absurd", 4, 9);
 
-    private int size;
+    private final int size;
 
     /**
      * Number of blocks between two projectors.
      */
-    private int projectorDistance;
+    private final int projectorDistance;
 
-    private String name;
+    private final String name;
 
     public static final FieldProjectionSize[] VALID_SIZES = new FieldProjectionSize[] {
             SMALL, MEDIUM, LARGE, ABSURD
