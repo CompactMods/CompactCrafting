@@ -34,10 +34,10 @@ public class FieldProxyItem extends BlockItem {
             CompoundNBT field = stack.getOrCreateTagElement("field");
             if(field.contains("center")) {
                 BlockPos linkedCenter = NBTUtil.readBlockPos(field.getCompound("center"));
-                text.add(new StringTextComponent("Center: " + linkedCenter.toString()));
+                text.add(new StringTextComponent("Center: " + linkedCenter));
             }
         }
-        
+
         super.appendHoverText(stack, level, text, flags);
     }
 
