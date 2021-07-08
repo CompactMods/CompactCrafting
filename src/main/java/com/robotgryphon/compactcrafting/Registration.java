@@ -6,6 +6,8 @@ import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.item.FieldProxyItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.FilledComponentRecipeLayer;
@@ -21,6 +23,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.ToolType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -71,6 +74,12 @@ public class Registration {
     public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
             new FieldCraftingPreviewBlock(AbstractBlock.Properties.copy(Blocks.BARRIER)));
 
+    public static final RegistryObject<Block> FIELD_PROXY_BLOCK = BLOCKS.register("proxy", () ->
+            new FieldProxyBlock(AbstractBlock.Properties.of(Material.HEAVY_METAL)
+                .strength(8, 20)
+                .requiresCorrectToolForDrops()
+                .harvestTool(ToolType.PICKAXE)));
+
     // ================================================================================================================
     //   ITEMS
     // ================================================================================================================
@@ -78,6 +87,9 @@ public class Registration {
             new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
 //    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+
+    public static final RegistryObject<Item> FIELD_PROXY_ITEM = ITEMS.register("proxy", () ->
+            new FieldProxyItem(FIELD_PROXY_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
 
     // ================================================================================================================
     //   TILE ENTITIES
