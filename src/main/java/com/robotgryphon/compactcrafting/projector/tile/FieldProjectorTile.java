@@ -7,10 +7,8 @@ import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFi
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.capability.IActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
-import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
-import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -19,7 +17,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -30,12 +27,23 @@ import java.util.Optional;
 
 public class FieldProjectorTile extends TileEntity {
 
-    protected BlockPos fieldCenter;
+    private FieldProjectionSize fieldSize;
+    private AxisAlignedBB fieldBounds;
+
     protected LazyOptional<IMiniaturizationField> fieldCap = LazyOptional.empty();
     protected LazyOptional<IActiveWorldFields> levelFields = LazyOptional.empty();
 
     public FieldProjectorTile() {
         super(Registration.FIELD_PROJECTOR_TILE.get());
+    }
+
+    public FieldProjectorTile(FieldProjectionSize size) {
+        super(Registration.FIELD_PROJECTOR_TILE.get());
+        this.fieldSize = size;
+    }
+
+    public Optional<AxisAlignedBB> getFieldBounds() {
+        return Optional.ofNullable(fieldBounds);
     }
 
     public Direction getFacing() {
@@ -48,21 +56,31 @@ public class FieldProjectorTile extends TileEntity {
         return facing.getOpposite();
     }
 
-    public boolean isMainProjector() {
-        Direction side = getProjectorSide();
-
-        // We're the main projector if we're to the NORTH
-        return side == Direction.NORTH;
-    }
-
     @Override
-    public void setLevelAndPosition(World level, BlockPos position) {
-        super.setLevelAndPosition(level, position);
+    public void onLoad() {
+        super.onLoad();
 
-        this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+        if (this.fieldSize == null)
+            return;
 
-        levelFields.lazyMap(fields -> fields.getLazy(fieldCenter))
-                .ifPresent(field -> this.fieldCap = field);
+        BlockPos center;
+        if (this.fieldBounds == null) {
+            center = fieldSize.getCenterFromProjector(worldPosition, getFacing());
+            fieldBounds = fieldSize.getBoundsAtPosition(center);
+        } else {
+            center = new BlockPos(fieldBounds.getCenter());
+        }
+
+        if (this.level != null && !level.isClientSide) {
+            this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+            levelFields.ifPresent(af -> {
+                if (!af.hasActiveField(center)) {
+                    af.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+                }
+
+                this.fieldCap = af.getLazy(center);
+            });
+        }
     }
 
     @Override
@@ -73,48 +91,20 @@ public class FieldProjectorTile extends TileEntity {
         invalidateField();
     }
 
-    /**
-     * Invalidates the current field projection and attempts to rebuild it from this position as an initial.
-     */
-    public void tryActivateField() {
-        if (fieldCap.isPresent())
-            return;
-
-        Optional<FieldProjectionSize> size = ProjectorHelper.getClosestOppositeSize(level, this.worldPosition, getFacing());
-        if (!size.isPresent()) {
-            invalidateField();
-            return;
-        }
-
-        FieldProjectionSize foundSize = size.get();
-
-        this.fieldCap.invalidate();
-
-        BlockPos center = foundSize.getCenterFromProjector(this.worldPosition, getFacing());
-
-        MiniaturizationField f = MiniaturizationField.fromSizeAndCenter(foundSize, center);
-
-        levelFields.ifPresent(af -> {
-            af.activateField(f);
-            this.fieldCap = af.getLazy(f.getCenterPosition());
-        });
-
-        if (level != null && !level.isClientSide) {
-            this.setChanged();
-
-            PacketDistributor.PacketTarget trk = PacketDistributor.TRACKING_CHUNK
-                    .with(() -> level.getChunkAt(this.worldPosition));
-
-            NetworkHandler.MAIN_CHANNEL
-                    .send(trk, new FieldActivatedPacket(f.getCenterPosition(), f.getFieldSize()));
-        }
-    }
-
     public void invalidateField() {
+        if (fieldBounds == null)
+            return;
+
+        BlockPos fieldCenter = new BlockPos(fieldBounds.getCenter());
+
+        fieldSize.getProjectorLocations(fieldCenter)
+                .filter(p -> level.getBlockState(p).getBlock() instanceof FieldProjectorBlock)
+                .forEach(p -> FieldProjectorBlock.deactivateProjector(level, p));
+
         fieldCap.ifPresent(f -> {
             fieldCap.invalidate();
             levelFields.ifPresent(fields -> {
-                fields.deactivateField(f);
+                fields.unregisterField(f);
             });
 
             if (level == null || level.isClientSide)
@@ -124,7 +114,7 @@ public class FieldProjectorTile extends TileEntity {
                     .with(() -> level.getChunkAt(this.worldPosition));
 
             NetworkHandler.MAIN_CHANNEL
-                    .send(trk, new FieldDeactivatedPacket(f.getCenterPosition(), f.getFieldSize()));
+                    .send(trk, new FieldDeactivatedPacket(fieldSize, fieldCenter));
         });
 
         this.fieldCap = LazyOptional.empty();
@@ -132,6 +122,7 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     public void setField(LazyOptional<IMiniaturizationField> field) {
+        this.fieldCap.invalidate();
         this.fieldCap = field;
         field.addListener(f -> {
             this.fieldCap = LazyOptional.empty();
@@ -151,9 +142,8 @@ public class FieldProjectorTile extends TileEntity {
     public CompoundNBT save(CompoundNBT nbt) {
         CompoundNBT tag = super.save(nbt);
 
-        fieldCap.ifPresent(field -> {
-            tag.put("center", NBTUtil.writeBlockPos(field.getCenterPosition()));
-        });
+        if (fieldBounds != null)
+            tag.put("center", NBTUtil.writeBlockPos(new BlockPos(fieldBounds.getCenter())));
 
         return tag;
     }
@@ -163,14 +153,32 @@ public class FieldProjectorTile extends TileEntity {
         super.load(state, tag);
 
         if (tag.contains("center")) {
-            this.fieldCenter = NBTUtil.readBlockPos(tag.getCompound("center"));
+            BlockPos center = NBTUtil.readBlockPos(tag.getCompound("center"));
+            this.fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+
+            if (FieldProjectorBlock.isActive(state)) {
+                this.fieldBounds = fieldSize.getBoundsAtPosition(center);
+            }
         }
+    }
+
+    @Override
+    public CompoundNBT getUpdateTag() {
+        CompoundNBT tag = super.getUpdateTag();
+
+        if (fieldBounds != null)
+            tag.put("center", NBTUtil.writeBlockPos(new BlockPos(fieldBounds.getCenter())));
+
+        return tag;
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
         // Check - if we have a valid field use the entire field plus space
         // Otherwise just use the super implementation
-        return super.getRenderBoundingBox().inflate(20);
+        if (fieldBounds != null)
+            return fieldBounds.inflate(10);
+
+        return new AxisAlignedBB(worldPosition).inflate(20);
     }
 }

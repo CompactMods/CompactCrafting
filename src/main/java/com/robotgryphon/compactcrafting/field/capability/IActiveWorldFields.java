@@ -13,11 +13,13 @@ public interface IActiveWorldFields {
 
     void tickFields(World level);
 
-    void activateField(IMiniaturizationField field);
+    void registerField(IMiniaturizationField field);
 
-    void deactivateField(IMiniaturizationField field);
+    void unregisterField(IMiniaturizationField field);
 
     Optional<IMiniaturizationField> get(BlockPos center);
 
     LazyOptional<IMiniaturizationField> getLazy(BlockPos center);
+
+    boolean hasActiveField(BlockPos center);
 }

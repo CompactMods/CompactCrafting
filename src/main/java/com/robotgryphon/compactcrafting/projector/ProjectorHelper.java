@@ -15,13 +15,6 @@ import java.util.stream.Stream;
  * Contains utility methods for working with a set of projectors in a given space.
  */
 public abstract class ProjectorHelper {
-    public static Optional<BlockPos> getOppositePositionForSize(BlockPos initial, Direction facing, FieldProjectionSize size) {
-        BlockPos center = initial.relative(facing, size.getProjectorDistance() + 1);
-        BlockPos opp = center.relative(facing, size.getProjectorDistance() + 1);
-
-        return Optional.of(opp);
-    }
-
     public static Optional<BlockPos> getOppositePositionForSize(IWorldReader world, BlockPos initial, FieldProjectionSize size) {
         Optional<Direction> facing = FieldProjectorBlock.getDirection(world, initial);
 
@@ -30,17 +23,26 @@ public abstract class ProjectorHelper {
             return Optional.empty();
 
         Direction fieldDirection = facing.get();
-        return getOppositePositionForSize(initial, fieldDirection, size);
+        return Optional.of(size.getOppositeProjectorPosition(initial, fieldDirection));
     }
 
     public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader level, BlockPos initial, Direction facing) {
-        return Stream.of(FieldProjectionSize.values())
-                .filter(size -> hasProjectorOpposite(level, initial, size))
+        return Stream.of(FieldProjectionSize.VALID_SIZES)
+                .filter(size -> {
+                    BlockPos oppPos = size.getOppositeProjectorPosition(initial, facing);
+                    BlockState oppState = level.getBlockState(oppPos);
+                    if(oppState.getBlock() instanceof FieldProjectorBlock) {
+                        Direction f = oppState.getValue(FieldProjectorBlock.FACING);
+                        return f.getOpposite().equals(facing);
+                    }
+
+                    return false;
+                })
                 .findFirst();
     }
 
     public static Optional<FieldProjectionSize> getClosestOppositeSize(IWorldReader world, BlockPos initial) {
-        for (FieldProjectionSize size : FieldProjectionSize.values()) {
+        for (FieldProjectionSize size : FieldProjectionSize.VALID_SIZES) {
             if (hasProjectorOpposite(world, initial, size)) {
                 return Optional.of(size);
             }
@@ -81,11 +83,9 @@ public abstract class ProjectorHelper {
         return false;
     }
 
-    public static Stream<BlockPos> getValidOppositePositions(IWorldReader world, BlockPos initial) {
-        return Stream.of(FieldProjectionSize.values())
-                .map(s -> getOppositePositionForSize(world, initial, s))
-                .filter(Optional::isPresent)
-                .map(Optional::get);
+    public static Stream<BlockPos> getValidOppositePositions(BlockPos initial, Direction facing) {
+        return Stream.of(FieldProjectionSize.VALID_SIZES)
+                .map(s -> s.getOppositeProjectorPosition(initial, facing));
     }
 
     public static boolean hasValidCrossProjector(IWorldReader world, BlockPos initialProjector, Direction projectorFacing, FieldProjectionSize size) {
@@ -127,7 +127,7 @@ public abstract class ProjectorHelper {
         } else {
             // No opposing projector to limit field size.
             // Scan for a cross-axis projector to try to limit.
-            Optional<FieldProjectionSize> firstMatchedSize = Stream.of(FieldProjectionSize.values())
+            Optional<FieldProjectionSize> firstMatchedSize = Stream.of(FieldProjectionSize.VALID_SIZES)
                     .filter(size -> hasValidCrossProjector(level, initialProjector, projectorFacing, size))
                     .findFirst();
 
@@ -140,7 +140,7 @@ public abstract class ProjectorHelper {
                         .filter(proj -> !ProjectorHelper.projectorFacesCenter(level, proj, matchedCenter, matchedSize));
             } else {
                 // Need an opposing projector set up to limit size
-                return ProjectorHelper.getValidOppositePositions(level, initialProjector);
+                return ProjectorHelper.getValidOppositePositions(initialProjector, projectorFacing);
             }
         }
     }

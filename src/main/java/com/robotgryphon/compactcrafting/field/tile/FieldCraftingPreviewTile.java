@@ -65,7 +65,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
         // TODO - Clean this up, potential for crash
         // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
-        if (this.craftingProgress >= 60) {
+        if (this.craftingProgress >= recipe.getTicks()) {
             field.ifPresent(IMiniaturizationField::completeCraft);
 
             BlockPos center = this.worldPosition;

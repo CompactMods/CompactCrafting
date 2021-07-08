@@ -9,18 +9,14 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.network.NetworkEvent;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.function.Supplier;
 
-public class FieldDeactivatedPacket {
-    private BlockPos position;
-    private FieldProjectionSize fieldSize;
+public class FieldDeactivatedPacket extends FieldChangedPacket {
 
-    private FieldDeactivatedPacket() {
-    }
-
-    public FieldDeactivatedPacket(BlockPos center, FieldProjectionSize fieldSize) {
-        this.position = center;
-        this.fieldSize = fieldSize;
+    public FieldDeactivatedPacket(FieldProjectionSize fieldSize, BlockPos fieldCenter) {
+        super(fieldSize, fieldCenter);
     }
 
     public static void handle(FieldDeactivatedPacket message, Supplier<NetworkEvent.Context> context) {
@@ -28,7 +24,7 @@ public class FieldDeactivatedPacket {
 
         ctx.enqueueWork(() -> {
             DistExecutor.unsafeCallWhenOn(Dist.CLIENT, () -> () -> {
-                ClientPacketHandler.handleFieldDeactivation(message.position, message.fieldSize);
+                ClientPacketHandler.handleFieldDeactivation(message.projectorLocations);
                 return null;
             });
         });
@@ -37,17 +33,22 @@ public class FieldDeactivatedPacket {
     }
 
     public static void encode(FieldDeactivatedPacket pkt, PacketBuffer buf) {
-        buf.writeBlockPos(pkt.position);
-        String n = pkt.fieldSize.name();
-        CompactCrafting.LOGGER.debug("D: {}, N: {}", pkt.position, n);
-        buf.writeUtf(n);
+        try {
+            buf.writeWithCodec(CODEC, pkt);
+        } catch (IOException e) {
+            CompactCrafting.LOGGER.error(e);
+        }
     }
 
+    @Nullable
     public static FieldDeactivatedPacket decode(PacketBuffer buf) {
-        FieldDeactivatedPacket pkt = new FieldDeactivatedPacket();
-        pkt.position = buf.readBlockPos();
-        pkt.fieldSize = FieldProjectionSize.valueOf(buf.readUtf());
+        try {
+            FieldChangedPacket base = buf.readWithCodec(CODEC);
+            return new FieldDeactivatedPacket(base.fieldSize, base.fieldCenter);
+        } catch (IOException e) {
+            CompactCrafting.LOGGER.error(e);
+        }
 
-        return pkt;
+        return null;
     }
 }

@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public interface IMiniaturizationField {
 
@@ -15,15 +16,14 @@ public interface IMiniaturizationField {
 
     FieldProjectionSize getFieldSize();
 
-    BlockPos getCenterPosition();
+    BlockPos getCenter();
 
     void setCenter(BlockPos center);
 
     void setSize(FieldProjectionSize size);
 
-    // TODO
-    default BlockPos[] getProjectorPositions() {
-        return new BlockPos[0];
+    default Stream<BlockPos> getProjectorPositions() {
+        return Stream.empty();
     }
 
     Optional<MiniaturizationRecipe> getCurrentRecipe();
@@ -39,4 +39,10 @@ public interface IMiniaturizationField {
     void setCraftingState(EnumCraftingState state);
 
     default void tick(World level) {}
+
+    boolean isLoaded();
+
+    default void checkLoaded(World world) {}
+
+    void markFieldChanged(World world);
 }

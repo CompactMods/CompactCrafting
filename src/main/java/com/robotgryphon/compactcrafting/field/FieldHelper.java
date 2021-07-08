@@ -5,42 +5,36 @@ import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFi
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 
 /**
  * Provides utilities to help with projector field management.
  */
 public abstract class FieldHelper {
-    public static void checkBlockPlacement(World world, BlockPos pos) {
+    public static void checkBlockPlacement(World level, BlockPos pos) {
         // We don't care about client worlds RN
-        if (world.isClientSide())
+        if (level.isClientSide())
             return;
-
-        ServerWorld sWorld = (ServerWorld) world;
 
         int maxDimensions = FieldProjectionSize.maximum().getDimensions();
         AxisAlignedBB searchArea = new AxisAlignedBB(pos, pos).inflate(maxDimensions);
 
         BlockPos[] nearbyProjectors = BlockPos.betweenClosedStream(searchArea)
-                .filter(possProjector -> world.getBlockState(possProjector).getBlock() instanceof FieldProjectorBlock)
+                .filter(possProjector -> level.getBlockState(possProjector).getBlock() instanceof FieldProjectorBlock)
+                .filter(possProjector -> FieldProjectorBlock.isActive(level.getBlockState(possProjector)))
                 .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
 
-        CompactCrafting.LOGGER.debug("Found {} nearby projectors.", nearbyProjectors.length);
+        CompactCrafting.LOGGER.debug("Found {} nearby projectors near {}.", nearbyProjectors.length, pos);
 
+        final Vector3d centerBlockChanged = Vector3d.atCenterOf(pos);
         if (nearbyProjectors.length > 0) {
-            world.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                 .ifPresent(fields -> {
                     fields.getFields()
-                            .filter(field -> {
-                                BlockPos fieldCenter = field.getCenterPosition();
-                                return searchArea.contains(
-                                        fieldCenter.getX(),
-                                        fieldCenter.getY(),
-                                        fieldCenter.getZ()
-                                );
-                            }).forEach(field -> field.doRecipeScan(world));
+                            .filter(field -> field.getBounds().contains(centerBlockChanged))
+                            .forEach(f -> f.markFieldChanged(level));
                 });
         }
     }

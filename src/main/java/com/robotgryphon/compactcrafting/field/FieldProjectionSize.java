@@ -1,42 +1,69 @@
 package com.robotgryphon.compactcrafting.field;
 
 import net.minecraft.util.Direction;
+import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-public enum FieldProjectionSize {
+public enum FieldProjectionSize implements IStringSerializable {
     /**
-     * 3x3x3 Crafting Field Size (Magnitude 1)
+     * Inactive field. Does not have dimensions.
      */
-    SMALL(1, 3, "small"),
-
-    /**
-     * 5x5x5 Crafting Field Size (Magnitude 2)
-     */
-    MEDIUM(2, 5, "medium"),
+    INACTIVE("inactive", 0, 0),
 
     /**
-     * 7x7x7 Crafting Field Size (Magnitude 3)
+     * 3x3x3 crafting field Size
      */
-    LARGE(3, 7, "large"),
+    SMALL("small", 1, 3),
 
-    ABSURD(4, 9, "absurd");
+    /**
+     * 5x5x5 crafting field Size
+     */
+    MEDIUM("medium", 2, 5),
 
-    private int size;
+    /**
+     * 7x7x7 crafting field Size
+     */
+    LARGE("large", 3, 7),
+
+    /**
+     * 9x9x9 crafting field size.
+     */
+    ABSURD("absurd", 4, 9);
+
+    private final int size;
 
     /**
      * Number of blocks between two projectors.
      */
-    private int projectorDistance;
+    private final int projectorDistance;
 
-    private String name;
+    private final String name;
 
-    FieldProjectionSize(int size, int distance, String name) {
+    public static final FieldProjectionSize[] VALID_SIZES = new FieldProjectionSize[] {
+            SMALL, MEDIUM, LARGE, ABSURD
+    };
+
+    FieldProjectionSize(String name, int size, int distance) {
         this.size = size;
         this.projectorDistance = distance;
         this.name = name;
+    }
+
+    @Nonnull
+    public static Optional<FieldProjectionSize> fromDimensions(double size) {
+        // smaller than small, larger than max size, or not an odd size
+        if(size < SMALL.getDimensions() || size > maximum().getDimensions() || size % 2 == 0)
+            return Optional.empty();
+
+        return Arrays.stream(values())
+                .filter(s -> s.getDimensions() == size)
+                .findFirst();
     }
 
     /**
@@ -61,7 +88,7 @@ public enum FieldProjectionSize {
     }
 
     public static FieldProjectionSize maximum() {
-        return LARGE;
+        return ABSURD;
     }
 
     public BlockPos getCenterFromProjector(BlockPos projector, Direction facing) {
@@ -90,5 +117,14 @@ public enum FieldProjectionSize {
     public BlockPos getOppositeProjectorPosition(BlockPos projectorPos, Direction projectorFacing) {
         BlockPos center = getCenterFromProjector(projectorPos, projectorFacing);
         return getProjectorLocationForDirection(center, projectorFacing);
+    }
+
+    public AxisAlignedBB getBoundsAtPosition(BlockPos center) {
+        return new AxisAlignedBB(center).inflate(this.size);
+    }
+
+    @Override
+    public String getSerializedName() {
+        return name;
     }
 }

@@ -6,6 +6,7 @@ import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
+import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.Blocks;
@@ -31,9 +32,11 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private FieldProjectionSize size;
     private BlockPos center;
+    private boolean loaded;
 
     private MiniaturizationRecipe currentRecipe = null;
     private EnumCraftingState craftingState;
+    private long rescanTime;
 
     public MiniaturizationField() {
     }
@@ -52,7 +55,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         return this.size;
     }
 
-    public BlockPos getCenterPosition() {
+    public BlockPos getCenter() {
         return center;
     }
 
@@ -66,12 +69,13 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.size = size;
     }
 
-    public AxisAlignedBB getBounds() {
-        FieldProjectionSize size = this.size;
-        BlockPos center = getCenterPosition();
-        AxisAlignedBB bounds = new AxisAlignedBB(center).inflate(size.getSize());
+    @Override
+    public Stream<BlockPos> getProjectorPositions() {
+        return this.size.getProjectorLocations(center);
+    }
 
-        return bounds;
+    public AxisAlignedBB getBounds() {
+        return this.size.getBoundsAtPosition(center);
     }
 
     public Stream<BlockPos> getFilledBlocks(IWorldReader level) {
@@ -122,7 +126,15 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void tick(World level) {
-        tickCrafting(level);
+        // Set in a block update handler to mark that the field has changed
+        if(rescanTime > 0 && level.getGameTime() >= rescanTime) {
+            doRecipeScan(level);
+            this.rescanTime = 0;
+            return;
+        }
+
+        if(getProjectorPositions().allMatch(level::isLoaded))
+            tickCrafting(level);
     }
 
     public void tickCrafting(World level) {
@@ -150,7 +162,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
                     CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                    BlockPos centerField = getCenterPosition();
+                    BlockPos centerField = getCenter();
                     level.setBlockAndUpdate(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().defaultBlockState());
 
                     // TODO - Expose this as a LazyOptional somehow
@@ -172,6 +184,8 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void doRecipeScan(World level) {
         if (level == null)
             return;
+
+        CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
         Stream<BlockPos> filledBlocks = getFilledBlocks(level);
 
@@ -232,5 +246,30 @@ public class MiniaturizationField implements IMiniaturizationField {
         return itemsInRange.stream()
                 .filter(ise -> ise.getItem().getItem() == itemFilter)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isLoaded() {
+        return loaded;
+    }
+
+    public void checkLoaded(World level) {
+        CompactCrafting.LOGGER.trace("Checking loaded state.");
+        this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
+
+        if(loaded) {
+            getProjectorPositions().forEach(proj -> {
+                FieldProjectorBlock.activateProjector(level, proj, this.size);
+            });
+        }
+    }
+
+    @Override
+    public void markFieldChanged(World w) {
+        // clear the recipe immediately so people can't dupe items or juke the projectors
+        this.clearRecipe();
+
+        // set a distant rescan duration to make the field revalidate itself after a second or two
+        this.rescanTime = w.getGameTime() + 30;
     }
 }

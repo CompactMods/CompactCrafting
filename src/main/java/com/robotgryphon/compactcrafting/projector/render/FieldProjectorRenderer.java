@@ -4,14 +4,12 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -27,13 +25,16 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.world.IWorldReader;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.common.util.LazyOptional;
+
+import java.util.Optional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
 
@@ -65,47 +66,23 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
     @Override
     public void render(FieldProjectorTile tile, float partialTicks, MatrixStack matrixStack, IRenderTypeBuffer buffers, int combinedLightIn, int combinedOverlayIn) {
-        renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn);
+        long gameTime = tile.getLevel().getGameTime();
 
-        field = tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
+        renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        field.ifPresent(fp -> {
-            float scale = 1f;
+        Optional<AxisAlignedBB> fieldBounds = tile.getFieldBounds();
 
-            int fieldSize = fp.getFieldSize().getSize();
+        fieldBounds.ifPresent(bounds -> {
+            float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(bounds.getCenter()));
 
-            AxisAlignedBB cube = fp.getBounds();
-
-            // TODO - WIP ARC CODE
-            // drawProjectorArcs(tile, matrixStack, buffers, cube, fieldSize);
-
-            if (tile.getProjectorSide() == Direction.SOUTH) {
-                EnumCraftingState state = fp.getCraftingState();
-                if (state == EnumCraftingState.CRAFTING) {
-                    FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) tile
-                            .getLevel()
-                            .getBlockEntity(fp.getCenterPosition());
-
-                    // No preview tile found, not actually crafting rn
-                    if (preview == null)
-                        return;
-
-                    double craftProgress = preview.getProgress();
-
-                    double recipeProgress = (double) fp.getCurrentRecipe().map(MiniaturizationRecipe::getTicks).orElse(100);
-
-                    double progress = 1.0d - (craftProgress / recipeProgress);
-                    long gameTime = tile.getLevel().getGameTime();
-                    scale = (float) (progress * (1.0f - ((Math.sin(Math.toDegrees(gameTime) / 2000) + 1.0f) * 0.1f)));
-                }
-            }
+            bounds = bounds.deflate(1 - scale);
 
             matrixStack.pushPose();
 
-            matrixStack.scale(scale, scale, scale);
 
-            drawScanLine(tile, fp, matrixStack, buffers, cube, fieldSize);
-            drawCubeFace(tile, fp, matrixStack, buffers, cube, fieldSize);
+            drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
+            drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+            drawFieldFace(tile, matrixStack, buffers, bounds);
 
             matrixStack.popPose();
         });
@@ -125,74 +102,31 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         return bakedModelCached;
     }
 
-    private void addColoredVertex(IVertexBuilder renderer, MatrixStack stack, int color, Vector3f position) {
-        renderer.vertex(stack.last().pose(), position.x(), position.y(), position.z())
-                .color(ColorHelper.PackedColor.red(color), ColorHelper.PackedColor.green(color), ColorHelper.PackedColor.blue(color), ColorHelper.PackedColor.alpha(color))
-                .uv2(0, 240)
-                .normal(1, 0, 0)
-                .endVertex();
-    }
+    /**
+     * Scaled value between 0 and 1 depending on how far along the crafting is.
+     * @param level
+     * @param fieldCenter
+     * @return 0 is done, 1 is not yet started.
+     */
+    private double getCraftingScale(IWorldReader level, BlockPos fieldCenter) {
+        BlockState centerState = level.getBlockState(fieldCenter);
+        if (centerState.getBlock() instanceof FieldCraftingPreviewBlock) {
+            FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) level.getBlockEntity(fieldCenter);
 
-    private void drawCubeFace(IVertexBuilder builder, MatrixStack mx, AxisAlignedBB cube, int color, Direction face) {
-        Vector3f BOTTOM_RIGHT = null,
-                TOP_RIGHT = null,
-                TOP_LEFT = null,
-                BOTTOM_LEFT = null;
+            // No preview tile found, not actually crafting rn
+            if (preview == null)
+                return 1;
 
-        switch (face) {
-            case NORTH:
-                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
-                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
-                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
-                break;
+            double craftProgress = Math.max(0, preview.getProgress());
+            double requiredTime = Math.max(1, preview.getRecipe().getTicks());
 
-            case SOUTH:
-                BOTTOM_RIGHT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
-                TOP_RIGHT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
-                TOP_LEFT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
-                break;
-
-            case WEST:
-                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
-                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
-                TOP_LEFT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
-                break;
-
-            case EAST:
-                BOTTOM_RIGHT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
-                TOP_RIGHT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
-                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
-                break;
-
-            case UP:
-                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.minZ);
-                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.maxY, (float) cube.maxZ);
-                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.maxZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.maxY, (float) cube.minZ);
-                break;
-
-            case DOWN:
-                BOTTOM_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.maxZ);
-                TOP_RIGHT = new Vector3f((float) cube.minX, (float) cube.minY, (float) cube.minZ);
-                TOP_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.minZ);
-                BOTTOM_LEFT = new Vector3f((float) cube.maxX, (float) cube.minY, (float) cube.maxZ);
-                break;
+            return Math.min(1, Math.max(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime))));
         }
 
-        if (BOTTOM_RIGHT == null)
-            return;
-
-        addColoredVertex(builder, mx, color, BOTTOM_RIGHT);
-        addColoredVertex(builder, mx, color, TOP_RIGHT);
-        addColoredVertex(builder, mx, color, TOP_LEFT);
-        addColoredVertex(builder, mx, color, BOTTOM_LEFT);
+        return 1;
     }
 
-    private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay) {
+    private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, long gameTime) {
 
         BlockState state = te.getBlockState();
 
@@ -207,11 +141,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         mx.translate(.5, 0, .5);
 
-        RotationSpeed speed = RotationSpeed.SLOW;
-
-        double gameTime = te.getLevel().getGameTime();
-
-        double yaw = Math.sin(Math.toDegrees(gameTime) / speed.getSpeed()) * 10;
+        double yaw = Math.sin(Math.toDegrees(gameTime) / RotationSpeed.MEDIUM.getSpeed()) * 10;
         // double yaw = Math.random();
 
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
@@ -242,205 +172,150 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     }
 
     /**
-     * TODO - Main projector (single, NORTH projector)
-     * TODO - render scan line animated over main crafting projection
-     * TODO - render main crafting projection cube
-     * <p>
-     * TODO - All projectors (individually)
-     * TODO - render projection arc connecting projector to large cube
-     */
-
-    private void translateRendererToCube(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, AxisAlignedBB cube, int cubeSize) {
-        BlockPos center = field.getCenterPosition();
-
-        // Center on projector
-        mx.translate(-cube.minX, -cube.minY, -cube.minZ);
-        mx.translate(-cubeSize, -cubeSize, -cubeSize);
-
-        // Now move to actual center
-        BlockPos projectorPos = tile.getBlockPos();
-        BlockPos offsetToCenter = center.subtract(projectorPos);
-
-        mx.translate(offsetToCenter.getX(), offsetToCenter.getY(), offsetToCenter.getZ());
-    }
-
-    /**
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void drawCubeFace(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
-        mx.pushPose();
+    private void drawFieldFace(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds) {
 
-        translateRendererToCube(tile, field, mx, cube, cubeSize);
+        Direction projectorDir = tile.getProjectorSide();
 
-        IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.PROJECTION_FIELD_RENDERTYPE);
+        Vector3d tilePos = new Vector3d(
+                tile.getBlockPos().getX(),
+                tile.getBlockPos().getY(),
+                tile.getBlockPos().getZ()
+        );
+
+        boolean hoveringProjector = false;
+
+        RayTraceResult hr = Minecraft.getInstance().hitResult;
+        if (hr instanceof BlockRayTraceResult) {
+            hoveringProjector = ((BlockRayTraceResult) hr).getBlockPos().equals(tile.getBlockPos());
+        }
+
+        if (ClientConfig.doDebugRender() && hoveringProjector) {
+            IVertexBuilder lineBuilder = buffers.getBuffer(RenderType.lines());
+
+            Vector3d debugOrigin = new Vector3d(.5, .5, .5);
+
+            Vector3d bottomLeft = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
+                    .subtract(tilePos);
+
+            Vector3d bottomRight = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
+                    .subtract(tilePos);
+
+            Vector3d topLeft = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_LEFT)
+                    .subtract(tilePos);
+
+            Vector3d topRight = CubeRenderHelper
+                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
+                    .subtract(tilePos);
+
+            mx.pushPose();
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
+
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF000000, debugOrigin);
+            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
+            mx.popPose();
+        }
+
+        IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
         double expansion = 0.005;
-        AxisAlignedBB slightlyBiggerBecauseFoxes = cube
+        AxisAlignedBB slightlyBiggerBecauseFoxes = fieldBounds
                 .expandTowards(expansion, expansion, expansion)
-                .expandTowards(-expansion, -expansion, -expansion);
-
-        Direction projectorDir = tile.getBlockState().getValue(FieldProjectorBlock.FACING);
+                .expandTowards(-expansion, -expansion, -expansion)
+                .move(tilePos.reverse());
 
         // Each projector renders its face
         // North and South projectors render the top and bottom faces
-        switch(projectorDir) {
+        int color = getProjectionColor(EnumProjectorColorType.FIELD);
+        switch (projectorDir) {
             case NORTH:
-                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.UP);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.UP);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
 
             case SOUTH:
-                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), Direction.DOWN);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.DOWN);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
 
             default:
-                drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, getProjectionColor(EnumProjectorColorType.FIELD), projectorDir.getOpposite());
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
                 break;
         }
-
-        mx.popPose();
     }
 
     /**
      * Handles drawing the projection arcs that connect the projector blocks to the main projection
      * in the center of the crafting area.
      */
-    private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void drawProjectorArcs(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds, double gameTime) {
 
-        IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
+        IVertexBuilder builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
-        double gameTime = tile.getLevel().getGameTime();
+        Direction facing = tile.getProjectorSide();
 
-        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -5000) + 1.0d) / 2) * (cube.getYsize());
-        double scanHeight = (cube.minY + zAngle);
-
-        Vector3d centerPos = cube.getCenter();
-
-        Direction facing = tile.getBlockState().getValue(FieldProjectorBlock.FACING);
-        Quaternion rotation = facing.getRotation();
-        Vector3i identity = facing.getNormal();
+        Vector3d tilePos = new Vector3d(
+                tile.getBlockPos().getX() + 0.5d,
+                tile.getBlockPos().getY() + 0.5d,
+                tile.getBlockPos().getZ() + 0.5d
+        );
 
         mx.pushPose();
 
         mx.translate(.5, .5, .5);
 
-        mx.mulPose(rotation);
+        // mx.mulPose(rotation);
 
         int colorProjectionArc = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
-        // 0, 0, 0 is now the edge of the projector's space
-        addColoredVertex(builder, mx, colorProjectionArc, new Vector3f(0f, 0f, 0f));
+        Vector3d scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime).subtract(tilePos);
+        Vector3d scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
 
-        // Now translate to center of projection field
-        addColoredVertex(builder, mx, colorProjectionArc, new Vector3f((float) -scanHeight, 3, 0));
+        // 0, 0, 0 is now the edge of the projector's space
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, new Vector3d(0, 0.2d, 0));
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, scanLeft);
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, scanRight);
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, new Vector3d(0, 0.2d, 0));
 
         mx.popPose();
-
-//        mx.push();
-//
-//        translateRendererToCube(tile, mx, cube, cubeSize);
-//
-//        Vector3f LEFT_ENDPOINT = null;
-//        Vector3f RIGHT_ENDPOINT = null;
-//
-//        switch(facing) {
-//            case NORTH:
-//                LEFT_ENDPOINT = new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.maxZ);
-//                break;
-//
-//            case SOUTH:
-//                LEFT_ENDPOINT = new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.minZ);
-//                break;
-//
-//            case WEST:
-//                LEFT_ENDPOINT = new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.maxZ);
-//                break;
-//
-//            case EAST:
-//                LEFT_ENDPOINT = new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.minZ);
-//                break;
-//        }
-//
-//        if(LEFT_ENDPOINT != null)
-//            addColoredVertex(builder, mx, colorProjectionArc, LEFT_ENDPOINT);
-//
-//        mx.pop();
-
-//        // Render projection planes
-//        double zAngle = ((Math.sin(Math.toDegrees(RenderTickCounter.renderTicks) / -5000) + 1.0d) / 2) * (cube.maxY - cube.minY);
-//        double y3 = y1 + zAngle;
-//        float cA2 = 0.105f;
-//
-//        // Ensure both sides of the plane are visible
-//        GlStateManager.disableCull();
-//        GL11.glDisable(GL11.GL_CULL_FACE);
-//        // north -> south
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2-(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1+(radius-0.2f), y4, z1-(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // east -> west
-//        buffer.pos(x2, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2+(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // south -> north
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x2-(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1+(radius-0.2f), y4, z2+(radius+0.8f+extraLength)).color(cR, cG, cB, cA2).endVertex();
-//
-//        // west -> east
-//        buffer.pos(x1, y3, z1).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1, y3, z2).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z2-(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//        buffer.pos(x1-(radius+0.8f+extraLength), y4, z1+(radius-0.2f)).color(cR, cG, cB, cA2).endVertex();
-//
-//
-//        tessellator.draw();
-//        GlStateManager.enableCull();
     }
 
     /**
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLine(FieldProjectorTile tile, IMiniaturizationField field, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB cube, int cubeSize) {
+    private void drawScanLine(FieldProjectorTile tile, MatrixStack mx, IRenderTypeBuffer buffers, AxisAlignedBB fieldBounds, double gameTime) {
         IVertexBuilder builder = buffers.getBuffer(RenderType.lines());
 
-        double gameTime = Minecraft.getInstance().level.getGameTime();
+        Vector3d tilePos = new Vector3d(
+                tile.getBlockPos().getX() + 0.5d,
+                tile.getBlockPos().getY() + 0.5d,
+                tile.getBlockPos().getZ() + 0.5d
+        );
 
         mx.pushPose();
-
-        translateRendererToCube(tile, field, mx, cube, cubeSize);
-
-        // Get the height of the scan line
-        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -5000) + 1.0d) / 2) * (cube.getYsize());
-        double scanHeight = (cube.minY + zAngle);
+        mx.translate(.5, .5, .5);
 
         int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
-        switch(tile.getProjectorSide().getOpposite()) {
-            case NORTH:
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.minZ));
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.minZ));
-                break;
+        Direction face = tile.getProjectorSide();
+        Vector3d left = CubeRenderHelper.getScanLineLeft(face, fieldBounds, gameTime).subtract(tilePos);
+        Vector3d right = CubeRenderHelper.getScanLineRight(face, fieldBounds, gameTime).subtract(tilePos);
 
-            case SOUTH:
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.maxZ));
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.maxZ));
-                break;
-
-            case WEST:
-                addColoredVertex(builder, mx, 0xFFFF0000, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.maxZ));
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.maxX, (float) scanHeight, (float) cube.minZ));
-                break;
-
-            case EAST:
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.maxZ));
-                addColoredVertex(builder, mx, colorScanLine, new Vector3f((float) cube.minX, (float) scanHeight, (float) cube.minZ));
-                break;
-        }
+        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, left);
+        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, right);
 
         mx.popPose();
     }
@@ -460,7 +335,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         switch (type) {
             case FIELD:
             case SCAN_LINE:
-                return ColorHelper.PackedColor.color(100, red, green, blue);
+                return ColorHelper.PackedColor.color(50, red, green, blue);
 
             case PROJECTOR_FACE:
                 return ColorHelper.PackedColor.color(250, red, green, blue);

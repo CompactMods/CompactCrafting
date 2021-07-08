@@ -7,14 +7,16 @@ import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderState;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.renderer.vertex.VertexFormat;
 import org.lwjgl.opengl.GL11;
 
-public class CCRenderTypes {
+public class CCRenderTypes extends RenderType {
 
-    /**
-     * Sets up a transparency state based on original GL calls from Compact Machines. (1.12.x)
-     */
-    protected static final RenderState.TransparencyState PROJECTION_TRANSPARENCY = new RenderState.TransparencyState("projection_field_transparency", () -> {
+    public CCRenderTypes(String p_i225992_1_, VertexFormat p_i225992_2_, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable p_i225992_7_, Runnable p_i225992_8_) {
+        super(p_i225992_1_, p_i225992_2_, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, p_i225992_7_, p_i225992_8_);
+    }
+
+    public static final RenderState.TransparencyState FIELD_TRANSPARENCY = new RenderState.TransparencyState("field_transparency", () -> {
         RenderSystem.enableBlend();
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
     }, () -> {
@@ -22,34 +24,27 @@ public class CCRenderTypes {
         RenderSystem.defaultBlendFunc();
     });
 
-    public static final RenderType PROJECTION_FIELD_RENDERTYPE = RenderType.create("projection_field",
-            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
+    public static final RenderType FIELD_RENDER_TYPE = create("projection_field",
+            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 512,
             RenderType.State.builder()
-                    .setTransparencyState(PROJECTION_TRANSPARENCY)
-                    .setCullState(new RenderState.CullState(true))
-                    .setWriteMaskState(new RenderState.WriteMaskState(true, false))
+                    .setLightmapState(NO_LIGHTMAP)
+                    .setLayeringState(RenderState.POLYGON_OFFSET_LAYERING)
+                    .setTransparencyState(FIELD_TRANSPARENCY)
+                    .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
+                    .setTextureState(NO_TEXTURE)
+                    .setCullState(RenderState.NO_CULL)
+                    .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(false));
 
-//    public static final RenderType FIELD_PROJECTION_ARC = create("projection_field_arc",
+//    public static final RenderType FIELD_PROJECTION_ARC = RenderType.create("projection_field_arc",
 //            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
 //            RenderType.State.builder()
 //                    .setTransparencyState(PROJECTION_TRANSPARENCY)
-//                    .setOutputState(RenderState.MAIN_TARGET)
-//                    .setCullState(RenderState.NO_CULL)
-//                    .setWriteMaskState(COLOR_WRITE)
-//                    .setDepthTestState(DepthTestState.LEQUAL_DEPTH_TEST) // Default, but let's make sure it stays that way
+//                    .setCullState(new RenderState.CullState(false))
+//                    .setWriteMaskState(new RenderState.WriteMaskState(true, true))
 //                    .createCompositeState(false));
-//
-//    public static final RenderType MULTIBLOCK_GUI = create(CompactCrafting.MOD_ID + ":multiblock_gui",
-//            DefaultVertexFormats.BLOCK, GL11.GL_QUADS, 256,
-//            RenderType.State.builder()
-//                    .setTransparencyState(PROJECTION_TRANSPARENCY)
-//                    .setOutputState(RenderState.MAIN_TARGET)
-//                    .setCullState(RenderState.CULL)
-//                    .setWriteMaskState(RenderState.COLOR_WRITE)
-//                    .setDiffuseLightingState(DiffuseLightingState.NO_DIFFUSE_LIGHTING)
-//                    .setDepthTestState(DepthTestState.LEQUAL_DEPTH_TEST)
-//                    .createCompositeState(false));
+
+
 
     public static IRenderTypeBuffer disableLighting(IRenderTypeBuffer.Impl in)
     {
