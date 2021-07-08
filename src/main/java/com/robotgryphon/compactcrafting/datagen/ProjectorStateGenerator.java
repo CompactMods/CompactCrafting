@@ -2,13 +2,10 @@ package com.robotgryphon.compactcrafting.datagen;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.util.Direction;
-import net.minecraftforge.client.model.generators.BlockModelBuilder;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ConfiguredModel;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class ProjectorStateGenerator extends BlockStateProvider {
@@ -40,6 +37,15 @@ public class ProjectorStateGenerator extends BlockStateProvider {
                                 .build();
                     }
                 });
+
+        itemModels()
+                .withExistingParent("field_projector", modLoc("block/field_projector_static"))
+                .transforms()
+                .transform(ModelBuilder.Perspective.GUI)
+                    .rotation(33.75f, 45f, 0)
+                    .translation(0, 1, 0)
+                    .scale(0.6f, 0.6f, 0.6f)
+                    .end();
     }
 
     private void projectorStaticModel() {

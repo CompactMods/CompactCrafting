@@ -102,6 +102,12 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         return bakedModelCached;
     }
 
+    /**
+     * Scaled value between 0 and 1 depending on how far along the crafting is.
+     * @param level
+     * @param fieldCenter
+     * @return 0 is done, 1 is not yet started.
+     */
     private double getCraftingScale(IWorldReader level, BlockPos fieldCenter) {
         BlockState centerState = level.getBlockState(fieldCenter);
         if (centerState.getBlock() instanceof FieldCraftingPreviewBlock) {
@@ -278,10 +284,10 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         Vector3d scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
 
         // 0, 0, 0 is now the edge of the projector's space
-        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, Vector3d.ZERO);
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, new Vector3d(0, 0.2d, 0));
         CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, scanLeft);
         CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, scanRight);
-        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, Vector3d.ZERO);
+        CubeRenderHelper.addColoredVertex(builder, mx, colorProjectionArc, new Vector3d(0, 0.2d, 0));
 
         mx.popPose();
     }
