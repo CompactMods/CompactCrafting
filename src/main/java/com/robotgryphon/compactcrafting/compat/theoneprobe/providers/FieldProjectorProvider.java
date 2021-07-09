@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 public class FieldProjectorProvider implements IProbeInfoProvider {
     @Override
     public String getID() {
-        return CompactCrafting.MOD_ID;
+        return CompactCrafting.MOD_ID + "_projector";
     }
 
     @Override

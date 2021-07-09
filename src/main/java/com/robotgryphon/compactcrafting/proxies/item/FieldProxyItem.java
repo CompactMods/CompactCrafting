@@ -18,6 +18,8 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
@@ -30,13 +32,28 @@ public class FieldProxyItem extends BlockItem {
 
     @Override
     public void appendHoverText(ItemStack stack, @Nullable World level, List<ITextComponent> text, ITooltipFlag flags) {
+
+        boolean isLinked = false;
         if(stack.hasTag()) {
             CompoundNBT field = stack.getOrCreateTagElement("field");
             if(field.contains("center")) {
+                isLinked = true;
+
                 BlockPos linkedCenter = NBTUtil.readBlockPos(field.getCompound("center"));
-                text.add(new StringTextComponent("Center: " + linkedCenter));
+                text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_bound", linkedCenter)
+                    .withStyle(TextFormatting.ITALIC).withStyle(TextFormatting.AQUA));
             }
         }
+
+        if(!isLinked) {
+            text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_bind_hint")
+                .withStyle(TextFormatting.DARK_GRAY));
+        } else {
+            text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_unbind_hint")
+                    .withStyle(TextFormatting.DARK_GRAY));
+        }
+
+        text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_hint").withStyle(TextFormatting.DARK_GRAY));
 
         super.appendHoverText(stack, level, text, flags);
     }

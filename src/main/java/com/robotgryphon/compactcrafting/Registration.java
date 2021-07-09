@@ -7,6 +7,7 @@ import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.data.FieldProxyTile;
 import com.robotgryphon.compactcrafting.proxies.item.FieldProxyItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
@@ -102,6 +103,11 @@ public class Registration {
     public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
             TileEntityType.Builder
                     .of(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())
+                    .build(null));
+
+    public static final RegistryObject<TileEntityType<FieldProxyTile>> FIELD_PROXY_TILE = TILE_ENTITIES.register("proxy", () ->
+            TileEntityType.Builder
+                    .of(FieldProxyTile::new, FIELD_PROXY_BLOCK.get())
                     .build(null));
 
     // ================================================================================================================

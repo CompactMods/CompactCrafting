@@ -1,16 +1,16 @@
 package com.robotgryphon.compactcrafting.proxies.block;
 
-import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
+import com.robotgryphon.compactcrafting.proxies.data.FieldProxyTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
@@ -29,17 +29,14 @@ public class FieldProxyBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return null;
+        return new FieldProxyTile();
     }
 
     @Override
     public void setPlacedBy(World level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         super.setPlacedBy(level, placedAt, state, entity, stack);
 
-        PlayerEntity player = null;
-        if(entity instanceof PlayerEntity) {
-            player = (PlayerEntity) entity;
-        }
+        FieldProxyTile tile = (FieldProxyTile) level.getBlockEntity(placedAt);
 
         if(stack.hasTag()) {
             CompoundNBT nbt = stack.getTag();
@@ -49,15 +46,29 @@ public class FieldProxyBlock extends Block {
                 if(fieldData.contains("center")) {
                     BlockPos center = NBTUtil.readBlockPos(fieldData.getCompound("center"));
 
-                    PlayerEntity finalPlayer = player;
-                    level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                            .resolve()
-                            .flatMap(fields -> fields.get(center))
-                            .ifPresent(field -> {
-                                if(finalPlayer != null) {
-                                    finalPlayer.displayClientMessage(new StringTextComponent("linked to field"), true);
-                                }
-                            });
+                    if(tile != null)
+                        tile.updateField(center);
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean canConnectRedstone(BlockState state, IBlockReader world, BlockPos pos, @Nullable Direction side) {
+        return true;
+    }
+
+    @Override
+    public void neighborChanged(BlockState thisState, World level, BlockPos thisPos, Block changedBlock, BlockPos changedPos, boolean _b) {
+        if(!level.isClientSide) {
+            FieldProxyTile tile = (FieldProxyTile) level.getBlockEntity(thisPos);
+
+            if(level.hasNeighborSignal(thisPos)) {
+                // call recipe scan
+
+                if(tile != null) {
+                    tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+                            .ifPresent(field -> field.markFieldChanged(level));
                 }
             }
         }
