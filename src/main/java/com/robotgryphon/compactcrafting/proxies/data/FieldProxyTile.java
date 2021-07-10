@@ -15,7 +15,7 @@ import javax.annotation.Nullable;
 
 public class FieldProxyTile extends TileEntity {
 
-    private LazyOptional<IMiniaturizationField> field;
+    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
     public FieldProxyTile() {
         super(Registration.FIELD_PROXY_TILE.get());
