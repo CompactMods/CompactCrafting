@@ -23,6 +23,7 @@ import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerTypeCodec;
 import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerUtil;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
+import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
@@ -181,7 +182,8 @@ public class MiniaturizationRecipe extends RecipeBase {
 
     public boolean matches(IWorldReader world, MiniaturizationField field) {
         if (!fitsInFieldSize(field.getFieldSize())) {
-            CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
+            if(ServerConfig.RECIPE_MATCHING.get())
+                CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
             return false;
         }
 
@@ -201,7 +203,8 @@ public class MiniaturizationRecipe extends RecipeBase {
                 return true;
         }
 
-        CompactCrafting.LOGGER.debug("Failing recipe {} for not matching any rotations.", this.id);
+        if(ServerConfig.RECIPE_MATCHING.get())
+            CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe for not matching any rotations.", this.id);
         return false;
     }
 
@@ -230,7 +233,9 @@ public class MiniaturizationRecipe extends RecipeBase {
             boolean layerMatched = targetLayer.matches(components, blocks);
 
             if(!layerMatched) {
-                CompactCrafting.LOGGER.debug("[RecipeMatcher/{}] Failing recipe layer {} ({}) because it did not match rotation {}.", this.id, offset, targetLayer.getType().getRegistryName(), rot);
+                if(ServerConfig.RECIPE_MATCHING.get())
+                    CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe at layer {} ({}) because it did not match rotation {}.", this.id, offset, targetLayer.getType().getRegistryName(), rot);
+
                 return false;
             }
         }

@@ -65,14 +65,14 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
         // Hollow layers only match a single component type
         if(totalsInWorld.size() > 1) {
             // make sure all the matched components besides the wall are empty
-            return totalsInWorld.keySet()
+            boolean everythingElseEmpty = totalsInWorld.keySet()
                     .stream()
                     // exclude this component (wall) from empty matching
                     .filter(c -> !c.equals(this.componentKey))
                     .allMatch(components::isEmptyBlock);
+
+            if(!everythingElseEmpty) return false;
         }
-
-
 
         int targetCount = totalsInWorld.get(componentKey);
         int layerCount = filledPositions.size();

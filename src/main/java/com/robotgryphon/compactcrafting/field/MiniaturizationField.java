@@ -8,6 +8,7 @@ import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
@@ -185,7 +186,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (level == null)
             return;
 
-        CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
+        if(ServerConfig.FIELD_BLOCK_CHANGES.get())
+            CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
         Stream<BlockPos> filledBlocks = getFilledBlocks(level);
 

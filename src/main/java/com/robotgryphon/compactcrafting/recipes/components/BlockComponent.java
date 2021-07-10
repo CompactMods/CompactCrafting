@@ -60,7 +60,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
                     this.allowedValues.put(propertyName, propertyAcceptableValues);
                     this.filters.put(propertyName, userAllowed::contains);
                 } else {
-                    CompactCrafting.LOGGER.warn("Not a valid property: " + propertyName);
+                    CompactCrafting.RECIPE_LOGGER.warn("Not a valid property: " + propertyName);
                 }
             }
         });
