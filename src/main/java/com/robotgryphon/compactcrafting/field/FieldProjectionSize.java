@@ -66,6 +66,10 @@ public enum FieldProjectionSize implements IStringSerializable {
                 .findFirst();
     }
 
+    public static boolean canFitDimensions(int dims) {
+        return dims >= 1 && dims <= ABSURD.getDimensions();
+    }
+
     /**
      * Gets the distance between the center of a field and a projector. (exclusive)
      *

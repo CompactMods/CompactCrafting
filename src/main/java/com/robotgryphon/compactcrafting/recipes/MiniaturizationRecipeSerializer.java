@@ -40,10 +40,10 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         if (n != null && n.contains("recipe")) {
             INBT recipeNbt = n.get("recipe");
 
-            MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.decode(NBTDynamicOps.INSTANCE, recipeNbt)
+            MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.parse(NBTDynamicOps.INSTANCE, recipeNbt)
                     .resultOrPartial(err -> {
 
-                    }).get().getFirst();
+                    }).get();
 
             rec.setId(recipeId);
             return rec;

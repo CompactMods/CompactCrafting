@@ -29,20 +29,6 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
         this.otherComponents = new HashMap<>();
     }
 
-    public void apply(Map<String, IRecipeComponent> compMap) {
-        this.blockComponents = new HashMap<>();
-        this.otherComponents = new HashMap<>();
-        for (Map.Entry<String, IRecipeComponent> comp : compMap.entrySet()) {
-            // Map in block components
-            if (comp.getValue() instanceof IRecipeBlockComponent) {
-                this.blockComponents.put(comp.getKey(), (IRecipeBlockComponent) comp.getValue());
-                continue;
-            }
-
-            this.otherComponents.put(comp.getKey(), comp.getValue());
-        }
-    }
-
     @Override
     public Map<String, IRecipeComponent> getAllComponents() {
         return Stream.concat(
@@ -76,10 +62,20 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
     }
 
     @Override
+    public void registerOther(String key, IRecipeComponent component) {
+        otherComponents.put(key, component);
+    }
+
+    @Override
     public int size() {
         return this.otherComponents.size() + this.blockComponents.size();
     }
 
+    @Override
+    public void clear() {
+        this.otherComponents.clear();
+        this.blockComponents.clear();
+    }
 
     public Optional<IRecipeBlockComponent> getBlock(String key) {
         if (this.blockComponents.containsKey(key)) {

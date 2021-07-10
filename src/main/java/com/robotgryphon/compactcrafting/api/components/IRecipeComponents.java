@@ -16,6 +16,10 @@ public interface IRecipeComponents {
     boolean hasBlock(String key);
 
     void registerBlock(String key, IRecipeBlockComponent component);
+    void registerOther(String key, IRecipeComponent component);
 
     int size();
+
+    void clear();
+
 }
