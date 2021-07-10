@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
+import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.client.fakeworld.RenderingWorld;
 import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
@@ -130,8 +131,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     public void setIngredients(MiniaturizationRecipe recipe, IIngredients ing) {
         List<ItemStack> inputs = new ArrayList<>();
 
-        for (String compKey : recipe.getComponentKeys()) {
-            Optional<IRecipeBlockComponent> requiredBlock = recipe.getRecipeBlockComponent(compKey);
+        IRecipeComponents components = recipe.getComponents();
+        for (String compKey : components.getBlockComponents().keySet()) {
+            Optional<IRecipeBlockComponent> requiredBlock = components.getBlock(compKey);
             requiredBlock.ifPresent(bs -> {
                 // TODO - Abstract this better, need to be more flexible for other component types in the future
                 if (bs instanceof BlockComponent) {
@@ -175,7 +177,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         int finalCatalystSlot = catalystSlot;
         guiItemStacks.addTooltipCallback((slot, b, itemStack, tooltip) -> {
-            if (slot >= 0 && slot < recipe.getComponentKeys().size()) {
+            if (slot >= 0 && slot < recipe.getComponents().size()) {
                 IFormattableTextComponent text =
                         new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
                                 .withStyle(TextFormatting.GRAY)
@@ -212,7 +214,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
 
         AtomicInteger inputOffset = new AtomicInteger();
-        recipe.getRecipeComponentTotals()
+        recipe.getComponentTotals()
                 .entrySet()
                 .stream()
                 .filter(comp -> comp.getValue() > 0)
@@ -222,7 +224,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int required = comp.getValue();
                     int finalInputOffset = inputOffset.get();
 
-                    IRecipeBlockComponent bs = recipe.getRecipeBlockComponent(component).get();
+                    IRecipeBlockComponent bs = recipe.getComponents().getBlock(component).get();
                     if (bs instanceof BlockComponent) {
                         BlockComponent bsc = (BlockComponent) bs;
                         Item bi = bsc.getBlock().asItem();
@@ -484,7 +486,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             BlockPos zeroedPos = filledPos.below(layerY);
             Optional<String> componentForPosition = l.getComponentForPosition(zeroedPos);
             componentForPosition
-                    .flatMap(recipe::getRecipeBlockComponent)
+                    .flatMap(recipe.getComponents()::getBlock)
                     .ifPresent(comp -> renderComponent(mx, buffers, comp, filledPos));
 
             mx.popPose();

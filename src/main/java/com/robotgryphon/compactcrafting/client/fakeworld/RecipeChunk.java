@@ -39,7 +39,7 @@ public class RecipeChunk extends EmptyChunk {
             Optional<String> componentForPosition = rLayer.getComponentForPosition(pos.below(y));
 
             BlockState posState = componentForPosition
-                    .flatMap(recipe::getRecipeBlockComponent)
+                    .flatMap(recipe.getComponents()::getBlock)
                     .map(IRecipeBlockComponent::getRenderState)
                     .orElse(Blocks.VOID_AIR.defaultBlockState());
 

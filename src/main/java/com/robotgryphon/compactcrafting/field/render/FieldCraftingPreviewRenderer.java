@@ -72,7 +72,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
                         BlockPos zeroedPos = filledPos.below(finalY);
                         l.getComponentForPosition(zeroedPos)
-                                .flatMap(recipe::getRecipeBlockComponent)
+                                .flatMap(recipe.getComponents()::getBlock)
                                 .ifPresent(comp -> {
                                     // TODO - Render switching
                                     BlockState state1 = comp.getRenderState();

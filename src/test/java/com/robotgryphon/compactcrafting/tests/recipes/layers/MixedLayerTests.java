@@ -48,7 +48,7 @@ public class MixedLayerTests {
         });
 
         // Now check if the component was remapped
-        Set<String> components = recipe.getComponentKeys();
+        Set<String> components = recipe.getComponents().getAllComponents().keySet();
         Assertions.assertTrue(components.contains("-"));
     }
 }

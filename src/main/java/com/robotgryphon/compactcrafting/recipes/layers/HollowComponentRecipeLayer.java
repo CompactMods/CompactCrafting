@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
@@ -54,7 +55,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     @Override
-    public boolean matches(IRecipeLayerBlocks blocks) {
+    public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
         Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
 
         // Hollow layers only match a single component type

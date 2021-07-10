@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.api.layers;
 
+import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;
@@ -20,7 +21,7 @@ public interface IRecipeLayer {
      */
     Optional<String> getComponentForPosition(BlockPos pos);
 
-    boolean matches(IRecipeLayerBlocks blocks);
+    boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks);
 
     RecipeLayerType<?> getType();
 }
