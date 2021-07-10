@@ -13,7 +13,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
         implements IRecipeSerializer<MiniaturizationRecipe> {
@@ -21,14 +20,17 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
     @Override
     public MiniaturizationRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
         CompactCrafting.LOGGER.debug("Beginning deserialization of recipe: {}", recipeId.toString());
-        Optional<MiniaturizationRecipe> p = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
-                .resultOrPartial(err -> {
-                    CompactCrafting.LOGGER.error("Error loading recipe: " + err);
-                });
+        DataResult<MiniaturizationRecipe> parseResult = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json);
 
-        MiniaturizationRecipe r = p.orElse(null);
-        if (r != null) r.setId(recipeId);
-        return r;
+        if(parseResult.error().isPresent()) {
+            DataResult.PartialResult<MiniaturizationRecipe> pr = parseResult.error().get();
+            CompactCrafting.RECIPE_LOGGER.error("Error loading recipe: " + pr.message());
+            return null;
+        }
+
+        return parseResult.result()
+                .map(r -> { r.setId(recipeId); return r; })
+                .orElse(null);
     }
 
     @Nullable

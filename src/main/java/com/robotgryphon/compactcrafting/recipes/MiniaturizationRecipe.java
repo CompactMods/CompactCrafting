@@ -86,8 +86,6 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     void applyComponents(Map<String, IRecipeComponent> compMap) {
-        this.cachedComponentTotals = new HashMap<>();
-
         components.clear();
         for (Map.Entry<String, IRecipeComponent> comp : compMap.entrySet()) {
             // Map in block components
@@ -302,6 +300,9 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public boolean fitsInDimensions(AxisAlignedBB bounds) {
+        if(this.dimensions == null || bounds == null)
+            return false;
+
         return BlockSpaceUtil.boundsFitsInside(this.dimensions, bounds);
     }
 

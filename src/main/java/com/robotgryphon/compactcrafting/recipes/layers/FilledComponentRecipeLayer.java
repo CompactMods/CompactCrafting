@@ -51,6 +51,9 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     public int getNumberFilledPositions() {
+        if(recipeDimensions == null)
+            return 0;
+
         return (int) Math.ceil(recipeDimensions.getXsize() * recipeDimensions.getZsize());
     }
 

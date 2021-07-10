@@ -26,7 +26,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     private MiniaturizationRecipe recipe;
 
     public FieldCraftingPreviewTile() {
-        super(Registration.FIELD_PROXY_TILE.get());
+        super(Registration.FIELD_CRAFTING_PREVIEW_TILE.get());
     }
 
     public int getProgress() {

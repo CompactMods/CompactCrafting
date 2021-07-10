@@ -51,6 +51,9 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     public int getNumberFilledPositions() {
+        if(filledPositions == null)
+            return 0;
+
         return filledPositions.size();
     }
 
