@@ -3,7 +3,6 @@ package com.robotgryphon.compactcrafting.field.capability;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.HashMap;
@@ -14,15 +13,28 @@ import java.util.stream.Stream;
 
 public class ActiveWorldFields implements IActiveWorldFields {
 
+    private World level;
+
     /**
      * Holds a set of miniaturization fields that are active, referenced by their center point.
      */
-    private HashMap<BlockPos, IMiniaturizationField> fields;
-    private HashMap<BlockPos, LazyOptional<IMiniaturizationField>> laziness;
+    private final HashMap<BlockPos, IMiniaturizationField> fields;
+    private final HashMap<BlockPos, LazyOptional<IMiniaturizationField>> laziness;
 
     public ActiveWorldFields() {
         this.fields = new HashMap<>();
         this.laziness = new HashMap<>();
+    }
+
+    public ActiveWorldFields(World level) {
+        this();
+        this.level = level;
+    }
+
+
+    @Override
+    public void setLevel(World level) {
+        this.level = level;
     }
 
     @Override
@@ -30,16 +42,18 @@ public class ActiveWorldFields implements IActiveWorldFields {
         return fields.values().stream();
     }
 
-    public void tickFields(World level) {
+    public void tickFields() {
         Set<IMiniaturizationField> loaded = fields.values().stream()
                 .filter(IMiniaturizationField::isLoaded)
                 .collect(Collectors.toSet());
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
-        loaded.forEach(f -> f.tick(level));
+        loaded.forEach(IMiniaturizationField::tick);
     }
 
     public void registerField(IMiniaturizationField field) {
+        field.setLevel(level);
+
         BlockPos center = field.getCenter();
         fields.put(center, field);
 

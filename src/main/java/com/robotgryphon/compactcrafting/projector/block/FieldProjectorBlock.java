@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.projector.block;
 
 import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
@@ -213,9 +214,7 @@ public class FieldProjectorBlock extends Block {
 
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                     .ifPresent(fields -> {
-                        fields.get(fieldCenter).ifPresent(field -> {
-                            field.checkLoaded(level);
-                        });
+                        fields.get(fieldCenter).ifPresent(IMiniaturizationField::checkLoaded);
                     });
 
             // Send activation packet to clients

@@ -7,9 +7,12 @@ import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -18,14 +21,10 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorld;
-import net.minecraft.world.IWorldReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,6 +37,10 @@ public class MiniaturizationField implements IMiniaturizationField {
     private MiniaturizationRecipe currentRecipe = null;
     private EnumCraftingState craftingState;
     private long rescanTime;
+
+    private World level;
+
+    private final Set<BlockPos> proxies = new HashSet<>();
 
     public MiniaturizationField() {
     }
@@ -71,6 +74,11 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
+    public void setLevel(World level) {
+        this.level = level;
+    }
+
+    @Override
     public Stream<BlockPos> getProjectorPositions() {
         return this.size.getProjectorLocations(center);
     }
@@ -79,26 +87,26 @@ public class MiniaturizationField implements IMiniaturizationField {
         return this.size.getBoundsAtPosition(center);
     }
 
-    public Stream<BlockPos> getFilledBlocks(IWorldReader level) {
+    public Stream<BlockPos> getFilledBlocks() {
         return BlockPos.betweenClosedStream(getBounds().contract(1, 1, 1))
                 .filter(p -> !level.isEmptyBlock(p))
                 .map(BlockPos::immutable);
     }
 
-    public AxisAlignedBB getFilledBounds(IWorldReader level) {
-        BlockPos[] filled = getFilledBlocks(level).toArray(BlockPos[]::new);
+    public AxisAlignedBB getFilledBounds() {
+        BlockPos[] filled = getFilledBlocks().toArray(BlockPos[]::new);
         return BlockSpaceUtil.getBoundsForBlocks(filled);
     }
 
-    public void clearBlocks(IWorld world) {
+    public void clearBlocks() {
         // Remove blocks from the world
-        getFilledBlocks(world)
+        getFilledBlocks()
                 .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
                 .forEach(blockPos -> {
-                    world.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
+                    level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
-                    if (world instanceof ServerWorld) {
-                        ((ServerWorld) world).sendParticles(ParticleTypes.LARGE_SMOKE,
+                    if (level instanceof ServerWorld) {
+                        ((ServerWorld) level).sendParticles(ParticleTypes.LARGE_SMOKE,
                                 blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
                                 1, 0d, 0.05D, 0D, 0.25d);
                     }
@@ -112,6 +120,20 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public void clearRecipe() {
         this.currentRecipe = null;
+
+        updateProxies();
+    }
+
+    private void updateProxies() {
+        if (!proxies.isEmpty()) {
+            proxies.forEach(pos -> {
+                BlockState stateAtProxyPos = level.getBlockState(pos);
+                if (stateAtProxyPos.getBlock() instanceof FieldProxyBlock && stateAtProxyPos.hasTileEntity()) {
+                    BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
+                    tile.recipeChanged(this, this.currentRecipe);
+                }
+            });
+        }
     }
 
     @Override
@@ -126,19 +148,22 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void tick(World level) {
+    public void tick() {
+        if(level == null)
+            return;
+
         // Set in a block update handler to mark that the field has changed
         if(rescanTime > 0 && level.getGameTime() >= rescanTime) {
-            doRecipeScan(level);
+            doRecipeScan();
             this.rescanTime = 0;
             return;
         }
 
         if(getProjectorPositions().allMatch(level::isLoaded))
-            tickCrafting(level);
+            tickCrafting();
     }
 
-    public void tickCrafting(World level) {
+    public void tickCrafting() {
         AxisAlignedBB fieldBounds = getBounds();
 
         // Get out, client worlds
@@ -159,7 +184,7 @@ public class MiniaturizationField implements IMiniaturizationField {
                     this.craftingState = EnumCraftingState.CRAFTING;
 
                     // We know the "recipe" in the field is an exact match already, so wipe the field
-                    clearBlocks(level);
+                    clearBlocks();
 
                     CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
@@ -182,14 +207,14 @@ public class MiniaturizationField implements IMiniaturizationField {
     /**
      * Scans the field and attempts to match a recipe that's placed in it.
      */
-    public void doRecipeScan(World level) {
+    public void doRecipeScan() {
         if (level == null)
             return;
 
         if(ServerConfig.FIELD_BLOCK_CHANGES.get())
             CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
-        Stream<BlockPos> filledBlocks = getFilledBlocks(level);
+        Stream<BlockPos> filledBlocks = getFilledBlocks();
 
         // If no positions filled, exit early
         if (filledBlocks.count() == 0) {
@@ -210,7 +235,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
-                .filter(recipe -> recipe.fitsInDimensions(getFilledBounds(level)))
+                .filter(recipe -> recipe.fitsInDimensions(getFilledBounds()))
                 .collect(Collectors.toSet());
 
         /*
@@ -236,6 +261,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         this.currentRecipe = matchedRecipe;
+        updateProxies();
     }
 
     @Override
@@ -255,7 +281,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         return loaded;
     }
 
-    public void checkLoaded(World level) {
+    public void checkLoaded() {
         CompactCrafting.LOGGER.trace("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
@@ -267,11 +293,26 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void markFieldChanged(World w) {
+    public void markFieldChanged() {
         // clear the recipe immediately so people can't dupe items or juke the projectors
         this.clearRecipe();
 
         // set a distant rescan duration to make the field revalidate itself after a second or two
-        this.rescanTime = w.getGameTime() + 30;
+        this.rescanTime = level.getGameTime() + 30;
+    }
+
+    @Override
+    public Set<BlockPos> getProxies() {
+        return proxies;
+    }
+
+    @Override
+    public void registerProxyAt(BlockPos position) {
+        proxies.add(position);
+    }
+
+    @Override
+    public void unregisterProxyAt(BlockPos position) {
+        proxies.remove(position);
     }
 }

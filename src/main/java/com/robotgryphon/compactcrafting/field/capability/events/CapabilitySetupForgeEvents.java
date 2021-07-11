@@ -24,9 +24,9 @@ public class CapabilitySetupForgeEvents {
 
     @SubscribeEvent
     public static void onCapWorldAttach(final AttachCapabilitiesEvent<World> event) {
-        World w = event.getObject();
+        World level = event.getObject();
 
-        ActiveWorldFields inst = new ActiveWorldFields();
+        ActiveWorldFields inst = new ActiveWorldFields(level);
 
         LazyOptional<ActiveWorldFields> opt = LazyOptional.of(() -> inst);
         final Capability<IActiveWorldFields> capInstance = CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS;

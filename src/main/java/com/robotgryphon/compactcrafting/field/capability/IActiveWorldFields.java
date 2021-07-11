@@ -9,9 +9,11 @@ import java.util.stream.Stream;
 
 public interface IActiveWorldFields {
 
+    void setLevel(World level);
+
     Stream<IMiniaturizationField> getFields();
 
-    void tickFields(World level);
+    void tickFields();
 
     void registerField(IMiniaturizationField field);
 

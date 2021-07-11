@@ -19,12 +19,12 @@ public class WorldEventHandler {
         for(ServerWorld level : evt.getServer().getAllLevels()) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                     .resolve()
-                    .map(IActiveWorldFields::getFields)
-                    .ifPresent(fieldStream -> {
-                        fieldStream.forEach(f -> {
-                            f.checkLoaded(level);
-                            if(f.isLoaded())
-                                f.markFieldChanged(level);
+                    .ifPresent(fields -> {
+                        fields.setLevel(level);
+                        fields.getFields().forEach(f -> {
+                            f.setLevel(level);
+                            f.checkLoaded();
+                            if(f.isLoaded()) f.markFieldChanged();
                         });
                     });
         }
@@ -35,6 +35,6 @@ public class WorldEventHandler {
         if(evt.phase != TickEvent.Phase.START) return;
 
         evt.world.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                .ifPresent(f -> f.tickFields(evt.world));
+                .ifPresent(IActiveWorldFields::tickFields);
     }
 }

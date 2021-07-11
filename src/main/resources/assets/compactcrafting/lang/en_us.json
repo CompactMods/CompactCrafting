@@ -2,7 +2,8 @@
   "itemGroup.compactcrafting": "Compact Crafting",
 
   "block.compactcrafting.field_projector": "Field Projector",
-  "block.compactcrafting.proxy": "Field Proxy",
+  "block.compactcrafting.rescan_proxy": "Field Proxy (Rescan)",
+  "block.compactcrafting.match_proxy": "Field Proxy (Match)",
 
   "compactcrafting.jei.miniaturization.title": "Miniaturization Crafting",
   "compactcrafting.jei.miniaturization.component": "Material Component: Placed in world.",

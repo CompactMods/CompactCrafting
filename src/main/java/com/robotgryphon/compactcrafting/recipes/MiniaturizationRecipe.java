@@ -194,7 +194,7 @@ public class MiniaturizationRecipe extends RecipeBase {
         }
 
         // We know that the recipe will at least fit inside the current projection field
-        AxisAlignedBB filledBounds = field.getFilledBounds(world);
+        AxisAlignedBB filledBounds = field.getFilledBounds();
 
         Rotation[] validRotations = new Rotation[]{
                 Rotation.NONE,

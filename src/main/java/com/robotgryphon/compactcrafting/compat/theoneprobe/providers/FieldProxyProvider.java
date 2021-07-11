@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.compat.theoneprobe.providers;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
-import com.robotgryphon.compactcrafting.proxies.data.FieldProxyTile;
+import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
 import mcjty.theoneprobe.api.IProbeHitData;
 import mcjty.theoneprobe.api.IProbeInfo;
 import mcjty.theoneprobe.api.IProbeInfoProvider;
@@ -25,7 +25,7 @@ public class FieldProxyProvider implements IProbeInfoProvider {
         if (!(state.getBlock() instanceof FieldProxyBlock))
             return;
 
-        FieldProxyTile tile = (FieldProxyTile) level.getBlockEntity(hitData.getPos());
+        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(hitData.getPos());
         if(tile == null)
             return;
 

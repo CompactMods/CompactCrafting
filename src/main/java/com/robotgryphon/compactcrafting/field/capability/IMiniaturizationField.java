@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public interface IMiniaturizationField {
@@ -34,15 +35,21 @@ public interface IMiniaturizationField {
 
     EnumCraftingState getCraftingState();
 
-    void doRecipeScan(World level);
+    void doRecipeScan();
 
     void setCraftingState(EnumCraftingState state);
 
-    default void tick(World level) {}
+    default void tick() {}
 
     boolean isLoaded();
 
-    default void checkLoaded(World world) {}
+    default void checkLoaded() {}
 
-    void markFieldChanged(World world);
+    void markFieldChanged();
+
+    void setLevel(World level);
+
+    Set<BlockPos> getProxies();
+    void registerProxyAt(BlockPos position);
+    void unregisterProxyAt(BlockPos position);
 }

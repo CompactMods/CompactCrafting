@@ -1,13 +1,20 @@
 package com.robotgryphon.compactcrafting.proxies.block;
 
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import com.robotgryphon.compactcrafting.proxies.data.FieldProxyTile;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import com.robotgryphon.compactcrafting.proxies.ProxyMode;
+import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
+import com.robotgryphon.compactcrafting.proxies.data.MatchFieldProxyEntity;
+import com.robotgryphon.compactcrafting.proxies.data.RescanFieldProxyEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
+import net.minecraft.state.IntegerProperty;
+import net.minecraft.state.StateContainer;
+import net.minecraft.state.properties.BlockStateProperties;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
@@ -17,8 +24,18 @@ import net.minecraft.world.World;
 import javax.annotation.Nullable;
 
 public class FieldProxyBlock extends Block {
-    public FieldProxyBlock(Properties props) {
+    private final ProxyMode mode;
+
+    public static IntegerProperty SIGNAL = BlockStateProperties.POWER;
+
+    public FieldProxyBlock(ProxyMode mode, Properties props) {
         super(props);
+        this.mode = mode;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        builder.add(SIGNAL);
     }
 
     @Override
@@ -29,14 +46,22 @@ public class FieldProxyBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new FieldProxyTile();
+        switch(mode) {
+            case RESCAN:
+                return new RescanFieldProxyEntity();
+
+            case MATCH:
+                return new MatchFieldProxyEntity();
+        }
+
+        return null;
     }
 
     @Override
     public void setPlacedBy(World level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         super.setPlacedBy(level, placedAt, state, entity, stack);
 
-        FieldProxyTile tile = (FieldProxyTile) level.getBlockEntity(placedAt);
+        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(placedAt);
 
         if(stack.hasTag()) {
             CompoundNBT nbt = stack.getTag();
@@ -59,17 +84,51 @@ public class FieldProxyBlock extends Block {
     }
 
     @Override
+    public boolean isSignalSource(BlockState state) {
+        switch(mode) {
+            case MATCH:
+            case PROGRESS:
+                return true;
+
+            case RESCAN:
+                return false;
+        }
+
+        return false;
+    }
+
+    @Override
+    public int getSignal(BlockState state, IBlockReader level, BlockPos pos, Direction direction) {
+        switch(mode) {
+            case RESCAN:
+                return 0;
+
+            case MATCH:
+            case PROGRESS:
+                return state.getValue(SIGNAL);
+        }
+
+        return 0;
+    }
+
+    @Override
     public void neighborChanged(BlockState thisState, World level, BlockPos thisPos, Block changedBlock, BlockPos changedPos, boolean _b) {
         if(!level.isClientSide) {
-            FieldProxyTile tile = (FieldProxyTile) level.getBlockEntity(thisPos);
+            BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(thisPos);
 
-            if(level.hasNeighborSignal(thisPos)) {
-                // call recipe scan
+            if (mode == ProxyMode.RESCAN) {
+                doRescanRedstone(level, thisPos, tile);
+            }
+        }
+    }
 
-                if(tile != null) {
-                    tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
-                            .ifPresent(field -> field.markFieldChanged(level));
-                }
+    private void doRescanRedstone(World level, BlockPos thisPos, BaseFieldProxyEntity tile) {
+        if (level.hasNeighborSignal(thisPos)) {
+            // call recipe scan
+
+            if (tile != null) {
+                tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+                        .ifPresent(IMiniaturizationField::markFieldChanged);
             }
         }
     }

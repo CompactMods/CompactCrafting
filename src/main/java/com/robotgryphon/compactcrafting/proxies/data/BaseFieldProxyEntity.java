@@ -1,13 +1,14 @@
 package com.robotgryphon.compactcrafting.proxies.data;
 
-import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
@@ -16,13 +17,13 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class FieldProxyTile extends TileEntity {
+public abstract class BaseFieldProxyEntity extends TileEntity {
 
     private BlockPos fieldCenter;
     private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
-    public FieldProxyTile() {
-        super(Registration.FIELD_PROXY_TILE.get());
+    public BaseFieldProxyEntity(TileEntityType<? extends BaseFieldProxyEntity> type) {
+        super(type);
     }
 
     @Override
@@ -32,8 +33,17 @@ public class FieldProxyTile extends TileEntity {
         if(fieldCenter != null && level != null) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                     .resolve()
-                    .ifPresent(fields -> this.field = fields.getLazy(fieldCenter));
+                    .ifPresent(fields -> setFieldReference(fields.getLazy(fieldCenter)));
         }
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+
+        field.ifPresent(field -> {
+            field.unregisterProxyAt(this.worldPosition);
+        });
     }
 
     public void updateField(BlockPos fieldCenter) {
@@ -49,15 +59,24 @@ public class FieldProxyTile extends TileEntity {
         level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                 .resolve()
                 .map(fields -> fields.getLazy(fieldCenter))
-                .ifPresent(field -> {
-                    this.field = field;
+                .ifPresent(f -> {
                     this.fieldCenter = fieldCenter;
 
-                    field.addListener(lof -> {
-                        this.field = LazyOptional.empty();
-                        this.fieldCenter = null;
-                    });
+                    setFieldReference(f);
                 });
+    }
+
+    private void setFieldReference(LazyOptional<IMiniaturizationField> f) {
+        this.field = f;
+
+        // if field actually present, register this proxy
+        f.ifPresent(f2 -> f2.registerProxyAt(worldPosition));
+
+        // field invalidated somewhere
+        f.addListener(lof -> {
+            this.field = LazyOptional.empty();
+            this.fieldCenter = null;
+        });
     }
 
     @Nonnull
@@ -89,4 +108,6 @@ public class FieldProxyTile extends TileEntity {
             this.fieldCenter = NBTUtil.readBlockPos(tag.getCompound("center"));
         }
     }
+
+    public void recipeChanged(IMiniaturizationField field, MiniaturizationRecipe currentRecipe) {}
 }

@@ -2,6 +2,7 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -36,7 +37,7 @@ public abstract class FieldHelper {
                 .ifPresent(fields -> {
                     fields.getFields()
                             .filter(field -> field.getBounds().contains(centerBlockChanged))
-                            .forEach(f -> f.markFieldChanged(level));
+                            .forEach(IMiniaturizationField::markFieldChanged);
                 });
         }
     }
