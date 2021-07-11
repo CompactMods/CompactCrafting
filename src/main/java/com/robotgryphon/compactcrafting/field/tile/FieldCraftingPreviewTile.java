@@ -20,6 +20,9 @@ import net.minecraftforge.common.util.LazyOptional;
 import javax.annotation.Nonnull;
 
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
+
+    // TODO - Treat this like a field listener (read: proxies) and move the progress to the field
+
     @Nonnull
     private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
     private int craftingProgress = 0;

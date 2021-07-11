@@ -222,9 +222,7 @@ public class MiniaturizationRecipe extends RecipeBase {
             Optional<IRecipeLayer> layer = getLayer(offset);
 
             // If we have no layer definition do lighter processing
-            // TODO: Consider changing the layers to a map so we can make air layers null/nonexistent
             if (!layer.isPresent()) {
-                // We're being safe here - if there's no layer definition we assume the layer is all-air
                 return false;
             }
 

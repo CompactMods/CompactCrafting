@@ -191,7 +191,6 @@ public class MiniaturizationField implements IMiniaturizationField {
                     BlockPos centerField = getCenter();
                     level.setBlockAndUpdate(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().defaultBlockState());
 
-                    // TODO - Expose this as a LazyOptional somehow
                     FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) level.getBlockEntity(centerField);
                     if (tile != null)
                         tile.setField(this);
