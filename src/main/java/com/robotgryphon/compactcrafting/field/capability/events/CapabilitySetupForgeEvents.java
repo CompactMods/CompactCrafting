@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.field.capability.events;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.field.capability.ActiveWorldFields;
+import com.robotgryphon.compactcrafting.field.ActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
 import net.minecraft.nbt.ListNBT;

@@ -233,9 +233,7 @@ jar {
 
 task apiJar(type: Jar) {
     // Sources included because of MinecraftForge/ForgeGradle#369
-    from(sourceSets.main.allJava)
-    from(sourceSets.main.output)
-    include 'com/robotgryphon/compactcrafting/api/**'
+    from(sourceSets.api.output)
     archiveClassifier = 'api'
     destinationDirectory = file("$rootDir/build-out")
 }

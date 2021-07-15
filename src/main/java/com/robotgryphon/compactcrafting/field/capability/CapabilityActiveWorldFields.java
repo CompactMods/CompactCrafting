@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
 import com.robotgryphon.compactcrafting.data.NbtListCollector;
+import com.robotgryphon.compactcrafting.field.ActiveWorldFields;
 import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;

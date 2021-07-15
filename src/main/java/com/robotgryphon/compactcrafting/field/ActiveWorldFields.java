@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.field.capability;
+package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
