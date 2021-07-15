@@ -1,23 +1,19 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
-import com.robotgryphon.compactcrafting.data.NbtListCollector;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 
 public class CapabilityMiniaturizationField {
     @CapabilityInject(IMiniaturizationField.class)
@@ -40,14 +36,14 @@ public class CapabilityMiniaturizationField {
                             fieldInfo.putString("recipe", rec.getId().toString());
                         });
 
-                        Set<BlockPos> proxies = instance.getProxies();
-                        if(!proxies.isEmpty()) {
-                            ListNBT proxyList = proxies.stream()
-                                    .map(NBTUtil::writeBlockPos)
-                                    .collect(NbtListCollector.toNbtList());
-
-                            fieldInfo.put("proxies", proxyList);
-                        }
+//                        Set<BlockPos> proxies = instance.getProxies();
+//                        if(!proxies.isEmpty()) {
+//                            ListNBT proxyList = proxies.stream()
+//                                    .map(NBTUtil::writeBlockPos)
+//                                    .collect(NbtListCollector.toNbtList());
+//
+//                            fieldInfo.put("proxies", proxyList);
+//                        }
 
                         return fieldInfo;
                     }
@@ -65,13 +61,13 @@ public class CapabilityMiniaturizationField {
                                 instance.setCraftingState(state);
                             }
 
-                            if(fieldInfo.contains("proxies")) {
-                                ListNBT proxies = fieldInfo.getList("proxies", Constants.NBT.TAG_COMPOUND);
-                                proxies.forEach(t -> {
-                                    BlockPos proxLocation = NBTUtil.readBlockPos((CompoundNBT) t);
-                                    instance.registerProxyAt(proxLocation);
-                                });
-                            }
+//                            if(fieldInfo.contains("proxies")) {
+//                                ListNBT proxies = fieldInfo.getList("proxies", Constants.NBT.TAG_COMPOUND);
+//                                proxies.forEach(t -> {
+//                                    BlockPos proxLocation = NBTUtil.readBlockPos((CompoundNBT) t);
+//                                    instance.registerListener(proxLocation);
+//                                });
+//                            }
 
                             instance.setCenter(center);
                             instance.setSize(size);

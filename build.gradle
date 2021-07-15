@@ -45,15 +45,18 @@ sourceSets {
         }
 
         resources {
+            srcDir "src/main/resources"
             srcDir 'src/generated/resources'
         }
 
-        compileClasspath += sourceSets.api.output
+        compileClasspath += compileClasspath += sourceSets.api.output
     }
 
     test {
         compileClasspath += sourceSets.api.output
         compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.api.output
+        runtimeClasspath += sourceSets.main.output
     }
 }
 
@@ -84,6 +87,7 @@ minecraft {
             mods {
                 compactcrafting {
                     source sourceSets.main
+                    source sourceSets.api
                 }
             }
         }
@@ -98,9 +102,8 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                compactcrafting {
-                    source sourceSets.main
-                }
+                source sourceSets.main
+                source sourceSets.api
             }
         }
 
@@ -119,9 +122,8 @@ minecraft {
             args "--existing", file("src/main/resources")
 
             mods {
-                compactcrafting {
-                    source sourceSets.main
-                }
+                source sourceSets.main
+                source sourceSets.api
             }
         }
 
@@ -139,9 +141,8 @@ minecraft {
             ) // Forge will ignore all test sources unless we explicitly tell it to include them as mod sources
             environment 'target', 'fmltestserver' // This is a custom service used to launch with ModLauncher's transforming class loader
             mods {
-                examplemod { // The mod that is being tested - Replace this with your mod ID!
-                    sources sourceSets.main
-                }
+                source sourceSets.main
+                source sourceSets.api
             }
         }
     }
@@ -217,6 +218,9 @@ dependencies {
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
+    from sourceSets.api.output
+    from sourceSets.main.output
+
     destinationDir = file("$rootDir/build-out")
     finalizedBy('reobfJar')
     manifest {

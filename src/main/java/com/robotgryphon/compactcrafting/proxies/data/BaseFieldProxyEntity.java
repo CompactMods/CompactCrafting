@@ -3,7 +3,6 @@ package com.robotgryphon.compactcrafting.proxies.data;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -35,7 +34,7 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
         if(fieldCenter != null && level != null) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                     .resolve()
-                    .ifPresent(fields -> setFieldReference(fields.getLazy(fieldCenter)));
+                    .ifPresent(fields -> fieldChanged(fields.getLazy(fieldCenter)));
         }
     }
 
@@ -43,9 +42,9 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
     public void setRemoved() {
         super.setRemoved();
 
-        field.ifPresent(field -> {
-            field.unregisterProxyAt(this.worldPosition);
-        });
+//        field.ifPresent(field -> {
+//            field.unregisterProxyAt(this.worldPosition);
+//        });
     }
 
     public void updateField(BlockPos fieldCenter) {
@@ -64,15 +63,12 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
                 .ifPresent(f -> {
                     this.fieldCenter = fieldCenter;
 
-                    setFieldReference(f);
+                    fieldChanged(f);
                 });
     }
 
-    private void setFieldReference(LazyOptional<IMiniaturizationField> f) {
+    protected void fieldChanged(LazyOptional<IMiniaturizationField> f) {
         this.field = f;
-
-        // if field actually present, register this proxy
-        f.ifPresent(f2 -> f2.registerProxyAt(worldPosition));
 
         // field invalidated somewhere
         f.addListener(lof -> {
@@ -110,6 +106,4 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
             this.fieldCenter = NBTUtil.readBlockPos(tag.getCompound("center"));
         }
     }
-
-    public void recipeChanged(IMiniaturizationField field, MiniaturizationRecipe currentRecipe) {}
 }

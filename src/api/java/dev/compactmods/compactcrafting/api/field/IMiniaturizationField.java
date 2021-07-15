@@ -5,9 +5,9 @@ import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public interface IMiniaturizationField {
@@ -48,7 +48,5 @@ public interface IMiniaturizationField {
 
     void setLevel(World level);
 
-    Set<BlockPos> getProxies();
-    void registerProxyAt(BlockPos position);
-    void unregisterProxyAt(BlockPos position);
+    void registerListener(LazyOptional<IFieldListener> listener);
 }

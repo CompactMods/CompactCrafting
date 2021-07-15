@@ -5,16 +5,14 @@ import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
-import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
-import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IFieldListener;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -25,6 +23,7 @@ import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.LazyOptional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,7 +41,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private World level;
 
-    private final Set<BlockPos> proxies = new HashSet<>();
+    private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
 
     public MiniaturizationField() {
     }
@@ -123,27 +122,22 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void clearRecipe() {
         this.currentRecipe = null;
 
-        updateProxies();
+        updateListeners();
     }
 
-    private void updateProxies() {
-        if (!proxies.isEmpty()) {
-            proxies.forEach(pos -> {
-                BlockState stateAtProxyPos = level.getBlockState(pos);
-                if (stateAtProxyPos.getBlock() instanceof FieldProxyBlock && stateAtProxyPos.hasTileEntity()) {
-                    BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
-                    if(tile != null)
-                        tile.recipeChanged(this, this.currentRecipe);
-                }
+    private void updateListeners() {
+        listeners.forEach(l -> {
+            l.ifPresent(listener -> {
+                listener.onRecipeChanged(this, this.currentRecipe);
             });
-        }
+        });
     }
 
     @Override
     public void completeCraft() {
         this.currentRecipe = null;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
-        updateProxies();
+        updateListeners();
     }
 
     @Override
@@ -153,17 +147,17 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void tick() {
-        if(level == null)
+        if (level == null)
             return;
 
         // Set in a block update handler to mark that the field has changed
-        if(rescanTime > 0 && level.getGameTime() >= rescanTime) {
+        if (rescanTime > 0 && level.getGameTime() >= rescanTime) {
             doRecipeScan();
             this.rescanTime = 0;
             return;
         }
 
-        if(getProjectorPositions().allMatch(level::isLoaded))
+        if (getProjectorPositions().allMatch(level::isLoaded))
             tickCrafting();
     }
 
@@ -174,7 +168,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (level == null || level.isClientSide())
             return;
 
-        if(this.currentRecipe == null)
+        if (this.currentRecipe == null)
             return;
 
         // We grow the bounds check here a little to support patterns that are exactly the size of the field
@@ -214,7 +208,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (level == null)
             return;
 
-        if(ServerConfig.FIELD_BLOCK_CHANGES.get())
+        if (ServerConfig.FIELD_BLOCK_CHANGES.get())
             CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
         Stream<BlockPos> filledBlocks = getFilledBlocks();
@@ -264,7 +258,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         this.currentRecipe = matchedRecipe;
-        updateProxies();
+        updateListeners();
     }
 
     @Override
@@ -288,10 +282,12 @@ public class MiniaturizationField implements IMiniaturizationField {
         CompactCrafting.LOGGER.trace("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
-        if(loaded) {
+        if (loaded) {
             getProjectorPositions().forEach(proj -> {
                 FieldProjectorBlock.activateProjector(level, proj, this.size);
             });
+
+            listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
         }
     }
 
@@ -305,17 +301,11 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public Set<BlockPos> getProxies() {
-        return proxies;
-    }
-
-    @Override
-    public void registerProxyAt(BlockPos position) {
-        proxies.add(position);
-    }
-
-    @Override
-    public void unregisterProxyAt(BlockPos position) {
-        proxies.remove(position);
+    public void registerListener(LazyOptional<IFieldListener> listener) {
+        this.listeners.add(listener);
+        listener.addListener(fl -> {
+            CompactCrafting.LOGGER.debug("Removing listener: {}", fl);
+            this.listeners.remove(fl);
+        });
     }
 }
