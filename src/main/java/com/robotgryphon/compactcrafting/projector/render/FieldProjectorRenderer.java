@@ -9,6 +9,7 @@ import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.util.MathUtil;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
@@ -76,7 +77,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         fieldBounds.ifPresent(bounds -> {
             float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(bounds.getCenter()));
 
-            bounds = bounds.deflate(1 - scale);
+            bounds = bounds.deflate((1 - scale) * (bounds.getSize() / 2));
 
             matrixStack.pushPose();
 
@@ -122,22 +123,13 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             double progress = preview.getProgress();
             double requiredTime = recipe != null ? Math.max(1, recipe.getCraftingTime()) : 1;
 
-            double waveDensity = 0.2d;
-            double h = 0.3d;
-            double p = 1 - (progress / requiredTime);
-            double l = 2 * Math.PI / 0.5d;
-            double n = Math.floor(requiredTime / l) + 0.5d;
-
-            // q(progress) = w(x)
-            double q = 0.5 * Math.cos((waveDensity * (l * n * progress)) / requiredTime) + 0.5;
-
-            double scale = p - (h * p) + (h * q);
-
-            return scale;
+            return MathUtil.calculateScale(progress, requiredTime);
         }
 
         return 1;
     }
+
+
 
     private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, long gameTime) {
 
