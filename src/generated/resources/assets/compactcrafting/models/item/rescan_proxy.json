@@ -1,0 +1,22 @@
+{
+  "parent": "compactcrafting:block/rescan_proxy",
+  "display": {
+    "gui": {
+      "rotation": [
+        33.75,
+        45,
+        0
+      ],
+      "translation": [
+        0,
+        1,
+        0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ]
+    }
+  }
+}

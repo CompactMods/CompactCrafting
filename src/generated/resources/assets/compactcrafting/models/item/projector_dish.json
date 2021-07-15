@@ -1,0 +1,17 @@
+{
+  "parent": "compactcrafting:block/field_projector_dish",
+  "display": {
+    "gui": {
+      "rotation": [
+        33.75,
+        45,
+        0
+      ],
+      "translation": [
+        2,
+        -2,
+        0
+      ]
+    }
+  }
+}

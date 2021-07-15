@@ -101,16 +101,17 @@ public class Registration {
     public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
             new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), BASE_ITEM_PROPS.get()));
 
-//    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+    public static final RegistryObject<Item> PROJECTOR_DISH_ITEM = ITEMS.register("projector_dish", () ->
+            new Item(BASE_ITEM_PROPS.get()));
 
-    static {
+    public static final RegistryObject<Item> BASE_ITEM = ITEMS.register("base", () ->
+            new Item(BASE_ITEM_PROPS.get()));
 
-        ITEMS.register("rescan_proxy", () ->
-                new FieldProxyItem(RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
+    public static final RegistryObject<Item> RESCAN_PROXY_ITEM = ITEMS.register("rescan_proxy", () ->
+            new FieldProxyItem(RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
 
-        ITEMS.register("match_proxy", () ->
+    public static final RegistryObject<Item> MATCH_PROXY_ITEM = ITEMS.register("match_proxy", () ->
                 new FieldProxyItem(MATCH_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
-    }
 
     // endregion ======================================================================================================
 

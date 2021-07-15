@@ -1,11 +1,11 @@
 package com.robotgryphon.compactcrafting.proxies.block;
 
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.proxies.ProxyMode;
 import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
 import com.robotgryphon.compactcrafting.proxies.data.MatchFieldProxyEntity;
 import com.robotgryphon.compactcrafting.proxies.data.RescanFieldProxyEntity;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.LivingEntity;
@@ -20,6 +20,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
@@ -31,9 +34,25 @@ public class FieldProxyBlock extends Block {
 
     public static IntegerProperty SIGNAL = BlockStateProperties.POWER;
 
+    private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
+
+    private static final VoxelShape POLE = VoxelShapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
+
     public FieldProxyBlock(ProxyMode mode, Properties props) {
         super(props);
         this.mode = mode;
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public VoxelShape getShape(BlockState state, IBlockReader levelReader, BlockPos pos, ISelectionContext ctx) {
+        return VoxelShapes.or(BASE, POLE);
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public VoxelShape getOcclusionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
+        return VoxelShapes.empty();
     }
 
     @Override

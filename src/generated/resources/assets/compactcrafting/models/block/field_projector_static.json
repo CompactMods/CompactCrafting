@@ -2,6 +2,7 @@
   "textures": {
     "particle": "compactcrafting:block/projector_base_bottom",
     "base_top": "compactcrafting:block/projector_base_top",
+    "base_top_cutout": "compactcrafting:block/projector_base_top_cutout",
     "base_bottom": "compactcrafting:block/projector_base_bottom",
     "base_side": "compactcrafting:block/projector_base_side",
     "pole": "compactcrafting:block/projector_pole",
@@ -40,6 +41,74 @@
         },
         "east": {
           "texture": "#base_side"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        6,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "up"
+        },
+        "up": {
+          "texture": "#base_top_cutout",
+          "tintindex": 1
+        },
+        "north": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "south"
+        },
+        "south": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "west"
         }
       }
     },

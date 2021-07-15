@@ -1,0 +1,173 @@
+{
+  "textures": {
+    "base_top": "compactcrafting:block/projector_base_top",
+    "base_top_cutout": "compactcrafting:block/projector_base_top_cutout",
+    "base_bottom": "compactcrafting:block/projector_base_bottom",
+    "base_side": "compactcrafting:block/projector_base_side",
+    "pole": "compactcrafting:block/projector_pole"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        6,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#base_bottom"
+        },
+        "up": {
+          "texture": "#base_top"
+        },
+        "north": {
+          "texture": "#base_side"
+        },
+        "south": {
+          "texture": "#base_side"
+        },
+        "west": {
+          "texture": "#base_side"
+        },
+        "east": {
+          "texture": "#base_side"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        6,
+        16
+      ],
+      "faces": {
+        "down": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "up"
+        },
+        "up": {
+          "texture": "#base_top_cutout",
+          "tintindex": 1
+        },
+        "north": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "south"
+        },
+        "south": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "north"
+        },
+        "west": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "east"
+        },
+        "east": {
+          "texture": "#base_top_cutout",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ],
+          "cullface": "west"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        6,
+        7
+      ],
+      "to": [
+        9,
+        12,
+        9
+      ],
+      "faces": {
+        "down": {
+          "texture": "minecraft:missingno"
+        },
+        "up": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            0.0,
+            2.0,
+            2.0
+          ]
+        },
+        "north": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "south": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "west": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        },
+        "east": {
+          "texture": "#pole",
+          "uv": [
+            0.0,
+            2.0,
+            2.0,
+            10.0
+          ]
+        }
+      }
+    }
+  ]
+}

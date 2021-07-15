@@ -5,10 +5,10 @@
       "item": "compactcrafting:base"
     },
     {
-      "item": "compactcrafting:projector_dish"
+      "item": "minecraft:redstone"
     }
   ],
   "result": {
-    "item": "compactcrafting:field_projector"
+    "item": "compactcrafting:match_proxy"
   }
 }

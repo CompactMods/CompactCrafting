@@ -93,10 +93,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     private IBakedModel getModel() {
         if (bakedModelCached == null) {
             ModelManager models = Minecraft.getInstance()
-                    .getItemRenderer()
-                    .getItemModelShaper()
+                    .getBlockRenderer()
+                    .getBlockModelShaper()
                     .getModelManager();
-
 
             bakedModelCached = models.getModel(FIELD_DISH_RL);
         }

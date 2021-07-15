@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "compactcrafting:rescan_proxy"
+    ]
+  },
+  "criteria": {
+    "got_crafting_table": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "minecraft:crafting_table"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "compactcrafting:rescan_proxy"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "got_crafting_table",
+      "has_the_recipe"
+    ]
+  ]
+}
