@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting;
 
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;

@@ -1,8 +1,8 @@
 package com.robotgryphon.compactcrafting.recipes.components;
 
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
 
 import java.util.HashMap;
 import java.util.Map;

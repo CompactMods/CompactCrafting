@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.network;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import net.minecraft.util.math.BlockPos;
 
 public class FieldChangedPacket {

@@ -3,14 +3,15 @@ package com.robotgryphon.compactcrafting.recipes;
 import com.google.common.collect.ImmutableList;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
-import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.components.CCMiniRecipeComponents;
 import com.robotgryphon.compactcrafting.recipes.components.EmptyBlockComponent;
@@ -34,7 +35,7 @@ import net.minecraft.world.IWorldReader;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MiniaturizationRecipe extends RecipeBase {
+public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
     /**
      * Only used for recipe dimension calculation from loading phase.
@@ -248,7 +249,9 @@ public class MiniaturizationRecipe extends RecipeBase {
     }
 
     public ItemStack[] getOutputs() {
-        return outputs;
+        return Stream.of(outputs)
+                .map(ItemStack::copy)
+                .toArray(ItemStack[]::new);
     }
 
     public Map<String, Integer> getComponentTotals() {
@@ -341,7 +344,7 @@ public class MiniaturizationRecipe extends RecipeBase {
         }
     }
 
-    public int getTicks() {
+    public int getCraftingTime() {
         return 200;
     }
 

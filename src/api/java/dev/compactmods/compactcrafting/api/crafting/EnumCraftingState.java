@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.crafting;
+package dev.compactmods.compactcrafting.api.crafting;
 
 public enum EnumCraftingState {
     NOT_MATCHED,

@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.network;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientPacketHandler;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;

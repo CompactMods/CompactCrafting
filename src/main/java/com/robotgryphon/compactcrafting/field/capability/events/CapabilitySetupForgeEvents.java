@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.field.capability.events;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.ActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import com.robotgryphon.compactcrafting.field.capability.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;

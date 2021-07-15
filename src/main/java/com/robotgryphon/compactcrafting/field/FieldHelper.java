@@ -2,7 +2,8 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import net.minecraft.util.math.AxisAlignedBB;

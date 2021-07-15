@@ -1,6 +1,8 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;

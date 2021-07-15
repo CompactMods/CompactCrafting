@@ -1,8 +1,9 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
+import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import com.robotgryphon.compactcrafting.data.NbtListCollector;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;

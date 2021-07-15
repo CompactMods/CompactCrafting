@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.field;
+package dev.compactmods.compactcrafting.api.field;
 
 import net.minecraft.util.Direction;
 import net.minecraft.util.IStringSerializable;

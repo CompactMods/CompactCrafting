@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.proxies.data;
 
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
@@ -19,8 +19,10 @@ import javax.annotation.Nullable;
 
 public abstract class BaseFieldProxyEntity extends TileEntity {
 
-    private BlockPos fieldCenter;
-    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
+    @Nullable
+    protected BlockPos fieldCenter;
+
+    protected LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
     public BaseFieldProxyEntity(TileEntityType<? extends BaseFieldProxyEntity> type) {
         super(type);

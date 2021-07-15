@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.compat.theoneprobe.providers;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import mcjty.theoneprobe.api.*;

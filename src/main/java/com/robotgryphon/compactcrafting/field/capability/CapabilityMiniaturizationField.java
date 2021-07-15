@@ -1,6 +1,7 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;

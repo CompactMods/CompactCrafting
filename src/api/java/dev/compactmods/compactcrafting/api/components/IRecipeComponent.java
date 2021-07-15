@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.api.components;
+package dev.compactmods.compactcrafting.api.components;
 
 public interface IRecipeComponent {
     RecipeComponentType<?> getType();

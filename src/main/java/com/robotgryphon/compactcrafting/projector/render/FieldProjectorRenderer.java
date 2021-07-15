@@ -5,11 +5,12 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -117,10 +118,22 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             if (preview == null)
                 return 1;
 
-            double craftProgress = Math.max(0, preview.getProgress());
-            double requiredTime = Math.max(1, preview.getRecipe().getTicks());
+            final IMiniaturizationRecipe recipe = preview.getRecipe();
+            double progress = preview.getProgress();
+            double requiredTime = recipe != null ? Math.max(1, recipe.getCraftingTime()) : 1;
 
-            return Math.min(1, Math.max(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime))));
+            double waveDensity = 0.2d;
+            double h = 0.3d;
+            double p = 1 - (progress / requiredTime);
+            double l = 2 * Math.PI / 0.5d;
+            double n = Math.floor(requiredTime / l) + 0.5d;
+
+            // q(progress) = w(x)
+            double q = 0.5 * Math.cos((waveDensity * (l * n * progress)) / requiredTime) + 0.5;
+
+            double scale = p - (h * p) + (h * q);
+
+            return scale;
         }
 
         return 1;

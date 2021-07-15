@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.proxies.data;
 
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;

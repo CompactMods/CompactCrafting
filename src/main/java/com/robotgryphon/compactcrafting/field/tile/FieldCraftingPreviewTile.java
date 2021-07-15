@@ -1,8 +1,9 @@
 package com.robotgryphon.compactcrafting.field.tile;
 
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
@@ -18,6 +19,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.LazyOptional;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
 
@@ -26,7 +28,9 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     @Nonnull
     private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
     private int craftingProgress = 0;
-    private MiniaturizationRecipe recipe;
+
+    @Nullable
+    private IMiniaturizationRecipe recipe;
 
     public FieldCraftingPreviewTile() {
         super(Registration.FIELD_CRAFTING_PREVIEW_TILE.get());
@@ -36,7 +40,8 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
         return this.craftingProgress;
     }
 
-    public MiniaturizationRecipe getRecipe() {
+    @Nullable
+    public IMiniaturizationRecipe getRecipe() {
         return recipe;
     }
 
@@ -68,7 +73,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
         // TODO - Clean this up, potential for crash
         // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
-        if (this.craftingProgress >= recipe.getTicks()) {
+        if (this.craftingProgress >= recipe.getCraftingTime()) {
             field.ifPresent(IMiniaturizationField::completeCraft);
 
             BlockPos center = this.worldPosition;

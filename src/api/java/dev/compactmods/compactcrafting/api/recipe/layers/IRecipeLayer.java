@@ -1,6 +1,6 @@
-package com.robotgryphon.compactcrafting.api.layers;
+package dev.compactmods.compactcrafting.api.recipe.layers;
 
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;

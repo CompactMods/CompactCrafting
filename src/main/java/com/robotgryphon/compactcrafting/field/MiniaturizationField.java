@@ -3,8 +3,6 @@ package com.robotgryphon.compactcrafting.field;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
@@ -12,6 +10,10 @@ import com.robotgryphon.compactcrafting.proxies.data.BaseFieldProxyEntity;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
@@ -113,7 +115,7 @@ public class MiniaturizationField implements IMiniaturizationField {
                 });
     }
 
-    public Optional<MiniaturizationRecipe> getCurrentRecipe() {
+    public Optional<IMiniaturizationRecipe> getCurrentRecipe() {
         return Optional.ofNullable(this.currentRecipe);
     }
 
@@ -130,7 +132,8 @@ public class MiniaturizationField implements IMiniaturizationField {
                 BlockState stateAtProxyPos = level.getBlockState(pos);
                 if (stateAtProxyPos.getBlock() instanceof FieldProxyBlock && stateAtProxyPos.hasTileEntity()) {
                     BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
-                    tile.recipeChanged(this, this.currentRecipe);
+                    if(tile != null)
+                        tile.recipeChanged(this, this.currentRecipe);
                 }
             });
         }
@@ -140,6 +143,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void completeCraft() {
         this.currentRecipe = null;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
+        updateProxies();
     }
 
     @Override

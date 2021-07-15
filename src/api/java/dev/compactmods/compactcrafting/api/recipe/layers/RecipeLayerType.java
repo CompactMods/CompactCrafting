@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.api.layers;
+package dev.compactmods.compactcrafting.api.recipe.layers;
 
 import com.mojang.serialization.Codec;
 import net.minecraftforge.registries.IForgeRegistryEntry;

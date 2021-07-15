@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.api.layers;
+package dev.compactmods.compactcrafting.api.recipe.layers;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;

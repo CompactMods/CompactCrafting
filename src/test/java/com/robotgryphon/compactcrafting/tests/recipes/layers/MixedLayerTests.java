@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.tests.recipes.layers;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;

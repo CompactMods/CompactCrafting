@@ -1,8 +1,8 @@
 package com.robotgryphon.compactcrafting.recipes.components;
 
 import com.mojang.serialization.Codec;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public class SimpleRecipeComponentType<C extends IRecipeComponent>

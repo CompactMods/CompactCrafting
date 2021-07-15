@@ -1,8 +1,7 @@
-package com.robotgryphon.compactcrafting.field.capability;
+package dev.compactmods.compactcrafting.api.field;
 
-import com.robotgryphon.compactcrafting.crafting.EnumCraftingState;
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -27,7 +26,7 @@ public interface IMiniaturizationField {
         return Stream.empty();
     }
 
-    Optional<MiniaturizationRecipe> getCurrentRecipe();
+    Optional<IMiniaturizationRecipe> getCurrentRecipe();
 
     void clearRecipe();
 

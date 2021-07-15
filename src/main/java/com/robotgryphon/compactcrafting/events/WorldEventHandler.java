@@ -2,7 +2,7 @@ package com.robotgryphon.compactcrafting.events;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import com.robotgryphon.compactcrafting.field.capability.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;

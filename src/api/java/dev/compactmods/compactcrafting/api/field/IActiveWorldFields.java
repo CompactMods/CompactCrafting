@@ -1,4 +1,4 @@
-package com.robotgryphon.compactcrafting.field.capability;
+package dev.compactmods.compactcrafting.api.field;
 
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

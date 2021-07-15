@@ -1,9 +1,9 @@
 package com.robotgryphon.compactcrafting.field.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -29,8 +29,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
         BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
-        MiniaturizationRecipe recipe = tile.getRecipe();
-
+        IMiniaturizationRecipe recipe = tile.getRecipe();
         if(recipe == null)
             return;
 
@@ -44,8 +43,8 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
             long gameTime = tile.getLevel().getGameTime();
 
-            double trig = recipe.getTicks() - craftProgress - (1.8 * Math.sin(craftProgress + recipe.getTicks()));
-            double scale = Math.max(0.1d, (trig / recipe.getTicks()));
+            double trig = recipe.getCraftingTime() - craftProgress - (1.8 * Math.sin(craftProgress + recipe.getCraftingTime()));
+            double scale = Math.max(0.1d, (trig / recipe.getCraftingTime()));
 
             mx.scale((float) scale, (float) scale, (float) scale);
 
