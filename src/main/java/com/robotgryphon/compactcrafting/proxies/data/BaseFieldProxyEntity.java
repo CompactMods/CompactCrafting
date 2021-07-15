@@ -38,15 +38,6 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
         }
     }
 
-    @Override
-    public void setRemoved() {
-        super.setRemoved();
-
-//        field.ifPresent(field -> {
-//            field.unregisterProxyAt(this.worldPosition);
-//        });
-    }
-
     public void updateField(BlockPos fieldCenter) {
         if(level == null)
             return;
