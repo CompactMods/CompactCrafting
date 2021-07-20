@@ -1,14 +1,13 @@
 package dev.compactmods.compactcrafting.api.field;
 
+import java.util.Optional;
+import java.util.stream.Stream;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
-
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public interface IMiniaturizationField {
 
@@ -21,6 +20,8 @@ public interface IMiniaturizationField {
     void setCenter(BlockPos center);
 
     void setSize(FieldProjectionSize size);
+
+    int getProgress();
 
     default Stream<BlockPos> getProjectorPositions() {
         return Stream.empty();

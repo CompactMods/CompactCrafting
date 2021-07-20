@@ -10,6 +10,8 @@
   "compactcrafting.jei.miniaturization.catalyst": "Throw this item into the miniaturization field to start crafting.",
 
   "compactcrafting.top.current_recipe": "Recipe: ",
+  "compactcrafting.top.awaiting_catalyst": "Awaiting catalyst...",
+  "compactcrafting.top.progress": "%s / %s",
 
   "tooltip.compactcrafting.proxy_bound": "Bound to: %s",
   "tooltip.compactcrafting.proxy_hint": "Send a redstone pulse to mark a field for recipe scanning.",

@@ -1,8 +1,12 @@
 package com.robotgryphon.compactcrafting.field;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
+import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
@@ -13,10 +17,12 @@ import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import dev.compactmods.compactcrafting.api.field.IFieldListener;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
@@ -24,10 +30,6 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.LazyOptional;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class MiniaturizationField implements IMiniaturizationField {
 
@@ -72,6 +74,23 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public void setSize(FieldProjectionSize size) {
         this.size = size;
+    }
+
+    @Override
+    public int getProgress() {
+        if(craftingState != EnumCraftingState.CRAFTING)
+            return 0;
+
+        BlockState stateCenter = level.getBlockState(center);
+        if(!(stateCenter.getBlock() instanceof FieldCraftingPreviewBlock))
+            return 0;
+
+        TileEntity previewTile = level.getBlockEntity(center);
+        if (previewTile instanceof FieldCraftingPreviewTile) {
+            return ((FieldCraftingPreviewTile) previewTile).getProgress();
+        }
+
+        return 0;
     }
 
     @Override
