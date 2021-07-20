@@ -1,11 +1,11 @@
 package dev.compactmods.compactcrafting.api.field;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
-
 import java.util.Optional;
 import java.util.stream.Stream;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
 
 public interface IActiveWorldFields {
 
@@ -24,4 +24,6 @@ public interface IActiveWorldFields {
     LazyOptional<IMiniaturizationField> getLazy(BlockPos center);
 
     boolean hasActiveField(BlockPos center);
+
+    Stream<IMiniaturizationField> getFields(ChunkPos chunk);
 }

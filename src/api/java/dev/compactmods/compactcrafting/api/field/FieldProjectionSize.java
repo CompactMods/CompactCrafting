@@ -1,14 +1,14 @@
 package dev.compactmods.compactcrafting.api.field;
 
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import com.mojang.serialization.Codec;
+import net.minecraft.util.Direction;
+import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 
 public enum FieldProjectionSize implements IStringSerializable {
     /**
@@ -44,6 +44,9 @@ public enum FieldProjectionSize implements IStringSerializable {
     private final int projectorDistance;
 
     private final String name;
+
+    public static final Codec<FieldProjectionSize> CODEC =
+            Codec.STRING.xmap(FieldProjectionSize::valueOf, FieldProjectionSize::name);
 
     public static final FieldProjectionSize[] VALID_SIZES = new FieldProjectionSize[] {
             SMALL, MEDIUM, LARGE, ABSURD

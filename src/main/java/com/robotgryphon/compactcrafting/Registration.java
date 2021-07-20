@@ -1,13 +1,14 @@
 package com.robotgryphon.compactcrafting;
 
-import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
+import java.util.function.Supplier;
+import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
-import com.robotgryphon.compactcrafting.proxies.ProxyMode;
-import com.robotgryphon.compactcrafting.proxies.block.FieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.block.MatchFieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.block.RescanFieldProxyBlock;
 import com.robotgryphon.compactcrafting.proxies.data.MatchFieldProxyEntity;
 import com.robotgryphon.compactcrafting.proxies.data.RescanFieldProxyEntity;
 import com.robotgryphon.compactcrafting.proxies.item.FieldProxyItem;
@@ -18,6 +19,7 @@ import com.robotgryphon.compactcrafting.recipes.layers.HollowComponentRecipeLaye
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -37,10 +39,6 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
-
-import java.util.function.Supplier;
-
-import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 
 @SuppressWarnings("unchecked")
 @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -88,10 +86,10 @@ public class Registration {
             new FieldCraftingPreviewBlock(AbstractBlock.Properties.copy(Blocks.BARRIER)));
 
     public static final RegistryObject<Block> RESCAN_FIELD_PROXY_BLOCK = BLOCKS.register("rescan_proxy", () ->
-            new FieldProxyBlock(ProxyMode.RESCAN, PROXY_PROPS.get()));
+            new RescanFieldProxyBlock(PROXY_PROPS.get()));
 
     public static final RegistryObject<Block> MATCH_FIELD_PROXY_BLOCK = BLOCKS.register("match_proxy", () ->
-            new FieldProxyBlock(ProxyMode.MATCH, PROXY_PROPS.get()));
+            new MatchFieldProxyBlock(PROXY_PROPS.get()));
 
     // endregion ======================================================================================================
 

@@ -1,17 +1,18 @@
 package com.robotgryphon.compactcrafting.field;
 
-import com.robotgryphon.compactcrafting.CompactCrafting;
-import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
-import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.LazyOptional;
-
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.robotgryphon.compactcrafting.CompactCrafting;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.LazyOptional;
 
 public class ActiveWorldFields implements IActiveWorldFields {
 
@@ -85,5 +86,15 @@ public class ActiveWorldFields implements IActiveWorldFields {
     @Override
     public boolean hasActiveField(BlockPos center) {
         return fields.containsKey(center);
+    }
+
+    @Override
+    public Stream<IMiniaturizationField> getFields(ChunkPos chunk) {
+        return fields.entrySet()
+                .stream()
+                .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
+                .map(Map.Entry::getValue);
+
+
     }
 }

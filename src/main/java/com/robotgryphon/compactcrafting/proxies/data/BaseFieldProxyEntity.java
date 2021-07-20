@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.proxies.data;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
@@ -12,9 +14,6 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 public abstract class BaseFieldProxyEntity extends TileEntity {
 
@@ -49,7 +48,6 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
         }
 
         level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                .resolve()
                 .map(fields -> fields.getLazy(fieldCenter))
                 .ifPresent(f -> {
                     this.fieldCenter = fieldCenter;
@@ -82,7 +80,7 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
         tag = super.save(tag);
 
         CompoundNBT finalTag = tag;
-        field.resolve().ifPresent(field -> {
+        field.ifPresent(field -> {
             finalTag.put("center", NBTUtil.writeBlockPos(field.getCenter()));
         });
 

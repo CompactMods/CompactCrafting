@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.proxies.item;
 
+import javax.annotation.Nullable;
+import java.util.List;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
@@ -21,9 +23,6 @@ import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
-
-import javax.annotation.Nullable;
-import java.util.List;
 
 public class FieldProxyItem extends BlockItem {
     public FieldProxyItem(Block block, Properties props) {
