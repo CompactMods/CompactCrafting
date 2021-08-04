@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
+import javax.annotation.Nullable;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
@@ -12,8 +13,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-
-import javax.annotation.Nullable;
 
 public class CapabilityMiniaturizationField {
     @CapabilityInject(IMiniaturizationField.class)

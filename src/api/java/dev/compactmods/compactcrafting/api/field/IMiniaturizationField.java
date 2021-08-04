@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -50,4 +51,8 @@ public interface IMiniaturizationField {
     void setLevel(World level);
 
     void registerListener(LazyOptional<IFieldListener> listener);
+
+    CompoundNBT save();
+
+    void load(CompoundNBT nbt);
 }

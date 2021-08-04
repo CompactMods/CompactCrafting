@@ -50,6 +50,9 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .filter(IMiniaturizationField::isLoaded)
                 .collect(Collectors.toSet());
 
+        if(loaded.isEmpty())
+            return;
+
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
         loaded.forEach(IMiniaturizationField::tick);
     }

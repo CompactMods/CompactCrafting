@@ -1,10 +1,12 @@
 package com.robotgryphon.compactcrafting.field.capability;
 
+import javax.annotation.Nullable;
 import com.robotgryphon.compactcrafting.data.NbtListCollector;
 import com.robotgryphon.compactcrafting.field.ActiveWorldFields;
-import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
@@ -14,8 +16,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
-
-import javax.annotation.Nullable;
 
 public class CapabilityActiveWorldFields {
 
@@ -29,14 +29,9 @@ public class CapabilityActiveWorldFields {
                     @Nullable
                     @Override
                     public INBT writeNBT(Capability<IActiveWorldFields> capability, IActiveWorldFields instance, Direction side) {
+                        // do stuff
                         ListNBT list = instance.getFields()
-                                .map(field -> {
-                                    // do stuff
-                                    CompoundNBT nbt = new CompoundNBT();
-                                    nbt.putString("size", field.getFieldSize().name());
-                                    nbt.put("center", NBTUtil.writeBlockPos(field.getCenter()));
-                                    return nbt;
-                                })
+                            .map(IMiniaturizationField::save)
                             .collect(NbtListCollector.toNbtList());
 
                         return list;
@@ -58,6 +53,8 @@ public class CapabilityActiveWorldFields {
                             BlockPos center = NBTUtil.readBlockPos(f.getCompound("center"));
 
                             MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
+                            field.load(f);
+
                             instance.registerField(field);
                         });
                     }

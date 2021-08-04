@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.field;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,8 +22,13 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.NBTUtil;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
@@ -37,7 +43,12 @@ public class MiniaturizationField implements IMiniaturizationField {
     private BlockPos center;
     private boolean loaded;
 
+    @Nullable
     private MiniaturizationRecipe currentRecipe = null;
+
+    @Nullable
+    private ResourceLocation recipeId = null;
+
     private EnumCraftingState craftingState;
     private long rescanTime;
 
@@ -78,11 +89,11 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public int getProgress() {
-        if(craftingState != EnumCraftingState.CRAFTING)
+        if (craftingState != EnumCraftingState.CRAFTING)
             return 0;
 
         BlockState stateCenter = level.getBlockState(center);
-        if(!(stateCenter.getBlock() instanceof FieldCraftingPreviewBlock))
+        if (!(stateCenter.getBlock() instanceof FieldCraftingPreviewBlock))
             return 0;
 
         TileEntity previewTile = level.getBlockEntity(center);
@@ -96,6 +107,33 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public void setLevel(World level) {
         this.level = level;
+
+        getRecipeFromId();
+    }
+
+    private void getRecipeFromId() {
+        // Load recipe information from temporary id variable
+        if (this.recipeId != null) {
+            final Optional<? extends IRecipe<?>> r = level.getRecipeManager().byKey(recipeId);
+            if(!r.isPresent()) {
+                clearRecipe();
+                return;
+            }
+
+            r.ifPresent(rec -> {
+                this.currentRecipe = (MiniaturizationRecipe) rec;
+                this.craftingState = EnumCraftingState.MATCHED;
+
+                this.listeners.forEach(li -> {
+                    li.ifPresent(l -> {
+                        l.onRecipeChanged(this, this.currentRecipe);
+                        l.onRecipeMatched(this, this.currentRecipe);
+                    });
+                });
+            });
+        } else {
+            clearRecipe();
+        }
     }
 
     @Override
@@ -139,24 +177,39 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void clearRecipe() {
+        this.recipeId = null;
         this.currentRecipe = null;
+        this.craftingState = EnumCraftingState.NOT_MATCHED;
 
-        updateListeners();
-    }
-
-    private void updateListeners() {
         listeners.forEach(l -> {
             l.ifPresent(listener -> {
                 listener.onRecipeChanged(this, this.currentRecipe);
+                listener.onRecipeCleared(this);
             });
         });
     }
 
     @Override
     public void completeCraft() {
-        this.currentRecipe = null;
+
+        if (currentRecipe != null) {
+            for (ItemStack is : currentRecipe.getOutputs()) {
+                ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
+                level.addFreshEntity(itemEntity);
+            }
+        }
+
+        IMiniaturizationRecipe completed = this.currentRecipe;
+
+        clearRecipe();
         this.craftingState = EnumCraftingState.NOT_MATCHED;
-        updateListeners();
+
+        listeners.forEach(l -> {
+            l.ifPresent(listener -> {
+                listener.onRecipeCompleted(this, completed);
+            });
+        });
+
     }
 
     @Override
@@ -277,7 +330,11 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         this.currentRecipe = matchedRecipe;
-        updateListeners();
+        MiniaturizationRecipe finalMatchedRecipe = matchedRecipe;
+        listeners.forEach(l -> l.ifPresent(fl -> {
+            fl.onRecipeChanged(this, finalMatchedRecipe);
+            fl.onRecipeMatched(this, finalMatchedRecipe);
+        }));
     }
 
     @Override
@@ -326,5 +383,29 @@ public class MiniaturizationField implements IMiniaturizationField {
             CompactCrafting.LOGGER.debug("Removing listener: {}", fl);
             this.listeners.remove(fl);
         });
+    }
+
+    @Override
+    public CompoundNBT save() {
+        CompoundNBT nbt = new CompoundNBT();
+        nbt.putString("size", size.name());
+        nbt.put("center", NBTUtil.writeBlockPos(center));
+
+        nbt.putString("state", craftingState.name());
+
+        if (currentRecipe != null)
+            nbt.putString("recipe", currentRecipe.getId().toString());
+
+        return nbt;
+    }
+
+    @Override
+    public void load(CompoundNBT nbt) {
+        this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
+
+        // temp load recipe
+        if (nbt.contains("recipe")) {
+            this.recipeId = new ResourceLocation(nbt.getString("recipe"));
+        }
     }
 }
