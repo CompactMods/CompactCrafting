@@ -26,8 +26,6 @@ public abstract class FieldHelper {
                 .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
 
-        CompactCrafting.LOGGER.debug("Found {} nearby projectors near {}.", nearbyProjectors.length, pos);
-
         final Vector3d centerBlockChanged = Vector3d.atCenterOf(pos);
         if (nearbyProjectors.length > 0) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
