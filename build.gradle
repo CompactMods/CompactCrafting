@@ -216,7 +216,6 @@ dependencies {
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
 }
 
-// Example for how to get properties into the manifest for reading by the runtime..
 jar {
     from sourceSets.api.output
     from sourceSets.main.output

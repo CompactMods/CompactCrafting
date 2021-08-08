@@ -1,12 +1,16 @@
 package com.robotgryphon.compactcrafting.projector.block;
 
-import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import javax.annotation.Nullable;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Stream;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.network.FieldActivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.projector.ProjectorHelper;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -31,11 +35,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.network.PacketDistributor;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 public class FieldProjectorBlock extends Block {
 
@@ -204,6 +203,7 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onPlace(BlockState state, World level, BlockPos pos, BlockState oldState, boolean b) {
         if(isActive(state) && !level.isClientSide) {
             FieldProjectionSize fieldSize = state.getValue(SIZE);
