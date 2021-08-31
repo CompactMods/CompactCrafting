@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.components;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;

@@ -4,10 +4,11 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.api.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -71,7 +72,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
     }
 
     @Override
-    public boolean matches(IRecipeLayerBlocks blocks) {
+    public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
         return componentLookup.stream()
                 .allMatch(e -> blocks.getComponentAtPosition(e.getKey())
                     .map(e.getValue()::equals)

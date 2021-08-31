@@ -3,9 +3,9 @@ package com.robotgryphon.compactcrafting.recipes.components;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
 import com.robotgryphon.compactcrafting.util.CodecExtensions;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -60,7 +60,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
                     this.allowedValues.put(propertyName, propertyAcceptableValues);
                     this.filters.put(propertyName, userAllowed::contains);
                 } else {
-                    CompactCrafting.LOGGER.warn("Not a valid property: " + propertyName);
+                    CompactCrafting.RECIPE_LOGGER.warn("Not a valid property: " + propertyName);
                 }
             }
         });

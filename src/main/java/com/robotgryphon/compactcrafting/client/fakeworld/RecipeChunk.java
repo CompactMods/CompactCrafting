@@ -1,7 +1,7 @@
 package com.robotgryphon.compactcrafting.client.fakeworld;
 
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -39,7 +39,7 @@ public class RecipeChunk extends EmptyChunk {
             Optional<String> componentForPosition = rLayer.getComponentForPosition(pos.below(y));
 
             BlockState posState = componentForPosition
-                    .flatMap(recipe::getRecipeBlockComponent)
+                    .flatMap(recipe.getComponents()::getBlock)
                     .map(IRecipeBlockComponent::getRenderState)
                     .orElse(Blocks.VOID_AIR.defaultBlockState());
 

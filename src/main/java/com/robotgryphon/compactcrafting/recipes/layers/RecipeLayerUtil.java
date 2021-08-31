@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Rotation;

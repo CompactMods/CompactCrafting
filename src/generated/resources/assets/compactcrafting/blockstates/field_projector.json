@@ -16,52 +16,52 @@
       "y": 180
     },
     "facing=north,field=small": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=south,field=small": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=west,field=small": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=east,field=small": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=north,field=medium": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=south,field=medium": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=west,field=medium": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=east,field=medium": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=north,field=large": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=south,field=large": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=west,field=large": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=east,field=large": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=north,field=absurd": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=south,field=absurd": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=west,field=absurd": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     },
     "facing=east,field=absurd": {
-      "model": "compactcrafting:block/field_projector"
+      "model": "compactcrafting:block/base"
     }
   }
 }

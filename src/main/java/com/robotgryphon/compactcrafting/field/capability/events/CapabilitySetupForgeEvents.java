@@ -1,9 +1,9 @@
 package com.robotgryphon.compactcrafting.field.capability.events;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
-import com.robotgryphon.compactcrafting.field.capability.ActiveWorldFields;
+import com.robotgryphon.compactcrafting.field.ActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
-import com.robotgryphon.compactcrafting.field.capability.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
@@ -24,9 +24,9 @@ public class CapabilitySetupForgeEvents {
 
     @SubscribeEvent
     public static void onCapWorldAttach(final AttachCapabilitiesEvent<World> event) {
-        World w = event.getObject();
+        World level = event.getObject();
 
-        ActiveWorldFields inst = new ActiveWorldFields();
+        ActiveWorldFields inst = new ActiveWorldFields(level);
 
         LazyOptional<ActiveWorldFields> opt = LazyOptional.of(() -> inst);
         final Capability<IActiveWorldFields> capInstance = CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS;

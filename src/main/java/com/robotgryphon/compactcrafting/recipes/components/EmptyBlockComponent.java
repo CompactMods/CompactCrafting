@@ -1,9 +1,9 @@
 package com.robotgryphon.compactcrafting.recipes.components;
 
 import com.mojang.serialization.Codec;
-import com.robotgryphon.compactcrafting.api.components.IRecipeBlockComponent;
-import com.robotgryphon.compactcrafting.api.components.IRecipeComponent;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 

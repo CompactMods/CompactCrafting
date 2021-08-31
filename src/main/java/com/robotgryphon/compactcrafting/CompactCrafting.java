@@ -1,9 +1,10 @@
 package com.robotgryphon.compactcrafting;
 
-import com.robotgryphon.compactcrafting.client.ClientSetup;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
+import com.robotgryphon.compactcrafting.client.ClientSetup;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
+import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.ui.container.ContainerRegistration;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
@@ -21,7 +22,8 @@ import org.apache.logging.log4j.Logger;
 public class CompactCrafting
 {
     // Directly reference a log4j logger.
-    public static final Logger LOGGER = LogManager.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger(CompactCrafting.MOD_ID);
+    public static final Logger RECIPE_LOGGER = LogManager.getLogger("CCRecipeMatcher");
 
     public static final String MOD_ID = "compactcrafting";
 
@@ -37,6 +39,7 @@ public class CompactCrafting
 
         ModLoadingContext mlCtx = ModLoadingContext.get();
         mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
+        mlCtx.registerConfig(ModConfig.Type.SERVER, ServerConfig.CONFIG);
 
         Registration.init();
         ComponentRegistration.init(modBus);

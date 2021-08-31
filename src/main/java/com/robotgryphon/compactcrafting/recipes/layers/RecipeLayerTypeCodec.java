@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import net.minecraft.util.ResourceLocation;
 
 public final class RecipeLayerTypeCodec implements Codec<RecipeLayerType<?>> {

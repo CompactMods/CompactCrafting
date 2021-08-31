@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.tests.recipes.layers;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.tests.recipes.util.RecipeTestUtil;
@@ -48,7 +48,7 @@ public class MixedLayerTests {
         });
 
         // Now check if the component was remapped
-        Set<String> components = recipe.getComponentKeys();
+        Set<String> components = recipe.getComponents().getAllComponents().keySet();
         Assertions.assertTrue(components.contains("-"));
     }
 }

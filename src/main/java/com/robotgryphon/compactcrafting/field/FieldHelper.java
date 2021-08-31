@@ -2,7 +2,10 @@ package com.robotgryphon.compactcrafting.field;
 
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import com.robotgryphon.compactcrafting.server.ServerConfig;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
@@ -26,7 +29,8 @@ public abstract class FieldHelper {
                 .map(BlockPos::immutable)
                 .toArray(BlockPos[]::new);
 
-        CompactCrafting.LOGGER.debug("Found {} nearby projectors near {}.", nearbyProjectors.length, pos);
+        if(ServerConfig.FIELD_BLOCK_CHANGES.get())
+            CompactCrafting.LOGGER.debug("Found {} nearby projectors near {}.", nearbyProjectors.length, pos);
 
         final Vector3d centerBlockChanged = Vector3d.atCenterOf(pos);
         if (nearbyProjectors.length > 0) {
@@ -34,7 +38,7 @@ public abstract class FieldHelper {
                 .ifPresent(fields -> {
                     fields.getFields()
                             .filter(field -> field.getBounds().contains(centerBlockChanged))
-                            .forEach(f -> f.markFieldChanged(level));
+                            .forEach(IMiniaturizationField::markFieldChanged);
                 });
         }
     }

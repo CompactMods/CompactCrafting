@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "compactcrafting:match_proxy"
+    ]
+  },
+  "criteria": {
+    "got_redstone": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "minecraft:redstone"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "compactcrafting:match_proxy"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "got_redstone",
+      "has_the_recipe"
+    ]
+  ]
+}

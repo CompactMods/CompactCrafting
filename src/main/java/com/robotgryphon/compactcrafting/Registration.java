@@ -1,11 +1,17 @@
 package com.robotgryphon.compactcrafting;
 
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
+import java.util.function.Supplier;
+import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.items.FieldProjectorItem;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.proxies.block.MatchFieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.block.RescanFieldProxyBlock;
+import com.robotgryphon.compactcrafting.proxies.data.MatchFieldProxyEntity;
+import com.robotgryphon.compactcrafting.proxies.data.RescanFieldProxyEntity;
+import com.robotgryphon.compactcrafting.proxies.item.FieldProxyItem;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipeSerializer;
 import com.robotgryphon.compactcrafting.recipes.layers.FilledComponentRecipeLayer;
@@ -13,6 +19,7 @@ import com.robotgryphon.compactcrafting.recipes.layers.HollowComponentRecipeLaye
 import com.robotgryphon.compactcrafting.recipes.layers.MixedComponentRecipeLayer;
 import com.robotgryphon.compactcrafting.recipes.layers.SimpleRecipeLayerType;
 import com.robotgryphon.compactcrafting.recipes.setup.BaseRecipeType;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -21,6 +28,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.ToolType;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -31,8 +39,6 @@ import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryBuilder;
-
-import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 
 @SuppressWarnings("unchecked")
 @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -57,11 +63,19 @@ public class Registration {
     }
 
     // ================================================================================================================
-    //   PROPERTIES
+    // region  PROPERTIES
     // ================================================================================================================
+    static final Supplier<AbstractBlock.Properties> PROXY_PROPS = () -> AbstractBlock.Properties.of(Material.HEAVY_METAL)
+            .strength(8, 20)
+            .requiresCorrectToolForDrops()
+            .harvestTool(ToolType.PICKAXE);
+
+    static final Supplier<Item.Properties> BASE_ITEM_PROPS = () -> new Item.Properties().tab(CompactCrafting.ITEM_GROUP);
+
+    // endregion ======================================================================================================
 
     // ================================================================================================================
-    //   BLOCKS
+    // region  BLOCKS
     // ================================================================================================================
     public static final RegistryObject<Block> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
             new FieldProjectorBlock(AbstractBlock.Properties.of(Material.METAL)
@@ -71,16 +85,36 @@ public class Registration {
     public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
             new FieldCraftingPreviewBlock(AbstractBlock.Properties.copy(Blocks.BARRIER)));
 
+    public static final RegistryObject<Block> RESCAN_FIELD_PROXY_BLOCK = BLOCKS.register("rescan_proxy", () ->
+            new RescanFieldProxyBlock(PROXY_PROPS.get()));
+
+    public static final RegistryObject<Block> MATCH_FIELD_PROXY_BLOCK = BLOCKS.register("match_proxy", () ->
+            new MatchFieldProxyBlock(PROXY_PROPS.get()));
+
+    // endregion ======================================================================================================
+
     // ================================================================================================================
-    //   ITEMS
+    // region ITEMS
     // ================================================================================================================
     public static final RegistryObject<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
-            new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+            new FieldProjectorItem(FIELD_PROJECTOR_BLOCK.get(), BASE_ITEM_PROPS.get()));
 
-//    public static final RegistryObject<Item> TEST_ITEM = ITEMS.register("test", () -> new TestItem(new Item.Properties().tab(CompactCrafting.ITEM_GROUP)));
+    public static final RegistryObject<Item> PROJECTOR_DISH_ITEM = ITEMS.register("projector_dish", () ->
+            new Item(BASE_ITEM_PROPS.get()));
+
+    public static final RegistryObject<Item> BASE_ITEM = ITEMS.register("base", () ->
+            new Item(BASE_ITEM_PROPS.get()));
+
+    public static final RegistryObject<Item> RESCAN_PROXY_ITEM = ITEMS.register("rescan_proxy", () ->
+            new FieldProxyItem(RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
+
+    public static final RegistryObject<Item> MATCH_PROXY_ITEM = ITEMS.register("match_proxy", () ->
+                new FieldProxyItem(MATCH_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
+
+    // endregion ======================================================================================================
 
     // ================================================================================================================
-    //   TILE ENTITIES
+    // region  TILE ENTITIES
     // ================================================================================================================
     public static final RegistryObject<TileEntityType<FieldProjectorTile>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
             TileEntityType.Builder
@@ -92,8 +126,20 @@ public class Registration {
                     .of(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())
                     .build(null));
 
+    public static final RegistryObject<TileEntityType<RescanFieldProxyEntity>> RESCAN_PROXY_ENTITY = TILE_ENTITIES.register("rescan_proxy", () ->
+            TileEntityType.Builder
+                    .of(RescanFieldProxyEntity::new, RESCAN_FIELD_PROXY_BLOCK.get())
+                    .build(null));
+
+    public static final RegistryObject<TileEntityType<MatchFieldProxyEntity>> MATCH_PROXY_ENTITY = TILE_ENTITIES.register("match_proxy", () ->
+            TileEntityType.Builder
+                    .of(MatchFieldProxyEntity::new, MATCH_FIELD_PROXY_BLOCK.get())
+                    .build(null));
+
+    // endregion ======================================================================================================
+
     // ================================================================================================================
-    //   MINIATURIZATION RECIPES
+    // region  MINIATURIZATION RECIPES
     // ================================================================================================================
     public static final RegistryObject<IRecipeSerializer<MiniaturizationRecipe>> MINIATURIZATION_SERIALIZER = RECIPES.register("miniaturization", MiniaturizationRecipeSerializer::new);
 
@@ -101,8 +147,10 @@ public class Registration {
 
     public static final BaseRecipeType<MiniaturizationRecipe> MINIATURIZATION_RECIPE_TYPE = new BaseRecipeType<>(MINIATURIZATION_RECIPE_TYPE_ID);
 
+    // endregion ======================================================================================================
+
     // ================================================================================================================
-    //   RECIPE LAYER SERIALIZERS
+    // region  RECIPE LAYER SERIALIZERS
     // ================================================================================================================
     public static final RegistryObject<RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
             RECIPE_LAYERS.register("filled", () -> new SimpleRecipeLayerType<>(FilledComponentRecipeLayer.CODEC));
@@ -113,6 +161,9 @@ public class Registration {
     public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", () -> new SimpleRecipeLayerType<>(MixedComponentRecipeLayer.CODEC));
 
+    // endregion ======================================================================================================
+
+    // region =========================================================================================================
 
     public static void init() {
         IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -133,4 +184,5 @@ public class Registration {
     public static void onRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
         RECIPE_LAYER_TYPES = evt.getRegistry();
     }
+    // endregion ======================================================================================================
 }

@@ -1,6 +1,6 @@
 package com.robotgryphon.compactcrafting.client;
 
-import com.robotgryphon.compactcrafting.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;

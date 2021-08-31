@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import javax.annotation.Nullable;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -12,23 +13,23 @@ import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
-
 public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
         implements IRecipeSerializer<MiniaturizationRecipe> {
 
     @Override
     public MiniaturizationRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
         CompactCrafting.LOGGER.debug("Beginning deserialization of recipe: {}", recipeId.toString());
-        Optional<MiniaturizationRecipe> p = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
-                .resultOrPartial(err -> {
-                    CompactCrafting.LOGGER.error("Error loading recipe: " + err);
-                });
+        DataResult<MiniaturizationRecipe> parseResult = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json);
 
-        MiniaturizationRecipe r = p.orElse(null);
-        if (r != null) r.setId(recipeId);
-        return r;
+        if(parseResult.error().isPresent()) {
+            DataResult.PartialResult<MiniaturizationRecipe> pr = parseResult.error().get();
+            CompactCrafting.RECIPE_LOGGER.error("Error loading recipe: " + pr.message());
+            return null;
+        }
+
+        return parseResult.result()
+                .map(r -> { r.setId(recipeId); return r; })
+                .orElse(null);
     }
 
     @Nullable
@@ -40,10 +41,10 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         if (n != null && n.contains("recipe")) {
             INBT recipeNbt = n.get("recipe");
 
-            MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.decode(NBTDynamicOps.INSTANCE, recipeNbt)
+            MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.parse(NBTDynamicOps.INSTANCE, recipeNbt)
                     .resultOrPartial(err -> {
-
-                    }).get().getFirst();
+                        CompactCrafting.RECIPE_LOGGER.error("Error loading recipe from network: " + err);
+                    }).get();
 
             rec.setId(recipeId);
             return rec;

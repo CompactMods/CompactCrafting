@@ -1,9 +1,10 @@
 package com.robotgryphon.compactcrafting.field.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
+import com.robotgryphon.compactcrafting.util.MathUtil;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
-import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
@@ -29,8 +30,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
         BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
-        MiniaturizationRecipe recipe = tile.getRecipe();
-
+        IMiniaturizationRecipe recipe = tile.getRecipe();
         if(recipe == null)
             return;
 
@@ -42,14 +42,13 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             // progress, ticks required
             double craftProgress = tile.getProgress();
 
-            long gameTime = tile.getLevel().getGameTime();
 
-            double trig = recipe.getTicks() - craftProgress - (1.8 * Math.sin(craftProgress + recipe.getTicks()));
-            double scale = Math.max(0.1d, (trig / recipe.getTicks()));
+            double scale = MathUtil.calculateScale(craftProgress + 3, recipe.getCraftingTime());
 
             mx.scale((float) scale, (float) scale, (float) scale);
 
-            double angle = gameTime * (45.0f / 64.0f);
+            long gameTime = tile.getLevel().getGameTime();
+            double angle = (gameTime  % 360.0) * 2.0d;
             mx.mulPose(Vector3f.YP.rotationDegrees((float) angle));
 
             AxisAlignedBB dimensions = recipe.getDimensions();
@@ -72,7 +71,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
 
                         BlockPos zeroedPos = filledPos.below(finalY);
                         l.getComponentForPosition(zeroedPos)
-                                .flatMap(recipe::getRecipeBlockComponent)
+                                .flatMap(recipe.getComponents()::getBlock)
                                 .ifPresent(comp -> {
                                     // TODO - Render switching
                                     BlockState state1 = comp.getRenderState();

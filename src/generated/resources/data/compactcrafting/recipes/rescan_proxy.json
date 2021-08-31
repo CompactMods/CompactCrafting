@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "compactcrafting:base"
+    },
+    {
+      "item": "minecraft:crafting_table"
+    }
+  ],
+  "result": {
+    "item": "compactcrafting:rescan_proxy"
+  }
+}

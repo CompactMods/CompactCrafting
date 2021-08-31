@@ -24,8 +24,13 @@ public class FieldProjectorRenderSetup {
     }
 
     @SubscribeEvent
+    public static void onBlockColors(final ColorHandlerEvent.Block colors) {
+        colors.getBlockColors().register(new FieldProjectorColors.Block(), Registration.FIELD_PROJECTOR_BLOCK.get());
+    }
+
+    @SubscribeEvent
     public static void onItemColors(final ColorHandlerEvent.Item itemColors) {
-        itemColors.getItemColors().register(new FieldProjectorColors(), Registration.FIELD_PROJECTOR_ITEM.get());
+        itemColors.getItemColors().register(new FieldProjectorColors.Item(), Registration.FIELD_PROJECTOR_ITEM.get());
     }
 
     @SubscribeEvent

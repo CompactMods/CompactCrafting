@@ -1,26 +1,14 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " E ",
-    " R ",
-    "DID"
-  ],
-  "key": {
-    "E": {
-      "item": "minecraft:ender_eye"
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "compactcrafting:base"
     },
-    "R": {
-      "item": "minecraft:redstone_torch"
-    },
-    "D": {
-      "item": "minecraft:diamond"
-    },
-    "I": {
-      "item": "minecraft:iron_block"
+    {
+      "item": "compactcrafting:projector_dish"
     }
-  },
+  ],
   "result": {
-    "item": "compactcrafting:field_projector",
-    "count": 4
+    "item": "compactcrafting:field_projector"
   }
 }

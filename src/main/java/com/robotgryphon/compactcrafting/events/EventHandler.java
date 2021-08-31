@@ -10,16 +10,13 @@ import net.minecraftforge.fml.common.Mod;
 
 import static com.robotgryphon.compactcrafting.CompactCrafting.MOD_ID;
 
+@SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = MOD_ID)
 public class EventHandler {
-
-    // TODO - Tinker with sending recipe updates at a further timespan away
-    // This is working with BG now, need to figure out why recipe isn't being matched
     
     @SubscribeEvent
     public static void onBlockPlaced(final BlockEvent.EntityPlaceEvent blockPlaced) {
         // Check if block is in or around a projector field
-
         IWorld world = blockPlaced.getWorld();
         BlockPos pos = blockPlaced.getPos();
 
@@ -31,7 +28,6 @@ public class EventHandler {
     @SubscribeEvent
     public static void onBlockDestroyed(final BlockEvent.BreakEvent blockDestroyed) {
         // Check if block is in or around a projector field
-
         IWorld world = blockDestroyed.getWorld();
         BlockPos pos = blockDestroyed.getPos();
 

@@ -4,10 +4,11 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.Registration;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayer;
-import com.robotgryphon.compactcrafting.api.layers.IRecipeLayerBlocks;
-import com.robotgryphon.compactcrafting.api.layers.RecipeLayerType;
-import com.robotgryphon.compactcrafting.api.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -50,19 +51,31 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     public int getNumberFilledPositions() {
+        if(filledPositions == null)
+            return 0;
+
         return filledPositions.size();
     }
 
     @Override
-    public boolean matches(IRecipeLayerBlocks blocks) {
+    public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
         Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
 
-        // Hollow layers only match a single component type
-        if(totalsInWorld.size() > 1)
-            return false;
-
+        // If we don't have any of the wall components, immediately fail
         if(!totalsInWorld.containsKey(this.componentKey))
             return false;
+
+        // Hollow layers only match a single component type
+        if(totalsInWorld.size() > 1) {
+            // make sure all the matched components besides the wall are empty
+            boolean everythingElseEmpty = totalsInWorld.keySet()
+                    .stream()
+                    // exclude this component (wall) from empty matching
+                    .filter(c -> !c.equals(this.componentKey))
+                    .allMatch(components::isEmptyBlock);
+
+            if(!everythingElseEmpty) return false;
+        }
 
         int targetCount = totalsInWorld.get(componentKey);
         int layerCount = filledPositions.size();

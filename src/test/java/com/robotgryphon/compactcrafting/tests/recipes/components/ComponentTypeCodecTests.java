@@ -3,7 +3,7 @@ package com.robotgryphon.compactcrafting.tests.recipes.components;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import com.robotgryphon.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
 import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
 import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
 import org.junit.jupiter.api.Assertions;

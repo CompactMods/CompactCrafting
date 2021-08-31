@@ -5,7 +5,10 @@ import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.util.Direction;
-import net.minecraftforge.client.model.generators.*;
+import net.minecraftforge.client.model.generators.BlockModelBuilder;
+import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
+import net.minecraftforge.client.model.generators.ModelBuilder;
 import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class ProjectorStateGenerator extends BlockStateProvider {
@@ -16,8 +19,6 @@ public class ProjectorStateGenerator extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-
-        projectorBaseModel();
         projectorDishModel();
         projectorStaticModel();
 
@@ -28,7 +29,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
 
                     if(active) {
                         return ConfiguredModel.builder()
-                                .modelFile(models().getExistingFile(modLoc("block/field_projector")))
+                                .modelFile(models().getExistingFile(modLoc("block/base")))
                                 .build();
                     } else {
                         return ConfiguredModel.builder()
@@ -39,81 +40,30 @@ public class ProjectorStateGenerator extends BlockStateProvider {
                 });
 
         itemModels()
+                .withExistingParent("projector_dish", modLoc("block/field_projector_dish"))
+                .transforms()
+                .transform(ModelBuilder.Perspective.GUI)
+                .rotation(33.75f, 45f, 0)
+                .translation(2, -2, 0)
+                .scale(1f, 1f, 1f)
+                .end();
+
+        itemModels()
                 .withExistingParent("field_projector", modLoc("block/field_projector_static"))
                 .transforms()
                 .transform(ModelBuilder.Perspective.GUI)
-                    .rotation(33.75f, 45f, 0)
-                    .translation(0, 1, 0)
-                    .scale(0.6f, 0.6f, 0.6f)
-                    .end();
+                .rotation(33.75f, 45f, 0)
+                .translation(0, 1, 0)
+                .scale(0.6f, 0.6f, 0.6f)
+                .end();
     }
 
     private void projectorStaticModel() {
         BlockModelBuilder builder = models().getBuilder("block/field_projector_static")
                 .texture("particle", modLoc("block/projector_base_bottom"));
 
-        addProjectorBase(builder);
+        SharedStateGenerator.addProjectorBase(builder);
         addDishModel(builder);
-    }
-
-    private void projectorBaseModel() {
-        BlockModelBuilder builder = models().getBuilder("block/field_projector")
-                .texture("particle", modLoc("block/projector_base_bottom"));
-
-        addProjectorBase(builder);
-    }
-
-    private void addProjectorBase(BlockModelBuilder builder) {
-        builder
-                .texture("base_top", modLoc("block/projector_base_top"))
-                .texture("base_bottom", modLoc("block/projector_base_bottom"))
-                .texture("base_side", modLoc("block/projector_base_side"))
-                .texture("pole", modLoc("block/projector_pole"));
-
-        // Base
-        builder.element()
-                .from(0, 0, 0)
-                .to(16, 6, 16)
-                .shade(true)
-                .allFaces((dir, face) -> {
-                    switch(dir) {
-                        case NORTH:
-                        case SOUTH:
-                        case WEST:
-                        case EAST:
-                            face.texture("#base_side").uvs(0, 10, 16, 16).end();
-                            break;
-
-                        case UP:
-                            face.texture("#base_top").uvs(0, 0, 16, 16).end();
-                            break;
-
-                        case DOWN:
-                            face.texture("#base_bottom").uvs(0, 0, 16, 16).end();
-                            break;
-                    }
-                })
-                .end();
-
-        builder.element()
-                .from(7, 6, 7)
-                .to(9, 12, 9)
-                .shade(true)
-                .allFaces((dir, face) -> {
-                    switch(dir) {
-                        case NORTH:
-                        case SOUTH:
-                        case WEST:
-                        case EAST:
-                            face.texture("#pole").uvs(0, 2, 2, 10).end();
-                            break;
-
-                        case UP:
-                            face.texture("#pole").uvs(0, 0, 2, 2).end();
-                            break;
-                    }
-                })
-                .end();
     }
 
     private void projectorDishModel() {

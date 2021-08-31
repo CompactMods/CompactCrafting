@@ -5,11 +5,13 @@ import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
 import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
-import com.robotgryphon.compactcrafting.field.capability.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
+import com.robotgryphon.compactcrafting.util.MathUtil;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -75,7 +77,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         fieldBounds.ifPresent(bounds -> {
             float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(bounds.getCenter()));
 
-            bounds = bounds.deflate(1 - scale);
+            bounds = bounds.deflate((1 - scale) * (bounds.getSize() / 2));
 
             matrixStack.pushPose();
 
@@ -91,10 +93,9 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
     private IBakedModel getModel() {
         if (bakedModelCached == null) {
             ModelManager models = Minecraft.getInstance()
-                    .getItemRenderer()
-                    .getItemModelShaper()
+                    .getBlockRenderer()
+                    .getBlockModelShaper()
                     .getModelManager();
-
 
             bakedModelCached = models.getModel(FIELD_DISH_RL);
         }
@@ -117,14 +118,17 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
             if (preview == null)
                 return 1;
 
-            double craftProgress = Math.max(0, preview.getProgress());
-            double requiredTime = Math.max(1, preview.getRecipe().getTicks());
+            final IMiniaturizationRecipe recipe = preview.getRecipe();
+            double progress = preview.getProgress();
+            double requiredTime = recipe != null ? Math.max(1, recipe.getCraftingTime()) : 1;
 
-            return Math.min(1, Math.max(0.1d, requiredTime - craftProgress - (1.8 * Math.sin(craftProgress + requiredTime))));
+            return MathUtil.calculateScale(progress, requiredTime);
         }
 
         return 1;
     }
+
+
 
     private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, long gameTime) {
 
