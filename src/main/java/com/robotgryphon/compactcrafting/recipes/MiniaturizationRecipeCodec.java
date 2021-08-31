@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import java.util.List;
+import java.util.Map;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -7,18 +9,16 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.RecordBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
+import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
+import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerTypeCodec;
+import com.robotgryphon.compactcrafting.server.ServerConfig;
 import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
 import dev.compactmods.compactcrafting.api.components.RecipeComponentType;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
-import com.robotgryphon.compactcrafting.recipes.components.RecipeComponentTypeCodec;
-import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerTypeCodec;
 import net.minecraft.item.ItemStack;
-
-import java.util.List;
-import java.util.Map;
 
 public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> {
 
@@ -32,6 +32,11 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
     @Override
     public <T> DataResult<Pair<MiniaturizationRecipe, T>> decode(DynamicOps<T> ops, T input) {
+        boolean debugOutput = ServerConfig.RECIPE_REGISTRATION.get();
+        if(debugOutput) {
+            CompactCrafting.RECIPE_LOGGER.debug("Starting recipe decode: {}", input.toString());
+        }
+
         int recipeSize = Codec.INT.optionalFieldOf("recipeSize", -1)
                 .codec()
                 .parse(ops, input)
@@ -59,6 +64,11 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
                 .get();
 
         boolean hasFixedLayers = layers.stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
+        if(debugOutput)
+        {
+            CompactCrafting.RECIPE_LOGGER.debug("Number of layers defined: {}", layers.size());
+            CompactCrafting.RECIPE_LOGGER.debug("Is fixed size: {}", hasFixedLayers);
+        }
 
         // if we don't have a fixed size layer to base dimensions off of, and the recipe size won't fit in a field
         if (!hasFixedLayers && !FieldProjectionSize.canFitDimensions(recipeSize)) {
@@ -70,6 +80,9 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
         MiniaturizationRecipe recipe = new MiniaturizationRecipe(recipeSize, layers, catalyst, outputs, components);
         recipe.recalculateDimensions();
+
+        if(debugOutput)
+            CompactCrafting.RECIPE_LOGGER.debug("Finishing recipe decode.");
 
         return DataResult.success(Pair.of(recipe, input));
     }

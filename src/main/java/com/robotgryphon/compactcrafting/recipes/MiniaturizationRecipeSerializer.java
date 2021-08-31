@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import javax.annotation.Nullable;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -11,8 +12,6 @@ import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
-
-import javax.annotation.Nullable;
 
 public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
         implements IRecipeSerializer<MiniaturizationRecipe> {
@@ -44,7 +43,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
 
             MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.parse(NBTDynamicOps.INSTANCE, recipeNbt)
                     .resultOrPartial(err -> {
-
+                        CompactCrafting.RECIPE_LOGGER.error("Error loading recipe from network: " + err);
                     }).get();
 
             rec.setId(recipeId);
