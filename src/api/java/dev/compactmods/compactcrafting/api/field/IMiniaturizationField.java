@@ -63,6 +63,7 @@ public interface IMiniaturizationField {
         CompoundNBT data = new CompoundNBT();
         data.putLong("center", getCenter().asLong());
         data.putString("size", getFieldSize().name());
+        data.putString("state", getCraftingState().name());
 
         Optional<IMiniaturizationRecipe> currentRecipe = getCurrentRecipe();
         currentRecipe.ifPresent(r -> {
@@ -79,6 +80,7 @@ public interface IMiniaturizationField {
     default void loadClientData(CompoundNBT nbt) {
         this.setCenter(BlockPos.of(nbt.getLong("center")));
         this.setSize(FieldProjectionSize.valueOf(nbt.getString("size")));
+        this.setCraftingState(EnumCraftingState.valueOf(nbt.getString("state")));
 
         if (nbt.contains("recipe")) {
             CompoundNBT recipe = nbt.getCompound("recipe");

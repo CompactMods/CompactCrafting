@@ -104,7 +104,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void getRecipeFromId() {
         // Load recipe information from temporary id variable
-        if (this.recipeId != null) {
+        if (level != null && this.recipeId != null) {
             final Optional<? extends IRecipe<?>> r = level.getRecipeManager().byKey(recipeId);
             if (!r.isPresent()) {
                 clearRecipe();
@@ -113,7 +113,8 @@ public class MiniaturizationField implements IMiniaturizationField {
 
             r.ifPresent(rec -> {
                 this.currentRecipe = (MiniaturizationRecipe) rec;
-                this.craftingState = EnumCraftingState.MATCHED;
+                if(craftingState == EnumCraftingState.NOT_MATCHED)
+                    setCraftingState(EnumCraftingState.MATCHED);
 
                 this.listeners.forEach(li -> li.ifPresent(l -> {
                     l.onRecipeChanged(this, this.currentRecipe);
@@ -379,6 +380,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         });
     }
 
+    // TODO - Basic data class codec for necessary info ?
+    
     @Override
     public CompoundNBT serverData() {
         CompoundNBT nbt = new CompoundNBT();
@@ -387,8 +390,10 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         nbt.putString("state", craftingState.name());
 
-        if (currentRecipe != null)
+        if (currentRecipe != null) {
             nbt.putString("recipe", currentRecipe.getId().toString());
+            nbt.putInt("progress", craftingProgress);
+        }
 
         return nbt;
     }
@@ -400,6 +405,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         // temp load recipe
         if (nbt.contains("recipe")) {
             this.recipeId = new ResourceLocation(nbt.getString("recipe"));
+            this.craftingProgress = nbt.getInt("progress");
         }
     }
 

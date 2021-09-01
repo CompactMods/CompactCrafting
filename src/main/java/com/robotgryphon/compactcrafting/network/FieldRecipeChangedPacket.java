@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.network;
 
+import javax.annotation.Nullable;
 import java.util.function.Supplier;
 import com.robotgryphon.compactcrafting.client.ClientPacketHandler;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
@@ -12,21 +13,30 @@ import net.minecraftforge.fml.network.NetworkEvent;
 public class FieldRecipeChangedPacket {
 
     private final BlockPos fieldCenter;
+
+    @Nullable
     private final ResourceLocation recipe;
 
     public FieldRecipeChangedPacket(IMiniaturizationField field) {
         this.fieldCenter = field.getCenter();
-        this.recipe = field.getCurrentRecipe().map(IMiniaturizationRecipe::getId).orElse(null);
+        this.recipe = field.getCurrentRecipe()
+                .map(IMiniaturizationRecipe::getId)
+                .orElse(null);
     }
 
     public FieldRecipeChangedPacket(PacketBuffer buf) {
         this.fieldCenter = buf.readBlockPos();
-        this.recipe = ResourceLocation.tryParse(buf.readUtf());
+        if(buf.readBoolean())
+            this.recipe = ResourceLocation.tryParse(buf.readUtf());
+        else
+            this.recipe = null;
     }
 
     public static void encode(FieldRecipeChangedPacket pkt, PacketBuffer buf) {
         buf.writeBlockPos(pkt.fieldCenter);
-        buf.writeUtf(pkt.recipe.toString());
+        buf.writeBoolean(pkt.recipe != null);
+        if(pkt.recipe != null)
+            buf.writeUtf(pkt.recipe.toString());
     }
 
     public static boolean handle(FieldRecipeChangedPacket pkt, Supplier<NetworkEvent.Context> context) {
