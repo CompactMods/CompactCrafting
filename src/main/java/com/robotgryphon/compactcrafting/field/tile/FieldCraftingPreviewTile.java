@@ -4,10 +4,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SUpdateTileEntityPacket;
@@ -17,9 +20,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.util.LazyOptional;
 
+@Deprecated
 public class FieldCraftingPreviewTile extends TileEntity implements ITickableTileEntity {
-
-    // TODO - Treat this like a field listener (read: proxies) and move the progress to the field
 
     @Nonnull
     private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
@@ -28,6 +30,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     @Nullable
     private IMiniaturizationRecipe recipe;
     private ResourceLocation recipeId;
+    private LazyOptional<IActiveWorldFields> worldFields = LazyOptional.empty();
 
     public FieldCraftingPreviewTile() {
         super(Registration.FIELD_CRAFTING_PREVIEW_TILE.get());
@@ -43,17 +46,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     }
 
     public void setField(IMiniaturizationField field) {
-        this.field = LazyOptional.of(() -> field);
 
-        updateRecipe(field.getCurrentRecipe().orElse(null));
-
-        // Add invalidation listener so if the field invalidates, this block vanishes and the craft is lost
-        this.field.addListener(f -> {
-            if(level != null)
-                level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
-        });
-
-        this.setChanged();
     }
 
     @Override
@@ -63,22 +56,21 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
 
     @Override
     public void tick() {
-        this.craftingProgress++;
         if (level == null || level.isClientSide) {
             return;
         }
 
-        if(recipe == null || recipeId == null) {
+        if (recipe == null || recipeId == null) {
             level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
             return;
         }
 
-        // TODO - Clean this up, potential for crash
-        // https://discord.com/channels/765363477186740234/851154648140218398/852552351436374066
-        if (this.craftingProgress >= recipe.getCraftingTime()) {
-            field.ifPresent(IMiniaturizationField::completeCraft);
-            level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
+        for (ItemStack is : recipe.getOutputs()) {
+            ItemEntity itemEntity = new ItemEntity(level, worldPosition.getX() + 0.5f, worldPosition.getY() + 0.5f, worldPosition.getZ() + 0.5f, is);
+            level.addFreshEntity(itemEntity);
         }
+
+        level.setBlockAndUpdate(worldPosition, Blocks.AIR.defaultBlockState());
     }
 
     @Override
@@ -92,29 +84,17 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     @Override
     public void onLoad() {
         super.onLoad();
-
-        if(!field.isPresent() && level != null) {
-            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                .ifPresent(fields -> {
-                    this.field = fields.getLazy(worldPosition);
-                });
+        if (level != null) {
+            worldFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+            recipe = (IMiniaturizationRecipe) level.getRecipeManager().byKey(recipeId).orElse(null);
         }
-
-        field.ifPresent(f -> {
-            updateRecipe(f.getCurrentRecipe().orElse(null));
-        });
-    }
-
-    private void updateRecipe(IMiniaturizationRecipe rec) {
-        this.recipe = rec;
-        this.recipeId = rec != null ? rec.getId() : null;
     }
 
     @Override
     public CompoundNBT save(CompoundNBT compound) {
         super.save(compound);
         compound.putInt("progress", craftingProgress);
-        if(recipeId != null)
+        if (recipeId != null)
             compound.putString("recipe", recipeId.toString());
 
         return compound;
@@ -136,8 +116,11 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     }
 
     public void setRecipe(IMiniaturizationRecipe recipe) {
-        this.recipeId = recipe.getId();
-        this.recipe = recipe;
+        if (recipe != null) {
+            this.recipe = recipe;
+            this.recipeId = recipe.getId();
+            this.craftingProgress = 0;
+        }
 
         setChanged();
     }

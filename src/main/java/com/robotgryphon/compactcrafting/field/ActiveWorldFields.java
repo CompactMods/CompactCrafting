@@ -71,10 +71,14 @@ public class ActiveWorldFields implements IActiveWorldFields {
         });
     }
 
-    public void unregisterField(IMiniaturizationField field) {
-        BlockPos center = field.getCenter();
+    public void unregisterField(BlockPos center) {
         fields.remove(center);
         laziness.remove(center);
+    }
+
+    public void unregisterField(IMiniaturizationField field) {
+        BlockPos center = field.getCenter();
+        unregisterField(center);
     }
 
     public LazyOptional<IMiniaturizationField> getLazy(BlockPos center) {
@@ -97,7 +101,5 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .stream()
                 .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
                 .map(Map.Entry::getValue);
-
-
     }
 }

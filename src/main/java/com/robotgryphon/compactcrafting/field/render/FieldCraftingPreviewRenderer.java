@@ -43,7 +43,7 @@ public class FieldCraftingPreviewRenderer extends TileEntityRenderer<FieldCrafti
             double craftProgress = tile.getProgress();
 
 
-            double scale = MathUtil.calculateScale(craftProgress + 3, recipe.getCraftingTime());
+            double scale = MathUtil.calculateFieldScale(craftProgress + 3, recipe.getCraftingTime());
 
             mx.scale((float) scale, (float) scale, (float) scale);
 

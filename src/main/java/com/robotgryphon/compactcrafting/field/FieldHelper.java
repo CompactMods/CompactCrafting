@@ -38,7 +38,7 @@ public abstract class FieldHelper {
                 .ifPresent(fields -> {
                     fields.getFields()
                             .filter(field -> field.getBounds().contains(centerBlockChanged))
-                            .forEach(IMiniaturizationField::markFieldChanged);
+                            .forEach(IMiniaturizationField::fieldContentsChanged);
                 });
         }
     }

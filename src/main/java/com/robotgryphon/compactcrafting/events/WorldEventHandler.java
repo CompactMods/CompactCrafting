@@ -31,7 +31,7 @@ public class WorldEventHandler {
                         fields.getFields().forEach(f -> {
                             f.setLevel(level);
                             f.checkLoaded();
-                            if(f.isLoaded()) f.markFieldChanged();
+                            if(f.isLoaded()) f.fieldContentsChanged();
                         });
                     });
         }

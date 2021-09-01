@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 import dev.compactmods.compactcrafting.api.crafting.EnumCraftingState;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -40,19 +41,53 @@ public interface IMiniaturizationField {
 
     void setCraftingState(EnumCraftingState state);
 
-    default void tick() {}
+    default void tick() {
+    }
 
     boolean isLoaded();
 
-    default void checkLoaded() {}
+    default void checkLoaded() {
+    }
 
-    void markFieldChanged();
+    void fieldContentsChanged();
 
     void setLevel(World level);
 
     void registerListener(LazyOptional<IFieldListener> listener);
 
-    CompoundNBT save();
+    CompoundNBT serverData();
 
-    void load(CompoundNBT nbt);
+    void loadServerData(CompoundNBT nbt);
+
+    default CompoundNBT clientData() {
+        CompoundNBT data = new CompoundNBT();
+        data.putLong("center", getCenter().asLong());
+        data.putString("size", getFieldSize().name());
+
+        Optional<IMiniaturizationRecipe> currentRecipe = getCurrentRecipe();
+        currentRecipe.ifPresent(r -> {
+            CompoundNBT recipe = new CompoundNBT();
+            recipe.putString("id", r.getId().toString());
+            recipe.putInt("progress", getProgress());
+
+            data.put("recipe", recipe);
+        });
+
+        return data;
+    }
+
+    default void loadClientData(CompoundNBT nbt) {
+        this.setCenter(BlockPos.of(nbt.getLong("center")));
+        this.setSize(FieldProjectionSize.valueOf(nbt.getString("size")));
+
+        if (nbt.contains("recipe")) {
+            CompoundNBT recipe = nbt.getCompound("recipe");
+            this.setRecipe(new ResourceLocation(recipe.getString("id")));
+            this.setProgress(recipe.getInt("progress"));
+        }
+    }
+
+    void setProgress(int progress);
+
+    void setRecipe(ResourceLocation id);
 }

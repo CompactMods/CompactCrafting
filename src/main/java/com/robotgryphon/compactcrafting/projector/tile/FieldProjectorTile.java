@@ -1,15 +1,18 @@
 package com.robotgryphon.compactcrafting.projector.tile;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Optional;
 import com.robotgryphon.compactcrafting.Registration;
-import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityActiveWorldFields;
 import com.robotgryphon.compactcrafting.field.capability.CapabilityMiniaturizationField;
-import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
-import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import com.robotgryphon.compactcrafting.network.FieldDeactivatedPacket;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.field.IActiveWorldFields;
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
@@ -20,10 +23,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Optional;
 
 public class FieldProjectorTile extends TileEntity {
 
@@ -71,16 +70,17 @@ public class FieldProjectorTile extends TileEntity {
             center = new BlockPos(fieldBounds.getCenter());
         }
 
-        if (this.level != null && !level.isClientSide) {
+        if (this.level != null) {
             this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
-            levelFields.ifPresent(af -> {
-                if (!af.hasActiveField(center)) {
-                    af.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
-                }
-
-                this.fieldCap = af.getLazy(center);
-            });
         }
+
+        levelFields.ifPresent(fields -> {
+            if(!level.isClientSide && !fields.hasActiveField(center)) {
+                fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+            }
+
+            this.fieldCap = fields.getLazy(center);
+        });
     }
 
     @Override
@@ -180,5 +180,9 @@ public class FieldProjectorTile extends TileEntity {
             return fieldBounds.inflate(10);
 
         return new AxisAlignedBB(worldPosition).inflate(20);
+    }
+
+    public LazyOptional<IMiniaturizationField> getField() {
+        return this.fieldCap;
     }
 }

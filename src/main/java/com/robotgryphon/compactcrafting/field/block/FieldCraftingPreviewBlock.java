@@ -1,5 +1,6 @@
 package com.robotgryphon.compactcrafting.field.block;
 
+import javax.annotation.Nullable;
 import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -10,8 +11,6 @@ import net.minecraft.util.math.shapes.ISelectionContext;
 import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
-
-import javax.annotation.Nullable;
 
 public class FieldCraftingPreviewBlock extends Block {
     public FieldCraftingPreviewBlock(Properties properties) {
@@ -26,10 +25,17 @@ public class FieldCraftingPreviewBlock extends Block {
     @Nullable
     @Override
     public TileEntity createTileEntity(BlockState state, IBlockReader world) {
+//        if(world instanceof ICapabilityProvider) {
+//            ICapabilityProvider cap = ((ICapabilityProvider) world);
+//            final LazyOptional<IActiveWorldFields> fields = cap.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+//
+//            fields.ifPresent(f -> f.get());
+//        }
         return new FieldCraftingPreviewTile();
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public VoxelShape getShape(BlockState p_220053_1_, IBlockReader p_220053_2_, BlockPos p_220053_3_, ISelectionContext p_220053_4_) {
         return VoxelShapes.empty();
     }

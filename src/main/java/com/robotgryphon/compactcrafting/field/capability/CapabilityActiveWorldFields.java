@@ -31,7 +31,7 @@ public class CapabilityActiveWorldFields {
                     public INBT writeNBT(Capability<IActiveWorldFields> capability, IActiveWorldFields instance, Direction side) {
                         // do stuff
                         ListNBT list = instance.getFields()
-                            .map(IMiniaturizationField::save)
+                            .map(IMiniaturizationField::serverData)
                             .collect(NbtListCollector.toNbtList());
 
                         return list;
@@ -53,7 +53,7 @@ public class CapabilityActiveWorldFields {
                             BlockPos center = NBTUtil.readBlockPos(f.getCompound("center"));
 
                             MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
-                            field.load(f);
+                            field.loadServerData(f);
 
                             instance.registerField(field);
                         });
