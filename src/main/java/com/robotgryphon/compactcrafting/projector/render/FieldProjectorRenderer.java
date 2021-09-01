@@ -4,14 +4,11 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.client.ClientConfig;
-import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
-import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
 import com.robotgryphon.compactcrafting.projector.EnumProjectorColorType;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.projector.tile.FieldProjectorTile;
 import com.robotgryphon.compactcrafting.util.MathUtil;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
-import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -26,17 +23,13 @@ import net.minecraft.util.ColorHelper;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraft.world.IWorldReader;
 import net.minecraftforge.client.model.ModelDataManager;
 import net.minecraftforge.client.model.data.IModelData;
 import net.minecraftforge.common.util.LazyOptional;
-
-import java.util.Optional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
 
@@ -72,15 +65,14 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        Optional<AxisAlignedBB> fieldBounds = tile.getFieldBounds();
+        LazyOptional<IMiniaturizationField> fieldRef = tile.getField();
 
-        fieldBounds.ifPresent(bounds -> {
-            float scale = (float) getCraftingScale(tile.getLevel(), new BlockPos(bounds.getCenter()));
+        fieldRef.ifPresent(field -> {
+            double scale = MathUtil.calculateFieldScale(field);
 
-            bounds = bounds.deflate((1 - scale) * (bounds.getSize() / 2));
+            AxisAlignedBB bounds = field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
 
             matrixStack.pushPose();
-
 
             drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
             drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
@@ -102,33 +94,6 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         return bakedModelCached;
     }
-
-    /**
-     * Scaled value between 0 and 1 depending on how far along the crafting is.
-     * @param level
-     * @param fieldCenter
-     * @return 0 is done, 1 is not yet started.
-     */
-    private double getCraftingScale(IWorldReader level, BlockPos fieldCenter) {
-        BlockState centerState = level.getBlockState(fieldCenter);
-        if (centerState.getBlock() instanceof FieldCraftingPreviewBlock) {
-            FieldCraftingPreviewTile preview = (FieldCraftingPreviewTile) level.getBlockEntity(fieldCenter);
-
-            // No preview tile found, not actually crafting rn
-            if (preview == null)
-                return 1;
-
-            final IMiniaturizationRecipe recipe = preview.getRecipe();
-            double progress = preview.getProgress();
-            double requiredTime = recipe != null ? Math.max(1, recipe.getCraftingTime()) : 1;
-
-            return MathUtil.calculateScale(progress, requiredTime);
-        }
-
-        return 1;
-    }
-
-
 
     private void renderDish(FieldProjectorTile te, MatrixStack mx, IRenderTypeBuffer buffer, int combinedLight, int combinedOverlay, long gameTime) {
 

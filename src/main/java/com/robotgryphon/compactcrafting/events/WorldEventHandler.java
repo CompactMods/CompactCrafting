@@ -23,7 +23,7 @@ public class WorldEventHandler {
     @SubscribeEvent
     public static void onServerStarted(final FMLServerStartedEvent evt) {
         CompactCrafting.LOGGER.trace("Server started; calling previously active fields to validate themselves.");
-        for(ServerWorld level : evt.getServer().getAllLevels()) {
+        for (ServerWorld level : evt.getServer().getAllLevels()) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                     .resolve()
                     .ifPresent(fields -> {
@@ -31,7 +31,6 @@ public class WorldEventHandler {
                         fields.getFields().forEach(f -> {
                             f.setLevel(level);
                             f.checkLoaded();
-                            if(f.isLoaded()) f.markFieldChanged();
                         });
                     });
         }
@@ -39,7 +38,7 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onWorldTick(final TickEvent.WorldTickEvent evt) {
-        if(evt.phase != TickEvent.Phase.START) return;
+        if (evt.phase != TickEvent.Phase.START) return;
 
         evt.world.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                 .ifPresent(IActiveWorldFields::tickFields);
@@ -47,12 +46,12 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onChunkLoadStatusChanged(final ChunkEvent cEvent) {
-        if(cEvent instanceof ChunkEvent.Load || cEvent instanceof ChunkEvent.Unload) {
+        if (cEvent instanceof ChunkEvent.Load || cEvent instanceof ChunkEvent.Unload) {
             final Chunk chunk = (Chunk) cEvent.getChunk();
             final World level = chunk.getLevel();
 
             final MinecraftServer server = level.getServer();
-            if(server != null) {
+            if (server != null) {
                 server.tell(new TickDelayedTask(server.getTickCount() + 10, () -> {
                     BlockPos chunkCenter = chunk.getPos()
                             .getWorldPosition()
@@ -61,13 +60,7 @@ public class WorldEventHandler {
                     // Run through all the fields near the chunk and
                     level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                             .ifPresent(fields -> {
-                                fields.getFields()
-                                        .filter(field -> {
-                                            BlockPos fc = field.getCenter();
-                                            final double dist = chunkCenter.above(fc.getY()).distSqr(fc);
-                                            return dist <= 32;
-                                        })
-                                        .forEach(IMiniaturizationField::checkLoaded);
+                                fields.getFields(chunk.getPos()).forEach(IMiniaturizationField::checkLoaded);
                             });
                 }));
             }

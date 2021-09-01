@@ -44,7 +44,7 @@ public class RescanFieldProxyBlock extends FieldProxyBlock {
 
             if (tile != null) {
                 tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
-                        .ifPresent(IMiniaturizationField::markFieldChanged);
+                        .ifPresent(IMiniaturizationField::fieldContentsChanged);
             }
         }
     }

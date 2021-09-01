@@ -1,14 +1,12 @@
 package com.robotgryphon.compactcrafting;
 
 import com.robotgryphon.compactcrafting.client.ClientConfig;
-import com.robotgryphon.compactcrafting.client.ClientSetup;
 import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.recipes.components.ComponentRegistration;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.ui.container.ContainerRegistration;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -30,10 +28,7 @@ public class CompactCrafting
     public static final ItemGroup ITEM_GROUP = new CCItemGroup();
 
     public CompactCrafting() {
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-
-        forgeBus.register(ClientSetup.class);
 
         modBus.addListener(this::setup);
 

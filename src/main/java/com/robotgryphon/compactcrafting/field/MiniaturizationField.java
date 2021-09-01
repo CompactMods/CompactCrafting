@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
 import com.robotgryphon.compactcrafting.crafting.CraftingHelper;
-import com.robotgryphon.compactcrafting.field.block.FieldCraftingPreviewBlock;
-import com.robotgryphon.compactcrafting.field.tile.FieldCraftingPreviewTile;
+import com.robotgryphon.compactcrafting.network.FieldRecipeChangedPacket;
+import com.robotgryphon.compactcrafting.network.NetworkHandler;
 import com.robotgryphon.compactcrafting.projector.block.FieldProjectorBlock;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
@@ -18,7 +18,6 @@ import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import dev.compactmods.compactcrafting.api.field.IFieldListener;
 import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
 import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -27,7 +26,6 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.particles.ParticleTypes;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -36,6 +34,7 @@ import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 public class MiniaturizationField implements IMiniaturizationField {
 
@@ -53,6 +52,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     private long rescanTime;
 
     private World level;
+    private int craftingProgress = 0;
 
     private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
 
@@ -92,16 +92,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (craftingState != EnumCraftingState.CRAFTING)
             return 0;
 
-        BlockState stateCenter = level.getBlockState(center);
-        if (!(stateCenter.getBlock() instanceof FieldCraftingPreviewBlock))
-            return 0;
-
-        TileEntity previewTile = level.getBlockEntity(center);
-        if (previewTile instanceof FieldCraftingPreviewTile) {
-            return ((FieldCraftingPreviewTile) previewTile).getProgress();
-        }
-
-        return 0;
+        return craftingProgress;
     }
 
     @Override
@@ -113,23 +104,22 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void getRecipeFromId() {
         // Load recipe information from temporary id variable
-        if (this.recipeId != null) {
+        if (level != null && this.recipeId != null) {
             final Optional<? extends IRecipe<?>> r = level.getRecipeManager().byKey(recipeId);
-            if(!r.isPresent()) {
+            if (!r.isPresent()) {
                 clearRecipe();
                 return;
             }
 
             r.ifPresent(rec -> {
                 this.currentRecipe = (MiniaturizationRecipe) rec;
-                this.craftingState = EnumCraftingState.MATCHED;
+                if(craftingState == EnumCraftingState.NOT_MATCHED)
+                    setCraftingState(EnumCraftingState.MATCHED);
 
-                this.listeners.forEach(li -> {
-                    li.ifPresent(l -> {
-                        l.onRecipeChanged(this, this.currentRecipe);
-                        l.onRecipeMatched(this, this.currentRecipe);
-                    });
-                });
+                this.listeners.forEach(li -> li.ifPresent(l -> {
+                    l.onRecipeChanged(this, this.currentRecipe);
+                    l.onRecipeMatched(this, this.currentRecipe);
+                }));
             });
         } else {
             clearRecipe();
@@ -159,7 +149,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void clearBlocks() {
         // Remove blocks from the world
         getFilledBlocks()
-                .sorted(Comparator.comparingInt(Vector3i::getY).reversed())
+                .sorted(Comparator.comparingInt(Vector3i::getY).reversed()) // top down so stuff like redstone doesn't drop as items
                 .forEach(blockPos -> {
                     level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
@@ -179,14 +169,13 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void clearRecipe() {
         this.recipeId = null;
         this.currentRecipe = null;
-        this.craftingState = EnumCraftingState.NOT_MATCHED;
+        this.craftingProgress = 0;
+        setCraftingState(EnumCraftingState.NOT_MATCHED);
 
-        listeners.forEach(l -> {
-            l.ifPresent(listener -> {
-                listener.onRecipeChanged(this, this.currentRecipe);
-                listener.onRecipeCleared(this);
-            });
-        });
+        listeners.forEach(l -> l.ifPresent(listener -> {
+            listener.onRecipeChanged(this, this.currentRecipe);
+            listener.onRecipeCleared(this);
+        }));
     }
 
     @Override
@@ -202,14 +191,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         IMiniaturizationRecipe completed = this.currentRecipe;
 
         clearRecipe();
-        this.craftingState = EnumCraftingState.NOT_MATCHED;
 
-        listeners.forEach(l -> {
-            l.ifPresent(listener -> {
-                listener.onRecipeCompleted(this, completed);
-            });
-        });
-
+        listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
     }
 
     @Override
@@ -236,40 +219,36 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void tickCrafting() {
         AxisAlignedBB fieldBounds = getBounds();
 
-        // Get out, client worlds
-        if (level == null || level.isClientSide())
+        if (level == null || this.currentRecipe == null)
             return;
 
-        if (this.currentRecipe == null)
-            return;
 
-        // We grow the bounds check here a little to support patterns that are exactly the size of the field
-        List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
-        if (catalystEntities.size() > 0) {
-            // We dropped a catalyst item in
-            // At this point, we had a valid recipe and a valid catalyst entity
-            // Start crafting
-            switch (craftingState) {
-                case MATCHED:
-                    this.craftingState = EnumCraftingState.CRAFTING;
+        switch (craftingState) {
+            case MATCHED:
 
-                    // We know the "recipe" in the field is an exact match already, so wipe the field
-                    clearBlocks();
+                // We grow the bounds check here a little to support patterns that are exactly the size of the field
+                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
+                if (catalystEntities.size() > 0) {
 
-                    CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
+                    // Only remove items and clear the field on servers
+                    if (!level.isClientSide) {
+                        CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
-                    BlockPos centerField = getCenter();
-                    level.setBlockAndUpdate(centerField, Registration.FIELD_CRAFTING_PREVIEW_BLOCK.get().defaultBlockState());
+                        // We know the "recipe" in the field is an exact match already, so wipe the field
+                        clearBlocks();
+                    }
 
-                    FieldCraftingPreviewTile tile = (FieldCraftingPreviewTile) level.getBlockEntity(centerField);
-                    if (tile != null)
-                        tile.setField(this);
+                    setCraftingState(EnumCraftingState.CRAFTING);
+                }
 
-                    break;
+                break;
 
-                case CRAFTING:
-                    break;
-            }
+            case CRAFTING:
+                craftingProgress++;
+                if (craftingProgress >= currentRecipe.getCraftingTime())
+                    this.completeCraft();
+
+                break;
         }
     }
 
@@ -286,7 +265,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         Stream<BlockPos> filledBlocks = getFilledBlocks();
 
         // If no positions filled, exit early
-        if (filledBlocks.count() == 0) {
+        if (!filledBlocks.findAny().isPresent()) {
             clearRecipe();
             return;
         }
@@ -325,15 +304,33 @@ public class MiniaturizationField implements IMiniaturizationField {
                 continue;
 
             matchedRecipe = recipe;
-            this.craftingState = EnumCraftingState.MATCHED;
             break;
         }
 
-        this.currentRecipe = matchedRecipe;
-        MiniaturizationRecipe finalMatchedRecipe = matchedRecipe;
+        setRecipe(matchedRecipe);
+    }
+
+    private void setRecipe(MiniaturizationRecipe recipe) {
+        this.currentRecipe = recipe;
+        this.recipeId = recipe != null ? recipe.getId() : null;
+        this.craftingProgress = 0;
+
+        setCraftingState(recipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
+
+        // Send tracking client updates
+        if(!level.isClientSide) {
+            NetworkHandler.MAIN_CHANNEL.send(
+                    PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(center)),
+                    new FieldRecipeChangedPacket(this)
+            );
+        }
+
+        // Update all listeners as well
         listeners.forEach(l -> l.ifPresent(fl -> {
-            fl.onRecipeChanged(this, finalMatchedRecipe);
-            fl.onRecipeMatched(this, finalMatchedRecipe);
+            fl.onRecipeChanged(this, recipe);
+
+            if(craftingState == EnumCraftingState.MATCHED)
+                fl.onRecipeMatched(this, recipe);
         }));
     }
 
@@ -351,7 +348,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public boolean isLoaded() {
-        return loaded;
+        return loaded || level.isClientSide;
     }
 
     public void checkLoaded() {
@@ -359,17 +356,15 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {
-            getProjectorPositions().forEach(proj -> {
-                FieldProjectorBlock.activateProjector(level, proj, this.size);
-            });
+            getProjectorPositions().forEach(proj -> FieldProjectorBlock.activateProjector(level, proj, this.size));
 
             listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
         }
     }
 
     @Override
-    public void markFieldChanged() {
-        // clear the recipe immediately so people can't dupe items or juke the projectors
+    public void fieldContentsChanged() {
+        // clear the recipe immediately so people can't dupe items or break the projectors
         this.clearRecipe();
 
         // set a distant rescan duration to make the field revalidate itself after a second or two
@@ -385,27 +380,43 @@ public class MiniaturizationField implements IMiniaturizationField {
         });
     }
 
+    // TODO - Basic data class codec for necessary info ?
+    
     @Override
-    public CompoundNBT save() {
+    public CompoundNBT serverData() {
         CompoundNBT nbt = new CompoundNBT();
         nbt.putString("size", size.name());
         nbt.put("center", NBTUtil.writeBlockPos(center));
 
         nbt.putString("state", craftingState.name());
 
-        if (currentRecipe != null)
+        if (currentRecipe != null) {
             nbt.putString("recipe", currentRecipe.getId().toString());
+            nbt.putInt("progress", craftingProgress);
+        }
 
         return nbt;
     }
 
     @Override
-    public void load(CompoundNBT nbt) {
+    public void loadServerData(CompoundNBT nbt) {
         this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
 
         // temp load recipe
         if (nbt.contains("recipe")) {
             this.recipeId = new ResourceLocation(nbt.getString("recipe"));
+            this.craftingProgress = nbt.getInt("progress");
         }
+    }
+
+    @Override
+    public void setProgress(int progress) {
+        this.craftingProgress = progress;
+    }
+
+    @Override
+    public void setRecipe(ResourceLocation id) {
+        this.recipeId = id;
+        getRecipeFromId();
     }
 }

@@ -17,6 +17,7 @@ public interface IActiveWorldFields {
 
     void registerField(IMiniaturizationField field);
 
+    void unregisterField(BlockPos center);
     void unregisterField(IMiniaturizationField field);
 
     Optional<IMiniaturizationField> get(BlockPos center);

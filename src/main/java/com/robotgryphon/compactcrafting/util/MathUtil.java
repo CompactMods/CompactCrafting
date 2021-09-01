@@ -1,7 +1,15 @@
 package com.robotgryphon.compactcrafting.util;
 
+import dev.compactmods.compactcrafting.api.field.IMiniaturizationField;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+
 public class MathUtil {
-    public static double calculateScale(double progress, double requiredTime) {
+    public static double calculateFieldScale(IMiniaturizationField field) {
+        double requiredTime = field.getCurrentRecipe().map(IMiniaturizationRecipe::getCraftingTime).orElse(1);
+        return calculateFieldScale(field.getProgress(), requiredTime);
+    }
+
+    public static double calculateFieldScale(double progress, double requiredTime) {
         double waveDensity = 0.3d;
         double h = 0.2d;
         double p = 1 - (progress / requiredTime);
