@@ -60,6 +60,14 @@ sourceSets {
     }
 }
 
+def unitTestClasses = String.join(File.pathSeparator,
+        "${mod_id}%%${sourceSets.api.output.resourcesDir}",
+        "${mod_id}%%${sourceSets.main.output.resourcesDir}",
+        "${mod_id}%%${sourceSets.test.output.resourcesDir}",
+        "${mod_id}%%${sourceSets.api.output.classesDirs.asPath}",
+        "${mod_id}%%${sourceSets.main.output.classesDirs.asPath}",
+        "${mod_id}%%${sourceSets.test.output.classesDirs.asPath}");
+
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -131,18 +139,15 @@ minecraft {
             parent runs.server // This run config inherits settings from the server config
             workingDirectory project.file('run/test')
             main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
-            ideaModule "${project.name}.test" // Tell IDEA to use the classpath of the test module
-            property 'forge.logging.console.level', 'unittest' // This logging level prevents any other server information messages and leaves only the unit test output
-            environment 'MOD_CLASSES', String.join(File.pathSeparator,
-                    "${mod_id}%%${sourceSets.main.output.resourcesDir}",
-                    "${mod_id}%%${sourceSets.main.output.classesDirs[0]}",
-                    "${mod_id}%%${sourceSets.test.output.resourcesDir}",
-                    "${mod_id}%%${sourceSets.test.output.classesDirs[0]}",
-            ) // Forge will ignore all test sources unless we explicitly tell it to include them as mod sources
-            environment 'target', 'fmltestserver' // This is a custom service used to launch with ModLauncher's transforming class loader
+            ideaModule "${project.name}.test"
+            property 'forge.logging.console.level', 'unittest'
+            environment 'MOD_CLASSES', unitTestClasses
+            environment 'target', 'fmltestserver'
+            environment 'targetModId', "${mod_id}"
             mods {
-                source sourceSets.main
-                source sourceSets.api
+                compactcrafting {
+                    sources sourceSets.main, sourceSets.api, sourceSets.test
+                }
             }
         }
     }
@@ -199,7 +204,7 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:1.3.3-${minecraft_version}")
+    testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:1.4.1-${minecraft_version}")
 
     // Deobfuscate each dev mod for runtime
     dev_mods.each {
@@ -236,7 +241,7 @@ jar {
 
 task apiJar(type: Jar) {
     // Sources included because of MinecraftForge/ForgeGradle#369
-    from(sourceSets.api.output)
+    from sourceSets.api.output
     archiveClassifier = 'api'
     destinationDirectory = file("$rootDir/build-out")
 }
@@ -249,6 +254,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             artifactId = mod_id
+            group = "dev.compactmods"
             artifacts {
                 artifact jar
                 artifact(apiJar) {
@@ -259,10 +265,9 @@ publishing {
 
         nightlyMaven(MavenPublication) {
             artifactId = mod_id
+            group = "dev.compactmods.nightly"
             artifacts {
-                artifact(jar) {
-                    group = "dev.compactmods.nightly"
-                }
+                artifact(jar)
                 artifact(apiJar) {
                     classifier = "api"
                 }
