@@ -1,21 +1,20 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.robotgryphon.compactcrafting.Registration;
+import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
 import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer {
     private AxisAlignedBB dimensions;
@@ -73,6 +72,8 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
+        if(!blocks.allIdentified()) return false;
+
         return componentLookup.stream()
                 .allMatch(e -> blocks.getComponentAtPosition(e.getKey())
                     .map(e.getValue()::equals)

@@ -1,17 +1,10 @@
 package com.robotgryphon.compactcrafting.recipes;
 
+import java.util.*;
+import java.util.stream.Stream;
 import com.google.common.collect.ImmutableList;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
-import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
-import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
-import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
-import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
-import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
-import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
-import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
 import com.robotgryphon.compactcrafting.field.MiniaturizationField;
 import com.robotgryphon.compactcrafting.recipes.components.CCMiniRecipeComponents;
 import com.robotgryphon.compactcrafting.recipes.components.EmptyBlockComponent;
@@ -21,6 +14,15 @@ import com.robotgryphon.compactcrafting.recipes.layers.RecipeLayerUtil;
 import com.robotgryphon.compactcrafting.recipes.setup.RecipeBase;
 import com.robotgryphon.compactcrafting.server.ServerConfig;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.field.FieldProjectionSize;
+import dev.compactmods.compactcrafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.compactcrafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
@@ -31,9 +33,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.IWorldReader;
-
-import java.util.*;
-import java.util.stream.Stream;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
@@ -235,6 +234,10 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
             IRecipeLayer targetLayer = layer.get();
 
+            // If the layer spec requires all components to be known (by default) then check early
+            if(targetLayer.requiresAllBlocksIdentified() && !blocks.allIdentified())
+                return false;
+
             boolean layerMatched = targetLayer.matches(components, blocks);
 
             if (!layerMatched) {
@@ -350,6 +353,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
 
     @Override
+    public ResourceLocation getId() {
+        return this.id;
+    }
+
+    @Override
     public IRecipeSerializer<?> getSerializer() {
         return Registration.MINIATURIZATION_SERIALIZER.get();
     }
@@ -360,7 +368,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     @Override
-    public ResourceLocation getId() {
+    public ResourceLocation getRecipeIdentifier() {
         return this.id;
     }
 

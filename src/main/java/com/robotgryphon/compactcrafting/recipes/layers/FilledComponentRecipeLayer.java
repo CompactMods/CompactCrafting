@@ -1,5 +1,9 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,11 +15,6 @@ import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
 
@@ -59,7 +58,9 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
+        if(!blocks.allIdentified()) return false;
+
+        Map<String, Integer> totalsInWorld = blocks.getKnownComponentTotals();
         if(totalsInWorld.size() != 1)
             return false;
 

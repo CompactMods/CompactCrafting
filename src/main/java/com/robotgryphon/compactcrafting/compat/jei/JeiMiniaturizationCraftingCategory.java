@@ -1,18 +1,22 @@
 package com.robotgryphon.compactcrafting.compat.jei;
 
+import java.nio.FloatBuffer;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.robotgryphon.compactcrafting.CompactCrafting;
 import com.robotgryphon.compactcrafting.Registration;
-import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
-import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import com.robotgryphon.compactcrafting.client.fakeworld.RenderingWorld;
 import com.robotgryphon.compactcrafting.projector.render.CCRenderTypes;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.recipes.components.BlockComponent;
 import com.robotgryphon.compactcrafting.ui.ScreenArea;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import dev.compactmods.compactcrafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.compactcrafting.api.components.IRecipeComponents;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayer;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -48,11 +52,6 @@ import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import org.lwjgl.BufferUtils;
-
-import java.nio.FloatBuffer;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<MiniaturizationRecipe> {
 
@@ -171,7 +170,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             int fromRightEdge = this.background.getWidth() - (18 * 2) - GUTTER_X;
             addOutputSlots(recipe, fromRightEdge, 8, guiItemStacks, numComponentSlots);
         } catch (Exception ex) {
-            CompactCrafting.LOGGER.error(recipe.getId());
+            CompactCrafting.LOGGER.error(recipe.getRecipeIdentifier());
             CompactCrafting.LOGGER.error("Error displaying recipe", ex);
         }
 

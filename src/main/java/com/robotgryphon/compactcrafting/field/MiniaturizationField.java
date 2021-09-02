@@ -136,7 +136,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public Stream<BlockPos> getFilledBlocks() {
-        return BlockPos.betweenClosedStream(getBounds().contract(1, 1, 1))
+        return BlockSpaceUtil.getLayerBlockPositions(getBounds())
                 .filter(p -> !level.isEmptyBlock(p))
                 .map(BlockPos::immutable);
     }
@@ -259,6 +259,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (level == null)
             return;
 
+        // TODO - This is giving bad data with mixed layers (CM4 recipes) - fix it
+
         if (ServerConfig.FIELD_BLOCK_CHANGES.get())
             CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
@@ -312,7 +314,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void setRecipe(MiniaturizationRecipe recipe) {
         this.currentRecipe = recipe;
-        this.recipeId = recipe != null ? recipe.getId() : null;
+        this.recipeId = recipe != null ? recipe.getRecipeIdentifier() : null;
         this.craftingProgress = 0;
 
         setCraftingState(recipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
@@ -381,7 +383,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     // TODO - Basic data class codec for necessary info ?
-    
+
     @Override
     public CompoundNBT serverData() {
         CompoundNBT nbt = new CompoundNBT();
@@ -391,7 +393,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         nbt.putString("state", craftingState.name());
 
         if (currentRecipe != null) {
-            nbt.putString("recipe", currentRecipe.getId().toString());
+            nbt.putString("recipe", currentRecipe.getRecipeIdentifier().toString());
             nbt.putInt("progress", craftingProgress);
         }
 

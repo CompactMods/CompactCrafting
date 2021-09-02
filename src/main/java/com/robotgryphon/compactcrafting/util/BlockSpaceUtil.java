@@ -1,17 +1,17 @@
 package com.robotgryphon.compactcrafting.util;
 
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.vector.Vector3d;
-
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import net.minecraft.util.Rotation;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MutableBoundingBox;
+import net.minecraft.util.math.vector.Vector3d;
 
 public abstract class BlockSpaceUtil {
 
@@ -62,6 +62,12 @@ public abstract class BlockSpaceUtil {
 
         return true;
     }
+
+    @Nonnull
+    public static Stream<BlockPos> getLayerBlockPositions(AxisAlignedBB bounds) {
+        return BlockPos.betweenClosedStream(bounds.contract(1, 1, 1));
+    }
+
 
     public static AxisAlignedBB getBoundsForBlocks(BlockPos[] filled) {
         return getBoundsForBlocks(Arrays.asList(filled));

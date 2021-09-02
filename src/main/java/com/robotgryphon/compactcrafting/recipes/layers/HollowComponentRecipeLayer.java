@@ -1,5 +1,7 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,9 +13,6 @@ import dev.compactmods.compactcrafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.compactcrafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
 
@@ -59,7 +58,9 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        Map<String, Integer> totalsInWorld = blocks.getComponentTotals();
+        if(!blocks.allIdentified()) return false;
+
+        Map<String, Integer> totalsInWorld = blocks.getKnownComponentTotals();
 
         // If we don't have any of the wall components, immediately fail
         if(!totalsInWorld.containsKey(this.componentKey))

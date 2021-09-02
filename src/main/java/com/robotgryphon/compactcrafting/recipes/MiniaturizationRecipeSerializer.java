@@ -61,7 +61,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
             DataResult<INBT> encode = MiniaturizationRecipe.CODEC.encodeStart(ops, recipe);
             encode
                     .resultOrPartial(err -> {
-                        CompactCrafting.LOGGER.error(String.format("Failed to write to packet for recipe: %s", recipe.getId()));
+                        CompactCrafting.LOGGER.error(String.format("Failed to write to packet for recipe: %s", recipe.getRecipeIdentifier()));
                         CompactCrafting.LOGGER.error(err);
                     })
                     .ifPresent(nbt -> {
@@ -72,7 +72,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         }
 
         catch(NullPointerException npe) {
-            CompactCrafting.LOGGER.error(String.format("Whoops: %s", recipe.getId()), npe);
+            CompactCrafting.LOGGER.error(String.format("Whoops: %s", recipe.getRecipeIdentifier()), npe);
         }
     }
 

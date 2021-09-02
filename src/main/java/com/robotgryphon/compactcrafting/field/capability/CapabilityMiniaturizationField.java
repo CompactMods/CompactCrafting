@@ -32,7 +32,7 @@ public class CapabilityMiniaturizationField {
                         fieldInfo.putString("craftingState", instance.getCraftingState().name());
 
                         instance.getCurrentRecipe().ifPresent(rec -> {
-                            fieldInfo.putString("recipe", rec.getId().toString());
+                            fieldInfo.putString("recipe", rec.getRecipeIdentifier().toString());
                         });
 
 //                        Set<BlockPos> proxies = instance.getProxies();

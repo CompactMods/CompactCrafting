@@ -19,9 +19,7 @@ public class FieldRecipeChangedPacket {
 
     public FieldRecipeChangedPacket(IMiniaturizationField field) {
         this.fieldCenter = field.getCenter();
-        this.recipe = field.getCurrentRecipe()
-                .map(IMiniaturizationRecipe::getId)
-                .orElse(null);
+        this.recipe = field.getCurrentRecipe().map(IMiniaturizationRecipe::getRecipeIdentifier).orElse(null);
     }
 
     public FieldRecipeChangedPacket(PacketBuffer buf) {

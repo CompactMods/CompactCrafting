@@ -1,16 +1,15 @@
 package com.robotgryphon.compactcrafting.recipes.layers;
 
-import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.robotgryphon.compactcrafting.recipes.MiniaturizationRecipe;
 import com.robotgryphon.compactcrafting.util.BlockSpaceUtil;
+import dev.compactmods.compactcrafting.api.recipe.layers.IRecipeLayerBlocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
 
@@ -82,6 +81,11 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
         return this.layerBounds;
     }
 
+    @Override
+    public boolean allIdentified() {
+        return unmatchedStates.isEmpty();
+    }
+
     void rebuildComponentTotals() {
         this.componentTotals = componentKeys.entrySet()
             .stream()
@@ -120,12 +124,12 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
      * @return
      */
     @Override
-    public int getNumberUniqueComponents() {
-        return this.getComponentTotals().keySet().size();
+    public int getNumberKnownComponents() {
+        return this.getKnownComponentTotals().keySet().size();
     }
 
     @Override
-    public Map<String, Integer> getComponentTotals() {
+    public Map<String, Integer> getKnownComponentTotals() {
         return componentTotals;
     }
 }

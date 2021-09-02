@@ -68,7 +68,7 @@ public interface IMiniaturizationField {
         Optional<IMiniaturizationRecipe> currentRecipe = getCurrentRecipe();
         currentRecipe.ifPresent(r -> {
             CompoundNBT recipe = new CompoundNBT();
-            recipe.putString("id", r.getId().toString());
+            recipe.putString("id", r.getRecipeIdentifier().toString());
             recipe.putInt("progress", getProgress());
 
             data.put("recipe", recipe);

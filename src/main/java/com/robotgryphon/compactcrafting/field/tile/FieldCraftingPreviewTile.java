@@ -118,7 +118,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     public void setRecipe(IMiniaturizationRecipe recipe) {
         if (recipe != null) {
             this.recipe = recipe;
-            this.recipeId = recipe.getId();
+            this.recipeId = recipe.getRecipeIdentifier();
             this.craftingProgress = 0;
         }
 

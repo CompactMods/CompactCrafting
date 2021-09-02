@@ -12,9 +12,7 @@ public interface IMiniaturizationRecipe {
 
     ItemStack[] getOutputs();
 
-    default ResourceLocation getId() {
-        return new ResourceLocation("compactcrafting", "invalid");
-    }
+    ResourceLocation getRecipeIdentifier();
 
     int getCraftingTime();
 
