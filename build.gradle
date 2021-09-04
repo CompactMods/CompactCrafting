@@ -60,14 +60,6 @@ sourceSets {
     }
 }
 
-def unitTestClasses = String.join(File.pathSeparator,
-        "${mod_id}%%${sourceSets.api.output.resourcesDir}",
-        "${mod_id}%%${sourceSets.main.output.resourcesDir}",
-        "${mod_id}%%${sourceSets.test.output.resourcesDir}",
-        "${mod_id}%%${sourceSets.api.output.classesDirs.asPath}",
-        "${mod_id}%%${sourceSets.main.output.classesDirs.asPath}",
-        "${mod_id}%%${sourceSets.test.output.classesDirs.asPath}");
-
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
     // The mappings can be changed at any time, and must be in the following format.
@@ -110,8 +102,10 @@ minecraft {
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                source sourceSets.main
-                source sourceSets.api
+                compactcrafting {
+                    source sourceSets.main
+                    source sourceSets.api
+                }
             }
         }
 
@@ -130,23 +124,28 @@ minecraft {
             args "--existing", file("src/main/resources")
 
             mods {
-                source sourceSets.main
-                source sourceSets.api
+                compactcrafting {
+                    source sourceSets.main
+                    source sourceSets.api
+                }
             }
         }
 
         unitTests {
-            parent runs.server // This run config inherits settings from the server config
+            parent runs.server
+
             workingDirectory project.file('run/test')
             main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
             ideaModule "${project.name}.test"
             property 'forge.logging.console.level', 'unittest'
-            environment 'MOD_CLASSES', unitTestClasses
+            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
             mods {
                 compactcrafting {
-                    sources sourceSets.main, sourceSets.api, sourceSets.test
+                    source sourceSets.main
+                    source sourceSets.api
+                    source sourceSets.test
                 }
             }
         }
@@ -204,7 +203,7 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:1.4.1-${minecraft_version}")
+    testImplementation fg.deobf("com.github.CompactMods:mcjunitlib:48d0e37293")
 
     // Deobfuscate each dev mod for runtime
     dev_mods.each {
@@ -290,6 +289,6 @@ publishing {
 
 test {
     useJUnitPlatform() {
-        excludeTags "minecraft"
+         excludeTags "minecraft"
     }
 }
