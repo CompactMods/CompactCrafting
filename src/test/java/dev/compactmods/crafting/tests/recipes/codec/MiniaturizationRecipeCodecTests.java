@@ -1,10 +1,13 @@
 package dev.compactmods.crafting.tests.recipes.codec;
 
+import java.util.Map;
+import java.util.Optional;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.nbt.INBT;
@@ -13,10 +16,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.Map;
-import java.util.Optional;
-
 public class MiniaturizationRecipeCodecTests {
+
+    @Tag("minecraft")
+    @org.junit.jupiter.api.BeforeAll
+    static void BeforeAllTests() {
+        ServerConfig.RECIPE_REGISTRATION.set(true);
+        ServerConfig.RECIPE_MATCHING.set(true);
+        ServerConfig.FIELD_BLOCK_CHANGES.set(true);
+    }
 
     @Test
     @Tag("minecraft")

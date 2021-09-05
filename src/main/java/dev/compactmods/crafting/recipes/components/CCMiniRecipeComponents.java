@@ -16,13 +16,13 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
      * Contains a mapping of all known components in the recipe.
      * Vanilla style; C = CHARCOAL_BLOCK
      */
-    private Map<String, IRecipeBlockComponent> blockComponents;
+    private final Map<String, IRecipeBlockComponent> blockComponents;
 
     /**
      * Contains a mapping of non-block components in the recipe.
      * To be used for future expansion.
      */
-    private Map<String, IRecipeComponent> otherComponents;
+    private final Map<String, IRecipeComponent> otherComponents;
 
     public CCMiniRecipeComponents() {
         this.blockComponents = new HashMap<>();

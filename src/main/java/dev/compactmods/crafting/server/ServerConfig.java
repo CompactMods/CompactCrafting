@@ -6,8 +6,19 @@ public class ServerConfig {
 
     public static ForgeConfigSpec CONFIG;
 
+    /**
+     * Enabled if the user wants debug logging for the recipe registration process.
+     */
     public static ForgeConfigSpec.BooleanValue RECIPE_REGISTRATION;
+
+    /**
+     * Enabled if the user wants more logging for when blocks change near fields.
+     */
     public static ForgeConfigSpec.BooleanValue FIELD_BLOCK_CHANGES;
+
+    /**
+     * Enabled if the user requests debug logging for the recipe matching process.
+     */
     public static ForgeConfigSpec.BooleanValue RECIPE_MATCHING;
 
     static {

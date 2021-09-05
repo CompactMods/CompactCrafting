@@ -1,9 +1,5 @@
 package dev.compactmods.crafting.data;
 
-import com.google.common.collect.ImmutableSet;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -12,8 +8,16 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
+import com.google.common.collect.ImmutableSet;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
 
 public class NbtListCollector implements Collector<INBT, List<INBT>, ListNBT> {
+
+    public static List<INBT> combineLists(List<INBT> res1, List<INBT> res2) {
+        res1.addAll(res2);
+        return res1;
+    }
 
     @Override
     public Supplier<List<INBT>> supplier() {
@@ -27,10 +31,7 @@ public class NbtListCollector implements Collector<INBT, List<INBT>, ListNBT> {
 
     @Override
     public BinaryOperator<List<INBT>> combiner() {
-        return (res1, res2) -> {
-            res1.addAll(res2);
-            return res1;
-        };
+        return NbtListCollector::combineLists;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package dev.compactmods.crafting.recipes.components;
 
+import java.util.*;
+import java.util.function.Predicate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
@@ -12,12 +14,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.state.Property;
 import net.minecraft.state.StateContainer;
 
-import java.util.*;
-import java.util.function.Predicate;
-
 public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
-    public Block block;
+    private final Block block;
     private boolean erroredRendering = false;
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
@@ -31,11 +30,15 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
         return Optional.of(allowedValues);
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
-    public BlockComponent(Block block, Optional<Map<String, List<String>>> propertyRequirements) {
+    public BlockComponent(Block block) {
         this.block = block;
         this.filters = new HashMap<>();
         this.allowedValues = new HashMap<>();
+    }
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
+    public BlockComponent(Block block, Optional<Map<String, List<String>>> propertyRequirements) {
+        this(block);
 
         propertyRequirements.ifPresent(userRequestedValues -> {
             StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();

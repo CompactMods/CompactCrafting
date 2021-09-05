@@ -1,5 +1,9 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
@@ -15,12 +19,15 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
-
 public class BlockComponentTests {
+
+    @Test
+    @Tag("minecraft")
+    void CanCreateInstanceWithBlock() {
+        BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
+        Assertions.assertNotNull(component);
+        Assertions.assertEquals(Blocks.GOLD_BLOCK, component.getBlock());
+    }
 
     @Test
     @Tag("minecraft")
@@ -182,5 +189,18 @@ public class BlockComponentTests {
 
                     Assertions.assertNotNull(renderState);
                 });
+    }
+
+    @Test
+    @Tag("minecraft")
+    void CanHandleErrorRenderingChanges() {
+
+        BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
+
+        boolean freshDidNotError = component.didErrorRendering();
+        Assertions.assertFalse(freshDidNotError);
+
+        component.markRenderingErrored();
+        Assertions.assertTrue(component.didErrorRendering(), "Component did not change after marked error rendering.");
     }
 }
