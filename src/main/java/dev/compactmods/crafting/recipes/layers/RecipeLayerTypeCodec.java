@@ -14,11 +14,17 @@ public final class RecipeLayerTypeCodec implements Codec<RecipeLayerType<?>> {
 
     private RecipeLayerTypeCodec() {}
 
+    public static <T> DataResult<Pair<RecipeLayerType<?>, T>> handleDecodeResult(Pair<ResourceLocation, T> keyValuePair) {
+        ResourceLocation id = keyValuePair.getFirst();
+        if(!Registration.RECIPE_LAYER_TYPES.containsKey(id))
+            return DataResult.error("Unknown registry key: " + id);
+
+        return DataResult.success(keyValuePair.mapFirst(Registration.RECIPE_LAYER_TYPES::getValue));
+    }
+
     @Override
     public <T> DataResult<Pair<RecipeLayerType<?>, T>> decode(DynamicOps<T> ops, T input) {
-        return ResourceLocation.CODEC.decode(ops, input).flatMap(keyValuePair -> !Registration.RECIPE_LAYER_TYPES.containsKey(keyValuePair.getFirst()) ?
-                DataResult.error("Unknown registry key: " + keyValuePair.getFirst()) :
-                DataResult.success(keyValuePair.mapFirst(Registration.RECIPE_LAYER_TYPES::getValue)));
+        return ResourceLocation.CODEC.decode(ops, input).flatMap(RecipeLayerTypeCodec::handleDecodeResult);
     }
 
     @Override
