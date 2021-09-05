@@ -50,14 +50,14 @@ public abstract class BlockSpaceUtil {
         return realPositions;
     }
 
-    public static boolean boundsFitsInside(AxisAlignedBB check, AxisAlignedBB space) {
-        if(check.getZsize() > space.getZsize())
+    public static boolean boundsFitsInside(AxisAlignedBB inner, AxisAlignedBB outer) {
+        if(inner.getZsize() > outer.getZsize())
             return false;
 
-        if(check.getXsize() > space.getXsize())
+        if(inner.getXsize() > outer.getXsize())
             return false;
 
-        if(check.getYsize() > space.getYsize())
+        if(inner.getYsize() > outer.getYsize())
             return false;
 
         return true;
