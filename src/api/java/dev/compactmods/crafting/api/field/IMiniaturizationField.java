@@ -2,7 +2,7 @@ package dev.compactmods.crafting.api.field;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.crafting.EnumCraftingState;
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;

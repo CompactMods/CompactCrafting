@@ -13,7 +13,7 @@ import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import dev.compactmods.crafting.api.crafting.EnumCraftingState;
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.FieldProjectionSize;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;

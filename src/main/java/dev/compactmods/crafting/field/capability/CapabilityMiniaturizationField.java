@@ -2,7 +2,7 @@ package dev.compactmods.crafting.field.capability;
 
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.api.crafting.EnumCraftingState;
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.FieldProjectionSize;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;

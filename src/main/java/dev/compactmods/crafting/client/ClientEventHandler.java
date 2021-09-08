@@ -7,7 +7,7 @@ import dev.compactmods.crafting.field.render.CraftingPreviewRenderer;
 import dev.compactmods.crafting.network.ClientFieldUnwatchPacket;
 import dev.compactmods.crafting.network.ClientFieldWatchPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
-import dev.compactmods.crafting.api.crafting.EnumCraftingState;
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ActiveRenderInfo;
