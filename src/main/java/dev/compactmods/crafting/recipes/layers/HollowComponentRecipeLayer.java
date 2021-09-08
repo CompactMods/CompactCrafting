@@ -2,6 +2,7 @@ package dev.compactmods.crafting.recipes.layers;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -11,6 +12,7 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -47,6 +49,14 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
             return Optional.ofNullable(componentKey);
 
         return Optional.empty();
+    }
+
+    @Override
+    public Stream<BlockPos> getPositionsForComponent(String component) {
+        if(!component.equals(componentKey))
+            return Stream.empty();
+
+        return filledPositions.stream();
     }
 
     public int getNumberFilledPositions() {
@@ -100,23 +110,9 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
      */
     @Override
     public void recalculateRequirements() {
-        this.filledPositions = getWallPositions();
-    }
-
-    public Collection<BlockPos> getWallPositions() {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, recipeDimensions.getXsize() - 1, 0, recipeDimensions.getZsize() - 1);
-        AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
-
-        Set<BlockPos> positions = BlockPos.betweenClosedStream(layerBounds)
+        this.filledPositions = BlockSpaceUtil.getWallPositions(recipeDimensions)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
-
-        Set<BlockPos> inside = BlockPos.betweenClosedStream(insideBounds)
-                .map(BlockPos::immutable)
-                .collect(Collectors.toSet());
-
-        positions.removeAll(inside);
-        return positions;
     }
 
     public String getComponent() {

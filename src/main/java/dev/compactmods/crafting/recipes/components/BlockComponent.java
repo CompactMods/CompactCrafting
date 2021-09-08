@@ -2,6 +2,7 @@ package dev.compactmods.crafting.recipes.components;
 
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
@@ -17,6 +18,7 @@ import net.minecraft.state.StateContainer;
 public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     private final Block block;
+    private final Set<BlockState> validStates;
     private boolean erroredRendering = false;
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
@@ -34,43 +36,61 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
         this.block = block;
         this.filters = new HashMap<>();
         this.allowedValues = new HashMap<>();
+        this.validStates = new HashSet<>();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
     public BlockComponent(Block block, Optional<Map<String, List<String>>> propertyRequirements) {
         this(block);
 
+        StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();
         propertyRequirements.ifPresent(userRequestedValues -> {
-            StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();
-            for (Map.Entry<String, List<String>> entry : userRequestedValues.entrySet()) {
-                String propertyName = entry.getKey();
-                List<String> userFilteredProps = entry.getValue();
-
-                Property<?> prop = stateContainer.getProperty(propertyName);
-                if (prop != null) {
-
-                    List<Object> userAllowed = new ArrayList<>();
-                    List<String> propertyAcceptableValues = new ArrayList<>();
-                    for (String userValue : userFilteredProps) {
-                        prop.getValue(userValue).ifPresent(u -> {
-                            // We keep two values here - the actual property value for comparison,
-                            // and the string value the user provided (for re-serialization in the CODEC)
-                            propertyAcceptableValues.add(userValue);
-                            userAllowed.add(u);
-                        });
-                    }
-
-                    this.allowedValues.put(propertyName, propertyAcceptableValues);
-                    this.filters.put(propertyName, userAllowed::contains);
-                } else {
-                    CompactCrafting.RECIPE_LOGGER.warn("Not a valid property: " + propertyName);
-                }
+            for (Map.Entry<String, List<String>> userPropFilter : userRequestedValues.entrySet()) {
+                validateAndAddUserFilter(stateContainer, userPropFilter);
             }
         });
+
+        final Set<BlockState> valid = block.getStateDefinition()
+                .getPossibleStates()
+                .stream()
+                .filter(this::matches)
+                .collect(Collectors.toSet());
+
+        if(valid.isEmpty()) {
+            CompactCrafting.RECIPE_LOGGER.error("Too many property filters defined; no states matched after filters were applied. Opening the definition up to all possible values as a fallback.");
+            this.validStates.addAll(stateContainer.getPossibleStates());
+            this.filters.clear();
+        } else {
+            this.validStates.addAll(valid);
+        }
+    }
+
+    private void validateAndAddUserFilter(StateContainer<Block, BlockState> stateContainer, Map.Entry<String, List<String>> userPropFilter) {
+        String propertyName = userPropFilter.getKey();
+
+        Property<?> prop = stateContainer.getProperty(propertyName);
+        if (prop == null) {
+            CompactCrafting.RECIPE_LOGGER.warn("Not a valid property: " + propertyName);
+            return;
+        }
+
+        List<Object> userAllowed = new ArrayList<>();
+        List<String> propertyAcceptableValues = new ArrayList<>();
+        for (String userValue : userPropFilter.getValue()) {
+            prop.getValue(userValue).ifPresent(u -> {
+                // We keep two values here - the actual property value for comparison,
+                // and the string value the user provided (for re-serialization in the CODEC)
+                propertyAcceptableValues.add(userValue);
+                userAllowed.add(u);
+            });
+        }
+
+        this.allowedValues.put(propertyName, propertyAcceptableValues);
+        this.filters.put(propertyName, userAllowed::contains);
     }
 
     public boolean matches(BlockState state) {
-        if (state.getBlock().getRegistryName() != this.block.getRegistryName())
+        if (!state.getBlock().equals(this.block))
             return false;
 
         for (Property<?> prop : state.getProperties()) {
@@ -114,5 +134,9 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     public boolean hasFilter(String property) {
         return filters.containsKey(property);
+    }
+
+    public Optional<BlockState> getFirstMatch() {
+        return validStates.isEmpty() ? Optional.empty() : validStates.stream().findFirst();
     }
 }

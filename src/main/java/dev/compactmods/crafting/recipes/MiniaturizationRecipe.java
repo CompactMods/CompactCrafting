@@ -9,7 +9,7 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
-import dev.compactmods.crafting.recipes.layers.RecipeLayerBlocks;
+import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;

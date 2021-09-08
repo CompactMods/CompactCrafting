@@ -1,10 +1,7 @@
 package dev.compactmods.crafting.util;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.minecraft.util.Rotation;
@@ -92,6 +89,11 @@ public abstract class BlockSpaceUtil {
         return AxisAlignedBB.of(trimmedBounds);
     }
 
+    public static AxisAlignedBB getBoundsForBlocks(Stream<BlockPos> positions) {
+        final Set<BlockPos> collect = positions.map(BlockPos::immutable).collect(Collectors.toSet());
+        return getBoundsForBlocks(collect);
+    }
+
     /**
      * Normalizes world coordinates to relative field coordinates.
      *
@@ -129,5 +131,21 @@ public abstract class BlockSpaceUtil {
                 realBounds.minY + normPos.getY(),
                 realBounds.minZ + normPos.getZ()
         );
+    }
+
+    public static Stream<BlockPos> getWallPositions(AxisAlignedBB bounds) {
+        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, bounds.getXsize() - 1, 0, bounds.getZsize() - 1);
+        AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
+
+        Set<BlockPos> positions = BlockSpaceUtil.getLayerBlockPositions(layerBounds)
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
+
+        Set<BlockPos> inside = BlockSpaceUtil.getLayerBlockPositions(insideBounds)
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
+
+        positions.removeAll(inside);
+        return positions.stream();
     }
 }

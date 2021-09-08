@@ -1,71 +1,42 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
-import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
-import dev.compactmods.crafting.recipes.layers.RecipeLayerComponentPositionLookup;
-import dev.compactmods.crafting.util.BlockSpaceUtil;
+import com.mojang.serialization.Codec;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
 
-    private RecipeLayerComponentPositionLookup lookup;
-    private AxisAlignedBB bounds;
-    private final Map<String, BlockState> knownComponents;
-    private Map<String, Integer> knownComponentTotals;
+    AxisAlignedBB bounds;
+    final Map<String, BlockState> states;
+    Map<String, Integer> knownComponentTotals;
+    IRecipeLayer worldLayerDef;
+    final Set<BlockPos> unmatchedStates;
 
-    // TODO - Build up instances and actually test this with the unit testing libs
+    public static final Codec<RecipeLayerBlocksTestHarness> CODEC = new RecipeLayerBlocksTestHarnessCodec();
 
-    private RecipeLayerBlocksTestHarness() {
-        this.lookup = null;
+    RecipeLayerBlocksTestHarness() {
         this.bounds = AxisAlignedBB.ofSize(0, 0, 0);
-        this.knownComponents = new HashMap<>();
-    }
-
-    /**
-     * Closely follows the specs for defining a mixed layer type; all components are loaded in
-     * using the standard codecs that the recipe system uses internally.
-     *
-     * @param json
-     * @return
-     */
-    @Nullable
-    public static RecipeLayerBlocksTestHarness fromJson(JsonObject json) {
-        if(!json.has("components") || !json.has("layer"))
-            return null;
-
-        final MixedComponentRecipeLayer layer = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, json.getAsJsonObject("layer"))
-                .getOrThrow(false, CompactCrafting.RECIPE_LOGGER::error);
-
-        RecipeLayerBlocksTestHarness harness = new RecipeLayerBlocksTestHarness();
-        harness.lookup = layer.getComponentLookup();
-        harness.bounds = layer.getDimensions();
-
-        harness.rebuildComponentTotals();
-        return harness;
+        this.states = new HashMap<>();
+        this.unmatchedStates = new HashSet<>();
     }
 
     @Override
     public Optional<String> getComponentAtPosition(BlockPos relative) {
-        return lookup.getRequiredComponentKeyForPosition(relative);
+        return worldLayerDef.getComponentForPosition(relative);
     }
 
     @Override
     public Optional<BlockState> getStateAtPosition(BlockPos relative) {
-        String worldKey = lookup.getRequiredComponentKeyForPosition(relative).orElse("?");
-        if(knownComponents.containsKey(worldKey))
-            return Optional.ofNullable(knownComponents.get(worldKey));
+        if(this.unmatchedStates.contains(relative))
+            return Optional.empty();
 
-        return Optional.empty();
+        return getComponentAtPosition(relative).map(states::get);
     }
 
     @Override
@@ -75,10 +46,10 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
 
     void rebuildComponentTotals() {
         final Map<String, Integer> worldTotals = new HashMap<>();
-        lookup.getComponentTotals()
+        worldLayerDef.getComponentTotals()
                 .entrySet()
                 .stream()
-                .filter(es -> knownComponents.containsKey(es.getKey()))
+                .filter(es -> states.containsKey(es.getKey()))
                 .forEach(es -> worldTotals.put(es.getKey(), es.getValue()));
 
         this.knownComponentTotals = worldTotals;
@@ -91,7 +62,7 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
      */
     @Override
     public int getNumberKnownComponents() {
-        return knownComponents.size();
+        return states.size();
     }
 
     @Override
@@ -106,8 +77,30 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
 
     @Override
     public boolean allIdentified() {
-        return lookup.getComponents()
+        return worldLayerDef.getComponents()
                 .stream()
-                .anyMatch(knownKey -> !knownComponents.containsKey(knownKey));
+                .allMatch(states::containsKey);
+    }
+
+    @Override
+    public Stream<BlockPos> getPositionsForComponent(String component) {
+        return worldLayerDef.getPositionsForComponent(component);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RecipeLayerBlocksTestHarness that = (RecipeLayerBlocksTestHarness) o;
+        return Objects.equals(bounds, that.bounds) && Objects.equals(states, that.states) && Objects.equals(knownComponentTotals, that.knownComponentTotals) && Objects.equals(worldLayerDef, that.worldLayerDef);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bounds, states, knownComponentTotals, worldLayerDef);
+    }
+
+    public void addForcedUnknownPosition(BlockPos position) {
+        this.unmatchedStates.add(position);
     }
 }

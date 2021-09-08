@@ -34,4 +34,6 @@ public interface IRecipeLayerBlocks {
     AxisAlignedBB getBounds();
 
     boolean allIdentified();
+
+    Stream<BlockPos> getPositionsForComponent(String component);
 }

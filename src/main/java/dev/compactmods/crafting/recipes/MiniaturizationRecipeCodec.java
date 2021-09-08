@@ -22,10 +22,10 @@ import net.minecraft.item.ItemStack;
 
 public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> {
 
-    private static final Codec<IRecipeLayer> LAYER_CODEC =
+    public static final Codec<IRecipeLayer> LAYER_CODEC =
             RecipeLayerTypeCodec.INSTANCE.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
 
-    private static final Codec<IRecipeComponent> COMPONENT_CODEC =
+    public static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
     MiniaturizationRecipeCodec() {}

@@ -1,29 +1,26 @@
-package dev.compactmods.crafting.recipes.layers;
+package dev.compactmods.crafting.recipes.blocks;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IWorldReader;
 
-public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
+public class RecipeLayerBlocks implements IRecipeLayerBlocks {
 
     private final AxisAlignedBB layerBounds;
-    private Map<String, Integer> componentTotals;
+    private final ComponentPositionLookup lookup;
     private final Map<BlockPos, BlockState> states;
-    private final Map<BlockPos, String> componentKeys;
     private final Set<BlockPos> unmatchedStates;
 
     protected RecipeLayerBlocks(AxisAlignedBB bounds) {
         layerBounds = bounds;
+        lookup = new ComponentPositionLookup();
         states = new HashMap<>();
-        componentTotals = new HashMap<>();
-        componentKeys = new HashMap<>();
         unmatchedStates = new HashSet<>();
     }
 
@@ -33,28 +30,28 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
         // Loops all block positions inside bounds, for-each
         BlockPos.betweenClosedStream(layerBounds).forEach(pos -> {
             Optional<String> key = original.getComponentAtPosition(pos);
-            if (key.isPresent()) componentKeys.put(pos, key.get());
-            else unmatchedStates.add(pos);
+            if (key.isPresent()) lookup.components.put(pos.immutable(), key.get());
+            else unmatchedStates.add(pos.immutable());
 
-            original.getStateAtPosition(pos).ifPresent(state -> states.put(pos, state));
+            original.getStateAtPosition(pos).ifPresent(state -> states.put(pos.immutable(), state));
         });
     }
 
-    RecipeLayerBlocks(AxisAlignedBB bounds, Map<BlockPos, BlockState> states,
-        Map<BlockPos, String> components, Set<BlockPos> unmatchedStates) {
-        this.layerBounds = bounds;
-        this.states = states;
-        this.componentKeys = components;
-        this.unmatchedStates = unmatchedStates;
+    public RecipeLayerBlocks(AxisAlignedBB bounds, Map<BlockPos, BlockState> states,
+                             Map<BlockPos, String> components, Set<BlockPos> unmatchedStates) {
+        this(bounds);
+        this.states.putAll(states);
+        lookup.components.putAll(components);
+        this.unmatchedStates.addAll(unmatchedStates);
 
-        this.rebuildComponentTotals();
+        this.lookup.rebuildComponentTotals();
     }
 
     public static RecipeLayerBlocks create(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB bounds) {
         RecipeLayerBlocks instance = new RecipeLayerBlocks(bounds);
 
         BlockPos.betweenClosedStream(bounds).forEach(pos -> {
-            if(!bounds.contains(pos.getX(), pos.getY(), pos.getZ()))
+            if (!bounds.contains(pos.getX(), pos.getY(), pos.getZ()))
                 return;
 
             BlockState state = world.getBlockState(pos);
@@ -66,13 +63,13 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
             // Pre-populate a set of component keys from the recipe instance, so we don't have to do it later
             Optional<String> compKey = recipe.getRecipeComponentKey(state);
             if (compKey.isPresent())
-                instance.componentKeys.put(normalizedPos, compKey.get());
+                instance.lookup.components.put(normalizedPos, compKey.get());
             else
                 instance.unmatchedStates.add(normalizedPos);
 
         });
 
-        instance.rebuildComponentTotals();
+        instance.lookup.rebuildComponentTotals();
         return instance;
     }
 
@@ -83,29 +80,22 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
 
     @Override
     public boolean allIdentified() {
-        return unmatchedStates.isEmpty();
-    }
+        boolean lookupHasAllKeys = this.lookup.getComponents()
+                .stream()
+                .allMatch(states::containsKey);
 
-    void rebuildComponentTotals() {
-        this.componentTotals = componentKeys.entrySet()
-            .stream()
-            .collect(
-                Collectors.groupingBy(
-                    // Group by map value (aka component key)
-                    Map.Entry::getValue,
-
-                    // Map keys (the blockpos entries) are summed up (like list::size)
-                    Collectors.mapping(
-                        Map.Entry::getKey,
-                        Collectors.reducing(0, e -> 1, Integer::sum)
-                    )
-                )
-            );
+        return lookupHasAllKeys && unmatchedStates.isEmpty();
     }
 
     @Override
+    public Stream<BlockPos> getPositionsForComponent(String component) {
+        return this.lookup.getPositionsForComponent(component);
+    }
+
+
+    @Override
     public Optional<String> getComponentAtPosition(BlockPos relative) {
-        return Optional.ofNullable(componentKeys.get(relative));
+        return Optional.ofNullable(lookup.components.get(relative));
     }
 
     @Override
@@ -130,6 +120,6 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks, Cloneable {
 
     @Override
     public Map<String, Integer> getKnownComponentTotals() {
-        return componentTotals;
+        return lookup.componentTotals;
     }
 }

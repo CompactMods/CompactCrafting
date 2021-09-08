@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -13,6 +14,7 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
@@ -47,6 +49,11 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
             return Optional.ofNullable(componentKey);
 
         return Optional.empty();
+    }
+
+    @Override
+    public Stream<BlockPos> getPositionsForComponent(String component) {
+        return BlockSpaceUtil.getLayerBlockPositions(recipeDimensions);
     }
 
     public int getNumberFilledPositions() {
