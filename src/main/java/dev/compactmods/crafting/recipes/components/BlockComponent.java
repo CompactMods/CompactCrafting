@@ -56,13 +56,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
                 .filter(this::matches)
                 .collect(Collectors.toSet());
 
-        if(valid.isEmpty()) {
-            CompactCrafting.RECIPE_LOGGER.error("Too many property filters defined; no states matched after filters were applied. Opening the definition up to all possible values as a fallback.");
-            this.validStates.addAll(stateContainer.getPossibleStates());
-            this.filters.clear();
-        } else {
-            this.validStates.addAll(valid);
-        }
+        this.validStates.addAll(valid);
     }
 
     private void validateAndAddUserFilter(StateContainer<Block, BlockState> stateContainer, Map.Entry<String, List<String>> userPropFilter) {

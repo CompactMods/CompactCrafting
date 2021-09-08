@@ -1,14 +1,13 @@
 package dev.compactmods.crafting.recipes;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.server.ServerConfig;
 import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.NBTDynamicOps;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.registries.ForgeRegistryEntry;
@@ -21,59 +20,49 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         CompactCrafting.LOGGER.debug("Beginning deserialization of recipe: {}", recipeId.toString());
         DataResult<MiniaturizationRecipe> parseResult = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json);
 
-        if(parseResult.error().isPresent()) {
+        if (parseResult.error().isPresent()) {
             DataResult.PartialResult<MiniaturizationRecipe> pr = parseResult.error().get();
             CompactCrafting.RECIPE_LOGGER.error("Error loading recipe: " + pr.message());
             return null;
         }
 
         return parseResult.result()
-                .map(r -> { r.setId(recipeId); return r; })
+                .map(r -> {
+                    r.setId(recipeId);
+                    return r;
+                })
                 .orElse(null);
     }
 
     @Nullable
     @Override
     public MiniaturizationRecipe fromNetwork(ResourceLocation recipeId, PacketBuffer buffer) {
-        CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
+        boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
+        if (debugReg) CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
 
-        CompoundNBT n = buffer.readNbt();
-        if (n != null && n.contains("recipe")) {
-            INBT recipeNbt = n.get("recipe");
+        try {
+            final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
+            recipe.setId(recipeId);
 
-            MiniaturizationRecipe rec = MiniaturizationRecipe.CODEC.parse(NBTDynamicOps.INSTANCE, recipeNbt)
-                    .resultOrPartial(err -> {
-                        CompactCrafting.RECIPE_LOGGER.error("Error loading recipe from network: " + err);
-                    }).get();
+            if(debugReg) CompactCrafting.LOGGER.debug("Finished recipe read: {}", recipeId);
 
-            rec.setId(recipeId);
-            return rec;
+            return recipe;
+        } catch (IOException e) {
+            CompactCrafting.LOGGER.error(String.format("Miniaturization recipe failed to decode: %s", recipeId), e);
         }
 
-        CompactCrafting.LOGGER.error(String.format("Miniaturization recipe failed to decode: %s", recipeId));
         return null;
     }
 
     @Override
     public void toNetwork(PacketBuffer buffer, MiniaturizationRecipe recipe) {
-        NBTDynamicOps ops = NBTDynamicOps.INSTANCE;
-        try {
-            DataResult<INBT> encode = MiniaturizationRecipe.CODEC.encodeStart(ops, recipe);
-            encode
-                    .resultOrPartial(err -> {
-                        CompactCrafting.LOGGER.error(String.format("Failed to write to packet for recipe: %s", recipe.getRecipeIdentifier()));
-                        CompactCrafting.LOGGER.error(err);
-                    })
-                    .ifPresent(nbt -> {
-                        CompoundNBT n = new CompoundNBT();
-                        n.put("recipe", nbt);
-                        buffer.writeNbt(n);
-                    });
-        }
+        boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
+        if(debugReg) CompactCrafting.LOGGER.debug("Sending recipe over network: {}", recipe.getRecipeIdentifier());
 
-        catch(NullPointerException npe) {
+        try {
+            buffer.writeWithCodec(MiniaturizationRecipe.CODEC, recipe);
+        } catch (NullPointerException | IOException npe) {
             CompactCrafting.LOGGER.error(String.format("Whoops: %s", recipe.getRecipeIdentifier()), npe);
         }
     }
-
 }
