@@ -40,11 +40,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      * Only used for recipe dimension calculation from loading phase.
      * Specifies the minimum field size required for fluid recipe layers.
      */
-    private final int recipeSize;
+    private int recipeSize;
     private ResourceLocation id;
     private Map<Integer, IRecipeLayer> layers;
     private final ItemStack catalyst;
-    private final ItemStack[] outputs;
+    private ItemStack[] outputs;
     private AxisAlignedBB dimensions;
 
     private Map<String, Integer> cachedComponentTotals;
@@ -117,7 +117,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         }
     }
 
-    private void applyLayers(List<IRecipeLayer> layers) {
+    public void applyLayers(List<IRecipeLayer> layers) {
         this.layers = new HashMap<>();
         ArrayList<IRecipeLayer> rev = new ArrayList<>(layers);
         Collections.reverse(rev);
@@ -329,6 +329,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return this.components;
     }
 
+    @Override
+    public void setOutputs(Collection<ItemStack> outputs) {
+        this.outputs = outputs.toArray(new ItemStack[0]);
+    }
+
     public void setComponents(IRecipeComponents components) {
         this.components = components;
     }
@@ -386,7 +391,15 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return FieldProjectionSize.canFitDimensions(this.recipeSize);
     }
 
-    public int getSize() {
+    public int getRecipeSize() {
         return this.recipeSize;
+    }
+
+    public void setRecipeSize(int size) {
+        if(!FieldProjectionSize.canFitDimensions(size))
+            return;
+
+        this.recipeSize = size;
+        this.recalculateDimensions();
     }
 }

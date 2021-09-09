@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.api.recipe;
 
+import java.util.Collection;
 import java.util.Optional;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
@@ -21,4 +22,6 @@ public interface IMiniaturizationRecipe {
     Optional<IRecipeLayer> getLayer(int layer);
 
     IRecipeComponents getComponents();
+
+    void setOutputs(Collection<ItemStack> outputs);
 }

@@ -5,10 +5,6 @@
   "layers": [
     {
       "type": "compactcrafting:filled",
-      "component": "R"
-    },
-    {
-      "type": "compactcrafting:filled",
       "component": "I"
     }
   ],
@@ -16,6 +12,8 @@
     "id": "minecraft:redstone",
     "Count": 1
   },
-  "components": {},
-  "outputs": [  ]
+  "outputs": [{
+    "id": "minecraft:diamond",
+    "Count": 1
+  }]
 }

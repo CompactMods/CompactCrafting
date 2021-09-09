@@ -1,23 +1,22 @@
 package dev.compactmods.crafting.recipes;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.RecordBuilder;
+import com.mojang.serialization.*;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
-import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.field.FieldProjectionSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
+import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
+import dev.compactmods.crafting.server.ServerConfig;
 import net.minecraft.item.ItemStack;
 
 public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> {
@@ -38,53 +37,85 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
             CompactCrafting.RECIPE_LOGGER.debug("Starting recipe decode: {}", input.toString());
         }
 
+        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
+        StringBuilder errorBuilder = new StringBuilder();
+
         int recipeSize = Codec.INT.optionalFieldOf("recipeSize", -1)
                 .codec()
                 .parse(ops, input)
-                .result().get();
-
-        ItemStack catalyst = ItemStack.CODEC.fieldOf("catalyst").codec()
-                .parse(ops, input)
-                .resultOrPartial(CompactCrafting.RECIPE_LOGGER::error)
-                .orElse(ItemStack.EMPTY);
-
-        List<IRecipeLayer> layers = LAYER_CODEC.listOf().fieldOf("layers").codec()
-                .parse(ops, input)
-                .resultOrPartial(CompactCrafting.RECIPE_LOGGER::error)
+                .result()
                 .get();
 
-        List<ItemStack> outputs = ItemStack.CODEC.listOf().fieldOf("outputs").codec()
-                .parse(ops, input)
-                .resultOrPartial(CompactCrafting.RECIPE_LOGGER::error)
-                .get();
+        recipe.setRecipeSize(recipeSize);
 
-        Map<String, IRecipeComponent> components = Codec.unboundedMap(Codec.STRING, COMPONENT_CODEC).fieldOf("components")
-                .codec()
-                .parse(ops, input)
-                .resultOrPartial(CompactCrafting.RECIPE_LOGGER::error)
-                .get();
+        final DataResult<List<IRecipeLayer>> layers = LAYER_CODEC.listOf()
+                .fieldOf("layers").codec()
+                .parse(ops, input);
 
-        boolean hasFixedLayers = layers.stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
+        if (layers.error().isPresent()) {
+            final Optional<List<IRecipeLayer>> partialLayers = layers.resultOrPartial(errorBuilder::append);
+            partialLayers.ifPresent(recipe::applyLayers);
+            return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
+        }
+
+        final List<IRecipeLayer> layerList = layers
+                .resultOrPartial(errorBuilder::append)
+                .orElse(Collections.emptyList());
+
+        recipe.applyLayers(layerList);
+
+        boolean hasFixedLayers = layerList.stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
         if (debugOutput) {
-            CompactCrafting.RECIPE_LOGGER.debug("Number of layers defined: {}", layers.size());
+            CompactCrafting.RECIPE_LOGGER.debug("Number of layers defined: {}", layerList.size());
             CompactCrafting.RECIPE_LOGGER.debug("Is fixed size: {}", hasFixedLayers);
         }
 
         // if we don't have a fixed size layer to base dimensions off of, and the recipe size won't fit in a field
         if (!hasFixedLayers && !FieldProjectionSize.canFitDimensions(recipeSize)) {
-            MiniaturizationRecipe partial = new MiniaturizationRecipe(layers, catalyst, outputs, components);
-            return DataResult.error(
-                    "Specified recipe size will not fit in a crafting field: " + recipeSize,
-                    Pair.of(partial, input));
+            errorBuilder.append("Specified recipe size will not fit in a crafting field: ").append(recipeSize);
+            return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
         }
 
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe(recipeSize, layers, catalyst, outputs, components);
         recipe.recalculateDimensions();
+
+        ItemStack catalyst = ItemStack.CODEC.fieldOf("catalyst").codec()
+                .parse(ops, input)
+                .resultOrPartial(errorBuilder::append)
+                .orElse(ItemStack.EMPTY);
+
+        if (catalyst.isEmpty()) {
+            CompactCrafting.LOGGER.warn("Warning: recipe has no catalyst; this may be unintentional.");
+        }
+
+        Optional<List<ItemStack>> outputs = ItemStack.CODEC.listOf().fieldOf("outputs").codec()
+                .parse(ops, input)
+                .resultOrPartial(errorBuilder::append);
+
+        outputs.ifPresent(recipe::setOutputs);
+        if (!outputs.isPresent()) {
+            return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
+        }
+
+        if(recipe.getOutputs().length == 0) {
+            errorBuilder.append("No outputs were defined.");
+            return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
+        }
+
+        Optional<Map<String, IRecipeComponent>> components = Codec.unboundedMap(Codec.STRING, COMPONENT_CODEC)
+                .optionalFieldOf("components", Collections.emptyMap())
+                .codec()
+                .parse(ops, input)
+                .resultOrPartial(errorBuilder::append);
+
+        components.ifPresent(compNode -> {
+            CompactCrafting.RECIPE_LOGGER.trace("Got components map; checking any exist and applying to recipe.");
+            recipe.applyComponents(compNode);
+        });
 
         if (debugOutput)
             CompactCrafting.RECIPE_LOGGER.debug("Finishing recipe decode.");
 
-        return DataResult.success(Pair.of(recipe, input));
+        return DataResult.success(Pair.of(recipe, input), Lifecycle.stable());
     }
 
     @Override
@@ -110,7 +141,7 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         builder.add("type", Codec.STRING.encodeStart(ops, "compactcrafting:miniaturization"));
 
         if (recipe.hasSpecifiedSize())
-            builder.add("recipeSize", Codec.INT.encodeStart(ops, recipe.getSize()));
+            builder.add("recipeSize", Codec.INT.encodeStart(ops, recipe.getRecipeSize()));
 
         return builder.add("layers", layers)
                 .add("components", components)

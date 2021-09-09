@@ -21,7 +21,7 @@ public class CompactCrafting
 {
     // Directly reference a log4j logger.
     public static final Logger LOGGER = LogManager.getLogger(CompactCrafting.MOD_ID);
-    public static final Logger RECIPE_LOGGER = LogManager.getLogger("CCRecipeMatcher");
+    public static final Logger RECIPE_LOGGER = LogManager.getLogger("CCRecipeLoader");
 
     public static final String MOD_ID = "compactcrafting";
 

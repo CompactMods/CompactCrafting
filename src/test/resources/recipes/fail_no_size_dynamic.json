@@ -7,19 +7,16 @@
       "component": "G"
     }
   ],
-
   "catalyst": {
     "id": "minecraft:ender_pearl",
     "Count": 1
   },
-
   "components": {
     "G": {
       "type": "compactcrafting:block",
       "block": "minecraft:glass"
     }
   },
-
   "outputs": [
     {
       "id": "minecraft:diamond",

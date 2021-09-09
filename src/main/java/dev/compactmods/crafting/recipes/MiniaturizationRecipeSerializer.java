@@ -40,6 +40,11 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
         if (debugReg) CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
 
+        if(!buffer.isReadable() || buffer.readableBytes() == 0) {
+            CompactCrafting.LOGGER.error("Recipe not readable from buffer: {}", recipeId);
+            return null;
+        }
+
         try {
             final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
             recipe.setId(recipeId);
@@ -49,9 +54,8 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
             return recipe;
         } catch (IOException e) {
             CompactCrafting.LOGGER.error(String.format("Miniaturization recipe failed to decode: %s", recipeId), e);
+            return null;
         }
-
-        return null;
     }
 
     @Override
@@ -63,9 +67,6 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
         try {
             buffer.writeWithCodec(MiniaturizationRecipe.CODEC, recipe);
         } catch (IOException ioe) {
-            if(recipe != null)
-                CompactCrafting.LOGGER.error(String.format("Failed to encode recipe for network: %s", recipe.getRecipeIdentifier()), ioe);
-            else
                 CompactCrafting.LOGGER.error("Failed to encode recipe for network.", ioe);
         }
     }
