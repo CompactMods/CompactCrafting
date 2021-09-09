@@ -9,12 +9,14 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 public class RecipeSetupTests {
 
     @Test
+    @Tag("minecraft")
     void BaseRecipeType() {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
@@ -26,6 +28,7 @@ public class RecipeSetupTests {
     }
 
     @Test
+    @Tag("minecraft")
     void FakeInventory() {
         FakeInventory inv = new FakeInventory();
         Assertions.assertNotNull(inv);

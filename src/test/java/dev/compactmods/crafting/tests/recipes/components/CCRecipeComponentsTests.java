@@ -10,6 +10,7 @@ import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import net.minecraft.block.Blocks;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class CCRecipeComponentsTests {
@@ -37,6 +38,7 @@ public class CCRecipeComponentsTests {
     }
 
     @Test
+    @Tag("minecraft")
     void CanRegisterAndFetchBlocks() {
         CCMiniRecipeComponents components = new CCMiniRecipeComponents();
         final BlockComponent BLOCK_COMPONENT = new BlockComponent(Blocks.GOLD_BLOCK);
@@ -57,6 +59,7 @@ public class CCRecipeComponentsTests {
     }
 
     @Test
+    @Tag("minecraft")
     void EmptyBlocksAreActuallyEmpty() {
         CCMiniRecipeComponents components = new CCMiniRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
@@ -91,6 +94,7 @@ public class CCRecipeComponentsTests {
     }
 
     @Test
+    @Tag("minecraft")
     void CanGetNumberOfComponents() {
         CCMiniRecipeComponents components = new CCMiniRecipeComponents();
         Assertions.assertEquals(0, components.size());
