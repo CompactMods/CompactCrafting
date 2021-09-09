@@ -18,14 +18,14 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotate() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/basic_harness.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedClockwise = RecipeLayerUtil.rotate(harness, Rotation.CLOCKWISE_90);
         Assertions.assertNotNull(rotatedClockwise);
 
-        final Set<BlockPos> originalPositions = harness.getPositionsForComponent("Go").map(BlockPos::immutable).collect(Collectors.toSet());
-        final Set<BlockPos> rotatedPositions = rotatedClockwise.getPositionsForComponent("Go").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> originalPositions = harness.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> rotatedPositions = rotatedClockwise.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
 
         Assertions.assertNotEquals(originalPositions, rotatedPositions);
     }
@@ -33,7 +33,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotateWithUnknownComponent() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_unknown_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/unknown_component.json");
         Assertions.assertNotNull(harness);
 
         boolean identified = harness.allIdentified();
@@ -55,14 +55,14 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void NonRotationCreatesCopiedInstance() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/basic_harness.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedHarness = RecipeLayerUtil.rotate(harness, Rotation.NONE);
         Assertions.assertNotNull(rotatedHarness);
 
-        final Set<BlockPos> originalPositions = harness.getPositionsForComponent("Go").map(BlockPos::immutable).collect(Collectors.toSet());
-        final Set<BlockPos> rotatedPositions = rotatedHarness.getPositionsForComponent("Go").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> originalPositions = harness.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> rotatedPositions = rotatedHarness.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
 
         Assertions.assertEquals(originalPositions, rotatedPositions);
 

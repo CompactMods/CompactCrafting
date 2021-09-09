@@ -21,7 +21,7 @@ public class MixedLayerTests {
     @Test
     @Tag("minecraft")
     void CanCreateLayerInstance() {
-        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile("layers/mixed/mixed.json");
+        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile("layers/mixed/basic.json");
 
         DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
         parsed.resultOrPartial(Assertions::fail)
