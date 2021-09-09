@@ -57,12 +57,16 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
     @Override
     public void toNetwork(PacketBuffer buffer, MiniaturizationRecipe recipe) {
         boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
-        if(debugReg) CompactCrafting.LOGGER.debug("Sending recipe over network: {}", recipe.getRecipeIdentifier());
+        if(debugReg && recipe != null)
+            CompactCrafting.LOGGER.debug("Sending recipe over network: {}", recipe.getRecipeIdentifier());
 
         try {
             buffer.writeWithCodec(MiniaturizationRecipe.CODEC, recipe);
-        } catch (NullPointerException | IOException npe) {
-            CompactCrafting.LOGGER.error(String.format("Whoops: %s", recipe.getRecipeIdentifier()), npe);
+        } catch (IOException ioe) {
+            if(recipe != null)
+                CompactCrafting.LOGGER.error(String.format("Failed to encode recipe for network: %s", recipe.getRecipeIdentifier()), ioe);
+            else
+                CompactCrafting.LOGGER.error("Failed to encode recipe for network.", ioe);
         }
     }
 }

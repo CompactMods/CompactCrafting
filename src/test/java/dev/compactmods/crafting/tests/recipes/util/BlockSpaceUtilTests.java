@@ -51,7 +51,7 @@ public class BlockSpaceUtilTests {
     void CanGetLayerBlockPositions() {
         AxisAlignedBB layer = new AxisAlignedBB(0, 0, 0, 5, 1, 5);
 
-        final Set<BlockPos> positions = BlockSpaceUtil.getLayerBlockPositions(layer)
+        final Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(layer)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 

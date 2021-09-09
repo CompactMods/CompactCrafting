@@ -16,10 +16,10 @@ import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
 import net.minecraft.util.math.BlockPos;
 
-public class RecipeLayerBlocksTestHarnessCodec implements Codec<RecipeLayerBlocksTestHarness> {
+public class RecipeLayerBlocksTestHarnessCodec implements Codec<TestRecipeLayerBlocks> {
     @Override
-    public <T> DataResult<Pair<RecipeLayerBlocksTestHarness, T>> decode(DynamicOps<T> ops, T input) {
-        RecipeLayerBlocksTestHarness harness = new RecipeLayerBlocksTestHarness();
+    public <T> DataResult<Pair<TestRecipeLayerBlocks, T>> decode(DynamicOps<T> ops, T input) {
+        TestRecipeLayerBlocks harness = new TestRecipeLayerBlocks();
 
         try {
             loadWorldData(ops, input, harness);
@@ -42,7 +42,7 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<RecipeLayerBlock
         return DataResult.success(Pair.of(harness, input));
     }
 
-    private <T> void loadWorldData(DynamicOps<T> ops, T input, RecipeLayerBlocksTestHarness harness) throws DataFormatException {
+    private <T> void loadWorldData(DynamicOps<T> ops, T input, TestRecipeLayerBlocks harness) throws DataFormatException {
         final IRecipeLayer world = MiniaturizationRecipeCodec.LAYER_CODEC
                 .fieldOf("world")
                 .codec()
@@ -68,7 +68,7 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<RecipeLayerBlock
         }
     }
 
-    private <T> void loadComponents(DynamicOps<T> ops, T input, RecipeLayerBlocksTestHarness harness) {
+    private <T> void loadComponents(DynamicOps<T> ops, T input, TestRecipeLayerBlocks harness) {
         final Map<String, IRecipeComponent> components = Codec.unboundedMap(Codec.STRING, MiniaturizationRecipeCodec.COMPONENT_CODEC)
                 .fieldOf("components")
                 .codec()
@@ -87,7 +87,7 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<RecipeLayerBlock
     }
 
     @Override
-    public <T> DataResult<T> encode(RecipeLayerBlocksTestHarness input, DynamicOps<T> ops, T prefix) {
+    public <T> DataResult<T> encode(TestRecipeLayerBlocks input, DynamicOps<T> ops, T prefix) {
         return DataResult.error("Not supported");
     }
 }

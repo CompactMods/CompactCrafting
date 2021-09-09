@@ -53,7 +53,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public Stream<BlockPos> getPositionsForComponent(String component) {
-        return BlockSpaceUtil.getLayerBlockPositions(recipeDimensions);
+        return BlockSpaceUtil.getBlocksIn(recipeDimensions);
     }
 
     public int getNumberFilledPositions() {

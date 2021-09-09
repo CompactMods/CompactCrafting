@@ -136,7 +136,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public Stream<BlockPos> getFilledBlocks() {
-        return BlockSpaceUtil.getLayerBlockPositions(getBounds())
+        return BlockSpaceUtil.getBlocksIn(getBounds())
                 .filter(p -> !level.isEmptyBlock(p))
                 .map(BlockPos::immutable);
     }

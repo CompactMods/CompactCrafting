@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.tests.recipes.codec;
+package dev.compactmods.crafting.tests.recipes.data;
 
 import java.util.Map;
 import java.util.Optional;

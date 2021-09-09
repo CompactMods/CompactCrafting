@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,4 +62,22 @@ public class ComponentPositionLookupTests {
 
         Assertions.assertEquals(0, positionsForComponent.count());
     }
+
+    @Test
+    void CanCreateAndCacheTotals() {
+        ComponentPositionLookup lookup = new ComponentPositionLookup();
+        lookup.add(BlockPos.ZERO, "C");
+
+        // First pass - should calculate successfully
+        final Map<String, Integer> totals = Assertions.assertDoesNotThrow(lookup::getComponentTotals);
+        Assertions.assertTrue(totals.containsKey("C"));
+        Assertions.assertEquals(1, totals.get("C"));
+
+        // Second pass - should return the already built totals object
+        final Map<String, Integer> secondPass = Assertions.assertDoesNotThrow(lookup::getComponentTotals);
+        Assertions.assertSame(totals, secondPass);
+        Assertions.assertTrue(secondPass.containsKey("C"));
+        Assertions.assertEquals(1, secondPass.get("C"));
+    }
+
 }

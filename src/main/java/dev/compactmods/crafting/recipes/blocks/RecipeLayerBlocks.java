@@ -8,7 +8,7 @@ import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.IBlockReader;
 
 public class RecipeLayerBlocks implements IRecipeLayerBlocks {
 
@@ -47,14 +47,11 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
         this.lookup.rebuildComponentTotals();
     }
 
-    public static RecipeLayerBlocks create(IWorldReader world, MiniaturizationRecipe recipe, AxisAlignedBB bounds) {
+    public static RecipeLayerBlocks create(IBlockReader blocks, MiniaturizationRecipe recipe, AxisAlignedBB bounds) {
         RecipeLayerBlocks instance = new RecipeLayerBlocks(bounds);
 
-        BlockPos.betweenClosedStream(bounds).forEach(pos -> {
-            if (!bounds.contains(pos.getX(), pos.getY(), pos.getZ()))
-                return;
-
-            BlockState state = world.getBlockState(pos);
+        BlockSpaceUtil.getBlocksIn(bounds).forEach(pos -> {
+            BlockState state = blocks.getBlockState(pos);
 
             BlockPos normalizedPos = BlockSpaceUtil.normalizeLayerPosition(bounds, pos);
 

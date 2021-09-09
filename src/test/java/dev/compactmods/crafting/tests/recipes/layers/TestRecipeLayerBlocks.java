@@ -10,7 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
+public class TestRecipeLayerBlocks implements IRecipeLayerBlocks {
 
     AxisAlignedBB bounds;
     final Map<String, BlockState> states;
@@ -18,9 +18,9 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
     IRecipeLayer worldLayerDef;
     final Set<BlockPos> unmatchedStates;
 
-    public static final Codec<RecipeLayerBlocksTestHarness> CODEC = new RecipeLayerBlocksTestHarnessCodec();
+    public static final Codec<TestRecipeLayerBlocks> CODEC = new RecipeLayerBlocksTestHarnessCodec();
 
-    RecipeLayerBlocksTestHarness() {
+    TestRecipeLayerBlocks() {
         this.bounds = AxisAlignedBB.ofSize(0, 0, 0);
         this.states = new HashMap<>();
         this.unmatchedStates = new HashSet<>();
@@ -41,7 +41,7 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
 
     @Override
     public Stream<BlockPos> getPositions() {
-        return BlockSpaceUtil.getLayerBlockPositions(this.bounds);
+        return BlockSpaceUtil.getBlocksIn(this.bounds);
     }
 
     void rebuildComponentTotals() {
@@ -91,7 +91,7 @@ public class RecipeLayerBlocksTestHarness implements IRecipeLayerBlocks {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RecipeLayerBlocksTestHarness that = (RecipeLayerBlocksTestHarness) o;
+        TestRecipeLayerBlocks that = (TestRecipeLayerBlocks) o;
         return Objects.equals(bounds, that.bounds) && Objects.equals(states, that.states) && Objects.equals(knownComponentTotals, that.knownComponentTotals) && Objects.equals(worldLayerDef, that.worldLayerDef);
     }
 

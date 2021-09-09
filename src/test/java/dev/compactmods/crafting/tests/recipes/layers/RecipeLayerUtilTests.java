@@ -18,7 +18,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotate() {
-        RecipeLayerBlocksTestHarness harness = getHarness("layers/mixed/mixed_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_basic.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedClockwise = RecipeLayerUtil.rotate(harness, Rotation.CLOCKWISE_90);
@@ -33,7 +33,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotateWithUnknownComponent() {
-        RecipeLayerBlocksTestHarness harness = getHarness("layers/mixed/mixed_unknown_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_unknown_basic.json");
         Assertions.assertNotNull(harness);
 
         boolean identified = harness.allIdentified();
@@ -55,7 +55,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void NonRotationCreatesCopiedInstance() {
-        RecipeLayerBlocksTestHarness harness = getHarness("layers/mixed/mixed_basic.json");
+        TestRecipeLayerBlocks harness = getHarness("layers/mixed/mixed_basic.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedHarness = RecipeLayerUtil.rotate(harness, Rotation.NONE);
@@ -69,9 +69,9 @@ public class RecipeLayerUtilTests {
         Assertions.assertNotSame(harness, rotatedHarness);
     }
 
-    private RecipeLayerBlocksTestHarness getHarness(String filename) {
+    private TestRecipeLayerBlocks getHarness(String filename) {
         final JsonElement mixed = FileHelper.INSTANCE.getJsonFromFile(filename);
-        return RecipeLayerBlocksTestHarness.CODEC
+        return TestRecipeLayerBlocks.CODEC
                 .parse(JsonOps.INSTANCE, mixed)
                 .getOrThrow(false, Assertions::fail);
     }

@@ -59,9 +59,7 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
         DataResult<T> encoded = Codec.STRING.listOf().listOf().encode(fin, ops, ops.empty());
 
         return encoded
-                .resultOrPartial(err -> CompactCrafting.LOGGER.error(
-                        String.format("Failed to encode layer component position lookup: %s", err)
-                ))
+                .resultOrPartial(err -> CompactCrafting.LOGGER.error("Failed to encode layer component position lookup: {}", err))
                 .get();
     }
 }

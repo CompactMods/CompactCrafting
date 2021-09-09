@@ -5,15 +5,6 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableList;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
-import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
-import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
-import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
-import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
-import dev.compactmods.crafting.recipes.setup.RecipeBase;
-import dev.compactmods.crafting.server.ServerConfig;
-import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
@@ -23,6 +14,15 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
+import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
+import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
+import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
+import dev.compactmods.crafting.recipes.setup.RecipeBase;
+import dev.compactmods.crafting.server.ServerConfig;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipeSerializer;
@@ -32,7 +32,7 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IWorldReader;
+import net.minecraft.world.IBlockReader;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
@@ -186,7 +186,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return fits;
     }
 
-    public boolean matches(IWorldReader world, MiniaturizationField field) {
+    public boolean matches(IBlockReader world, MiniaturizationField field) {
         if (!fitsInFieldSize(field.getFieldSize())) {
             if (ServerConfig.RECIPE_MATCHING.get())
                 CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
@@ -214,7 +214,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return false;
     }
 
-    private boolean checkRotation(IWorldReader world, Rotation rot, AxisAlignedBB filledBounds) {
+    private boolean checkRotation(IBlockReader world, Rotation rot, AxisAlignedBB filledBounds) {
         // Check the recipe layer by layer
 
         int maxY = (int) dimensions.getYsize();

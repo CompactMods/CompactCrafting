@@ -28,12 +28,13 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
     public static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
-    MiniaturizationRecipeCodec() {}
+    MiniaturizationRecipeCodec() {
+    }
 
     @Override
     public <T> DataResult<Pair<MiniaturizationRecipe, T>> decode(DynamicOps<T> ops, T input) {
         boolean debugOutput = ServerConfig.RECIPE_REGISTRATION.get();
-        if(debugOutput) {
+        if (debugOutput) {
             CompactCrafting.RECIPE_LOGGER.debug("Starting recipe decode: {}", input.toString());
         }
 
@@ -64,8 +65,7 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
                 .get();
 
         boolean hasFixedLayers = layers.stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
-        if(debugOutput)
-        {
+        if (debugOutput) {
             CompactCrafting.RECIPE_LOGGER.debug("Number of layers defined: {}", layers.size());
             CompactCrafting.RECIPE_LOGGER.debug("Is fixed size: {}", hasFixedLayers);
         }
@@ -81,30 +81,36 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         MiniaturizationRecipe recipe = new MiniaturizationRecipe(recipeSize, layers, catalyst, outputs, components);
         recipe.recalculateDimensions();
 
-        if(debugOutput)
+        if (debugOutput)
             CompactCrafting.RECIPE_LOGGER.debug("Finishing recipe decode.");
 
         return DataResult.success(Pair.of(recipe, input));
     }
 
     @Override
-    public <T> DataResult<T> encode(MiniaturizationRecipe input, DynamicOps<T> ops, T prefix) {
+    public <T> DataResult<T> encode(MiniaturizationRecipe recipe, DynamicOps<T> ops, T prefix) {
 
-        DataResult<T> layers = LAYER_CODEC.listOf().encodeStart(ops, input.getLayerListForCodecWrite());
+        if (recipe == null) {
+            return DataResult.error("Cannot serialize a null recipe.");
+        }
+
+        DataResult<T> layers = LAYER_CODEC.listOf().encodeStart(ops, recipe.getLayerListForCodecWrite());
 
         DataResult<T> components = Codec.unboundedMap(Codec.STRING, COMPONENT_CODEC)
-                .encodeStart(ops, input.getComponents().getAllComponents());
+                .encodeStart(ops, recipe.getComponents().getAllComponents());
 
-        DataResult<T> catalyst = ItemStack.CODEC.encodeStart(ops, input.getCatalyst());
+        ItemStack catalystItem = recipe.getCatalyst();
+        DataResult<T> catalyst = ItemStack.CODEC.encodeStart(ops, catalystItem == null ? ItemStack.EMPTY : catalystItem);
+
         DataResult<T> outputs = ItemStack.CODEC.listOf()
-                .encodeStart(ops, ImmutableList.copyOf(input.getOutputs()));
+                .encodeStart(ops, ImmutableList.copyOf(recipe.getOutputs()));
 
         RecordBuilder<T> builder = ops.mapBuilder();
 
         builder.add("type", Codec.STRING.encodeStart(ops, "compactcrafting:miniaturization"));
 
-        if(input.hasSpecifiedSize())
-            builder.add("recipeSize", Codec.INT.encodeStart(ops, input.getSize()));
+        if (recipe.hasSpecifiedSize())
+            builder.add("recipeSize", Codec.INT.encodeStart(ops, recipe.getSize()));
 
         return builder.add("layers", layers)
                 .add("components", components)

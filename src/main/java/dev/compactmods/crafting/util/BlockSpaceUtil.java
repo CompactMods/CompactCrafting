@@ -61,7 +61,7 @@ public abstract class BlockSpaceUtil {
     }
 
     @Nonnull
-    public static Stream<BlockPos> getLayerBlockPositions(AxisAlignedBB bounds) {
+    public static Stream<BlockPos> getBlocksIn(AxisAlignedBB bounds) {
         return BlockPos.betweenClosedStream(bounds.contract(1, 1, 1));
     }
 
@@ -137,11 +137,11 @@ public abstract class BlockSpaceUtil {
         AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, bounds.getXsize() - 1, 0, bounds.getZsize() - 1);
         AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
 
-        Set<BlockPos> positions = BlockSpaceUtil.getLayerBlockPositions(layerBounds)
+        Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(layerBounds)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        Set<BlockPos> inside = BlockSpaceUtil.getLayerBlockPositions(insideBounds)
+        Set<BlockPos> inside = BlockSpaceUtil.getBlocksIn(insideBounds)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
