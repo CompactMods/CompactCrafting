@@ -13,5 +13,5 @@ public interface IDynamicSizedRecipeLayer {
      * Used to recalculate dynamic-sized recipe layers. Expected to be called
      * any time components or base recipe dimensions change.
      */
-    void recalculateRequirements();
+    default void recalculateRequirements() {}
 }

@@ -1,0 +1,25 @@
+{
+  "world": {
+    "type": "compactcrafting:filled",
+    "component": "Gl"
+  },
+
+  "worldBlocks": {
+    "Gl": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    }
+  },
+
+  "layer": {
+    "type": "compactcrafting:filled",
+    "component":"Gl"
+  },
+
+  "components": {
+    "Gl": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    }
+  }
+}

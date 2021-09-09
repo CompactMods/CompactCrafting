@@ -28,6 +28,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
         ).apply(in, FilledComponentRecipeLayer::new));
 
     public FilledComponentRecipeLayer(String component) {
+        this.recipeDimensions = AxisAlignedBB.ofSize(0, 0, 0);
         this.componentKey = component;
     }
 
@@ -92,14 +93,5 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
      */
     public void setRecipeDimensions(AxisAlignedBB dimensions) {
         this.recipeDimensions = dimensions;
-        this.recalculateRequirements();
-    }
-
-    /**
-     * Used to recalculate dynamic-sized recipe layers. Expected to be called
-     * any time components or base recipe dimensions change.
-     */
-    public void recalculateRequirements() {
-
     }
 }
