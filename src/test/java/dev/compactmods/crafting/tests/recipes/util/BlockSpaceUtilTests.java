@@ -16,7 +16,7 @@ public class BlockSpaceUtilTests {
         AxisAlignedBB fullBounds = new AxisAlignedBB(0, 0, 0, 10, 10, 10);
         AxisAlignedBB slice = new AxisAlignedBB(0, 0, 0, 10, 1, 10);
 
-        final AxisAlignedBB actual = BlockSpaceUtil.getLayerBoundsByYOffset(fullBounds, 0);
+        final AxisAlignedBB actual = BlockSpaceUtil.getLayerBounds(fullBounds, 0);
 
         Assertions.assertEquals(slice, actual, "Slice did not equal actual returned value.");
     }

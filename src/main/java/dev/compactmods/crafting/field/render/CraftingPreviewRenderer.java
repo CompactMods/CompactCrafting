@@ -52,7 +52,7 @@ public class CraftingPreviewRenderer {
                 Optional<IRecipeLayer> layer = recipe.getLayer(y);
                 int finalY = y;
                 layer.ifPresent(l -> {
-                    AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBoundsByYOffset(recipe.getDimensions(), finalY);
+                    AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), finalY);
                     BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
                         stack.pushPose();
                         stack.translate(filledPos.getX(), 0, filledPos.getZ());

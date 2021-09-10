@@ -472,7 +472,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         // Begin layer
         mx.pushPose();
 
-        AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBoundsByYOffset(recipe.getDimensions(), layerY);
+        AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), layerY);
         BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
             mx.pushPose();
 

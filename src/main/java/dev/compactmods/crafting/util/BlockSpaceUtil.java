@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -12,10 +13,15 @@ import net.minecraft.util.math.vector.Vector3d;
 
 public abstract class BlockSpaceUtil {
 
-    public static AxisAlignedBB getLayerBoundsByYOffset(AxisAlignedBB fullBounds, int yOffset) {
+    public static AxisAlignedBB getLayerBounds(MiniaturizationFieldSize fieldSize, int layerOffset) {
+        AxisAlignedBB fieldBounds = fieldSize.getBoundsAtOrigin();
+        return getLayerBounds(fieldBounds, layerOffset);
+    }
+
+    public static AxisAlignedBB getLayerBounds(AxisAlignedBB fieldBounds, int layerOffset) {
         return new AxisAlignedBB(
-                new Vector3d(fullBounds.minX, fullBounds.minY + yOffset, fullBounds.minZ),
-                new Vector3d(fullBounds.maxX, (fullBounds.minY + yOffset) + 1, fullBounds.maxZ)
+                new Vector3d(fieldBounds.minX, fieldBounds.minY + layerOffset, fieldBounds.minZ),
+                new Vector3d(fieldBounds.maxX, (fieldBounds.minY + layerOffset) + 1, fieldBounds.maxZ)
         );
     }
 
@@ -58,6 +64,11 @@ public abstract class BlockSpaceUtil {
             return false;
 
         return true;
+    }
+
+    public static Stream<BlockPos> getBlocksIn(MiniaturizationFieldSize fieldSize, int layerOffset) {
+        AxisAlignedBB layerBounds = getLayerBounds(fieldSize, layerOffset);
+        return getBlocksIn(layerBounds);
     }
 
     @Nonnull
