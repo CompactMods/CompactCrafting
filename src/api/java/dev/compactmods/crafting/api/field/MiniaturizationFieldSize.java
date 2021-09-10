@@ -10,7 +10,7 @@ import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-public enum FieldProjectionSize implements IStringSerializable {
+public enum MiniaturizationFieldSize implements IStringSerializable {
     /**
      * Inactive field. Does not have dimensions.
      */
@@ -45,21 +45,21 @@ public enum FieldProjectionSize implements IStringSerializable {
 
     private final String name;
 
-    public static final Codec<FieldProjectionSize> CODEC =
-            Codec.STRING.xmap(FieldProjectionSize::valueOf, FieldProjectionSize::name);
+    public static final Codec<MiniaturizationFieldSize> CODEC =
+            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::name);
 
-    public static final FieldProjectionSize[] VALID_SIZES = new FieldProjectionSize[] {
+    public static final MiniaturizationFieldSize[] VALID_SIZES = new MiniaturizationFieldSize[] {
             SMALL, MEDIUM, LARGE, ABSURD
     };
 
-    FieldProjectionSize(String name, int size, int distance) {
+    MiniaturizationFieldSize(String name, int size, int distance) {
         this.size = size;
         this.projectorDistance = distance;
         this.name = name;
     }
 
     @Nonnull
-    public static Optional<FieldProjectionSize> fromDimensions(double size) {
+    public static Optional<MiniaturizationFieldSize> fromDimensions(double size) {
         // smaller than small, larger than max size, or not an odd size
         if(size < SMALL.getDimensions() || size > maximum().getDimensions() || size % 2 == 0)
             return Optional.empty();
@@ -94,7 +94,7 @@ public enum FieldProjectionSize implements IStringSerializable {
         return this.name;
     }
 
-    public static FieldProjectionSize maximum() {
+    public static MiniaturizationFieldSize maximum() {
         return ABSURD;
     }
 
@@ -124,6 +124,11 @@ public enum FieldProjectionSize implements IStringSerializable {
     public BlockPos getOppositeProjectorPosition(BlockPos projectorPos, Direction projectorFacing) {
         BlockPos center = getCenterFromProjector(projectorPos, projectorFacing);
         return getProjectorLocationForDirection(center, projectorFacing);
+    }
+
+    public AxisAlignedBB getBoundsAtOrigin() {
+        int offset = this.size;
+        return getBoundsAtPosition(BlockPos.ZERO.offset(offset, offset, offset));
     }
 
     public AxisAlignedBB getBoundsAtPosition(BlockPos center) {

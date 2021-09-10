@@ -10,7 +10,7 @@ import com.mojang.serialization.*;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
@@ -71,7 +71,7 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         }
 
         // if we don't have a fixed size layer to base dimensions off of, and the recipe size won't fit in a field
-        if (!hasFixedLayers && !FieldProjectionSize.canFitDimensions(recipeSize)) {
+        if (!hasFixedLayers && !MiniaturizationFieldSize.canFitDimensions(recipeSize)) {
             errorBuilder.append("Specified recipe size will not fit in a crafting field: ").append(recipeSize);
             return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
         }

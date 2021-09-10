@@ -3,7 +3,7 @@ package dev.compactmods.crafting.field.capability;
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
@@ -53,7 +53,7 @@ public class CapabilityMiniaturizationField {
                             CompoundNBT fieldInfo = (CompoundNBT) nbt;
 
                             BlockPos center = NBTUtil.readBlockPos(fieldInfo.getCompound("center"));
-                            FieldProjectionSize size = FieldProjectionSize.valueOf(fieldInfo.getString("size"));
+                            MiniaturizationFieldSize size = MiniaturizationFieldSize.valueOf(fieldInfo.getString("size"));
 
                             if (fieldInfo.contains("craftingState")) {
                                 EnumCraftingState state = EnumCraftingState.valueOf(fieldInfo.getString("craftingState"));

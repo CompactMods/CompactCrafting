@@ -9,7 +9,7 @@ import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.ProjectorHelper;
 import dev.compactmods.crafting.projector.tile.FieldProjectorTile;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -39,7 +39,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 public class FieldProjectorBlock extends Block {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    public static final EnumProperty<FieldProjectionSize> SIZE = EnumProperty.create("field", FieldProjectionSize.class);
+    public static final EnumProperty<MiniaturizationFieldSize> SIZE = EnumProperty.create("field", MiniaturizationFieldSize.class);
 
     private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
@@ -62,7 +62,7 @@ public class FieldProjectorBlock extends Block {
 
         registerDefaultState(getStateDefinition().any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(SIZE, FieldProjectionSize.INACTIVE));
+                .setValue(SIZE, MiniaturizationFieldSize.INACTIVE));
     }
 
     public static Optional<Direction> getDirection(IWorldReader world, BlockPos position) {
@@ -127,19 +127,19 @@ public class FieldProjectorBlock extends Block {
 
         BlockState state = defaultBlockState().setValue(FACING, looking);
         if(!hasMissing) {
-            FieldProjectionSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
-                    .orElse(FieldProjectionSize.INACTIVE);
+            MiniaturizationFieldSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
+                    .orElse(MiniaturizationFieldSize.INACTIVE);
 
             state = state.setValue(SIZE, size);
         } else {
-            state = state.setValue(SIZE, FieldProjectionSize.INACTIVE);
+            state = state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
         }
 
         return state;
     }
 
     public static boolean isActive(BlockState state) {
-        return state.getValue(SIZE) != FieldProjectionSize.INACTIVE;
+        return state.getValue(SIZE) != MiniaturizationFieldSize.INACTIVE;
     }
 
     @Override
@@ -193,10 +193,10 @@ public class FieldProjectorBlock extends Block {
 
     public static void deactivateProjector(World level, BlockPos pos) {
         BlockState currentState = level.getBlockState(pos);
-        level.setBlock(pos, currentState.setValue(SIZE, FieldProjectionSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+        level.setBlock(pos, currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
     }
 
-    public static void activateProjector(World level, BlockPos pos, FieldProjectionSize fieldSize) {
+    public static void activateProjector(World level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
         BlockState currentState = level.getBlockState(pos);
         if(currentState.getValue(SIZE) != fieldSize)
             level.setBlock(pos, currentState.setValue(SIZE, fieldSize), Constants.BlockFlags.DEFAULT_AND_RERENDER);
@@ -206,7 +206,7 @@ public class FieldProjectorBlock extends Block {
     @SuppressWarnings("deprecation")
     public void onPlace(BlockState state, World level, BlockPos pos, BlockState oldState, boolean b) {
         if(isActive(state) && !level.isClientSide) {
-            FieldProjectionSize fieldSize = state.getValue(SIZE);
+            MiniaturizationFieldSize fieldSize = state.getValue(SIZE);
             BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
 
             fieldSize.getProjectorLocations(fieldCenter)

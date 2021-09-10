@@ -2,7 +2,7 @@ package dev.compactmods.crafting.field;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -20,7 +20,7 @@ public abstract class FieldHelper {
         if (level.isClientSide())
             return;
 
-        int maxDimensions = FieldProjectionSize.maximum().getDimensions();
+        int maxDimensions = MiniaturizationFieldSize.maximum().getDimensions();
         AxisAlignedBB searchArea = new AxisAlignedBB(pos, pos).inflate(maxDimensions);
 
         BlockPos[] nearbyProjectors = BlockPos.betweenClosedStream(searchArea)

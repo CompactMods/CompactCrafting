@@ -2,7 +2,7 @@ package dev.compactmods.crafting.network;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.client.ClientPacketHandler;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.api.distmarker.Dist;
@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 
 public class FieldDeactivatedPacket extends FieldChangedPacket {
 
-    public FieldDeactivatedPacket(FieldProjectionSize fieldSize, BlockPos fieldCenter) {
+    public FieldDeactivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos fieldCenter) {
         super(fieldSize, fieldCenter);
     }
 

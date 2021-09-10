@@ -8,7 +8,7 @@ import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
@@ -140,7 +140,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
         boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
         if (!hasAnyRigidLayers) {
-            if(!FieldProjectionSize.canFitDimensions(recipeSize)) {
+            if(!MiniaturizationFieldSize.canFitDimensions(recipeSize)) {
                 CompactCrafting.LOGGER.error("Error: tried to enforce a dimension update with a recipe size that will not fit inside field boundaries.");
             } else {
                 setFluidDimensions(new AxisAlignedBB(0, 0, 0, recipeSize, height, recipeSize));
@@ -178,7 +178,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      * @param fieldSize
      * @return
      */
-    public boolean fitsInFieldSize(FieldProjectionSize fieldSize) {
+    public boolean fitsInFieldSize(MiniaturizationFieldSize fieldSize) {
         int dim = fieldSize.getDimensions();
         boolean fits = Stream.of(dimensions.getXsize(), dimensions.getYsize(), dimensions.getZsize())
                 .allMatch(size -> size <= dim);
@@ -226,7 +226,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 return false;
             }
 
-            AxisAlignedBB bounds = BlockSpaceUtil.getLayerBoundsByYOffset(filledBounds, offset);
+            AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(filledBounds, offset);
             IRecipeLayerBlocks blocks = RecipeLayerBlocks.create(world, this, bounds);
 
             if (rot != Rotation.NONE)
@@ -388,7 +388,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public boolean hasSpecifiedSize() {
-        return FieldProjectionSize.canFitDimensions(this.recipeSize);
+        return MiniaturizationFieldSize.canFitDimensions(this.recipeSize);
     }
 
     public int getRecipeSize() {
@@ -396,7 +396,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public void setRecipeSize(int size) {
-        if(!FieldProjectionSize.canFitDimensions(size))
+        if(!MiniaturizationFieldSize.canFitDimensions(size))
             return;
 
         this.recipeSize = size;

@@ -14,7 +14,7 @@ import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
@@ -38,7 +38,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 
 public class MiniaturizationField implements IMiniaturizationField {
 
-    private FieldProjectionSize size;
+    private MiniaturizationFieldSize size;
     private BlockPos center;
     private boolean loaded;
 
@@ -59,17 +59,17 @@ public class MiniaturizationField implements IMiniaturizationField {
     public MiniaturizationField() {
     }
 
-    private MiniaturizationField(FieldProjectionSize size, BlockPos center) {
+    private MiniaturizationField(MiniaturizationFieldSize size, BlockPos center) {
         this.center = center;
         this.size = size;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
     }
 
-    public static MiniaturizationField fromSizeAndCenter(FieldProjectionSize fieldSize, BlockPos center) {
+    public static MiniaturizationField fromSizeAndCenter(MiniaturizationFieldSize fieldSize, BlockPos center) {
         return new MiniaturizationField(fieldSize, center);
     }
 
-    public FieldProjectionSize getFieldSize() {
+    public MiniaturizationFieldSize getFieldSize() {
         return this.size;
     }
 
@@ -83,7 +83,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setSize(FieldProjectionSize size) {
+    public void setSize(MiniaturizationFieldSize size) {
         this.size = size;
     }
 

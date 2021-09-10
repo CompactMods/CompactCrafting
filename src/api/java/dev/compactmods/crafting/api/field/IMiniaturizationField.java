@@ -15,13 +15,13 @@ public interface IMiniaturizationField {
 
     AxisAlignedBB getBounds();
 
-    FieldProjectionSize getFieldSize();
+    MiniaturizationFieldSize getFieldSize();
 
     BlockPos getCenter();
 
     void setCenter(BlockPos center);
 
-    void setSize(FieldProjectionSize size);
+    void setSize(MiniaturizationFieldSize size);
 
     int getProgress();
 
@@ -79,7 +79,7 @@ public interface IMiniaturizationField {
 
     default void loadClientData(CompoundNBT nbt) {
         this.setCenter(BlockPos.of(nbt.getLong("center")));
-        this.setSize(FieldProjectionSize.valueOf(nbt.getString("size")));
+        this.setSize(MiniaturizationFieldSize.valueOf(nbt.getString("size")));
         this.setCraftingState(EnumCraftingState.valueOf(nbt.getString("state")));
 
         if (nbt.contains("recipe")) {

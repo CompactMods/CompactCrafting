@@ -10,7 +10,7 @@ import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.block.BlockState;
@@ -26,7 +26,7 @@ import net.minecraftforge.fml.network.PacketDistributor;
 
 public class FieldProjectorTile extends TileEntity {
 
-    private FieldProjectionSize fieldSize;
+    private MiniaturizationFieldSize fieldSize;
     private AxisAlignedBB fieldBounds;
 
     protected LazyOptional<IMiniaturizationField> fieldCap = LazyOptional.empty();
@@ -36,7 +36,7 @@ public class FieldProjectorTile extends TileEntity {
         super(Registration.FIELD_PROJECTOR_TILE.get());
     }
 
-    public FieldProjectorTile(FieldProjectionSize size) {
+    public FieldProjectorTile(MiniaturizationFieldSize size) {
         super(Registration.FIELD_PROJECTOR_TILE.get());
         this.fieldSize = size;
     }

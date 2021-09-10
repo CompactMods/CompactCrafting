@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.nbt.CompoundNBT;
@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 
 public abstract class ClientPacketHandler {
 
-    public static void handleFieldActivation(BlockPos[] projectorLocations, FieldProjectionSize fieldSize) {
+    public static void handleFieldActivation(BlockPos[] projectorLocations, MiniaturizationFieldSize fieldSize) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
             ClientWorld cw = mc.level;

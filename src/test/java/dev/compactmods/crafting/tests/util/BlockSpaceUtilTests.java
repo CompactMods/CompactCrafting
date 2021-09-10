@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.tests.util;
 
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -13,7 +13,7 @@ public class BlockSpaceUtilTests {
     void doesNormalizeSingleBlockPos() {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = FieldProjectionSize.LARGE.getSize();
+        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         AxisAlignedBB field = new AxisAlignedBB(min, max);
@@ -27,7 +27,7 @@ public class BlockSpaceUtilTests {
     void doesNormalizeMultipleBlockPos() {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = FieldProjectionSize.LARGE.getSize();
+        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         AxisAlignedBB field = new AxisAlignedBB(min, max);
@@ -49,7 +49,7 @@ public class BlockSpaceUtilTests {
     void doesDenormalizePosition() {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = FieldProjectionSize.LARGE.getSize();
+        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         AxisAlignedBB field = new AxisAlignedBB(min, max);

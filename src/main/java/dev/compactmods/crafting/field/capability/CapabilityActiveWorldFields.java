@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.field.ActiveWorldFields;
 import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.api.field.FieldProjectionSize;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
@@ -49,7 +49,7 @@ public class CapabilityActiveWorldFields {
                                 return;
 
                             CompoundNBT f = (CompoundNBT) item;
-                            FieldProjectionSize size = FieldProjectionSize.valueOf(f.getString("size"));
+                            MiniaturizationFieldSize size = MiniaturizationFieldSize.valueOf(f.getString("size"));
                             BlockPos center = NBTUtil.readBlockPos(f.getCompound("center"));
 
                             MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
