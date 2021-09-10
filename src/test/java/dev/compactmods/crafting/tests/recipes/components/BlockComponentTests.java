@@ -31,6 +31,16 @@ public class BlockComponentTests {
 
     @Test
     @Tag("minecraft")
+    void ToStringShowsBlockId() {
+        BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
+        Assertions.assertNotNull(component);
+
+        String toString = Assertions.assertDoesNotThrow(component::toString);
+        Assertions.assertTrue(toString.contains("minecraft:gold_block"));
+    }
+
+    @Test
+    @Tag("minecraft")
     void CanMatchBlock() {
         JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_properties.json");
 

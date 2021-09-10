@@ -133,4 +133,9 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     public Optional<BlockState> getFirstMatch() {
         return validStates.isEmpty() ? Optional.empty() : validStates.stream().findFirst();
     }
+
+    @Override
+    public String toString() {
+        return String.format("Block {%s}", block.getRegistryName());
+    }
 }
