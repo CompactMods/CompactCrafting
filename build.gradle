@@ -141,6 +141,8 @@ minecraft {
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
+            arg '--crashOnFailedTests'
+            forceExit = false
             mods {
                 compactcrafting {
                     source sourceSets.main
