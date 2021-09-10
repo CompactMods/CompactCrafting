@@ -1,0 +1,22 @@
+{
+  "world": {
+    "type": "compactcrafting:mixed",
+    "pattern": [
+      ["G", "G", "G", "G", "G"],
+      ["G", "O", "O", "O", "G"],
+      ["G", "O", "O", "O", "G"],
+      ["G", "O", "O", "O", "G"],
+      ["G", "G", "G", "G", "G"]
+    ]
+  },
+  "blocks": {
+    "G": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    },
+    "O": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:obsidian"
+    }
+  }
+}

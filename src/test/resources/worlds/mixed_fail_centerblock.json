@@ -1,0 +1,18 @@
+{
+  "world": {
+    "type": "compactcrafting:mixed",
+    "pattern": [
+      ["Gl", "Gl", "Gl"],
+      ["Gl", "Go", "Gl"],
+      ["Gl", "Gl", "Gl"]
+    ]
+  },
+  "blocks": {
+    "Gl": {
+      "block": "minecraft:glass"
+    },
+    "Go": {
+      "block": "minecraft:gold_block"
+    }
+  }
+}

@@ -7,16 +7,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeCodec;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
 import net.minecraft.util.math.BlockPos;
 
-public class RecipeLayerBlocksTestHarnessCodec implements Codec<TestRecipeLayerBlocks> {
+public class TestRecipeLayerBlocksCodec implements Codec<TestRecipeLayerBlocks> {
     @Override
     public <T> DataResult<Pair<TestRecipeLayerBlocks, T>> decode(DynamicOps<T> ops, T input) {
         TestRecipeLayerBlocks harness = new TestRecipeLayerBlocks();
@@ -27,8 +24,6 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<TestRecipeLayerB
             return DataResult.error(e.getMessage());
         }
 
-        loadComponents(ops, input, harness);
-
         // Force unknown positions
         BlockPos.CODEC.listOf()
                 .optionalFieldOf("forcedUnknownPositions")
@@ -38,6 +33,8 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<TestRecipeLayerB
                 .ifPresent(list -> {
                     list.forEach(harness::addForcedUnknownPosition);
                 });
+
+        harness.rebuildComponentTotals();
 
         return DataResult.success(Pair.of(harness, input));
     }
@@ -57,33 +54,15 @@ public class RecipeLayerBlocksTestHarnessCodec implements Codec<TestRecipeLayerB
         harness.bounds = ((IFixedSizedRecipeLayer) world).getDimensions();
         harness.worldLayerDef = world;
 
-        final Map<String, BlockComponent> worldBlocks = Codec.unboundedMap(Codec.STRING, BlockComponent.CODEC)
-                .fieldOf("worldBlocks")
+        final Map<String, BlockComponent> blocks = Codec.unboundedMap(Codec.STRING, BlockComponent.CODEC)
+                .fieldOf("blocks")
                 .codec()
                 .parse(ops, input)
                 .getOrThrow(false, CompactCrafting.RECIPE_LOGGER::error);
 
-        for (Map.Entry<String, BlockComponent> e : worldBlocks.entrySet()) {
+        for (Map.Entry<String, BlockComponent> e : blocks.entrySet()) {
             e.getValue().getFirstMatch().ifPresent(bs -> harness.states.put(e.getKey(), bs));
         }
-    }
-
-    private <T> void loadComponents(DynamicOps<T> ops, T input, TestRecipeLayerBlocks harness) {
-        final Map<String, IRecipeComponent> components = Codec.unboundedMap(Codec.STRING, MiniaturizationRecipeCodec.COMPONENT_CODEC)
-                .fieldOf("components")
-                .codec()
-                .parse(ops, input)
-                .getOrThrow(false, CompactCrafting.RECIPE_LOGGER::error);
-
-        CCMiniRecipeComponents test = new CCMiniRecipeComponents();
-        components.forEach((ck, c) -> {
-            if (c instanceof IRecipeBlockComponent)
-                test.registerBlock(ck, (IRecipeBlockComponent) c);
-            else
-                test.registerOther(ck, c);
-        });
-
-        harness.rebuildComponentTotals();
     }
 
     @Override

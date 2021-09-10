@@ -1,0 +1,18 @@
+{
+  "world": {
+    "type": "compactcrafting:mixed",
+    "pattern": [
+      ["A", "A", "A", "A", "A"],
+      ["A", "A", "A", "A", "A"],
+      ["A", "A", "A", "A", "A"],
+      ["A", "A", "A", "A", "A"],
+      ["A", "A", "A", "A", "A"]
+    ]
+  },
+  "blocks": {
+    "A": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    }
+  }
+}

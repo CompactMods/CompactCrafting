@@ -18,7 +18,7 @@ public class TestRecipeLayerBlocks implements IRecipeLayerBlocks {
     IRecipeLayer worldLayerDef;
     final Set<BlockPos> unmatchedStates;
 
-    public static final Codec<TestRecipeLayerBlocks> CODEC = new RecipeLayerBlocksTestHarnessCodec();
+    public static final Codec<TestRecipeLayerBlocks> CODEC = new TestRecipeLayerBlocksCodec();
 
     TestRecipeLayerBlocks() {
         this.bounds = AxisAlignedBB.ofSize(0, 0, 0);

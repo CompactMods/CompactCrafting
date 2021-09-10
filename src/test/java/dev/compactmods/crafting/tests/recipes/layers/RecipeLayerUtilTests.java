@@ -2,11 +2,9 @@ package dev.compactmods.crafting.tests.recipes.layers;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
-import dev.compactmods.crafting.tests.util.FileHelper;
+import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
@@ -18,7 +16,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotate() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/basic_harness.json");
+        TestRecipeLayerBlocks harness = RecipeTestUtil.getLayerHarness("worlds/basic_harness_5x.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedClockwise = RecipeLayerUtil.rotate(harness, Rotation.CLOCKWISE_90);
@@ -33,7 +31,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotateWithUnknownComponent() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/unknown_component.json");
+        TestRecipeLayerBlocks harness = RecipeTestUtil.getLayerHarness("worlds/unknown_component.json");
         Assertions.assertNotNull(harness);
 
         boolean identified = harness.allIdentified();
@@ -55,7 +53,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void NonRotationCreatesCopiedInstance() {
-        TestRecipeLayerBlocks harness = getHarness("layers/mixed/basic_harness.json");
+        TestRecipeLayerBlocks harness = RecipeTestUtil.getLayerHarness("worlds/basic_harness_5x.json");
         Assertions.assertNotNull(harness);
 
         final IRecipeLayerBlocks rotatedHarness = RecipeLayerUtil.rotate(harness, Rotation.NONE);
@@ -69,10 +67,5 @@ public class RecipeLayerUtilTests {
         Assertions.assertNotSame(harness, rotatedHarness);
     }
 
-    private TestRecipeLayerBlocks getHarness(String filename) {
-        final JsonElement mixed = FileHelper.INSTANCE.getJsonFromFile(filename);
-        return TestRecipeLayerBlocks.CODEC
-                .parse(JsonOps.INSTANCE, mixed)
-                .getOrThrow(false, Assertions::fail);
-    }
+
 }
