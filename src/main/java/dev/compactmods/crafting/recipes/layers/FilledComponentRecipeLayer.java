@@ -20,7 +20,7 @@ import net.minecraft.util.math.BlockPos;
 
 public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
 
-    private String componentKey;
+    private final String componentKey;
     private AxisAlignedBB recipeDimensions;
 
     public static final Codec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.create(in -> in.group(
@@ -80,10 +80,6 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public RecipeLayerType<?> getType() {
         return Registration.FILLED_LAYER_SERIALIZER.get();
-    }
-
-    public void setComponent(String component) {
-        this.componentKey = component;
     }
 
     /**
