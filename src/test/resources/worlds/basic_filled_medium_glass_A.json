@@ -1,0 +1,21 @@
+{
+  "recipeSize": 5,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "A"
+    }
+  ],
+  "components": {
+    "A": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    }
+  },
+  "outputs": [
+    {
+      "id": "minecraft:diamond",
+      "Count": 1
+    }
+  ]
+}

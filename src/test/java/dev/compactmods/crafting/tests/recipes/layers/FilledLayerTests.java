@@ -160,8 +160,8 @@ public class FilledLayerTests {
     @Test
     @Tag("minecraft")
     void FailsMatchIfComponentKeyNotFound() {
-        final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_filled_harness_alt_5x.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_filled_harness_alt_5x.json");
+        final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_filled_medium_glass_A.json");
+        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_filled_medium_glass_A.json");
 
         Assertions.assertNotNull(reader);
 
