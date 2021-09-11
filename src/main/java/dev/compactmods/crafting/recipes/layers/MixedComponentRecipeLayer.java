@@ -84,7 +84,10 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        if(!blocks.allIdentified()) return false;
+        if(!blocks.allIdentified()) {
+            final Set<String> unknown = blocks.getUnknownComponents().collect(Collectors.toSet());
+            return false;
+        }
 
         final Collection<String> requiredKeys = this.componentLookup.getComponents();
         final Map<String, Integer> componentTotals = blocks.getKnownComponentTotals();

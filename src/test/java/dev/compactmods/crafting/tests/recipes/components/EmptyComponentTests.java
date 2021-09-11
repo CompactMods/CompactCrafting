@@ -6,6 +6,8 @@ import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.tests.util.FileHelper;
+import net.minecraft.block.AirBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import org.junit.jupiter.api.Assertions;
@@ -72,5 +74,15 @@ public class EmptyComponentTests {
 
                     Assertions.assertNotNull(renderState);
                 });
+    }
+
+    @Test
+    @Tag("minecraft")
+    void CanGetBlock() {
+        EmptyBlockComponent component = new EmptyBlockComponent();
+        Assertions.assertNotNull(component);
+
+        final Block block = Assertions.assertDoesNotThrow(component::getBlock);
+        Assertions.assertTrue(block instanceof AirBlock);
     }
 }

@@ -54,4 +54,5 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
     }
 
     public abstract void setId(ResourceLocation recipeId);
+
 }

@@ -1,18 +1,24 @@
 {
-  "world": {
-    "type": "compactcrafting:mixed",
-    "pattern": [
-      ["Gl", "Gl", "Gl"],
-      ["Gl", "Go", "Gl"],
-      ["Gl", "Gl", "Gl"]
-    ]
-  },
-  "blocks": {
+  "layers": [
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["Gl", "Gl", "Gl"],
+        ["Gl", "Go", "Gl"],
+        ["Gl", "Gl", "Gl"]
+      ]
+    }
+  ],
+  "components": {
     "Gl": {
       "block": "minecraft:glass"
     },
     "Go": {
       "block": "minecraft:gold_block"
     }
-  }
+  },
+  "outputs": [{
+    "id": "minecraft:diamond",
+    "Count": 1
+  }]
 }

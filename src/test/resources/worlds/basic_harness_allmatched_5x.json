@@ -1,15 +1,17 @@
 {
-  "world": {
-    "type": "compactcrafting:mixed",
-    "pattern": [
-      ["G", "G", "G", "G", "G"],
-      ["G", "O", "O", "O", "G"],
-      ["G", "O", "O", "O", "G"],
-      ["G", "O", "O", "O", "G"],
-      ["G", "G", "G", "G", "G"]
-    ]
-  },
-  "blocks": {
+  "layers": [
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["G", "G", "G", "G", "G"],
+        ["G", "O", "O", "O", "G"],
+        ["G", "O", "O", "O", "G"],
+        ["G", "O", "O", "O", "G"],
+        ["G", "G", "G", "G", "G"]
+      ]
+    }
+  ],
+  "components": {
     "G": {
       "type": "compactcrafting:block",
       "block": "minecraft:glass"
@@ -18,5 +20,9 @@
       "type": "compactcrafting:block",
       "block": "minecraft:obsidian"
     }
-  }
+  },
+  "outputs": [{
+    "id": "minecraft:diamond",
+    "Count": 1
+  }]
 }

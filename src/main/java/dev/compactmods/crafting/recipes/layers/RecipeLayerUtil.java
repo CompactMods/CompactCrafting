@@ -29,14 +29,20 @@ public final class RecipeLayerUtil {
             BlockPos rotatedPos = rotatedPositions.get(originalPos);
 
             // Add original block state from world info
-            Optional<BlockState> state = original.getStateAtPosition(originalPos);
-            state.ifPresent(blockState -> states.put(rotatedPos, blockState));
-            if (!state.isPresent()) {
-                unmatchedPositions.add(rotatedPos);
-            }
+            states.put(rotatedPos, original.getStateAtPosition(originalPos));
 
             // Copy over the matched component key to the new position
             original.getComponentAtPosition(originalPos).ifPresent(m -> componentKeys.put(rotatedPos, m));
+        }
+
+        if (!original.allIdentified()) {
+            original.getUnmappedPositions()
+                    .forEach(pos -> {
+                        BlockPos rotated = rotatedPositions.get(pos).immutable();
+                        unmatchedPositions.add(rotated);
+
+                        original.getComponentAtPosition(pos).ifPresent(k -> componentKeys.put(rotated, k));
+                    });
         }
 
         return new RecipeLayerBlocks(original.getBounds(), states, componentKeys, unmatchedPositions);

@@ -3,16 +3,16 @@
     {
       "type": "compactcrafting:mixed",
       "pattern": [
-        ["A", "A", "A", "A", "A"],
-        ["A", "A", "A", "A", "A"],
-        ["A", "A", "A", "A", "A"],
-        ["A", "A", "A", "A", "A"],
-        ["A", "A", "A", "A", "A"]
+        ["G", "G", "G", "G", "G"],
+        ["G", "G", "G", "G", "G"],
+        ["G", "G", "G", "G", "G"],
+        ["G", "G", "G", "G", "G"],
+        ["G", "G", "G", "G", "G"]
       ]
     }
   ],
   "components": {
-    "A": {
+    "G": {
       "type": "compactcrafting:block",
       "block": "minecraft:glass"
     }

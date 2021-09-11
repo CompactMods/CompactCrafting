@@ -2,6 +2,7 @@ package dev.compactmods.crafting.api.recipe;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import net.minecraft.item.ItemStack;
@@ -24,4 +25,6 @@ public interface IMiniaturizationRecipe {
     IRecipeComponents getComponents();
 
     void setOutputs(Collection<ItemStack> outputs);
+
+    Stream<IRecipeLayer> getLayers();
 }

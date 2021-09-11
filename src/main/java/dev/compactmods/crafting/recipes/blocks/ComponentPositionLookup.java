@@ -20,10 +20,14 @@ public class ComponentPositionLookup {
 
     public void add(BlockPos location, String component) {
         components.putIfAbsent(location, component);
+        componentTotals.putIfAbsent(component, 0);
+
+        // Increment totals to keep in sync
+        componentTotals.put(component, componentTotals.get(component) + 1);
     }
 
     public Collection<String> getComponents() {
-        return components.values();
+        return componentTotals.keySet();
     }
 
     public Stream<BlockPos> getAllPositions() {
@@ -35,10 +39,6 @@ public class ComponentPositionLookup {
     }
 
     public Map<String, Integer> getComponentTotals() {
-        if (!this.components.isEmpty() && !this.componentTotals.isEmpty())
-            return this.componentTotals;
-
-        rebuildComponentTotals();
         return this.componentTotals;
     }
 

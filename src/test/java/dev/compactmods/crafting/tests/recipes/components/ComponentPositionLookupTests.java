@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -24,19 +25,21 @@ public class ComponentPositionLookupTests {
         lookup.add(BlockPos.ZERO, "G");
 
         // Full component list should contain the component key (G) and the position, at least
-        Assertions.assertTrue(lookup.getComponents().contains("G"));
-        Assertions.assertTrue(lookup.containsLocation(BlockPos.ZERO));
+        final Collection<String> componentList = Assertions.assertDoesNotThrow(lookup::getComponents);
+        Assertions.assertNotNull(componentList);
+        Assertions.assertTrue(componentList.contains("G"), "Expected 'G' to be in component list.");
+        Assertions.assertTrue(lookup.containsLocation(BlockPos.ZERO), "Expected BP.ZERO to be in component lookup.");
 
         // Reverse lookup by position should return "G" inside an optional
         final Optional<String> key = lookup.getRequiredComponentKeyForPosition(BlockPos.ZERO);
-        Assertions.assertTrue(key.isPresent());
+        Assertions.assertTrue(key.isPresent(), "Expected to find a component 'G', did not find one.");
         Assertions.assertEquals("G", key.get());
 
         // We only added one position referencing G, so make sure it's in the list and there's only one
         final Set<BlockPos> positions = lookup.getPositionsForComponent("G")
                 .map(BlockPos::immutable).collect(Collectors.toSet());
         Assertions.assertEquals(1, positions.size());
-        Assertions.assertTrue(positions.contains(BlockPos.ZERO));
+        Assertions.assertTrue(positions.contains(BlockPos.ZERO), "Expected BP.ZERO to be in component position list.");
 
         // All positions - Only one should be registered
         final Set<BlockPos> allPositions = lookup.getAllPositions()
@@ -44,7 +47,7 @@ public class ComponentPositionLookupTests {
                 .collect(Collectors.toSet());
 
         Assertions.assertEquals(1, allPositions.size());
-        Assertions.assertTrue(allPositions.contains(BlockPos.ZERO));
+        Assertions.assertTrue(allPositions.contains(BlockPos.ZERO), "Expected lookup to have BP.ZERO in its position map.");
     }
 
     @Test

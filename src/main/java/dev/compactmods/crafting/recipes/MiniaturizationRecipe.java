@@ -325,6 +325,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return layers.size();
     }
 
+    @Override
+    public Stream<IRecipeLayer> getLayers() {
+        return layers.values().stream();
+    }
+
     public IRecipeComponents getComponents() {
         return this.components;
     }

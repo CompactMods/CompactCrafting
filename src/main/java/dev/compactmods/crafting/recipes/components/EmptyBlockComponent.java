@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 
@@ -17,6 +18,11 @@ public class EmptyBlockComponent implements IRecipeComponent, IRecipeBlockCompon
         // Update this when undeprecated; other modders -
         // if you aren't overriding the state properties, shame on you
         return state.isAir();
+    }
+
+    @Override
+    public Block getBlock() {
+        return Blocks.AIR;
     }
 
     @Override

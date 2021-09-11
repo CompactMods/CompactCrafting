@@ -19,7 +19,7 @@ public interface IRecipeLayerBlocks {
      * @param relative The relative location of the blockspace, in the layer.
      * @return A filled Optional if the state is mapped, empty otherwise.
      */
-    Optional<BlockState> getStateAtPosition(BlockPos relative);
+    BlockState getStateAtPosition(BlockPos relative);
 
     Stream<BlockPos> getPositions();
 
@@ -29,11 +29,16 @@ public interface IRecipeLayerBlocks {
      */
     int getNumberKnownComponents();
 
+    void rebuildComponentTotals();
+    
     Map<String, Integer> getKnownComponentTotals();
 
     AxisAlignedBB getBounds();
 
     boolean allIdentified();
+
+    Stream<BlockPos> getUnmappedPositions();
+    Stream<String> getUnknownComponents();
 
     Stream<BlockPos> getPositionsForComponent(String component);
 }

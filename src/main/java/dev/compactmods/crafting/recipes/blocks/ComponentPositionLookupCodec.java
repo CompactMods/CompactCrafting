@@ -35,6 +35,7 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
             }
 
             lookup.components.putAll(RecipeHelper.convertMultiArrayToMap(mappedToArray));
+            lookup.rebuildComponentTotals();
 
             return DataResult.success(lookup);
         });

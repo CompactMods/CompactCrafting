@@ -62,6 +62,11 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
     }
 
     @Override
+    public void unregisterBlock(String key) {
+        blockComponents.remove(key);
+    }
+
+    @Override
     public void registerOther(String key, IRecipeComponent component) {
         otherComponents.put(key, component);
     }

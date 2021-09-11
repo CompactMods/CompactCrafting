@@ -33,7 +33,8 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
             if (key.isPresent()) lookup.components.put(pos.immutable(), key.get());
             else unmatchedStates.add(pos.immutable());
 
-            original.getStateAtPosition(pos).ifPresent(state -> states.put(pos.immutable(), state));
+            BlockState oState = original.getStateAtPosition(pos);
+            states.put(pos.immutable(), oState);
         });
     }
 
@@ -60,13 +61,12 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
             // Pre-populate a set of component keys from the recipe instance, so we don't have to do it later
             Optional<String> compKey = recipe.getRecipeComponentKey(state);
             if (compKey.isPresent())
-                instance.lookup.components.put(normalizedPos, compKey.get());
+                instance.lookup.add(normalizedPos, compKey.get());
             else
                 instance.unmatchedStates.add(normalizedPos);
 
         });
 
-        instance.lookup.rebuildComponentTotals();
         return instance;
     }
 
@@ -77,11 +77,21 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
 
     @Override
     public boolean allIdentified() {
-        boolean lookupHasAllKeys = this.lookup.getComponents()
-                .stream()
-                .allMatch(states::containsKey);
+        return unmatchedStates.isEmpty();
+    }
 
-        return lookupHasAllKeys && unmatchedStates.isEmpty();
+    @Override
+    public Stream<BlockPos> getUnmappedPositions() {
+        return unmatchedStates.stream();
+    }
+
+    @Override
+    public Stream<String> getUnknownComponents() {
+        return getUnmappedPositions()
+                .map(lookup::getRequiredComponentKeyForPosition)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .distinct();
     }
 
     @Override
@@ -96,8 +106,8 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
     }
 
     @Override
-    public Optional<BlockState> getStateAtPosition(BlockPos relative) {
-        return Optional.ofNullable(states.get(relative));
+    public BlockState getStateAtPosition(BlockPos relative) {
+        return states.get(relative);
     }
 
     @Override
@@ -113,6 +123,11 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
     @Override
     public int getNumberKnownComponents() {
         return this.getKnownComponentTotals().keySet().size();
+    }
+
+    @Override
+    public void rebuildComponentTotals() {
+        lookup.rebuildComponentTotals();
     }
 
     @Override
