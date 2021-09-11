@@ -21,7 +21,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void CanRotate() {
-        TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_harness_5x.json");
+        TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
         Assertions.assertNotNull(reader);
 
         final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
@@ -71,7 +71,7 @@ public class RecipeLayerUtilTests {
     @Test
     @Tag("minecraft")
     void NonRotationCreatesCopiedInstance() {
-        TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_harness_5x.json");
+        TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
         Assertions.assertNotNull(reader);
 
         final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));

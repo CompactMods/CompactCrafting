@@ -124,8 +124,8 @@ public class FilledLayerTests {
     @Test
     @Tag("minecraft")
     void FailsMatchIfAllBlocksNotIdentified() {
-        final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_harness_5x.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_harness_5x.json");
+        final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
+        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
 
         Assertions.assertNotNull(reader);
 

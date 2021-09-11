@@ -84,10 +84,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        if(!blocks.allIdentified()) {
-            final Set<String> unknown = blocks.getUnknownComponents().collect(Collectors.toSet());
-            return false;
-        }
+        if(!blocks.allIdentified()) return false;
 
         final Collection<String> requiredKeys = this.componentLookup.getComponents();
         final Map<String, Integer> componentTotals = blocks.getKnownComponentTotals();
@@ -109,20 +106,14 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
             final Set<BlockPos> actual = blocks.getPositionsForComponent(required)
                     .map(BlockPos::immutable).collect(Collectors.toSet());
+
             final Set<BlockPos> expected = componentLookup.getPositionsForComponent(required)
                     .map(BlockPos::immutable).collect(Collectors.toSet());
-
-            // Dry run - ensure component counts match actual v. expected
-            if(expected.size() != actual.size()) {
-                if(ServerConfig.RECIPE_MATCHING.get())
-                    CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required vs. expected counts do not match. ");
-                return false;
-            }
 
             if(!expected.equals(actual))
             {
                 if(ServerConfig.RECIPE_MATCHING.get())
-                    CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required components are missing.");
+                    CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required components are missing or in incorrect spots.");
                 return false;
             }
         }

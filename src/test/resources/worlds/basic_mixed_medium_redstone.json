@@ -1,0 +1,32 @@
+{
+  "layers": [
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["R", "G", "G", "G", "G"],
+        ["G", "-", "-", "-", "G"],
+        ["G", "-", "O", "-", "G"],
+        ["G", "-", "-", "-", "G"],
+        ["G", "G", "G", "G", "G"]
+      ]
+    }
+  ],
+  "components": {
+    "G": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:glass"
+    },
+    "O": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:obsidian"
+    },
+    "R": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:redstone_block"
+    }
+  },
+  "outputs": [{
+    "id": "minecraft:diamond",
+    "Count": 1
+  }]
+}
