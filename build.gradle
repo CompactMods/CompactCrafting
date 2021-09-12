@@ -57,6 +57,10 @@ sourceSets {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.api.output
         runtimeClasspath += sourceSets.main.output
+
+        resources {
+            srcDir "src/test/resources"
+        }
     }
 }
 
@@ -141,7 +145,6 @@ minecraft {
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
-            arg '--crashOnFailedTests'
             forceExit = false
             mods {
                 compactcrafting {
@@ -150,6 +153,11 @@ minecraft {
                     source sourceSets.test
                 }
             }
+        }
+
+        unitTestsCI {
+            parent runs.unitTests
+            arg '--crashOnFailedTests'
         }
     }
 }

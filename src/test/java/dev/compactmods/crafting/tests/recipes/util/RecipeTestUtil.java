@@ -1,17 +1,20 @@
 package dev.compactmods.crafting.tests.recipes.util;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Optional;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.tests.util.FileHelper;
-import dev.compactmods.crafting.tests.world.TestBlockReader;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
 
 public class RecipeTestUtil {
@@ -29,15 +32,6 @@ public class RecipeTestUtil {
         }
     }
 
-    @Nullable
-    public static TestBlockReader getBlockReader(String filename) {
-        final MiniaturizationRecipe rec = getRecipeFromFile(filename);
-        if(rec == null)
-            return null;
-
-        return TestBlockReader.fromRecipe(rec);
-    }
-
     public static MiniaturizationRecipeComponents getComponentsFromRecipeFile(String filename) {
         final JsonElement data = FileHelper.INSTANCE.getJsonFromFile(filename);
 
@@ -51,5 +45,10 @@ public class RecipeTestUtil {
         blocks.forEach(components::registerBlock);
 
         return components;
+    }
+
+    public static AxisAlignedBB getFloorLayerBounds(MiniaturizationFieldSize fieldSize, IntegrationTestHelper helper) {
+        AxisAlignedBB fieldAllBounds = fieldSize.getBoundsAtOrigin().move(helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO));
+        return BlockSpaceUtil.getLayerBounds(fieldAllBounds, 0);
     }
 }

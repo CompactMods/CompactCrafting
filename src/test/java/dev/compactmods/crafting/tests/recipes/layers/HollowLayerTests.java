@@ -4,22 +4,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
-import dev.compactmods.crafting.tests.world.TestBlockReader;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.Blocks;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@IntegrationTestClass("layers")
 public class HollowLayerTests {
 
     private HollowComponentRecipeLayer getLayerFromFile(String filename) {
@@ -85,38 +91,38 @@ public class HollowLayerTests {
         Assertions.assertEquals(0, xPositions.count());
     }
 
-
-    @Test
     @Tag("minecraft")
-    void HollowMatchesWorldDefinitionExactly() {
-        String file = "worlds/basic_hollow_medium_glass_A.json";
-        final TestBlockReader reader = RecipeTestUtil.getBlockReader(file);
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
+    @IntegrationTest("medium_glass_walls")
+    void HollowMatchesWorldDefinitionExactly(IntegrationTestHelper helper) {
+        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO);
 
-        Assertions.assertNotNull(reader);
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, bounds);
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        final boolean matches = layer.matches(components, blocks);
+        boolean matched = layer.matches(components, blocks);
 
-        Assertions.assertTrue(matches, "Hollow did not pass perfect match.");
+        if(!matched) {
+            helper.fail("Hollow did not pass perfect match.");
+        }
     }
 
-    @Test
     @Tag("minecraft")
-    void HollowFailsIfWorldHasBadWallBlock() {
+    @IntegrationTest("medium_glass_walls")
+    @DisplayName("Hollow - Bad Wall Block")
+    void HollowFailsIfWorldHasBadWallBlock(IntegrationTestHelper helper) {
         String file = "worlds/basic_hollow_medium_glass_A.json";
-        final TestBlockReader reader = RecipeTestUtil.getBlockReader(file);
         final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
 
-        Assertions.assertNotNull(reader);
+        helper.setBlockState(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
 
-        reader.replaceBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
-
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
