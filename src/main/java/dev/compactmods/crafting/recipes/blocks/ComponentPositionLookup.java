@@ -77,7 +77,13 @@ public class ComponentPositionLookup {
 
         return components.entrySet()
                 .stream()
-                .filter(e -> Objects.equals(e.getValue(), component))
+                .filter(e -> e.getValue().equals(component))
                 .map(Map.Entry::getKey);
+    }
+
+    public void remove(String component) {
+        final Set<BlockPos> positions = getPositionsForComponent(component).collect(Collectors.toSet());
+        positions.forEach(components::remove);
+        componentTotals.remove(component);
     }
 }

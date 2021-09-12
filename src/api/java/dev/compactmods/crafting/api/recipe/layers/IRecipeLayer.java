@@ -32,4 +32,14 @@ public interface IRecipeLayer {
     }
 
     RecipeLayerType<?> getType();
+
+    /**
+     * Called post-creation by the recipe system to remove components that aren't defined
+     * at the recipe level. This is used to shake out empty (air) blocks and for helping
+     * match algorithms be more efficient.
+     *
+     * @param components
+     */
+    default void dropNonRequiredComponents(IRecipeComponents components) {
+    }
 }

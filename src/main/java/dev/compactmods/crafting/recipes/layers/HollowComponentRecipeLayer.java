@@ -18,9 +18,9 @@ import net.minecraft.util.math.BlockPos;
 
 public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
 
-    private String componentKey;
+    private final String componentKey;
     private AxisAlignedBB recipeDimensions;
-    private Collection<BlockPos> filledPositions;
+    private Set<BlockPos> filledPositions;
 
     public static final Codec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponent)
@@ -28,6 +28,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public HollowComponentRecipeLayer(String component) {
         this.componentKey = component;
+        this.filledPositions = Collections.emptySet();
     }
 
     @Override
@@ -45,7 +46,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     public Optional<String> getComponentForPosition(BlockPos pos) {
-        if(filledPositions.contains(pos))
+        if (filledPositions.contains(pos))
             return Optional.ofNullable(componentKey);
 
         return Optional.empty();
@@ -53,31 +54,35 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public Stream<BlockPos> getPositionsForComponent(String component) {
-        if(!component.equals(componentKey))
+        if (!component.equals(componentKey))
             return Stream.empty();
 
         return filledPositions.stream();
     }
 
     public int getNumberFilledPositions() {
-        if(filledPositions == null)
-            return 0;
-
         return filledPositions.size();
     }
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        if(!blocks.allIdentified()) return false;
+        if (!blocks.allIdentified()) {
+            boolean anyNonAir = blocks.getUnmappedPositions()
+                    .map(blocks::getStateAtPosition)
+                    .anyMatch(state -> !state.isAir());
+
+            // Blocks that were not identified are not air - fail the layer match
+            if (anyNonAir) return false;
+        }
 
         Map<String, Integer> totalsInWorld = blocks.getKnownComponentTotals();
 
         // If we don't have any of the wall components, immediately fail
-        if(!totalsInWorld.containsKey(this.componentKey))
+        if (!totalsInWorld.containsKey(this.componentKey))
             return false;
 
         // Hollow layers only match a single component type
-        if(totalsInWorld.size() > 1) {
+        if (totalsInWorld.size() > 1) {
             // make sure all the matched components besides the wall are empty
             boolean everythingElseEmpty = totalsInWorld.keySet()
                     .stream()
@@ -85,17 +90,13 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
                     .filter(c -> !c.equals(this.componentKey))
                     .allMatch(components::isEmptyBlock);
 
-            if(!everythingElseEmpty) return false;
+            if (!everythingElseEmpty) return false;
         }
 
         int targetCount = totalsInWorld.get(componentKey);
         int layerCount = filledPositions.size();
 
         return layerCount == targetCount;
-    }
-
-    public void setComponent(String component) {
-        this.componentKey = component;
     }
 
     @Override

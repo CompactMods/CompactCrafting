@@ -18,17 +18,15 @@ import net.minecraft.world.IBlockReader;
 
 public class TestBlockReader implements IBlockReader {
 
-    public MiniaturizationRecipe source;
     AxisAlignedBB knownBounds;
     final Map<BlockPos, BlockState> states;
 
-    private TestBlockReader(MiniaturizationRecipe recipe) {
-        source = recipe;
+    private TestBlockReader() {
         states = new HashMap<>();
     }
 
     public static TestBlockReader fromRecipe(MiniaturizationRecipe recipe) {
-        TestBlockReader reader = new TestBlockReader(recipe);
+        TestBlockReader reader = new TestBlockReader();
         reader.knownBounds = recipe.getDimensions();
 
         int layeri = 0;
@@ -80,5 +78,9 @@ public class TestBlockReader implements IBlockReader {
     @Override
     public FluidState getFluidState(BlockPos p_204610_1_) {
         return Fluids.EMPTY.defaultFluidState();
+    }
+
+    public void replaceBlock(BlockPos position, BlockState state) {
+        states.put(position, state);
     }
 }

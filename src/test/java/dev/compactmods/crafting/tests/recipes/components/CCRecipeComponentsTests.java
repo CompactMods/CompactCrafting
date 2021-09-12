@@ -6,7 +6,7 @@ import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
+import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import net.minecraft.block.Blocks;
 import org.junit.jupiter.api.Assertions;
@@ -17,13 +17,13 @@ public class CCRecipeComponentsTests {
 
     @Test
     void CanCreateInstance() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertNotNull(components);
     }
 
     @Test
     void CanFetchComponentsFresh() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         final Map<String, IRecipeBlockComponent> blockComponents = components.getBlockComponents();
         final Map<String, IRecipeComponent> allComponents = components.getAllComponents();
 
@@ -40,7 +40,7 @@ public class CCRecipeComponentsTests {
     @Test
     @Tag("minecraft")
     void CanRegisterAndFetchBlocks() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         final BlockComponent BLOCK_COMPONENT = new BlockComponent(Blocks.GOLD_BLOCK);
         components.registerBlock("G", BLOCK_COMPONENT);
 
@@ -61,7 +61,7 @@ public class CCRecipeComponentsTests {
     @Test
     @Tag("minecraft")
     void EmptyBlocksAreActuallyEmpty() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
         components.registerBlock("E", new EmptyBlockComponent());
 
@@ -71,7 +71,7 @@ public class CCRecipeComponentsTests {
 
     @Test
     void UnregisteredBlocksAreConsideredEmpty() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertTrue(components.isEmptyBlock("A"), "Unregistered block not considered empty");
 
         final Optional<IRecipeBlockComponent> u = components.getBlock("U");
@@ -82,7 +82,7 @@ public class CCRecipeComponentsTests {
 
     @Test
     void CanRegisterNonBlockComponents() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertDoesNotThrow(() -> {
             components.registerOther("A", new IRecipeComponent() {
                 @Override
@@ -96,7 +96,7 @@ public class CCRecipeComponentsTests {
     @Test
     @Tag("minecraft")
     void CanGetNumberOfComponents() {
-        CCMiniRecipeComponents components = new CCMiniRecipeComponents();
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertEquals(0, components.size());
 
         // Make sure changes affect the count

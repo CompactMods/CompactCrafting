@@ -2,6 +2,8 @@ package dev.compactmods.crafting.api.components;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
+import net.minecraft.block.BlockState;
 
 public interface IRecipeComponents {
 
@@ -24,4 +26,7 @@ public interface IRecipeComponents {
 
     void clear();
 
+    Optional<String> getKey(BlockState state);
+
+    Stream<String> getEmptyComponents();
 }

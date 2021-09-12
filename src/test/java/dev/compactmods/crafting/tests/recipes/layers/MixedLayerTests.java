@@ -10,14 +10,11 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
+import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -89,36 +86,32 @@ public class MixedLayerTests {
 
     @Test
     @Tag("minecraft")
-    void remapsUnknownComponents() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
-        if (recipe == null)
-            Assertions.fail();
+    void MixedLayerRemovesUnknownComponents() {
+        final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
+        Assertions.assertNotNull(layer);
 
-        Optional<IRecipeLayer> layer = recipe.getLayer(2);
-        layer.ifPresent(lay -> {
-            // "-" is a component that was not found in the recipe file's component list, so it needs remapped
-            Map<String, Integer> totals = lay.getComponentTotals();
-            Assertions.assertTrue(totals.containsKey("-"));
-        });
+        // Layer has [G, I, O, -] defined in spec - we want to include all but -
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
 
-        // Now check if the component was remapped
-        Set<String> components = recipe.getComponents().getAllComponents().keySet();
-        Assertions.assertTrue(components.contains("-"));
+        layer.dropNonRequiredComponents(components);
+
+        final Set<String> newList = Assertions.assertDoesNotThrow(layer::getComponents);
+
+        Assertions.assertFalse(newList.contains("-"), "Mixed should have removed unmapped - component.");
     }
 
     @Test
     @Tag("minecraft")
     void MixedLayerMatchesWorldInExactMatchScenario() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
-
-        RecipeTestUtil.remapUnknownToAir(blocks, components);
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
+        layer.dropNonRequiredComponents(components);
 
         final Boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
         Assertions.assertTrue(matched, "Expected layer to match; layer did not match.");
@@ -153,16 +146,16 @@ public class MixedLayerTests {
     @Tag("minecraft")
     void MixedLayerDeniesMatchIfAllComponentsNotIdentified() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
 
         Assertions.assertNotNull(reader);
 
         // Force that the - component is unregistered; in a real scenario the recipe system would have remapped it
         // to an empty component due to it existing in the layer spec. Here, we're testing if a legit component in the world
         // did not match.
-        reader.source.getComponents().unregisterBlock("-");
+        components.unregisterBlock("-");
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
 
@@ -174,15 +167,14 @@ public class MixedLayerTests {
     @Tag("minecraft")
     void MixedLayerDeniesMatchIfComponentCountDiffers() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/single_layer_medium_filled_G.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/single_layer_medium_filled_G.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/single_layer_medium_filled_G.json");
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
-        final IRecipeComponents readerComponents = reader.source.getComponents();
-        final Map<String, IRecipeComponent> allComponents = readerComponents.getAllComponents();
+        final Map<String, IRecipeComponent> allComponents = components.getAllComponents();
         final int worldCompCount = allComponents.keySet().size();
 
         final Set<String> layerComponents = layer.getComponents();
@@ -199,11 +191,11 @@ public class MixedLayerTests {
     void MixedLayerDeniesMatchIfRequiredComponentsMissing() {
         String file = "worlds/basic_mixed_medium_redstone.json";
         final TestBlockReader reader = RecipeTestUtil.getBlockReader(file);
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
 
@@ -216,11 +208,11 @@ public class MixedLayerTests {
     void MixedLayerDeniesMatchIfComponentsInWrongPositions() {
         String file = "worlds/basic_mixed_medium_iron.json";
         final TestBlockReader reader = RecipeTestUtil.getBlockReader(file);
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
         final IRecipeLayerBlocks rotated = RecipeLayerUtil.rotate(blocks, Rotation.CLOCKWISE_90);
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");

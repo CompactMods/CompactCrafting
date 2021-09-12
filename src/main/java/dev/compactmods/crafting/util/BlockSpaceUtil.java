@@ -34,10 +34,10 @@ public abstract class BlockSpaceUtil {
 
         // Rotation around a normalized world offset (smallest position is 0,0)
         Map<BlockPos, BlockPos> rotatedPreNormalize = Stream.of(positions)
-                .map(p -> new BlockPos[] { p, normalizeLayerPosition(bounds, p) })
-                .map(p -> new BlockPos[] { p[0], p[1].rotate(rot) })
-                .map(p -> new BlockPos[] { p[0], denormalizeLayerPosition(bounds, p[1]) })
-                .map(p -> new BlockPos[] { p[0], p[1].immutable() })
+                .map(p -> new BlockPos[]{p, normalizeLayerPosition(bounds, p)})
+                .map(p -> new BlockPos[]{p[0], p[1].rotate(rot)})
+                .map(p -> new BlockPos[]{p[0], denormalizeLayerPosition(bounds, p[1])})
+                .map(p -> new BlockPos[]{p[0], p[1].immutable()})
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
 
         AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize.values());
@@ -54,13 +54,13 @@ public abstract class BlockSpaceUtil {
     }
 
     public static boolean boundsFitsInside(AxisAlignedBB inner, AxisAlignedBB outer) {
-        if(inner.getZsize() > outer.getZsize())
+        if (inner.getZsize() > outer.getZsize())
             return false;
 
-        if(inner.getXsize() > outer.getXsize())
+        if (inner.getXsize() > outer.getXsize())
             return false;
 
-        if(inner.getYsize() > outer.getYsize())
+        if (inner.getYsize() > outer.getYsize())
             return false;
 
         return true;
@@ -82,18 +82,18 @@ public abstract class BlockSpaceUtil {
     }
 
     public static AxisAlignedBB getBoundsForBlocks(Collection<BlockPos> filled) {
-        if(filled.size() == 0)
+        if (filled.size() == 0)
             return AxisAlignedBB.ofSize(0, 0, 0);
 
         MutableBoundingBox trimmedBounds = null;
-        for(BlockPos filledPos : filled) {
-            if(trimmedBounds == null) {
+        for (BlockPos filledPos : filled) {
+            if (trimmedBounds == null) {
                 trimmedBounds = new MutableBoundingBox(filledPos, filledPos);
                 continue;
             }
 
             MutableBoundingBox checkPos = new MutableBoundingBox(filledPos, filledPos);
-            if(!trimmedBounds.intersects(checkPos))
+            if (!trimmedBounds.intersects(checkPos))
                 trimmedBounds.expand(checkPos);
         }
 
@@ -109,7 +109,7 @@ public abstract class BlockSpaceUtil {
      * Normalizes world coordinates to relative field coordinates.
      *
      * @param fieldBounds The bounds of the field itself.
-     * @param pos The position to normalize.
+     * @param pos         The position to normalize.
      * @return
      */
     public static BlockPos normalizeLayerPosition(AxisAlignedBB fieldBounds, BlockPos pos) {
@@ -123,7 +123,7 @@ public abstract class BlockSpaceUtil {
     /**
      * Converts world-coordinate positions into relative field positions.
      *
-     * @param fieldBounds The boundaries of the crafting field.
+     * @param fieldBounds    The boundaries of the crafting field.
      * @param fieldPositions The non-air block positions in the field (world coordinates).
      * @return
      */
@@ -144,19 +144,42 @@ public abstract class BlockSpaceUtil {
         );
     }
 
+    public static AxisAlignedBB getCenterBounds(AxisAlignedBB bounds) {
+        boolean xEven = bounds.getXsize() % 2 == 0;
+        boolean yEven = bounds.getYsize() % 2 == 0;
+        boolean zEven = bounds.getZsize() % 2 == 0;
+
+        // Centers will either be at actual center of four blocks (even) or in center of single block (odd)
+        double xExpansion = xEven ? 1 : 0.5d;
+        double yExpansion = yEven ? 1 : 0.5d;
+        double zExpansion = zEven ? 1 : 0.5d;
+
+        return new AxisAlignedBB(bounds.getCenter(), bounds.getCenter())
+                .inflate(xExpansion, yExpansion, zExpansion);
+    }
+
+    public static Stream<BlockPos> getCenterPositions(AxisAlignedBB bounds) {
+        return getBlocksIn(getCenterBounds(bounds));
+    }
+
+    public static Stream<BlockPos> getInnerPositions(AxisAlignedBB bounds) {
+        AxisAlignedBB insideBounds = bounds.contract(2, 0, 2).move(1, 0, 1);
+
+        return BlockSpaceUtil.getBlocksIn(insideBounds);
+    }
+
     public static Stream<BlockPos> getWallPositions(AxisAlignedBB bounds) {
-        AxisAlignedBB layerBounds = new AxisAlignedBB(0, 0, 0, bounds.getXsize() - 1, 0, bounds.getZsize() - 1);
-        AxisAlignedBB insideBounds = layerBounds.move(1, 0, 1).contract(2, 0, 2);
 
-        Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(layerBounds)
+
+        Set<BlockPos> allPositions = BlockSpaceUtil.getBlocksIn(bounds)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        Set<BlockPos> inside = BlockSpaceUtil.getBlocksIn(insideBounds)
+        Set<BlockPos> insidePositions = getInnerPositions(bounds)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        positions.removeAll(inside);
-        return positions.stream();
+        allPositions.removeAll(insidePositions);
+        return allPositions.stream();
     }
 }

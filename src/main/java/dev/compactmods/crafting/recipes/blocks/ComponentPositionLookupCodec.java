@@ -1,8 +1,9 @@
 package dev.compactmods.crafting.recipes.blocks;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import com.google.common.collect.ImmutableList;
+import com.ibm.icu.impl.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
@@ -42,20 +43,20 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
     }
 
     @Override
-    public <T> T write(DynamicOps<T> ops, ComponentPositionLookup value) {
-        AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(value.getAllPositions());
+    public <T> T write(DynamicOps<T> ops, ComponentPositionLookup lookup) {
+        AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(lookup.getAllPositions());
+        final String[][] map = RecipeHelper.generateArrayFromBounds(boundsForBlocks);
 
-        HashMap<Integer, List<String>> revMap = new HashMap<>((int) boundsForBlocks.getXsize());
-        for (int x = 0; x < boundsForBlocks.getXsize(); x++)
-            revMap.putIfAbsent(x, new ArrayList<>());
+        BlockSpaceUtil.getBlocksIn(boundsForBlocks)
+                .map(pos -> Pair.of(pos.immutable(), lookup.getRequiredComponentKeyForPosition(pos).orElse("-")))
+                .forEach(pair -> {
+                    map[pair.first.getZ()][pair.first.getX()] = pair.second;
+                });
 
-        value.components.forEach((pos, comp) -> {
-            List<String> xList = revMap.get(pos.getX());
-            xList.add(pos.getZ(), comp);
-        });
-
-        List<List<String>> fin = new ArrayList<>(revMap.size());
-        revMap.forEach(fin::add);
+        List<List<String>> fin = new ArrayList<>(map.length);
+        for(int x = 0; x < boundsForBlocks.getXsize(); x++) {
+            fin.add(ImmutableList.copyOf(map[x]));
+        }
 
         DataResult<T> encoded = Codec.STRING.listOf().listOf().encode(fin, ops, ops.empty());
 

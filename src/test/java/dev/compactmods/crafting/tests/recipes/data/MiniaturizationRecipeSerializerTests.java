@@ -29,12 +29,11 @@ public class MiniaturizationRecipeSerializerTests {
     @Tag("minecraft")
     void CanSerialize() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(recipe);
 
         PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
-        Assertions.assertDoesNotThrow(() -> {
-            MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
-            s.toNetwork(buf, recipe);
-        });
+        MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
+        Assertions.assertDoesNotThrow(() -> s.toNetwork(buf, recipe));
 
         Assertions.assertNotEquals(0, buf.readableBytes());
     }

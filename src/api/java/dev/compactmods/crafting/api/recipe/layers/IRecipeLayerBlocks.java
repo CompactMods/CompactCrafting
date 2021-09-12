@@ -38,7 +38,6 @@ public interface IRecipeLayerBlocks {
     boolean allIdentified();
 
     Stream<BlockPos> getUnmappedPositions();
-    Stream<String> getUnknownComponents();
 
     Stream<BlockPos> getPositionsForComponent(String component);
 }

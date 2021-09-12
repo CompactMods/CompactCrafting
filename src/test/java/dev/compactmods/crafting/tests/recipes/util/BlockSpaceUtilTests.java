@@ -3,6 +3,7 @@ package dev.compactmods.crafting.tests.recipes.util;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -28,6 +29,36 @@ public class BlockSpaceUtilTests {
         final AxisAlignedBB filledBounds = BlockSpaceUtil.getBoundsForBlocks(positions);
 
         Assertions.assertEquals(AxisAlignedBB.ofSize(0, 0, 0), filledBounds);
+    }
+
+    @Test
+    void CanCalculateCenterBoundsOdd() {
+        AxisAlignedBB fullBounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0);
+        AxisAlignedBB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
+
+        Assertions.assertEquals(1, centerBounds.getXsize());
+        Assertions.assertEquals(1, centerBounds.getYsize());
+        Assertions.assertEquals(1, centerBounds.getZsize());
+
+        final Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(centerBounds).map(BlockPos::immutable).collect(Collectors.toSet());
+        Assertions.assertFalse(positions.isEmpty());
+        Assertions.assertTrue(positions.contains(new BlockPos(2, 0, 2)));
+    }
+
+    @Test
+    void CanCalculateCenterBoundsEven() {
+        AxisAlignedBB fullBounds = new AxisAlignedBB(0, 0, 0, 6, 1, 6);
+        AxisAlignedBB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
+
+        Assertions.assertEquals(2, centerBounds.getXsize());
+        Assertions.assertEquals(1, centerBounds.getYsize());
+        Assertions.assertEquals(2, centerBounds.getZsize());
+
+        final Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(centerBounds).map(BlockPos::immutable).collect(Collectors.toSet());
+        Assertions.assertFalse(positions.isEmpty());
+        Assertions.assertEquals(4, positions.size());
+        Assertions.assertTrue(positions.contains(new BlockPos(2, 0, 2)));
+        Assertions.assertTrue(positions.contains(new BlockPos(3, 0, 3)));
     }
 
     @Test

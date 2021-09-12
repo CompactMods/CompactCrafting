@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.components.CCMiniRecipeComponents;
+import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
@@ -107,11 +107,11 @@ public class FilledLayerTests {
     @Tag("minecraft")
     void FilledLayerMatchesWorldInExactMatchScenario() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/single_layer_medium_filled_G.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/single_layer_medium_filled_G.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/single_layer_medium_filled_G.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -125,11 +125,11 @@ public class FilledLayerTests {
     @Tag("minecraft")
     void FailsMatchIfAllBlocksNotIdentified() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -143,11 +143,11 @@ public class FilledLayerTests {
     @Tag("minecraft")
     void FailsMatchIfMoreThanOneBlockFound() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_harness_allmatched_5x.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_harness_allmatched_5x.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_harness_allmatched_5x.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -161,11 +161,11 @@ public class FilledLayerTests {
     @Tag("minecraft")
     void FailsMatchIfComponentKeyNotFound() {
         final TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_filled_medium_glass_A.json");
-        final CCMiniRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_filled_medium_glass_A.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_filled_medium_glass_A.json");
 
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");

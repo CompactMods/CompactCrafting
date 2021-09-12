@@ -6,6 +6,7 @@ import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.world.TestBlockReader;
@@ -22,9 +23,10 @@ public class RecipeLayerUtilTests {
     @Tag("minecraft")
     void CanRotate() {
         TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final IRecipeLayerBlocks rotatedClockwise = RecipeLayerUtil.rotate(blocks, Rotation.CLOCKWISE_90);
         Assertions.assertNotNull(rotatedClockwise);
@@ -39,12 +41,12 @@ public class RecipeLayerUtilTests {
     @Tag("minecraft")
     void CanRotateWithUnknownComponent() {
         TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/unknown_component.json");
+        final IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/unknown_component.json");
         Assertions.assertNotNull(reader);
 
-        final IRecipeComponents recipeComponents = reader.source.getComponents();
-        recipeComponents.unregisterBlock("Ir");
+        components.unregisterBlock("Ir");
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.SMALL, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.SMALL, 0));
 
         boolean identified = blocks.allIdentified();
         Assertions.assertFalse(identified, "Missing components were not identified.");
@@ -72,9 +74,10 @@ public class RecipeLayerUtilTests {
     @Tag("minecraft")
     void NonRotationCreatesCopiedInstance() {
         TestBlockReader reader = RecipeTestUtil.getBlockReader("worlds/basic_mixed_medium_iron.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_mixed_medium_iron.json");
         Assertions.assertNotNull(reader);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, reader.source, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(reader, components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final IRecipeLayerBlocks rotatedHarness = RecipeLayerUtil.rotate(blocks, Rotation.NONE);
         Assertions.assertNotNull(rotatedHarness);

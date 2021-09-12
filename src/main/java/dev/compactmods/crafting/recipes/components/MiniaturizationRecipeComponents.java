@@ -9,8 +9,9 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
+import net.minecraft.block.BlockState;
 
-public class CCMiniRecipeComponents implements IRecipeComponents {
+public class MiniaturizationRecipeComponents implements IRecipeComponents {
 
     /**
      * Contains a mapping of all known components in the recipe.
@@ -24,7 +25,7 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
      */
     private final Map<String, IRecipeComponent> otherComponents;
 
-    public CCMiniRecipeComponents() {
+    public MiniaturizationRecipeComponents() {
         this.blockComponents = new HashMap<>();
         this.otherComponents = new HashMap<>();
     }
@@ -89,5 +90,21 @@ public class CCMiniRecipeComponents implements IRecipeComponents {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<String> getKey(BlockState state) {
+        return blockComponents.entrySet()
+                .stream()
+                .filter(bs -> bs.getValue().matches(state))
+                .map(Map.Entry::getKey)
+                .findFirst();
+    }
+
+    @Override
+    public Stream<String> getEmptyComponents() {
+        return blockComponents.keySet()
+                .stream()
+                .filter(bck -> blockComponents.get(bck) instanceof EmptyBlockComponent);
     }
 }

@@ -1,11 +1,10 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
@@ -17,6 +16,19 @@ public class ComponentPositionLookupTests {
     void CanCreate() {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         Assertions.assertNotNull(lookup);
+    }
+
+    @Test
+    void CanSerializeWithCodec() {
+        ComponentPositionLookup lookup = new ComponentPositionLookup();
+        Assertions.assertNotNull(lookup);
+        lookup.add(BlockPos.ZERO, "A");
+        lookup.add(new BlockPos(2, 0, 2), "B");
+
+        final JsonElement serialized = ComponentPositionLookup.CODEC.encodeStart(JsonOps.INSTANCE, lookup)
+                .getOrThrow(false, Assertions::fail);
+
+        Assertions.assertNotNull(serialized);
     }
 
     @Test

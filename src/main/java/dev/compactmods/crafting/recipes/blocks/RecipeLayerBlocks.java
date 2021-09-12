@@ -2,8 +2,8 @@ package dev.compactmods.crafting.recipes.blocks;
 
 import java.util.*;
 import java.util.stream.Stream;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -48,10 +48,10 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
         this.lookup.rebuildComponentTotals();
     }
 
-    public static RecipeLayerBlocks create(IBlockReader blocks, MiniaturizationRecipe recipe, AxisAlignedBB bounds) {
+    public static RecipeLayerBlocks create(IBlockReader blocks, IRecipeComponents components, AxisAlignedBB bounds) {
         RecipeLayerBlocks instance = new RecipeLayerBlocks(bounds);
 
-        BlockSpaceUtil.getBlocksIn(bounds).forEach(pos -> {
+        BlockSpaceUtil.getBlocksIn(bounds).map(BlockPos::immutable).forEach(pos -> {
             BlockState state = blocks.getBlockState(pos);
 
             BlockPos normalizedPos = BlockSpaceUtil.normalizeLayerPosition(bounds, pos);
@@ -59,7 +59,7 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
             instance.states.put(normalizedPos, state);
 
             // Pre-populate a set of component keys from the recipe instance, so we don't have to do it later
-            Optional<String> compKey = recipe.getRecipeComponentKey(state);
+            Optional<String> compKey = components.getKey(state);
             if (compKey.isPresent())
                 instance.lookup.add(normalizedPos, compKey.get());
             else
@@ -86,19 +86,9 @@ public class RecipeLayerBlocks implements IRecipeLayerBlocks {
     }
 
     @Override
-    public Stream<String> getUnknownComponents() {
-        return getUnmappedPositions()
-                .map(lookup::getRequiredComponentKeyForPosition)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .distinct();
-    }
-
-    @Override
     public Stream<BlockPos> getPositionsForComponent(String component) {
         return this.lookup.getPositionsForComponent(component);
     }
-
 
     @Override
     public Optional<String> getComponentAtPosition(BlockPos relative) {

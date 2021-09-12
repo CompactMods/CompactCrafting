@@ -56,6 +56,25 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
         return ImmutableSet.copyOf(componentLookup.getComponents());
     }
 
+    @Override
+    public void dropNonRequiredComponents(IRecipeComponents components) {
+        components.getEmptyComponents().forEach(componentLookup::remove);
+
+        final Collection<String> definedKeys = components.getBlockComponents().keySet();
+        final Set<String> toRemove = componentLookup.getComponents()
+                .stream()
+                .filter(layerComp -> !definedKeys.contains(layerComp))
+                .collect(Collectors.toSet());
+
+        if(ServerConfig.RECIPE_REGISTRATION.get())
+            CompactCrafting.RECIPE_LOGGER.debug(
+                    "Removing {} from required component list; it was not defined in the recipe.",
+                    String.join(",", toRemove)
+            );
+
+        toRemove.forEach(componentLookup::remove);
+    }
+
     public Map<String, Integer> getComponentTotals() {
         return componentLookup.getComponentTotals();
     }
@@ -84,19 +103,23 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
-        if(!blocks.allIdentified()) return false;
+        if (!blocks.allIdentified()) {
+            boolean anyNonAir = blocks.getUnmappedPositions()
+                    .map(blocks::getStateAtPosition)
+                    .anyMatch(state -> !state.isAir());
+
+            // Blocks that were not identified are not air - fail the layer match
+            if (anyNonAir) return false;
+        }
 
         final Collection<String> requiredKeys = this.componentLookup.getComponents();
         final Map<String, Integer> componentTotals = blocks.getKnownComponentTotals();
 
-        if(requiredKeys.size() != componentTotals.size())
-            return false;
-
         // Dry run that all the components required are in the component list
-        boolean missingRequired = requiredKeys.stream().anyMatch(rk -> !componentTotals.containsKey(rk));
-        if(missingRequired) {
+        Set<String> missingRequired = requiredKeys.stream().filter(rk -> !componentTotals.containsKey(rk)).collect(Collectors.toSet());
+        if(!missingRequired.isEmpty()) {
             if(ServerConfig.RECIPE_MATCHING.get())
-                CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required components are missing.");
+                CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required components ({}) are missing.", String.join(",", missingRequired));
 
             return false;
         }
