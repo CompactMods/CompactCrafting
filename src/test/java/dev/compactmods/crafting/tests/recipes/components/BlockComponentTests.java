@@ -1,9 +1,6 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
@@ -27,6 +24,16 @@ public class BlockComponentTests {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
         Assertions.assertNotNull(component);
         Assertions.assertEquals(Blocks.GOLD_BLOCK, component.getBlock());
+    }
+
+    @Test
+    @Tag("minecraft")
+    void CanFetchFirstMatch() {
+        BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
+
+        final Optional<BlockState> blockState = Assertions.assertDoesNotThrow(component::getFirstMatch);
+        Assertions.assertTrue(blockState.isPresent(), "Expected a state to be present.");
+        Assertions.assertEquals(Blocks.GOLD_BLOCK.defaultBlockState(), blockState.get());
     }
 
     @Test

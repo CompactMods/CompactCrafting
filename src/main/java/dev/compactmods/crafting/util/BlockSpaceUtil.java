@@ -182,4 +182,8 @@ public abstract class BlockSpaceUtil {
         allPositions.removeAll(insidePositions);
         return allPositions.stream();
     }
+
+    public static BlockPos getOffset(AxisAlignedBB bounds) {
+        return new BlockPos(bounds.minX, bounds.minY, bounds.maxZ);
+    }
 }

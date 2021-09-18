@@ -6,8 +6,9 @@ import java.util.stream.Stream;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3i;
 
-public interface IRecipeLayerBlocks {
+public interface IRecipeBlocks {
 
     Optional<String> getComponentAtPosition(BlockPos relative);
 
@@ -33,11 +34,31 @@ public interface IRecipeLayerBlocks {
     
     Map<String, Integer> getKnownComponentTotals();
 
-    AxisAlignedBB getBounds();
+    AxisAlignedBB getSourceBounds();
 
     boolean allIdentified();
 
     Stream<BlockPos> getUnmappedPositions();
 
     Stream<BlockPos> getPositionsForComponent(String component);
+
+    AxisAlignedBB getFilledBounds();
+
+    IRecipeBlocks slice(AxisAlignedBB bounds);
+
+    IRecipeBlocks offset(Vector3i amount);
+
+    default IRecipeBlocks below(int offset) {
+        return offset(new Vector3i(0, -offset, 0));
+    }
+
+    default IRecipeBlocks above(int offset) {
+        return offset(new Vector3i(0, offset, 0));
+    }
+
+    default IRecipeBlocks normalize() {
+        AxisAlignedBB sb = getSourceBounds();
+        BlockPos offset = new BlockPos(-sb.minX, -sb.minY, -sb.minZ);
+        return offset(offset);
+    }
 }

@@ -27,7 +27,7 @@ public interface IRecipeLayer {
         return true;
     }
 
-    default boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
+    default boolean matches(IRecipeComponents components, IRecipeBlocks blocks) {
         return !requiresAllBlocksIdentified() || blocks.allIdentified();
     }
 

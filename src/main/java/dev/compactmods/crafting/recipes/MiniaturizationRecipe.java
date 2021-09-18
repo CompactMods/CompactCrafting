@@ -11,12 +11,10 @@ import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
@@ -32,7 +30,6 @@ import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.IBlockReader;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
@@ -163,10 +160,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
     private void updateFluidLayerDimensions() {
         // Update all the dynamic recipe layers
+        final AxisAlignedBB footprint = BlockSpaceUtil.getLayerBounds(dimensions, 0);
         this.layers.values()
                 .stream()
                 .filter(l -> l instanceof IDynamicSizedRecipeLayer)
-                .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(dimensions));
+                .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(footprint));
     }
 
     /**
@@ -183,15 +181,15 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return fits;
     }
 
-    public boolean matches(IBlockReader world, MiniaturizationField field) {
-        if (!fitsInFieldSize(field.getFieldSize())) {
+    public boolean matches(IRecipeBlocks blocks) {
+        if (!BlockSpaceUtil.boundsFitsInside(blocks.getFilledBounds(), dimensions)) {
             if (ServerConfig.RECIPE_MATCHING.get())
                 CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
             return false;
         }
 
         // We know that the recipe will at least fit inside the current projection field
-        AxisAlignedBB filledBounds = field.getFilledBounds();
+        AxisAlignedBB filledBounds = blocks.getFilledBounds();
 
         Rotation[] validRotations = new Rotation[]{
                 Rotation.NONE,
@@ -201,7 +199,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         };
 
         for (Rotation rot : validRotations) {
-            boolean matchesRot = checkRotation(world, rot, filledBounds);
+            boolean matchesRot = checkRotation(blocks, rot);
             if (matchesRot)
                 return true;
         }
@@ -211,7 +209,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return false;
     }
 
-    private boolean checkRotation(IBlockReader world, Rotation rot, AxisAlignedBB filledBounds) {
+    private boolean checkRotation(IRecipeBlocks blocks, Rotation rot) {
         // Check the recipe layer by layer
 
         int maxY = (int) dimensions.getYsize();
@@ -223,19 +221,18 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 return false;
             }
 
-            AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(filledBounds, offset);
-            IRecipeLayerBlocks blocks = RecipeLayerBlocks.create(world, this.components, bounds);
+            IRecipeBlocks layerBlocks = blocks.slice(BlockSpaceUtil.getLayerBounds(blocks.getFilledBounds(), offset)).below(offset);
 
             if (rot != Rotation.NONE)
-                blocks = RecipeLayerUtil.rotate(blocks, rot);
+                layerBlocks = RecipeLayerUtil.rotate(layerBlocks, rot);
 
             IRecipeLayer targetLayer = layer.get();
 
             // If the layer spec requires all components to be known (by default) then check early
-            if (targetLayer.requiresAllBlocksIdentified() && !blocks.allIdentified())
+            if (targetLayer.requiresAllBlocksIdentified() && !layerBlocks.allIdentified())
                 return false;
 
-            boolean layerMatched = targetLayer.matches(components, blocks);
+            boolean layerMatched = targetLayer.matches(components, layerBlocks);
 
             if (!layerMatched) {
                 if (ServerConfig.RECIPE_MATCHING.get())

@@ -9,12 +9,15 @@ import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
+import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
+import net.minecraft.block.Blocks;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
@@ -95,6 +98,7 @@ public class FilledLayerTests {
         });
     }
 
+    @Test
     @Tag("minecraft")
     void ReturnsEmptyWhenFetchingOOBPosition() {
         final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
@@ -105,13 +109,27 @@ public class FilledLayerTests {
         Assertions.assertFalse(componentForPosition.isPresent());
     }
 
+    @Test
+    @Tag("minecraft")
+    void FilledFailsMatchWithEmptyBlockList() {
+        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+
+        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+
+        RecipeBlocks blocks = RecipeBlocks.createEmpty();
+        Assertions.assertFalse(layer.matches(components, blocks));
+    }
+
     @Tag("minecraft")
     @IntegrationTest("medium_glass_filled")
     void FilledLayerMatchesWorldInExactMatchScenario(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/single_layer_medium_filled_G.json");
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
-        final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO));
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, bounds);
+        final AxisAlignedBB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -126,7 +144,7 @@ public class FilledLayerTests {
     void FailsMatchIfAllBlocksNotIdentified(IntegrationTestHelper helper) {
         final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -139,9 +157,11 @@ public class FilledLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void FailsMatchIfMoreThanOneBlockFound(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_harness_allmatched_5x.json");
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -154,10 +174,16 @@ public class FilledLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_filled")
     void FailsMatchIfComponentKeyNotFound(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("worlds/basic_filled_medium_glass_A.json");
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+
+        /*
+         We actually expect 'G' not 'Gl', so this will match,
+         but it will not be what the layer is looking for
+        */
+        components.registerBlock("Gl", new BlockComponent(Blocks.GLASS));
 
         final AxisAlignedBB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, bounds);
+        final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds);
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");

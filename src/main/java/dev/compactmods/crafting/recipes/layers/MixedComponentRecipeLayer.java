@@ -14,7 +14,7 @@ import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
@@ -24,8 +24,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer {
-    private AxisAlignedBB dimensions;
-    private ComponentPositionLookup componentLookup;
+    private final AxisAlignedBB dimensions;
+    private final ComponentPositionLookup componentLookup;
 
     public static final Codec<MixedComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
             ComponentPositionLookup.CODEC
@@ -102,7 +102,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
     }
 
     @Override
-    public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
+    public boolean matches(IRecipeComponents components, IRecipeBlocks blocks) {
         if (!blocks.allIdentified()) {
             boolean anyNonAir = blocks.getUnmappedPositions()
                     .map(blocks::getStateAtPosition)

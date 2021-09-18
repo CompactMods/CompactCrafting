@@ -9,7 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -65,7 +65,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     @Override
-    public boolean matches(IRecipeComponents components, IRecipeLayerBlocks blocks) {
+    public boolean matches(IRecipeComponents components, IRecipeBlocks blocks) {
         if (!blocks.allIdentified()) {
             boolean anyNonAir = blocks.getUnmappedPositions()
                     .map(blocks::getStateAtPosition)

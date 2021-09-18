@@ -1,22 +1,24 @@
 package dev.compactmods.crafting.tests.recipes;
 
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
+import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.server.ServerConfig;
+import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import net.minecraft.item.ItemStack;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@IntegrationTestClass("recipes")
 public class MiniaturiationRecipeTests {
-
-    private static MinecraftServer SERVER;
-    private static ServerWorld OVERWORLD;
 
     @Tag("minecraft")
     @org.junit.jupiter.api.BeforeAll
@@ -24,9 +26,6 @@ public class MiniaturiationRecipeTests {
         ServerConfig.RECIPE_REGISTRATION.set(true);
         ServerConfig.RECIPE_MATCHING.set(true);
         ServerConfig.FIELD_BLOCK_CHANGES.set(true);
-
-        SERVER = ServerLifecycleHooks.getCurrentServer();
-        OVERWORLD = SERVER.overworld();
     }
 
     @Test
@@ -56,14 +55,14 @@ public class MiniaturiationRecipeTests {
         Assertions.assertTrue(recipe.isSpecial());
     }
 
-    @Test
     @Tag("minecraft")
-    void FakesFakeInventories() {
+    @IntegrationTest("ender_crystal")
+    void FakesFakeInventories(IntegrationTestHelper helper) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         Assertions.assertNotNull(recipe);
 
         Assertions.assertDoesNotThrow(() -> {
-            boolean matched = recipe.matches(new FakeInventory(), OVERWORLD);
+            boolean matched = recipe.matches(new FakeInventory(), helper.getWorld());
             Assertions.assertTrue(matched);
         });
     }
@@ -101,6 +100,21 @@ public class MiniaturiationRecipeTests {
         Assertions.assertDoesNotThrow(() -> {
             final ItemStack result = recipe.getResultItem();
             Assertions.assertTrue(result.isEmpty());
+        });
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("ender_crystal")
+    void MatchesExactStructure(IntegrationTestHelper helper) {
+        final BlockPos zero = helper.relativePos(BlockPos.ZERO).get();
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final IRecipeBlocks blocks = RecipeBlocks
+                .create(helper.getWorld(), enderCrystal.getComponents(), enderCrystal.getDimensions().move(zero))
+                .normalize();
+
+        Assertions.assertDoesNotThrow(() -> {
+            boolean matched = enderCrystal.matches(blocks);
+            Assertions.assertTrue(matched);
         });
     }
 }

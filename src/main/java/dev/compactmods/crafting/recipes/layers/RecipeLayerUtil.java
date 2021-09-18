@@ -1,8 +1,8 @@
 package dev.compactmods.crafting.recipes.layers;
 
 import java.util.*;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayerBlocks;
-import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Rotation;
@@ -13,9 +13,9 @@ public final class RecipeLayerUtil {
     private RecipeLayerUtil() {
     }
 
-    public static IRecipeLayerBlocks rotate(IRecipeLayerBlocks original, Rotation rotation) {
+    public static IRecipeBlocks rotate(IRecipeBlocks original, Rotation rotation) {
         if (rotation == Rotation.NONE) {
-            return new RecipeLayerBlocks(original);
+            return new RecipeBlocks(original);
         }
 
         BlockPos[] originalPositions = original.getPositions().map(BlockPos::immutable).toArray(BlockPos[]::new);
@@ -45,6 +45,6 @@ public final class RecipeLayerUtil {
                     });
         }
 
-        return new RecipeLayerBlocks(original.getBounds(), states, componentKeys, unmatchedPositions);
+        return new RecipeBlocks(original.getSourceBounds(), states, componentKeys, unmatchedPositions);
     }
 }

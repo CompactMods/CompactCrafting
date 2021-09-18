@@ -37,11 +37,14 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
         this.filters = new HashMap<>();
         this.allowedValues = new HashMap<>();
         this.validStates = new HashSet<>();
+
+        buildValidStates();
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // yes I know
     public BlockComponent(Block block, Optional<Map<String, List<String>>> propertyRequirements) {
         this(block);
+        validStates.clear();
 
         StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();
         propertyRequirements.ifPresent(userRequestedValues -> {
@@ -50,6 +53,10 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
             }
         });
 
+        buildValidStates();
+    }
+
+    private void buildValidStates() {
         final Set<BlockState> valid = block.getStateDefinition()
                 .getPossibleStates()
                 .stream()
@@ -131,7 +138,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     }
 
     public Optional<BlockState> getFirstMatch() {
-        return validStates.isEmpty() ? Optional.empty() : validStates.stream().findFirst();
+        return validStates.stream().findFirst();
     }
 
     @Override

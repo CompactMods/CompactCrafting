@@ -139,4 +139,8 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
     public String getSerializedName() {
         return name;
     }
+
+    public BlockPos getCenterOffset() {
+        return new BlockPos(getBoundsAtOrigin().getCenter());
+    }
 }

@@ -11,6 +11,7 @@ import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.api.EnumCraftingState;
@@ -113,7 +114,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
             r.ifPresent(rec -> {
                 this.currentRecipe = (MiniaturizationRecipe) rec;
-                if(craftingState == EnumCraftingState.NOT_MATCHED)
+                if (craftingState == EnumCraftingState.NOT_MATCHED)
                     setCraftingState(EnumCraftingState.MATCHED);
 
                 this.listeners.forEach(li -> li.ifPresent(l -> {
@@ -301,7 +302,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         // Begin recipe dry run - loop, check bottom layer for matches
         MiniaturizationRecipe matchedRecipe = null;
         for (MiniaturizationRecipe recipe : recipes) {
-            boolean recipeMatches = recipe.matches(level, this);
+            RecipeBlocks blocks = RecipeBlocks.create(level, recipe.getComponents(), getFilledBounds());
+            boolean recipeMatches = recipe.matches(blocks);
             if (!recipeMatches)
                 continue;
 
@@ -320,7 +322,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         setCraftingState(recipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
 
         // Send tracking client updates
-        if(!level.isClientSide) {
+        if (!level.isClientSide) {
             NetworkHandler.MAIN_CHANNEL.send(
                     PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(center)),
                     new FieldRecipeChangedPacket(this)
@@ -331,7 +333,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         listeners.forEach(l -> l.ifPresent(fl -> {
             fl.onRecipeChanged(this, recipe);
 
-            if(craftingState == EnumCraftingState.MATCHED)
+            if (craftingState == EnumCraftingState.MATCHED)
                 fl.onRecipeMatched(this, recipe);
         }));
     }

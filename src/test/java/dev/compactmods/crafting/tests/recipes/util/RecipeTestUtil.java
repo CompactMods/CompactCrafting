@@ -47,8 +47,11 @@ public class RecipeTestUtil {
         return components;
     }
 
+    public static AxisAlignedBB getFieldBounds(MiniaturizationFieldSize fieldSize, IntegrationTestHelper helper) {
+        return fieldSize.getBoundsAtOrigin().move(helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO));
+    }
+
     public static AxisAlignedBB getFloorLayerBounds(MiniaturizationFieldSize fieldSize, IntegrationTestHelper helper) {
-        AxisAlignedBB fieldAllBounds = fieldSize.getBoundsAtOrigin().move(helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO));
-        return BlockSpaceUtil.getLayerBounds(fieldAllBounds, 0);
+        return BlockSpaceUtil.getLayerBounds(getFieldBounds(fieldSize, helper), 0);
     }
 }

@@ -3,6 +3,8 @@ package dev.compactmods.crafting.tests.recipes.layers;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
@@ -10,8 +12,10 @@ import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.recipes.blocks.RecipeLayerBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
+import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
@@ -49,7 +53,7 @@ public class HollowLayerTests {
         Assertions.assertNotNull(layer);
 
         HashMap<MiniaturizationFieldSize, Integer> counts = new HashMap<>();
-        for(MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
+        for (MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
             int all = (int) Math.pow(size.getDimensions(), 2);
             int inner = (int) Math.pow(size.getDimensions() - 2, 2);
 
@@ -91,6 +95,51 @@ public class HollowLayerTests {
         Assertions.assertEquals(0, xPositions.count());
     }
 
+    @Test
+    @Tag("minecraft")
+    void HollowCanReturnComponentPositions() {
+        HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
+        Assertions.assertNotNull(layer);
+
+        // Make sure we can set a layer size for the initialization check below
+        layer.setRecipeDimensions(MiniaturizationFieldSize.SMALL);
+
+        final Stream<BlockPos> list = layer.getPositionsForComponent("A");
+        Assertions.assertNotNull(list);
+
+        final Set<BlockPos> positionSet = list.map(BlockPos::immutable).collect(Collectors.toSet());
+
+        Assertions.assertEquals(8, positionSet.size());
+
+        final Set<BlockPos> wallPositions = BlockSpaceUtil.getWallPositions(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.SMALL, 0))
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
+
+        Assertions.assertEquals(wallPositions, positionSet);
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("empty_medium")
+    void HollowFailsIfPrimaryComponentMissing(IntegrationTestHelper helper) {
+        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO);
+        helper.setBlockState(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
+
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+        components.registerBlock("-", new EmptyBlockComponent());
+
+        final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
+
+        HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("G");
+        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+
+        final Boolean result = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
+
+        Assertions.assertFalse(result, "Layer matched despite not having any matchable components.");
+    }
+
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls")
     void HollowMatchesWorldDefinitionExactly(IntegrationTestHelper helper) {
@@ -101,28 +150,49 @@ public class HollowLayerTests {
 
         final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, bounds);
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
 
-        if(!matched) {
+        if (!matched) {
             helper.fail("Hollow did not pass perfect match.");
         }
     }
 
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls")
+    void HollowFailsIfAnyComponentsUnidentified(IntegrationTestHelper helper) {
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+
+        final AxisAlignedBB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
+
+        HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
+        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+
+        boolean matched = layer.matches(components, blocks);
+
+        Assertions.assertFalse(matched, "Hollow did not pass perfect match.");
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("medium_glass_walls")
     @DisplayName("Hollow - Bad Wall Block")
     void HollowFailsIfWorldHasBadWallBlock(IntegrationTestHelper helper) {
-        String file = "worlds/basic_hollow_medium_glass_A.json";
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile(file);
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("A", new BlockComponent(Blocks.GLASS));
+
+        // register gold block to get past the unknown component early fail
+        components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
 
         helper.setBlockState(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final RecipeLayerBlocks blocks = RecipeLayerBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
@@ -130,5 +200,26 @@ public class HollowLayerTests {
         final boolean matches = layer.matches(components, blocks);
 
         Assertions.assertFalse(matches, "Hollow matched when BP.ZERO was a different block.");
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("medium_glass_walls_obsidian_center")
+    void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(IntegrationTestHelper helper) {
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("W", new BlockComponent(Blocks.GLASS));
+
+        // we need to register the obsidian block here; the layer will fail early otherwise
+        // since otherwise, the center block will be unmatched
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
+
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .normalize();
+
+        HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("W");
+        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+
+        final boolean matches = layer.matches(components, blocks);
+
+        Assertions.assertFalse(matches, "Hollow matched when center block was a different block.");
     }
 }
