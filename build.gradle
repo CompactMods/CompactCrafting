@@ -156,8 +156,24 @@ minecraft {
         }
 
         unitTestsCI {
-            parent runs.unitTests
+            parent runs.server
+
+            workingDirectory project.file('run/test')
+            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
+            ideaModule "${project.name}.test"
+            property 'forge.logging.console.level', 'unittest'
+            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
+            environment 'target', 'fmltestserver'
+            environment 'targetModId', "${mod_id}"
             arg '--crashOnFailedTests'
+            forceExit = false
+            mods {
+                compactcrafting {
+                    source sourceSets.main
+                    source sourceSets.api
+                    source sourceSets.test
+                }
+            }
         }
     }
 }
