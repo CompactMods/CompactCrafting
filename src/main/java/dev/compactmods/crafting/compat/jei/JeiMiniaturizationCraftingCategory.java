@@ -144,7 +144,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             });
         }
 
-        inputs.add(recipe.getCatalyst());
+        if(!recipe.getCatalyst().isEmpty())
+            inputs.add(recipe.getCatalyst());
 
         ing.setInputs(VanillaTypes.ITEM, inputs);
         ing.setOutputs(VanillaTypes.ITEM, Arrays.asList(recipe.getOutputs()));

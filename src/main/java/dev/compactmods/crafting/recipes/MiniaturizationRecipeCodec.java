@@ -85,6 +85,8 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
         if (catalyst.isEmpty()) {
             CompactCrafting.LOGGER.warn("Warning: recipe has no catalyst; this may be unintentional.");
+        } else {
+            recipe.setCatalyst(catalyst);
         }
 
         Optional<List<ItemStack>> outputs = ItemStack.CODEC.listOf().fieldOf("outputs").codec()

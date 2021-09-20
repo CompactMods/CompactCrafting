@@ -1,0 +1,17 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "version": 1,
+  "recipeSize": 1,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "I"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:diamond",
+      "Count": 1
+    }
+  ]
+}

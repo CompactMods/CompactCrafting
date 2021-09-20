@@ -1,0 +1,89 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "layers": [
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["-", "-", "-", "-", "-"],
+        ["-", "-", "-", "-", "-"]
+      ]
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["BW", "WW", "WW", "WW", "BW"],
+        ["-", "-", "-", "-", "-"],
+        ["-", "-", "-", "-", "-"]
+      ]
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["-", "OW", "OW", "OW", "-"],
+        ["-", "OW", "OW", "OW", "-"]
+      ]
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["-", "-", "RW", "-", "-"],
+        ["-", "-", "-", "-", "-"]
+      ]
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["WW", "WW", "WW", "WW", "WW"],
+        ["-", "-", "RW", "-", "-"],
+        ["-", "-", "-", "-", "-"]
+      ]
+    }
+  ],
+
+  "catalyst": {
+    "id": "minecraft:egg",
+    "Count": 1
+  },
+
+  "components": {
+    "WW": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:white_wool"
+    },
+
+    "OW": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:orange_wool"
+    },
+
+    "RW": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:red_wool"
+    },
+
+    "BW": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:black_wool"
+    }
+  },
+
+  "outputs": [
+    {
+      "id": "minecraft:chicken_spawn_egg",
+      "Count": 1
+    }
+  ]
+}

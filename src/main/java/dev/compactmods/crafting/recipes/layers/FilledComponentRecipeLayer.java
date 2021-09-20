@@ -12,13 +12,14 @@ import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
-public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer {
+public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
 
     private final String componentKey;
     private AxisAlignedBB recipeDimensions;

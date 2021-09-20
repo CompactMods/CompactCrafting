@@ -286,7 +286,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
-                .filter(recipe -> recipe.fitsInDimensions(getFilledBounds()))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), getFilledBounds()))
                 .collect(Collectors.toSet());
 
         /*

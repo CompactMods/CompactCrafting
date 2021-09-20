@@ -186,4 +186,28 @@ public abstract class BlockSpaceUtil {
     public static BlockPos getOffset(AxisAlignedBB bounds) {
         return new BlockPos(bounds.minX, bounds.minY, bounds.maxZ);
     }
+
+    public static Stream<BlockPos> getCornersOfBounds(AxisAlignedBB bounds) {
+        boolean upperRequired = bounds.maxY > bounds.minY;
+        Set<BlockPos> positions = new HashSet<>(upperRequired ? 8 : 4);
+
+        // Lower corners
+        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.minZ));
+        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.maxZ));
+        positions.add(new BlockPos(bounds.maxX, bounds.minY, bounds.minZ));
+        positions.add(new BlockPos(bounds.maxX, bounds.minY, bounds.maxZ));
+
+        if(upperRequired) {
+            positions.add(new BlockPos(bounds.minX, bounds.maxY, bounds.minZ));
+            positions.add(new BlockPos(bounds.minX, bounds.maxY, bounds.maxZ));
+            positions.add(new BlockPos(bounds.maxX, bounds.maxY, bounds.minZ));
+            positions.add(new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ));
+        }
+
+        return positions.stream();
+    }
+
+    public static Stream<BlockPos> getCornersOfBounds(MiniaturizationFieldSize fieldSize) {
+        return getCornersOfBounds(fieldSize.getBoundsAtOrigin());
+    }
 }

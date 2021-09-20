@@ -3,7 +3,6 @@ package dev.compactmods.crafting.recipes;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.google.common.collect.ImmutableList;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
@@ -13,11 +12,11 @@ import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
-import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -28,7 +27,6 @@ import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3d;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
@@ -39,47 +37,23 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      */
     private int recipeSize;
     private ResourceLocation id;
-    private Map<Integer, IRecipeLayer> layers;
-    private final ItemStack catalyst;
+    private TreeMap<Integer, IRecipeLayer> layers;
+    private ItemStack catalyst;
     private ItemStack[] outputs;
     private AxisAlignedBB dimensions;
 
     private Map<String, Integer> cachedComponentTotals;
-    private IRecipeComponents components;
+    private final IRecipeComponents components;
 
     public static final MiniaturizationRecipeCodec CODEC = new MiniaturizationRecipeCodec();
 
     public MiniaturizationRecipe() {
         this.recipeSize = -1;
-        this.layers = new HashMap<>();
+        this.layers = new TreeMap<>();
         this.catalyst = ItemStack.EMPTY;
         this.outputs = new ItemStack[0];
         this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
-    }
-
-    public MiniaturizationRecipe(List<IRecipeLayer> layers,
-                                 ItemStack catalyst, List<ItemStack> outputs,
-                                 Map<String, IRecipeComponent> compMap) {
-        this.recipeSize = -1;
-        this.catalyst = catalyst;
-        this.outputs = outputs.toArray(new ItemStack[0]);
-        this.components = new MiniaturizationRecipeComponents();
-
-        applyLayers(layers);
-        applyComponents(compMap);
-    }
-
-    public MiniaturizationRecipe(int recipeSize, List<IRecipeLayer> layers,
-                                 ItemStack catalyst, List<ItemStack> outputs,
-                                 Map<String, IRecipeComponent> compMap) {
-        this.recipeSize = recipeSize;
-        this.catalyst = catalyst;
-        this.outputs = outputs.toArray(new ItemStack[0]);
-        this.components = new MiniaturizationRecipeComponents();
-
-        applyLayers(layers);
-        applyComponents(compMap);
     }
 
     void applyComponents(Map<String, IRecipeComponent> compMap) {
@@ -88,10 +62,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
             // Map in block components
             if (comp.getValue() instanceof IRecipeBlockComponent) {
                 components.registerBlock(comp.getKey(), (IRecipeBlockComponent) comp.getValue());
-                continue;
             }
-
-            components.registerOther(comp.getKey(), comp.getValue());
         }
 
         layers.forEach((i, l) -> {
@@ -109,7 +80,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public void applyLayers(List<IRecipeLayer> layers) {
-        this.layers = new HashMap<>();
+        this.layers = new TreeMap<>();
         ArrayList<IRecipeLayer> rev = new ArrayList<>(layers);
         Collections.reverse(rev);
         for (int y = 0; y < rev.size(); y++)
@@ -117,14 +88,9 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     List<IRecipeLayer> getLayerListForCodecWrite() {
-        if(layers.isEmpty())
-            return Collections.emptyList();
-
-        ImmutableList.Builder<IRecipeLayer> l = ImmutableList.builder();
-        for (int y = layers.size() - 1; y >= 0; y--)
-            l.add(layers.get(y));
-
-        return l.build();
+        return layers.descendingKeySet().stream()
+                .map(layers::get)
+                .collect(Collectors.toList());
     }
 
     void recalculateDimensions() {
@@ -134,11 +100,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
         boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
         if (!hasAnyRigidLayers) {
-            if (!MiniaturizationFieldSize.canFitDimensions(recipeSize)) {
-                CompactCrafting.LOGGER.error("Error: tried to enforce a dimension update with a recipe size that will not fit inside field boundaries.");
-            } else {
-                setFluidDimensions(new AxisAlignedBB(0, 0, 0, recipeSize, height, recipeSize));
-            }
+            this.dimensions = new AxisAlignedBB(0, 0, 0, recipeSize, height, recipeSize);
         } else {
             for (IRecipeLayer l : this.layers.values()) {
                 // We only need to worry about fixed-dimension layers; the fluid layers will adapt
@@ -175,15 +137,16 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      */
     public boolean fitsInFieldSize(MiniaturizationFieldSize fieldSize) {
         int dim = fieldSize.getDimensions();
-        boolean fits = Stream.of(dimensions.getXsize(), dimensions.getYsize(), dimensions.getZsize())
-                .allMatch(size -> size <= dim);
-
-        return fits;
+        return (dimensions.getXsize() <= dim) &&
+                (dimensions.getYsize() <= dim) &&
+                (dimensions.getZsize() <= dim);
     }
 
     public boolean matches(IRecipeBlocks blocks) {
+        final boolean matchLogging = ServerConfig.RECIPE_MATCHING.get();
+
         if (!BlockSpaceUtil.boundsFitsInside(blocks.getFilledBounds(), dimensions)) {
-            if (ServerConfig.RECIPE_MATCHING.get())
+            if (matchLogging)
                 CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
             return false;
         }
@@ -191,58 +154,61 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         // We know that the recipe will at least fit inside the current projection field
         AxisAlignedBB filledBounds = blocks.getFilledBounds();
 
-        Rotation[] validRotations = new Rotation[]{
-                Rotation.NONE,
-                Rotation.CLOCKWISE_90,
-                Rotation.CLOCKWISE_180,
-                Rotation.COUNTERCLOCKWISE_90
-        };
+        Rotation[] validRotations = Rotation.values();
 
-        for (Rotation rot : validRotations) {
-            boolean matchesRot = checkRotation(blocks, rot);
-            if (matchesRot)
-                return true;
-        }
+        Map<Rotation, Set<Integer>> layerRotationMatches = new HashMap<>(validRotations.length);
+        for (Rotation r : validRotations)
+            layerRotationMatches.put(r, new HashSet<>(layers.size()));
 
-        if (ServerConfig.RECIPE_MATCHING.get())
-            CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe for not matching any rotations.", this.id);
-        return false;
-    }
-
-    private boolean checkRotation(IRecipeBlocks blocks, Rotation rot) {
-        // Check the recipe layer by layer
-
-        int maxY = (int) dimensions.getYsize();
-        for (int offset = 0; offset < maxY; offset++) {
-            Optional<IRecipeLayer> layer = getLayer(offset);
-
-            // If we have no layer definition do lighter processing
-            if (!layer.isPresent()) {
-                return false;
-            }
-
-            IRecipeBlocks layerBlocks = blocks.slice(BlockSpaceUtil.getLayerBounds(blocks.getFilledBounds(), offset)).below(offset);
-
-            if (rot != Rotation.NONE)
-                layerBlocks = RecipeLayerUtil.rotate(layerBlocks, rot);
-
-            IRecipeLayer targetLayer = layer.get();
+        for (Map.Entry<Integer, IRecipeLayer> entry : layers.entrySet()) {
+            IRecipeLayer layer = entry.getValue();
+            IRecipeBlocks layerBlocks = blocks.slice(BlockSpaceUtil.getLayerBounds(blocks.getFilledBounds(), entry.getKey())).normalize();
 
             // If the layer spec requires all components to be known (by default) then check early
-            if (targetLayer.requiresAllBlocksIdentified() && !layerBlocks.allIdentified())
+            if (layer.requiresAllBlocksIdentified() && !layerBlocks.allIdentified())
                 return false;
 
-            boolean layerMatched = targetLayer.matches(components, layerBlocks);
+            final boolean firstMatched = layer.matches(components, layerBlocks);
+            if (firstMatched)
+                layerRotationMatches.get(Rotation.NONE).add(entry.getKey());
 
-            if (!layerMatched) {
-                if (ServerConfig.RECIPE_MATCHING.get())
-                    CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe at layer {} ({}) because it did not match rotation {}.", this.id, offset, targetLayer.getType().getRegistryName(), rot);
+            // Symmetrical layers require symmetric footprints
+            // We could clean this up by doing 180 flips but extra math, we can fallback for now
+            if (layer instanceof ISymmetricalLayer && (dimensions.getXsize() == dimensions.getZsize())) {
+                if (!firstMatched) {
+                    if (matchLogging)
+                        CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe layer {}; marked symmetrical and does not match its first rotation attempt.", this.id, entry.getKey());
 
-                return false;
+                    // Immediate fail of recipe - no other matches are possible here
+                    return false;
+                } else {
+                    // Fill all possible rotations for layer; symmetric layers will match all of them
+                    for (Rotation r : validRotations) {
+                        if (r != Rotation.NONE) layerRotationMatches.get(r).add(entry.getKey());
+                    }
+
+                    continue;
+                }
+            }
+
+            // Begin non-symmetric layer rotation match handling
+            for (Rotation rotation : validRotations) {
+                if (rotation == Rotation.NONE)
+                    continue;
+
+                IRecipeBlocks rotated = RecipeLayerUtil.rotate(layerBlocks, rotation);
+                if (layer.matches(components, rotated)) {
+                    layerRotationMatches.get(rotation).add(entry.getKey());
+                }
             }
         }
 
-        return true;
+        Optional<Rotation> firstMatched = layerRotationMatches.entrySet().stream()
+                .filter((ent) -> ent.getValue().equals(layers.keySet()))
+                .map(Map.Entry::getKey)
+                .findFirst();
+
+        return firstMatched.isPresent();
     }
 
     public ItemStack[] getOutputs() {
@@ -269,25 +235,11 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         if (!this.components.hasBlock(i))
             return 0;
 
-        int required = 0;
-        for (IRecipeLayer layer : this.layers.values()) {
-            if (layer == null)
-                continue;
-
-            Map<String, Integer> layerTotals = layer.getComponentTotals();
-
-            if (layerTotals.containsKey(i))
-                required += layerTotals.get(i);
-        }
-
-        return required;
-    }
-
-    public boolean fitsInDimensions(AxisAlignedBB bounds) {
-        if (this.dimensions == null || bounds == null)
-            return false;
-
-        return BlockSpaceUtil.boundsFitsInside(this.dimensions, bounds);
+        return layers.values().stream()
+                .map(IRecipeLayer::getComponentTotals)
+                .map(totals -> Optional.ofNullable(totals.get(i)).orElse(0))
+                .mapToInt(Integer::intValue)
+                .sum();
     }
 
     public AxisAlignedBB getDimensions() {
@@ -295,7 +247,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public Optional<IRecipeLayer> getLayer(int y) {
-        if (y < 0 || y > this.layers.size() - 1)
+        if (y < layers.firstKey() || y > layers.lastKey())
             return Optional.empty();
 
         return Optional.ofNullable(this.layers.get(y));
@@ -319,22 +271,8 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.outputs = outputs.toArray(new ItemStack[0]);
     }
 
-    public void setComponents(IRecipeComponents components) {
-        this.components = components;
-    }
-
     public ItemStack getCatalyst() {
         return this.catalyst;
-    }
-
-    public void setFluidDimensions(AxisAlignedBB dimensions) {
-        boolean hasRigidLayer = this.layers.values().stream().anyMatch(layer -> layer instanceof IFixedSizedRecipeLayer);
-        if (!hasRigidLayer) {
-            this.dimensions = dimensions;
-            updateFluidLayerDimensions();
-        } else {
-            CompactCrafting.LOGGER.warn("Tried to set fluid dimensions when a rigid layer is present in the layer set.", new MiniaturizationRecipeException("no. bad."));
-        }
     }
 
     public int getCraftingTime() {
@@ -367,11 +305,6 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.id = recipeId;
     }
 
-    public Stream<BlockPos> getRelativeBlockPositions() {
-        AxisAlignedBB realBounds = dimensions.contract(1, 1, 1);
-        return BlockPos.betweenClosedStream(realBounds);
-    }
-
     public boolean hasSpecifiedSize() {
         return MiniaturizationFieldSize.canFitDimensions(this.recipeSize);
     }
@@ -386,5 +319,9 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
         this.recipeSize = size;
         this.recalculateDimensions();
+    }
+
+    public void setCatalyst(ItemStack catalyst) {
+        this.catalyst = catalyst.copy();
     }
 }

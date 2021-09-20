@@ -1,16 +1,28 @@
 package dev.compactmods.crafting.tests.recipes;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import org.junit.jupiter.api.Assertions;
@@ -103,6 +115,90 @@ public class MiniaturiationRecipeTests {
         });
     }
 
+    @Test
+    @Tag("minecraft")
+    void RecipeSuppliesBasicMinecraftRegistrationInfo() {
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(enderCrystal);
+
+        final IRecipeSerializer<?> serializer = Assertions.assertDoesNotThrow(enderCrystal::getSerializer);
+        Assertions.assertNotNull(serializer);
+
+        final IRecipeType<?> type = Assertions.assertDoesNotThrow(enderCrystal::getType);
+        Assertions.assertNotNull(type);
+    }
+
+    @Test
+    @Tag("minecraft")
+    void RecipeReturnsEmptyIfLayerNotRegistered() {
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(enderCrystal);
+
+        final Optional<IRecipeLayer> layer = Assertions.assertDoesNotThrow(() -> enderCrystal.getLayer(999));
+        Assertions.assertFalse(layer.isPresent());
+    }
+
+    @Test
+    @Tag("minecraft")
+    void FitsInCorrectFieldSizes() {
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(enderCrystal);
+
+        MiniaturizationFieldSize[] badSizes = new MiniaturizationFieldSize[]{
+                MiniaturizationFieldSize.INACTIVE, MiniaturizationFieldSize.SMALL
+        };
+
+        MiniaturizationFieldSize[] goodSizes = new MiniaturizationFieldSize[]{
+                MiniaturizationFieldSize.MEDIUM, MiniaturizationFieldSize.LARGE, MiniaturizationFieldSize.ABSURD
+        };
+
+        for (MiniaturizationFieldSize bs : badSizes)
+            Assertions.assertFalse(enderCrystal.fitsInFieldSize(bs), "Fit in bad field size: " + bs);
+
+        for (MiniaturizationFieldSize gs : goodSizes)
+            Assertions.assertTrue(enderCrystal.fitsInFieldSize(gs), "Did not fit in field size: " + gs);
+    }
+
+    @Test
+    @Tag("minecraft")
+    void CanGetComponentTotals() {
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(recipe);
+
+        final Map<String, Integer> totals = Assertions.assertDoesNotThrow(recipe::getComponentTotals);
+        Assertions.assertNotNull(totals);
+        Assertions.assertEquals(2, totals.size()); // expect 2 (G, O)
+
+        for (String key : new String[]{"G", "O"})
+            Assertions.assertTrue(totals.containsKey(key), "Totals did not contain key: " + key);
+
+        final Map<String, Integer> maybeCached = Assertions.assertDoesNotThrow(recipe::getComponentTotals);
+        Assertions.assertSame(totals, maybeCached);
+
+        final Integer totalObsidian = Assertions.assertDoesNotThrow(() -> recipe.getComponentRequiredCount("O"));
+        Assertions.assertEquals(1, totalObsidian);
+    }
+
+    @Test
+    @Tag("minecraft")
+    void UnregisteredBlockReturnsZeroCount() {
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(recipe);
+
+        final int required = Assertions.assertDoesNotThrow(() -> recipe.getComponentRequiredCount("?"));
+        Assertions.assertEquals(0, required);
+    }
+
+    @Test
+    @Tag("minecraft")
+    void HasCraftingTime() {
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(recipe);
+
+        final int required = Assertions.assertDoesNotThrow(recipe::getCraftingTime);
+        Assertions.assertNotEquals(0, required);
+    }
+
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void MatchesExactStructure(IntegrationTestHelper helper) {
@@ -116,5 +212,68 @@ public class MiniaturiationRecipeTests {
             boolean matched = enderCrystal.matches(blocks);
             Assertions.assertTrue(matched);
         });
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("ender_crystal")
+    void RecipeFailsIfUnidentifiedBlock(IntegrationTestHelper helper) {
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(enderCrystal);
+
+        // Force an unknown component in the exact center
+        helper.setBlockState(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
+
+        final IRecipeBlocks blocks = RecipeBlocks
+                .create(helper.getWorld(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .normalize();
+
+        Assertions.assertDoesNotThrow(() -> {
+            boolean matched = enderCrystal.matches(blocks);
+            Assertions.assertFalse(matched, "Recipe did not fail the matching process.");
+        });
+    }
+
+    @Test
+    @Tag("minecraft")
+    void CanStreamLayerInfo() {
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final Stream<IRecipeLayer> strem = Assertions.assertDoesNotThrow(enderCrystal::getLayers);
+
+        Assertions.assertNotNull(strem);
+
+        final Set<IRecipeLayer> layers = strem.collect(Collectors.toSet());
+        Assertions.assertEquals(5, layers.size());
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("ender_crystal")
+    void RecipeFailsIfDifferentDimensions(IntegrationTestHelper helper) {
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/compact_walls.json");
+        Assertions.assertNotNull(recipe);
+
+        final IRecipeBlocks blocks = RecipeBlocks
+                .create(helper.getWorld(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .normalize();
+
+        final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));
+        Assertions.assertFalse(matched, "Recipe matched even though dimensions are different.");
+    }
+
+    @Tag("minecraft")
+    @IntegrationTest("empty_medium")
+    void RecipeFailsIfNoRotationsMatched(IntegrationTestHelper helper) {
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        Assertions.assertNotNull(recipe);
+
+        // Set up the 8 corners to be glass, so block creation below matches field boundaries
+        final BlockState glass = Blocks.GLASS.defaultBlockState();
+        BlockSpaceUtil.getCornersOfBounds(MiniaturizationFieldSize.MEDIUM).forEach(p -> helper.setBlockState(p, glass));
+
+        final IRecipeBlocks blocks = RecipeBlocks
+                .create(helper.getWorld(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .normalize();
+
+        final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));
+        Assertions.assertFalse(matched, "Recipe matched even though blocks are different. (Spatial dimensions equal.)");
     }
 }

@@ -1,8 +1,13 @@
 package dev.compactmods.crafting.client.fakeworld;
 
+import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.fluid.FluidState;
@@ -10,11 +15,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.EmptyChunk;
-
-import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 public class RecipeChunk extends EmptyChunk {
     private final MiniaturizationRecipe recipe;
@@ -28,7 +28,7 @@ public class RecipeChunk extends EmptyChunk {
         this.blockCache = new HashMap<>();
         this.tileCache = new HashMap<>();
 
-        recipe.getRelativeBlockPositions().forEach(pos -> {
+        BlockSpaceUtil.getBlocksIn(recipe.getDimensions()).forEach(pos -> {
             int y = pos.getY();
             Optional<IRecipeLayer> layer = recipe.getLayer(y);
 
