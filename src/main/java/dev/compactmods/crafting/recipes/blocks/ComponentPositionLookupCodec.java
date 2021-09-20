@@ -3,7 +3,7 @@ package dev.compactmods.crafting.recipes.blocks;
 import java.util.ArrayList;
 import java.util.List;
 import com.google.common.collect.ImmutableList;
-import com.ibm.icu.impl.Pair;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
@@ -50,7 +50,7 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
         BlockSpaceUtil.getBlocksIn(boundsForBlocks)
                 .map(pos -> Pair.of(pos.immutable(), lookup.getRequiredComponentKeyForPosition(pos).orElse("-")))
                 .forEach(pair -> {
-                    map[pair.first.getZ()][pair.first.getX()] = pair.second;
+                    map[pair.getFirst().getZ()][pair.getFirst().getX()] = pair.getSecond();
                 });
 
         List<List<String>> fin = new ArrayList<>(map.length);
