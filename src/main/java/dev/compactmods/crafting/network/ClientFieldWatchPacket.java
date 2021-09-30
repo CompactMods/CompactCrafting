@@ -28,7 +28,7 @@ public class ClientFieldWatchPacket {
     }
 
     public static boolean handle(ClientFieldWatchPacket pkt, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> ClientPacketHandler.handleFieldData(pkt.clientData));
+        ClientPacketHandler.handleFieldData(pkt.clientData);
         return true;
     }
 }

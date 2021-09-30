@@ -64,9 +64,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        LazyOptional<IMiniaturizationField> fieldRef = tile.getField();
-
-        fieldRef.ifPresent(field -> {
+        tile.getField().ifPresent(field -> {
             double scale = MathUtil.calculateFieldScale(field);
 
             AxisAlignedBB bounds = field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));

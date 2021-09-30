@@ -4,17 +4,24 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.network.ClientFieldUnwatchPacket;
+import dev.compactmods.crafting.network.ClientFieldWatchPacket;
+import dev.compactmods.crafting.network.NetworkHandler;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 @SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID)
@@ -42,6 +49,46 @@ public class WorldEventHandler {
 
         evt.world.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
                 .ifPresent(IActiveWorldFields::tickFields);
+    }
+
+    @SubscribeEvent
+    public static void onStartChunkTracking(final ChunkWatchEvent.Watch event) {
+        final ServerPlayerEntity player = event.getPlayer();
+        final ChunkPos pos = event.getPos();
+        final ServerWorld level = event.getWorld();
+
+        level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+                .map(f -> f.getFields(pos))
+                .ifPresent(activeFields -> {
+                    activeFields.forEach(field -> {
+                        ClientFieldWatchPacket pkt = new ClientFieldWatchPacket(field);
+
+                        NetworkHandler.MAIN_CHANNEL.send(
+                                PacketDistributor.PLAYER.with(() -> player),
+                                pkt
+                        );
+                    });
+                });
+    }
+
+    @SubscribeEvent
+    public static void onStopChunkTracking(final ChunkWatchEvent.UnWatch event) {
+        final ServerPlayerEntity player = event.getPlayer();
+        final ChunkPos pos = event.getPos();
+        final ServerWorld level = event.getWorld();
+
+        level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+                .map(f -> f.getFields(pos))
+                .ifPresent(activeFields -> {
+                    activeFields.forEach(field -> {
+                        ClientFieldUnwatchPacket pkt = new ClientFieldUnwatchPacket(field.getCenter());
+
+                        NetworkHandler.MAIN_CHANNEL.send(
+                                PacketDistributor.PLAYER.with(() -> player),
+                                pkt
+                        );
+                    });
+                });
     }
 
     @SubscribeEvent

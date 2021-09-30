@@ -3,6 +3,7 @@ package dev.compactmods.crafting.projector;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
@@ -71,14 +72,11 @@ public class FieldProjectorTile extends TileEntity {
         server.submitAsync(new TickDelayedTask(server.getTickCount() + 3, this::updateFieldInfo));
     }
 
-    private void updateFieldInfo() {
+    public void updateFieldInfo() {
         if (this.level == null)
             return;
 
         this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
-
-        if (level.isClientSide)
-            return;
 
         BlockPos center = BlockPos.ZERO;
         final BlockState state = getBlockState();
@@ -88,10 +86,6 @@ public class FieldProjectorTile extends TileEntity {
         } else {
             center = new BlockPos(fieldBounds.getCenter());
         }
-
-        final MinecraftServer server = level.getServer();
-        if (server == null)
-            return;
 
         final BlockPos finalCenter = center.immutable();
         levelFields.ifPresent(fields -> {
@@ -104,6 +98,7 @@ public class FieldProjectorTile extends TileEntity {
                         new FieldActivatedPacket(field));
             }
 
+            CompactCrafting.LOGGER.debug("Changing field: updateFI");
             this.fieldCap = fields.getLazy(finalCenter);
         });
     }
@@ -127,6 +122,7 @@ public class FieldProjectorTile extends TileEntity {
                 .forEach(p -> FieldProjectorBlock.deactivateProjector(level, p));
 
         fieldCap.ifPresent(f -> {
+            CompactCrafting.LOGGER.debug("Unsetting field: invalidate");
             fieldCap.invalidate();
             levelFields.ifPresent(fields -> {
                 fields.unregisterField(f);
@@ -142,16 +138,9 @@ public class FieldProjectorTile extends TileEntity {
                     .send(trk, new FieldDeactivatedPacket(fieldSize, fieldCenter));
         });
 
+        CompactCrafting.LOGGER.debug("Unsetting field: invalidate");
         this.fieldCap = LazyOptional.empty();
         this.setChanged();
-    }
-
-    public void setField(LazyOptional<IMiniaturizationField> field) {
-        this.fieldCap.invalidate();
-        this.fieldCap = field;
-        field.addListener(f -> {
-            this.fieldCap = LazyOptional.empty();
-        });
     }
 
     @Nonnull
@@ -184,6 +173,6 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     public LazyOptional<IMiniaturizationField> getField() {
-        return this.fieldCap;
+        return this.fieldCap.cast();
     }
 }

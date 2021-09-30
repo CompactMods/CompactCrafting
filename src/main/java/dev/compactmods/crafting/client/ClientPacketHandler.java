@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.client;
 
 import javax.annotation.Nullable;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Objects;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
@@ -12,7 +12,6 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.common.util.LazyOptional;
 
 public abstract class ClientPacketHandler {
 
@@ -26,17 +25,13 @@ public abstract class ClientPacketHandler {
             field.setLevel(cw);
             field.loadClientData(fieldClientData);
 
-            AtomicReference<LazyOptional<IMiniaturizationField>> fieldLazy = new AtomicReference<>(LazyOptional.empty());
             mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
-                    .ifPresent(fields -> {
-                        fields.registerField(field);
-                        fieldLazy.set(fields.getLazy(field.getCenter()));
-                    });
+                    .ifPresent(fields -> fields.registerField(field));
 
             field.getProjectorPositions().forEach(proj -> {
                 if (cw.getBlockState(proj).getBlock() instanceof FieldProjectorBlock) {
                     FieldProjectorBlock.activateProjector(cw, proj, field.getFieldSize());
-                    ((FieldProjectorTile) cw.getBlockEntity(proj)).setField(fieldLazy.get());
+                    ((FieldProjectorTile) cw.getBlockEntity(proj)).updateFieldInfo();
                 }
             });
 
@@ -68,6 +63,12 @@ public abstract class ClientPacketHandler {
                 .ifPresent(fields -> {
                     fields.setLevel(mc.level);
                     fields.registerField(field);
+
+                    field.getProjectorPositions()
+                            .map(mc.level::getBlockEntity)
+                            .map(tile -> (FieldProjectorTile) tile)
+                            .filter(Objects::nonNull)
+                            .forEach(FieldProjectorTile::updateFieldInfo);
                 });
     }
 
