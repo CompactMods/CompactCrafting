@@ -33,11 +33,7 @@ public interface IMiniaturizationField {
 
     void clearRecipe();
 
-    void completeCraft();
-
     EnumCraftingState getCraftingState();
-
-    void doRecipeScan();
 
     void setCraftingState(EnumCraftingState state);
 
@@ -55,9 +51,11 @@ public interface IMiniaturizationField {
 
     void registerListener(LazyOptional<IFieldListener> listener);
 
-    CompoundNBT serverData();
+    default CompoundNBT serverData() {
+        return new CompoundNBT();
+    }
 
-    void loadServerData(CompoundNBT nbt);
+    default void loadServerData(CompoundNBT nbt) {}
 
     default CompoundNBT clientData() {
         CompoundNBT data = new CompoundNBT();
