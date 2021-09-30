@@ -15,7 +15,7 @@ public interface IActiveWorldFields {
 
     void tickFields();
 
-    void registerField(IMiniaturizationField field);
+    IMiniaturizationField registerField(IMiniaturizationField field);
 
     void unregisterField(BlockPos center);
     void unregisterField(IMiniaturizationField field);

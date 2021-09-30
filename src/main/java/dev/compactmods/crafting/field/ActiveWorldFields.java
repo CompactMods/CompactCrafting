@@ -57,7 +57,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
         loaded.forEach(IMiniaturizationField::tick);
     }
 
-    public void registerField(IMiniaturizationField field) {
+    public IMiniaturizationField registerField(IMiniaturizationField field) {
         field.setLevel(level);
 
         BlockPos center = field.getCenter();
@@ -69,6 +69,8 @@ public class ActiveWorldFields implements IActiveWorldFields {
         lazy.addListener(lo -> {
             lo.ifPresent(this::unregisterField);
         });
+
+        return field;
     }
 
     public void unregisterField(BlockPos center) {
