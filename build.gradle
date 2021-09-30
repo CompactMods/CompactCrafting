@@ -145,6 +145,7 @@ minecraft {
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
+            arg '--keepAlive'
             forceExit = false
             mods {
                 compactcrafting {
@@ -206,20 +207,20 @@ repositories {
     // location of the maven that hosts JEI files
     maven {
         name "Progwml Repo"
-        url "http://dvs1.progwml6.com/files/maven"
+        url "https://dvs1.progwml6.com/files/maven"
     }
 
     // TheOneProbe
     maven {
         name 'tterrag maven'
-        url "http://maven.tterrag.com/"
+        url "https://maven.tterrag.com/"
     }
 
     maven {
         name "MCJUnitLib - CM Github"
         url = uri("https://maven.pkg.github.com/CompactMods/mcjunitlib")
         credentials {
-            username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+            username = project.findProperty("gpr.actor") ?: System.getenv("GITHUB_ACTOR")
             password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
         }
     }
@@ -310,8 +311,8 @@ publishing {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/CompactMods/CompactCrafting"
             credentials {
-                username = System.getenv("GITHUB_ACTOR")
-                password = System.getenv("GITHUB_TOKEN")
+                username = project.findProperty("gpr.actor") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
             }
         }
     }
