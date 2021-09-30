@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui.widget;
+package dev.compactmods.crafting.client.ui.widget;
 
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;

@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui.container;
+package dev.compactmods.crafting.client.ui.container;
 
 import dev.compactmods.crafting.CompactCrafting;
 import net.minecraft.inventory.container.ContainerType;

@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui.widget.tab;
+package dev.compactmods.crafting.client.ui.widget.tab;
 
 public enum EnumTabWidgetSide {
     TOP,

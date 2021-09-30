@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui.widget;
+package dev.compactmods.crafting.client.ui.widget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.IGuiEventListener;

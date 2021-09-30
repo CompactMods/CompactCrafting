@@ -4,7 +4,7 @@ import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.server.ServerConfig;
-import dev.compactmods.crafting.ui.container.ContainerRegistration;
+import dev.compactmods.crafting.client.ui.container.ContainerRegistration;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;

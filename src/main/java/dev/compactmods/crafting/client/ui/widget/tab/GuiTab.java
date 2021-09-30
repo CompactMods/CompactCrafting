@@ -1,11 +1,11 @@
-package dev.compactmods.crafting.ui.widget.tab;
+package dev.compactmods.crafting.client.ui.widget.tab;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.ui.UiHelper;
-import dev.compactmods.crafting.ui.widget.renderable.IWidgetPostBackgroundRenderable;
-import dev.compactmods.crafting.ui.widget.renderable.IWidgetPreBackgroundRenderable;
+import dev.compactmods.crafting.client.ui.UiHelper;
+import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPostBackgroundRenderable;
+import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPreBackgroundRenderable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;

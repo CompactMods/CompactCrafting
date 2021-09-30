@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui;
+package dev.compactmods.crafting.client.ui;
 
 public class ScreenArea {
 

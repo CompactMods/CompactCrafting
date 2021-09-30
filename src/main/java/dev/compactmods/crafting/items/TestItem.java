@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.items;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.ui.container.TestContainer;
+import dev.compactmods.crafting.client.ui.container.TestContainer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.player.ServerPlayerEntity;

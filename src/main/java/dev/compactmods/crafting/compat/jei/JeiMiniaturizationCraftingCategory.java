@@ -12,7 +12,7 @@ import dev.compactmods.crafting.client.fakeworld.RenderingWorld;
 import dev.compactmods.crafting.projector.render.CCRenderTypes;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.ui.ScreenArea;
+import dev.compactmods.crafting.client.ui.ScreenArea;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;

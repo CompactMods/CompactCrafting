@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.ui.widget.renderable;
+package dev.compactmods.crafting.client.ui.widget.renderable;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 

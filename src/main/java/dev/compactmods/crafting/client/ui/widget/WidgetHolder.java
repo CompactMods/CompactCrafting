@@ -1,8 +1,8 @@
-package dev.compactmods.crafting.ui.widget;
+package dev.compactmods.crafting.client.ui.widget;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import dev.compactmods.crafting.ui.widget.renderable.IWidgetPostBackgroundRenderable;
-import dev.compactmods.crafting.ui.widget.renderable.IWidgetPreBackgroundRenderable;
+import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPostBackgroundRenderable;
+import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPreBackgroundRenderable;
 import net.minecraft.client.gui.IRenderable;
 
 import java.util.ArrayList;

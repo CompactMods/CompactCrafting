@@ -1,17 +1,17 @@
-package dev.compactmods.crafting.ui.gui;
+package dev.compactmods.crafting.client.ui.gui;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
-import dev.compactmods.crafting.ui.container.TestContainer;
-import dev.compactmods.crafting.ui.widget.ContainerWidgetScreen;
-import dev.compactmods.crafting.ui.widget.IWidgetScreen;
-import dev.compactmods.crafting.ui.widget.WidgetBase;
-import dev.compactmods.crafting.ui.widget.WidgetHolder;
-import dev.compactmods.crafting.ui.widget.tab.EnumTabWidgetSide;
-import dev.compactmods.crafting.ui.widget.tab.GuiTab;
-import dev.compactmods.crafting.ui.widget.tab.TabsWidget;
+import dev.compactmods.crafting.client.ui.container.TestContainer;
+import dev.compactmods.crafting.client.ui.widget.ContainerWidgetScreen;
+import dev.compactmods.crafting.client.ui.widget.IWidgetScreen;
+import dev.compactmods.crafting.client.ui.widget.WidgetBase;
+import dev.compactmods.crafting.client.ui.widget.WidgetHolder;
+import dev.compactmods.crafting.client.ui.widget.tab.EnumTabWidgetSide;
+import dev.compactmods.crafting.client.ui.widget.tab.GuiTab;
+import dev.compactmods.crafting.client.ui.widget.tab.TabsWidget;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
