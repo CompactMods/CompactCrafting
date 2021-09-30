@@ -106,6 +106,21 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
         return center.relative(direction, this.getProjectorDistance() + 1);
     }
 
+    public BlockPos getOriginCenter() {
+        return new BlockPos(BlockPos.ZERO.offset(size, size, size));
+    }
+
+    public BlockPos getOriginCenterFromCorner() {
+        return getOriginCenter().offset(projectorDistance, 0, projectorDistance);
+    }
+
+    public Stream<BlockPos> getProjectorLocationsAtOrigin() {
+        return Arrays
+                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
+                .filter(d -> d.getAxis().isHorizontal())
+                .map(hor -> getProjectorLocationForDirection(getOriginCenter(), hor));
+    }
+
     public Stream<BlockPos> getProjectorLocations(BlockPos center) {
         return Arrays
                 .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
@@ -127,8 +142,7 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
     }
 
     public AxisAlignedBB getBoundsAtOrigin() {
-        int offset = this.size;
-        return getBoundsAtPosition(BlockPos.ZERO.offset(offset, offset, offset));
+        return getBoundsAtPosition(getOriginCenter());
     }
 
     public AxisAlignedBB getBoundsAtPosition(BlockPos center) {
@@ -138,9 +152,5 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
     @Override
     public String getSerializedName() {
         return name;
-    }
-
-    public BlockPos getCenterOffset() {
-        return new BlockPos(getBoundsAtOrigin().getCenter());
     }
 }

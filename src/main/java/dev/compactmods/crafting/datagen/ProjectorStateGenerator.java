@@ -2,7 +2,7 @@ package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.util.Direction;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;

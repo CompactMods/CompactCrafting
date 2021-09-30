@@ -4,7 +4,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.server.ServerConfig;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;

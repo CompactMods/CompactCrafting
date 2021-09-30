@@ -3,12 +3,12 @@ package dev.compactmods.crafting.projector.render;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.tile.FieldProjectorTile;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.util.MathUtil;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.Atlases;
@@ -27,8 +27,7 @@ import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.util.math.vector.Vector3f;
-import net.minecraftforge.client.model.ModelDataManager;
-import net.minecraftforge.client.model.data.IModelData;
+import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
@@ -102,7 +101,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
         IVertexBuilder cutoutBlocks = buffer.getBuffer(Atlases.cutoutBlockSheet());
-        IModelData model = ModelDataManager.getModelData(te.getLevel(), te.getBlockPos());
+        // IModelData model = ModelDataManager.getModelData(te.getLevel(), te.getBlockPos());
 
         IBakedModel baked = this.getModel();
 
@@ -114,8 +113,10 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         // double yaw = Math.random();
 
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
-        float angle = facing.toYRot() - 90;
-        mx.mulPose(Vector3f.YN.rotationDegrees(angle));
+        if(facing != Direction.WEST) {
+            float angle = facing.toYRot() - 90;
+            mx.mulPose(Vector3f.YN.rotationDegrees(angle));
+        }
 
         float yDiskOffset = -0.66f;
         mx.translate(0.0, -yDiskOffset, 0.0);
@@ -135,7 +136,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
                         red,
                         green,
                         blue,
-                        combinedLight, combinedOverlay, model);
+                        combinedLight, combinedOverlay, EmptyModelData.INSTANCE);
 
         mx.popPose();
     }

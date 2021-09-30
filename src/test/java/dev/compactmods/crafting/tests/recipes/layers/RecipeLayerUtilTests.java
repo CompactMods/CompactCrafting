@@ -28,7 +28,7 @@ public class RecipeLayerUtilTests {
         // We set up a different block in the corner so we can tell the blocks rotated
         helper.setBlockState(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper));
 
@@ -44,7 +44,7 @@ public class RecipeLayerUtilTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void NonRotationCreatesCopiedInstance(IntegrationTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 

@@ -1,25 +1,28 @@
-package dev.compactmods.crafting.projector.tile;
+package dev.compactmods.crafting.projector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
+import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockReader;
+import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -36,50 +39,72 @@ public class FieldProjectorTile extends TileEntity {
         super(Registration.FIELD_PROJECTOR_TILE.get());
     }
 
-    public FieldProjectorTile(MiniaturizationFieldSize size) {
+    public FieldProjectorTile(IBlockReader level, BlockState state) {
         super(Registration.FIELD_PROJECTOR_TILE.get());
-        this.fieldSize = size;
+
+        this.fieldSize = state.getValue(FieldProjectorBlock.SIZE);
     }
 
     public Optional<AxisAlignedBB> getFieldBounds() {
         return Optional.ofNullable(fieldBounds);
     }
 
-    public Direction getFacing() {
-        BlockState bs = this.getBlockState();
-        return bs.getValue(FieldProjectorBlock.FACING);
-    }
-
     public Direction getProjectorSide() {
-        Direction facing = getFacing();
-        return facing.getOpposite();
+        return getBlockState().getValue(FieldProjectorBlock.FACING).getOpposite();
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
+    public void setPosition(BlockPos position) {
+        super.setPosition(position);
+        if (level.isClientSide) return;
+        final MinecraftServer server = this.level.getServer();
+        if (server == null) return;
+        server.submitAsync(new TickDelayedTask(server.getTickCount() + 3, this::updateFieldInfo));
+    }
 
-        if (this.fieldSize == null)
+    @Override
+    public void setLevelAndPosition(World level, BlockPos position) {
+        super.setLevelAndPosition(level, position);
+        if (level.isClientSide) return;
+        final MinecraftServer server = this.level.getServer();
+        if (server == null) return;
+        server.submitAsync(new TickDelayedTask(server.getTickCount() + 3, this::updateFieldInfo));
+    }
+
+    private void updateFieldInfo() {
+        if (this.level == null)
             return;
 
-        BlockPos center;
+        this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+
+        if (level.isClientSide)
+            return;
+
+        BlockPos center = BlockPos.ZERO;
+        final BlockState state = getBlockState();
         if (this.fieldBounds == null) {
-            center = fieldSize.getCenterFromProjector(worldPosition, getFacing());
+            center = fieldSize.getCenterFromProjector(worldPosition, state.getValue(FieldProjectorBlock.FACING));
             fieldBounds = fieldSize.getBoundsAtPosition(center);
         } else {
             center = new BlockPos(fieldBounds.getCenter());
         }
 
-        if (this.level != null) {
-            this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
-        }
+        final MinecraftServer server = level.getServer();
+        if (server == null)
+            return;
 
+        final BlockPos finalCenter = center.immutable();
         levelFields.ifPresent(fields -> {
-            if(!level.isClientSide && !fields.hasActiveField(center)) {
-                fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+            if (!fields.hasActiveField(finalCenter)) {
+                final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, finalCenter));
+
+                // Send activation packet to clients
+                NetworkHandler.MAIN_CHANNEL.send(
+                        PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
+                        new FieldActivatedPacket(field));
             }
 
-            this.fieldCap = fields.getLazy(center);
+            this.fieldCap = fields.getLazy(finalCenter);
         });
     }
 
@@ -139,37 +164,13 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT nbt) {
-        CompoundNBT tag = super.save(nbt);
-
-        if (fieldBounds != null)
-            tag.put("center", NBTUtil.writeBlockPos(new BlockPos(fieldBounds.getCenter())));
-
-        return tag;
-    }
-
-    @Override
     public void load(BlockState state, CompoundNBT tag) {
         super.load(state, tag);
 
-        if (tag.contains("center")) {
-            BlockPos center = NBTUtil.readBlockPos(tag.getCompound("center"));
-            this.fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+        this.fieldSize = state.getValue(FieldProjectorBlock.SIZE);
 
-            if (FieldProjectorBlock.isActive(state)) {
-                this.fieldBounds = fieldSize.getBoundsAtPosition(center);
-            }
-        }
-    }
-
-    @Override
-    public CompoundNBT getUpdateTag() {
-        CompoundNBT tag = super.getUpdateTag();
-
-        if (fieldBounds != null)
-            tag.put("center", NBTUtil.writeBlockPos(new BlockPos(fieldBounds.getCenter())));
-
-        return tag;
+        BlockPos center = fieldSize.getCenterFromProjector(worldPosition, state.getValue(FieldProjectorBlock.FACING));
+        this.fieldBounds = fieldSize.getBoundsAtPosition(center);
     }
 
     @Override
@@ -177,7 +178,7 @@ public class FieldProjectorTile extends TileEntity {
         // Check - if we have a valid field use the entire field plus space
         // Otherwise just use the super implementation
         if (fieldBounds != null)
-            return fieldBounds.inflate(10);
+            return fieldBounds.inflate(20);
 
         return new AxisAlignedBB(worldPosition).inflate(20);
     }

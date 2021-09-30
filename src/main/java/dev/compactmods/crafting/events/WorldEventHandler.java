@@ -52,7 +52,7 @@ public class WorldEventHandler {
 
             final MinecraftServer server = level.getServer();
             if (server != null) {
-                server.tell(new TickDelayedTask(server.getTickCount() + 10, () -> {
+                server.submitAsync(new TickDelayedTask(server.getTickCount() + 10, () -> {
                     BlockPos chunkCenter = chunk.getPos()
                             .getWorldPosition()
                             .offset(8, 0, 8);

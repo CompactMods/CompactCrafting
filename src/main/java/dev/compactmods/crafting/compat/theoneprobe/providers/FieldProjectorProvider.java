@@ -2,8 +2,8 @@ package dev.compactmods.crafting.compat.theoneprobe.providers;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.tile.FieldProjectorTile;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import mcjty.theoneprobe.api.*;

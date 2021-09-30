@@ -18,13 +18,13 @@ public class NetworkHandler {
     public static void initialize() {
         MAIN_CHANNEL.messageBuilder(FieldActivatedPacket.class, 1, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FieldActivatedPacket::encode)
-                .decoder(FieldActivatedPacket::decode)
+                .decoder(FieldActivatedPacket::new)
                 .consumer(FieldActivatedPacket::handle)
                 .add();
 
         MAIN_CHANNEL.messageBuilder(FieldDeactivatedPacket.class, 2, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FieldDeactivatedPacket::encode)
-                .decoder(FieldDeactivatedPacket::decode)
+                .decoder(FieldDeactivatedPacket::new)
                 .consumer(FieldDeactivatedPacket::handle)
                 .add();
 

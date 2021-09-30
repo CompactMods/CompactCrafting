@@ -9,10 +9,13 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.network.FieldDeactivatedPacket;
+import dev.compactmods.crafting.network.NetworkHandler;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 public class ActiveWorldFields implements IActiveWorldFields {
 
@@ -74,8 +77,15 @@ public class ActiveWorldFields implements IActiveWorldFields {
     }
 
     public void unregisterField(BlockPos center) {
-        fields.remove(center);
+        IMiniaturizationField removedField = fields.remove(center);
         laziness.remove(center);
+
+        if(!level.isClientSide && removedField != null) {
+            // Send activation packet to clients
+            NetworkHandler.MAIN_CHANNEL.send(
+                    PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(removedField.getCenter())),
+                    new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter()));
+        }
     }
 
     public void unregisterField(IMiniaturizationField field) {

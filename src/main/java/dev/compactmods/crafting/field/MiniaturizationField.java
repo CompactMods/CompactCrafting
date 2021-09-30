@@ -6,19 +6,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.field.IFieldListener;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.field.IFieldListener;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -180,23 +180,6 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void completeCraft() {
-
-        if (currentRecipe != null) {
-            for (ItemStack is : currentRecipe.getOutputs()) {
-                ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
-                level.addFreshEntity(itemEntity);
-            }
-        }
-
-        IMiniaturizationRecipe completed = this.currentRecipe;
-
-        clearRecipe();
-
-        listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
-    }
-
-    @Override
     public EnumCraftingState getCraftingState() {
         return craftingState;
     }
@@ -246,8 +229,18 @@ public class MiniaturizationField implements IMiniaturizationField {
 
             case CRAFTING:
                 craftingProgress++;
-                if (craftingProgress >= currentRecipe.getCraftingTime())
-                    this.completeCraft();
+                if (craftingProgress >= currentRecipe.getCraftingTime()) {
+                    for (ItemStack is : currentRecipe.getOutputs()) {
+                        ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
+                        level.addFreshEntity(itemEntity);
+                    }
+
+                    IMiniaturizationRecipe completed = this.currentRecipe;
+
+                    clearRecipe();
+
+                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
+                }
 
                 break;
         }

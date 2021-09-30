@@ -95,7 +95,7 @@ public class MixedLayerTests {
         Assertions.assertNotNull(layer);
 
         // Layer has [G, I, O, -] defined in spec - we want to include all but -
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
 
         layer.dropNonRequiredComponents(components);
 
@@ -108,7 +108,7 @@ public class MixedLayerTests {
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void MixedLayerMatchesWorldInExactMatchScenario(IntegrationTestHelper helper) {
 
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/medium_glass_walls_obsidian_center.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/medium_glass_walls_obsidian_center.json");
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
@@ -148,7 +148,7 @@ public class MixedLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void MixedLayerDeniesMatchIfAllComponentsNotIdentified(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
 
         helper.setBlockState(BlockPos.ZERO, Blocks.IRON_BLOCK.defaultBlockState());
 

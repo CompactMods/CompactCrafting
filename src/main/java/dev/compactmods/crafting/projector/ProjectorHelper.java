@@ -1,32 +1,19 @@
 package dev.compactmods.crafting.projector;
 
+import java.util.Optional;
+import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.projector.block.FieldProjectorBlock;
 import dev.compactmods.crafting.util.DirectionUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Direction;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorldReader;
-
-import java.util.Optional;
-import java.util.stream.Stream;
+import net.minecraft.world.IBlockReader;
 
 /**
  * Contains utility methods for working with a set of projectors in a given space.
  */
 public abstract class ProjectorHelper {
-    public static Optional<BlockPos> getOppositePositionForSize(IWorldReader world, BlockPos initial, MiniaturizationFieldSize size) {
-        Optional<Direction> facing = FieldProjectorBlock.getDirection(world, initial);
-
-        // Initial wasn't a valid field projector, can't get direction to look in
-        if (!facing.isPresent())
-            return Optional.empty();
-
-        Direction fieldDirection = facing.get();
-        return Optional.of(size.getOppositeProjectorPosition(initial, fieldDirection));
-    }
-
-    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(IWorldReader level, BlockPos initial, Direction facing) {
+    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(IBlockReader level, BlockPos initial, Direction facing) {
         return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
                 .filter(size -> {
                     BlockPos oppPos = size.getOppositeProjectorPosition(initial, facing);
@@ -41,7 +28,7 @@ public abstract class ProjectorHelper {
                 .findFirst();
     }
 
-    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(IWorldReader world, BlockPos initial) {
+    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(IBlockReader world, BlockPos initial) {
         for (MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
             if (hasProjectorOpposite(world, initial, size)) {
                 return Optional.of(size);
@@ -62,7 +49,7 @@ public abstract class ProjectorHelper {
      *
      * @return True if there is an opposing projector facing the same center as the initial position.
      */
-    public static boolean hasProjectorOpposite(IWorldReader world, BlockPos initial, MiniaturizationFieldSize size) {
+    public static boolean hasProjectorOpposite(IBlockReader world, BlockPos initial, MiniaturizationFieldSize size) {
         Optional<Direction> initialFacing = FieldProjectorBlock.getDirection(world, initial);
 
         // Initial wasn't a valid field projector, can't get direction to look in
@@ -88,7 +75,7 @@ public abstract class ProjectorHelper {
                 .map(s -> s.getOppositeProjectorPosition(initial, facing));
     }
 
-    public static boolean hasValidCrossProjector(IWorldReader world, BlockPos initialProjector, Direction projectorFacing, MiniaturizationFieldSize size) {
+    public static boolean hasValidCrossProjector(IBlockReader world, BlockPos initialProjector, Direction projectorFacing, MiniaturizationFieldSize size) {
         Direction.Axis crossAxis = DirectionUtil.getCrossDirectionAxis(projectorFacing.getAxis());
 
         // Filter by at least one valid cross-axis projector
@@ -112,7 +99,7 @@ public abstract class ProjectorHelper {
                 });
     }
 
-    public static Stream<BlockPos> getMissingProjectors(IWorldReader level, BlockPos initialProjector, Direction projectorFacing) {
+    public static Stream<BlockPos> getMissingProjectors(IBlockReader level, BlockPos initialProjector, Direction projectorFacing) {
         Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestOppositeSize(level, initialProjector);
 
         // If we have a field size, an opposing projector was found
@@ -145,7 +132,7 @@ public abstract class ProjectorHelper {
         }
     }
 
-    public static boolean projectorFacesCenter(IWorldReader world, BlockPos proj, BlockPos actualCenter, MiniaturizationFieldSize size) {
+    public static boolean projectorFacesCenter(IBlockReader world, BlockPos proj, BlockPos actualCenter, MiniaturizationFieldSize size) {
         return FieldProjectorBlock.getDirection(world, proj)
                 .map(projFacing -> size.getCenterFromProjector(proj, projFacing).equals(actualCenter))
                 .orElse(false);

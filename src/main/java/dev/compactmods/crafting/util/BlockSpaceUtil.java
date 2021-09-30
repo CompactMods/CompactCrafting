@@ -193,15 +193,15 @@ public abstract class BlockSpaceUtil {
 
         // Lower corners
         positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.minZ));
-        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.maxZ));
-        positions.add(new BlockPos(bounds.maxX, bounds.minY, bounds.minZ));
-        positions.add(new BlockPos(bounds.maxX, bounds.minY, bounds.maxZ));
+        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.maxZ - 1));
+        positions.add(new BlockPos(bounds.maxX - 1, bounds.minY, bounds.minZ));
+        positions.add(new BlockPos(bounds.maxX - 1, bounds.minY, bounds.maxZ - 1));
 
         if(upperRequired) {
-            positions.add(new BlockPos(bounds.minX, bounds.maxY, bounds.minZ));
-            positions.add(new BlockPos(bounds.minX, bounds.maxY, bounds.maxZ));
-            positions.add(new BlockPos(bounds.maxX, bounds.maxY, bounds.minZ));
-            positions.add(new BlockPos(bounds.maxX, bounds.maxY, bounds.maxZ));
+            positions.add(new BlockPos(bounds.minX, bounds.maxY - 1, bounds.minZ));
+            positions.add(new BlockPos(bounds.minX, bounds.maxY - 1, bounds.maxZ - 1));
+            positions.add(new BlockPos(bounds.maxX - 1, bounds.maxY - 1, bounds.minZ));
+            positions.add(new BlockPos(bounds.maxX - 1, bounds.maxY - 1, bounds.maxZ - 1));
         }
 
         return positions.stream();

@@ -28,7 +28,7 @@ public class MiniaturizationRecipeSerializerTests {
     @Test
     @Tag("minecraft")
     void CanSerialize() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
         PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
@@ -41,7 +41,7 @@ public class MiniaturizationRecipeSerializerTests {
     @Test
     @Tag("minecraft")
     void CanRoundTripOverNetwork() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
 
         PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
@@ -79,7 +79,7 @@ public class MiniaturizationRecipeSerializerTests {
     @Test
     @Tag("minecraft")
     void SerializerCanDeserializeJson() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipes/ender_crystal.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/ender_crystal.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
@@ -92,7 +92,7 @@ public class MiniaturizationRecipeSerializerTests {
     @Test
     @Tag("minecraft")
     void SerializerHandlesJsonErrorsAppropriately() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipes/fail_no_size_dynamic.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/fail_no_size_dynamic.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");

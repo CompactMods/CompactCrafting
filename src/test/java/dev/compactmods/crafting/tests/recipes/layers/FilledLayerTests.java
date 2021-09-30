@@ -142,7 +142,7 @@ public class FilledLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void FailsMatchIfAllBlocksNotIdentified(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 

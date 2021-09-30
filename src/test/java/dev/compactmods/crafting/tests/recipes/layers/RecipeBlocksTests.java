@@ -25,7 +25,7 @@ public class RecipeBlocksTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void CanCreate(IntegrationTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/ender_crystal.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/ender_crystal.json");
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper));
 
@@ -39,7 +39,7 @@ public class RecipeBlocksTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void CanRebuildTotals(IntegrationTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/ender_crystal.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/ender_crystal.json");
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper));
 
@@ -51,7 +51,7 @@ public class RecipeBlocksTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void CanSlice(IntegrationTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/ender_crystal.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/ender_crystal.json");
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
@@ -76,7 +76,7 @@ public class RecipeBlocksTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void CanSliceAndOffset(IntegrationTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/ender_crystal.json");
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/ender_crystal.json");
 
         final AxisAlignedBB fieldBounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper);
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, fieldBounds);
@@ -101,7 +101,7 @@ public class RecipeBlocksTests {
     @IntegrationTest("ender_crystal")
     void CanCreateWithUnknownComponents(IntegrationTestHelper helper) {
         // defines G and O as components - "-" should be an unknown position in this recipe
-        MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("recipes/ender_crystal.json");
+        MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/ender_crystal.json");
 
         final Set<String> keys = components.getBlockComponents().keySet();
         Assertions.assertEquals(2, keys.size());

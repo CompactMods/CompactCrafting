@@ -118,7 +118,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void RecipeSuppliesBasicMinecraftRegistrationInfo() {
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(enderCrystal);
 
         final IRecipeSerializer<?> serializer = Assertions.assertDoesNotThrow(enderCrystal::getSerializer);
@@ -131,7 +131,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void RecipeReturnsEmptyIfLayerNotRegistered() {
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(enderCrystal);
 
         final Optional<IRecipeLayer> layer = Assertions.assertDoesNotThrow(() -> enderCrystal.getLayer(999));
@@ -141,7 +141,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void FitsInCorrectFieldSizes() {
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(enderCrystal);
 
         MiniaturizationFieldSize[] badSizes = new MiniaturizationFieldSize[]{
@@ -162,7 +162,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void CanGetComponentTotals() {
-        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
         final Map<String, Integer> totals = Assertions.assertDoesNotThrow(recipe::getComponentTotals);
@@ -182,7 +182,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void UnregisteredBlockReturnsZeroCount() {
-        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
         final int required = Assertions.assertDoesNotThrow(() -> recipe.getComponentRequiredCount("?"));
@@ -192,7 +192,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void HasCraftingTime() {
-        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
         final int required = Assertions.assertDoesNotThrow(recipe::getCraftingTime);
@@ -203,7 +203,7 @@ public class MiniaturiationRecipeTests {
     @IntegrationTest("ender_crystal")
     void MatchesExactStructure(IntegrationTestHelper helper) {
         final BlockPos zero = helper.relativePos(BlockPos.ZERO).get();
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         final IRecipeBlocks blocks = RecipeBlocks
                 .create(helper.getWorld(), enderCrystal.getComponents(), enderCrystal.getDimensions().move(zero))
                 .normalize();
@@ -217,7 +217,7 @@ public class MiniaturiationRecipeTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void RecipeFailsIfUnidentifiedBlock(IntegrationTestHelper helper) {
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(enderCrystal);
 
         // Force an unknown component in the exact center
@@ -236,7 +236,7 @@ public class MiniaturiationRecipeTests {
     @Test
     @Tag("minecraft")
     void CanStreamLayerInfo() {
-        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe enderCrystal = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         final Stream<IRecipeLayer> strem = Assertions.assertDoesNotThrow(enderCrystal::getLayers);
 
         Assertions.assertNotNull(strem);
@@ -248,7 +248,7 @@ public class MiniaturiationRecipeTests {
     @Tag("minecraft")
     @IntegrationTest("ender_crystal")
     void RecipeFailsIfDifferentDimensions(IntegrationTestHelper helper) {
-        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/compact_walls.json");
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/compact_walls.json");
         Assertions.assertNotNull(recipe);
 
         final IRecipeBlocks blocks = RecipeBlocks
@@ -262,7 +262,7 @@ public class MiniaturiationRecipeTests {
     @Tag("minecraft")
     @IntegrationTest("empty_medium")
     void RecipeFailsIfNoRotationsMatched(IntegrationTestHelper helper) {
-        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("recipes/ender_crystal.json");
+        final MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
         // Set up the 8 corners to be glass, so block creation below matches field boundaries
