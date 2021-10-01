@@ -92,10 +92,12 @@ public class FieldProjectorTile extends TileEntity {
             if (!fields.hasActiveField(finalCenter)) {
                 final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, finalCenter));
 
-                // Send activation packet to clients
-                NetworkHandler.MAIN_CHANNEL.send(
-                        PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
-                        new FieldActivatedPacket(field));
+                if(!level.isClientSide) {
+                    // Send activation packet to clients
+                    NetworkHandler.MAIN_CHANNEL.send(
+                            PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
+                            new FieldActivatedPacket(field));
+                }
             }
 
             CompactCrafting.LOGGER.debug("Changing field: updateFI");

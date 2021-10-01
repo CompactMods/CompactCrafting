@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
@@ -23,6 +24,7 @@ import net.minecraft.util.ColorHelper;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
@@ -64,19 +66,23 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        tile.getField().ifPresent(field -> {
+        AxisAlignedBB bounds = tile.getField().map(field -> {
             double scale = MathUtil.calculateFieldScale(field);
-
-            AxisAlignedBB bounds = field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
-
-            matrixStack.pushPose();
-
-            drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
-            drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
-            drawFieldFace(tile, matrixStack, buffers, bounds);
-
-            matrixStack.popPose();
+            return field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
+        }).orElseGet(() -> {
+            BlockState state = tile.getBlockState();
+            final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+            final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
+            return fieldSize.getBoundsAtPosition(center);
         });
+
+        matrixStack.pushPose();
+
+        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
+        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+        drawFieldFace(tile, matrixStack, buffers, bounds);
+
+        matrixStack.popPose();
     }
 
     private IBakedModel getModel() {
@@ -111,7 +117,7 @@ public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTil
         // double yaw = Math.random();
 
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
-        if(facing != Direction.WEST) {
+        if (facing != Direction.WEST) {
             float angle = facing.toYRot() - 90;
             mx.mulPose(Vector3f.YN.rotationDegrees(angle));
         }
