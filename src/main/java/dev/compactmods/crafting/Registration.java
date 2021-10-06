@@ -120,6 +120,7 @@ public class Registration {
                     .of(FieldProjectorTile::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
+    @SuppressWarnings("deprecation")
     public static final RegistryObject<TileEntityType<FieldCraftingPreviewTile>> FIELD_CRAFTING_PREVIEW_TILE = TILE_ENTITIES.register("field_crafting_preview", () ->
             TileEntityType.Builder
                     .of(FieldCraftingPreviewTile::new, FIELD_CRAFTING_PREVIEW_BLOCK.get())

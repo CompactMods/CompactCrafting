@@ -92,4 +92,14 @@ public class BlankMiniaturizationField implements IMiniaturizationField {
     public void setRecipe(ResourceLocation id) {
 
     }
+
+    @Override
+    public LazyOptional<IMiniaturizationField> getRef() {
+        return null;
+    }
+
+    @Override
+    public void setRef(LazyOptional<IMiniaturizationField> ref) {
+
+    }
 }

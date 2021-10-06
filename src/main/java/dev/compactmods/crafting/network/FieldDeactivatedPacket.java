@@ -56,7 +56,7 @@ public class FieldDeactivatedPacket {
 
     public static boolean handle(FieldDeactivatedPacket message, Supplier<NetworkEvent.Context> context) {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ClientPacketHandler.handleFieldDeactivation(message.projectors);
+            ClientPacketHandler.handleFieldDeactivation(message.fieldCenter);
         });
 
         return true;

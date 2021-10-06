@@ -153,4 +153,9 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
     public String getSerializedName() {
         return name;
     }
+
+    public BlockPos getBoundsAsBlockPos() {
+        final int dims = getDimensions();
+        return new BlockPos(dims, dims, dims);
+    }
 }

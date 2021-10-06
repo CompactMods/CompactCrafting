@@ -4,7 +4,12 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
+import dev.compactmods.crafting.network.FieldActivatedPacket;
+import dev.compactmods.crafting.network.NetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
@@ -19,7 +24,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
-import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
 import net.minecraft.util.math.shapes.ISelectionContext;
@@ -29,6 +33,7 @@ import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 public class FieldProjectorBlock extends Block {
 
@@ -185,45 +190,97 @@ public class FieldProjectorBlock extends Block {
                 0, 0, 0, 0);
     }
 
+    public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {
+        return state.getValue(SIZE).getCenterFromProjector(projector, state.getValue(FACING));
+    }
+
     public static void deactivateProjector(World level, BlockPos pos) {
         BlockState currentState = level.getBlockState(pos);
-        level.setBlock(pos, currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+        if(currentState.getBlock() instanceof FieldProjectorBlock) {
+            BlockState newState = currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
+            level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
+        }
     }
 
     public static void activateProjector(World level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
-        BlockState currentState = level.getBlockState(pos);
-        if (!(currentState.getBlock() instanceof FieldProjectorBlock)) {
-            return;
-        }
+        if (level.isLoaded(pos)) {
+            BlockState currentState = level.getBlockState(pos);
+            if (!(currentState.getBlock() instanceof FieldProjectorBlock)) {
+                return;
+            }
 
-        if (currentState.getValue(SIZE) != fieldSize)
-            level.setBlock(pos, currentState.setValue(SIZE, fieldSize), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            if (currentState.getValue(SIZE) != fieldSize) {
+                BlockState newState = currentState.setValue(SIZE, fieldSize);
+                level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            }
+        }
     }
 
     @Override
     @SuppressWarnings("deprecation")
     public void onPlace(BlockState state, World level, BlockPos pos, BlockState oldState, boolean b) {
-        if (isActive(state) && !level.isClientSide) {
-            MiniaturizationFieldSize fieldSize = state.getValue(SIZE);
-            BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
+        if (!isActive(state))
+            return;
 
-            boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING))
-                    .findAny().isPresent();
+        MiniaturizationFieldSize fieldSize = state.getValue(SIZE);
+        BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
 
-            // If there are missing projectors but the projector is supposed to be active, deactivate
-            if(hasMissing) {
-                level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
-            } else {
-                final MinecraftServer server = level.getServer();
-                if (server == null)
-                    return;
+        boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING))
+                .findAny().isPresent();
 
-                server.submitAsync(new TickDelayedTask(server.getTickCount() + 1, () -> {
-                    fieldSize.getProjectorLocations(fieldCenter)
-                            .filter(projLoc -> level.getBlockState(projLoc).getBlock() instanceof FieldProjectorBlock)
-                            .forEach(proj -> activateProjector(level, proj, fieldSize));
-                }));
+        // If there are missing projectors but the projector is supposed to be active, deactivate
+        if (hasMissing) {
+            level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+        } else {
+            final MinecraftServer server = level.getServer();
+            if (server == null)
+                return;
+
+            if (level.isAreaLoaded(fieldCenter, fieldSize.getProjectorDistance())) {
+                fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> activateProjector(level, proj, fieldSize));
+
+                final BlockPos center = getFieldCenter(state, pos);
+                level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+                    if (!fields.hasActiveField(center)) {
+                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+                        field.checkLoaded();
+                        field.fieldContentsChanged();
+
+//                            field.getProjectorPositions()
+//                                    .map(level::getBlockEntity)
+//                                    .filter(tile -> tile instanceof FieldProjectorTile)
+//                                    .map(tile -> (FieldProjectorTile) tile)
+//                                    .forEach(tile -> tile.setFieldRef(field.getRef()));
+
+                        // Send activation packet to clients
+                        NetworkHandler.MAIN_CHANNEL.send(
+                                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
+                                new FieldActivatedPacket(field));
+                    }
+                });
             }
+        }
+    }
+
+    // only called on the server
+    @Override
+    public void onRemove(BlockState oldState, World level, BlockPos pos, BlockState newState, boolean p_196243_5_) {
+        final BlockPos fieldCenter = getFieldCenter(oldState, pos);
+        final MiniaturizationFieldSize fieldSize = oldState.getValue(SIZE);
+
+        if (isActive(oldState)) {
+            fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
+
+            // Remove field registration - this will also update clients
+            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+                if (fields.hasActiveField(fieldCenter)) {
+                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
+                    if(field == null) return;
+
+                    fields.unregisterField(fieldCenter);
+                    field.handleProjectorBroken();
+                }
+            });
         }
     }
 }

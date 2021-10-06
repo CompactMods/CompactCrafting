@@ -90,4 +90,9 @@ public interface IMiniaturizationField {
     void setProgress(int progress);
 
     void setRecipe(ResourceLocation id);
+
+    default void handleProjectorBroken() {}
+
+    LazyOptional<IMiniaturizationField> getRef();
+    void setRef(LazyOptional<IMiniaturizationField> ref);
 }

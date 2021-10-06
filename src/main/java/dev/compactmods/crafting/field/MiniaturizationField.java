@@ -14,7 +14,6 @@ import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
-import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -31,8 +30,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.world.IServerWorld;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.feature.template.PlacementSettings;
+import net.minecraft.world.gen.feature.template.Template;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.network.PacketDistributor;
@@ -45,6 +47,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Nullable
     private MiniaturizationRecipe currentRecipe = null;
+    private Template matchedBlocks;
 
     @Nullable
     private ResourceLocation recipeId = null;
@@ -56,6 +59,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     private int craftingProgress = 0;
 
     private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
+    private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
 
     public MiniaturizationField() {
     }
@@ -270,6 +274,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         //   RECIPE BEGIN
         // ===========================================================================================================
 
+        AxisAlignedBB filledBounds =  getFilledBounds();
+
         /*
          * Dry run - we have the data from the field on what's filled and how large
          * the area is. Run through the recipe list and filter based on that, so
@@ -279,7 +285,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
-                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), getFilledBounds()))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), filledBounds))
                 .collect(Collectors.toSet());
 
         /*
@@ -293,26 +299,32 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         // Begin recipe dry run - loop, check bottom layer for matches
-        MiniaturizationRecipe matchedRecipe = null;
+        this.currentRecipe = null;
+        this.recipeId = null;
+        this.craftingProgress = 0;
+
+
         for (MiniaturizationRecipe recipe : recipes) {
-            RecipeBlocks blocks = RecipeBlocks.create(level, recipe.getComponents(), getFilledBounds());
+
+            RecipeBlocks blocks = RecipeBlocks.create(level, recipe.getComponents(), filledBounds);
             boolean recipeMatches = recipe.matches(blocks);
             if (!recipeMatches)
                 continue;
 
-            matchedRecipe = recipe;
+            this.matchedBlocks = new Template();
+
+            final AxisAlignedBB fieldBounds = size.getBoundsAtPosition(center);
+            BlockPos minPos = new BlockPos(fieldBounds.minX, fieldBounds.minY, fieldBounds.minZ);
+
+            // boolean here is to capture entities - TODO maybe
+            matchedBlocks.fillFromWorld(level, minPos, size.getBoundsAsBlockPos(), false, null);
+
+            this.currentRecipe = recipe;
+            this.recipeId = currentRecipe.getRecipeIdentifier();
             break;
         }
 
-        setRecipe(matchedRecipe);
-    }
-
-    private void setRecipe(MiniaturizationRecipe recipe) {
-        this.currentRecipe = recipe;
-        this.recipeId = recipe != null ? recipe.getRecipeIdentifier() : null;
-        this.craftingProgress = 0;
-
-        setCraftingState(recipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
+        setCraftingState(currentRecipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
 
         // Send tracking client updates
         if (!level.isClientSide) {
@@ -323,11 +335,12 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         // Update all listeners as well
+        final MiniaturizationRecipe finalMatchedRecipe = this.currentRecipe;
         listeners.forEach(l -> l.ifPresent(fl -> {
-            fl.onRecipeChanged(this, recipe);
+            fl.onRecipeChanged(this, finalMatchedRecipe);
 
             if (craftingState == EnumCraftingState.MATCHED)
-                fl.onRecipeMatched(this, recipe);
+                fl.onRecipeMatched(this, finalMatchedRecipe);
         }));
     }
 
@@ -353,8 +366,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {
-            getProjectorPositions().forEach(proj -> FieldProjectorBlock.activateProjector(level, proj, this.size));
-
             listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
         }
     }
@@ -392,6 +403,10 @@ public class MiniaturizationField implements IMiniaturizationField {
             nbt.putInt("progress", craftingProgress);
         }
 
+        if(matchedBlocks != null) {
+            nbt.put("matchedBlocks", matchedBlocks.save(new CompoundNBT()));
+        }
+
         return nbt;
     }
 
@@ -404,6 +419,14 @@ public class MiniaturizationField implements IMiniaturizationField {
             this.recipeId = new ResourceLocation(nbt.getString("recipe"));
             this.craftingProgress = nbt.getInt("progress");
         }
+
+        if(nbt.contains("matchedBlocks")) {
+            Template t = new Template();
+            t.load(nbt.getCompound("matchedBlocks"));
+            this.matchedBlocks = t;
+        } else {
+            this.matchedBlocks = null;
+        }
     }
 
     @Override
@@ -415,5 +438,24 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void setRecipe(ResourceLocation id) {
         this.recipeId = id;
         getRecipeFromId();
+    }
+
+    @Override
+    public void handleProjectorBroken() {
+        if(craftingState == EnumCraftingState.NOT_MATCHED || matchedBlocks == null)
+            return;
+
+        AxisAlignedBB bounds = getBounds();
+        matchedBlocks.placeInWorld((IServerWorld) level, new BlockPos(bounds.minX, bounds.minY, bounds.minZ),
+                new PlacementSettings(), level.random);
+    }
+
+    @Override
+    public LazyOptional<IMiniaturizationField> getRef() {
+        return lazyReference;
+    }
+
+    public void setRef(LazyOptional<IMiniaturizationField> lazyReference) {
+        this.lazyReference = lazyReference;
     }
 }

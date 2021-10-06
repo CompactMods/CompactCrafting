@@ -11,6 +11,8 @@ import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
+import dev.compactmods.crafting.projector.FieldProjectorTile;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
@@ -68,7 +70,14 @@ public class ActiveWorldFields implements IActiveWorldFields {
 
         LazyOptional<IMiniaturizationField> lazy = LazyOptional.of(() -> field);
         laziness.put(center, lazy);
+        field.setRef(lazy);
 
+        field.getProjectorPositions().forEach(pos -> {
+            TileEntity tileAt = level.getBlockEntity(pos);
+            if(tileAt instanceof FieldProjectorTile) {
+                ((FieldProjectorTile) tileAt).setFieldRef(lazy);
+            }
+        });
         lazy.addListener(lo -> {
             lo.ifPresent(this::unregisterField);
         });
@@ -77,14 +86,16 @@ public class ActiveWorldFields implements IActiveWorldFields {
     }
 
     public void unregisterField(BlockPos center) {
-        IMiniaturizationField removedField = fields.remove(center);
-        laziness.remove(center);
+        if(fields.containsKey(center)) {
+            IMiniaturizationField removedField = fields.remove(center);
+            laziness.remove(center);
 
-        if(!level.isClientSide && removedField != null) {
-            // Send activation packet to clients
-            NetworkHandler.MAIN_CHANNEL.send(
-                    PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(removedField.getCenter())),
-                    new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter()));
+            if (!level.isClientSide && removedField != null) {
+                // Send activation packet to clients
+                NetworkHandler.MAIN_CHANNEL.send(
+                        PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(removedField.getCenter())),
+                        new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter()));
+            }
         }
     }
 
