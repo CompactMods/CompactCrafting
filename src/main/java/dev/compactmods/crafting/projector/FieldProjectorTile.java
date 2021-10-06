@@ -2,7 +2,6 @@ package dev.compactmods.crafting.projector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
@@ -79,10 +78,6 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     public void setFieldRef(LazyOptional<IMiniaturizationField> fieldRef) {
-        if (level.isClientSide) {
-            CompactCrafting.LOGGER.debug("Setting field reference in tile");
-            CompactCrafting.LOGGER.debug(level.isClientSide ? "c" : "s", new Throwable());
-        }
         this.fieldCap = fieldRef;
         setChanged();
     }

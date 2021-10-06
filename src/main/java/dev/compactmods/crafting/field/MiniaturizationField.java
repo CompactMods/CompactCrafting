@@ -26,6 +26,7 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -274,7 +275,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         //   RECIPE BEGIN
         // ===========================================================================================================
 
-        AxisAlignedBB filledBounds =  getFilledBounds();
+        AxisAlignedBB filledBounds = getFilledBounds();
 
         /*
          * Dry run - we have the data from the field on what's filled and how large
@@ -403,7 +404,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             nbt.putInt("progress", craftingProgress);
         }
 
-        if(matchedBlocks != null) {
+        if (matchedBlocks != null) {
             nbt.put("matchedBlocks", matchedBlocks.save(new CompoundNBT()));
         }
 
@@ -420,7 +421,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             this.craftingProgress = nbt.getInt("progress");
         }
 
-        if(nbt.contains("matchedBlocks")) {
+        if (nbt.contains("matchedBlocks")) {
             Template t = new Template();
             t.load(nbt.getCompound("matchedBlocks"));
             this.matchedBlocks = t;
@@ -442,12 +443,53 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void handleProjectorBroken() {
-        if(craftingState == EnumCraftingState.NOT_MATCHED || matchedBlocks == null)
+        if (craftingState != EnumCraftingState.CRAFTING || matchedBlocks == null)
             return;
 
-        AxisAlignedBB bounds = getBounds();
-        matchedBlocks.placeInWorld((IServerWorld) level, new BlockPos(bounds.minX, bounds.minY, bounds.minZ),
-                new PlacementSettings(), level.random);
+        if (level.isClientSide) return;
+
+        boolean restoreBlocks = false;
+        boolean restoreCatalyst = false;
+        switch (ServerConfig.DESTABILIZE_HANDLING) {
+            case RESTORE_ALL:
+                restoreBlocks = true;
+                restoreCatalyst = true;
+                break;
+
+            case RESTORE_BLOCKS:
+                restoreBlocks = true;
+                break;
+
+            case RESTORE_CATALYST:
+                restoreCatalyst = true;
+                break;
+
+            case DESTROY_ALL:
+                break;
+
+            case DESTROY_BLOCKS:
+                restoreCatalyst = true;
+                break;
+
+            case DESTROY_CATALYST:
+                restoreBlocks = true;
+                break;
+        }
+
+        if (restoreBlocks) {
+            AxisAlignedBB bounds = getBounds();
+            matchedBlocks.placeInWorld((IServerWorld) level, new BlockPos(bounds.minX, bounds.minY, bounds.minZ),
+                    new PlacementSettings(), level.random);
+        }
+
+        final ItemStack catalyst = currentRecipe.getCatalyst();
+        if (restoreCatalyst && !catalyst.isEmpty()) {
+            final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
+            final ItemEntity ie = new ItemEntity(level, northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(), catalyst);
+            // ie.setNoGravity(true);
+
+            level.addFreshEntity(ie);
+        }
     }
 
     @Override

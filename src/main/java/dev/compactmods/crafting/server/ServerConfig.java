@@ -1,7 +1,14 @@
 package dev.compactmods.crafting.server;
 
+import com.electronwill.nightconfig.core.EnumGetMethod;
+import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.FieldDestabilizeHandling;
 import net.minecraftforge.common.ForgeConfigSpec;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 
+@Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ServerConfig {
 
     public static ForgeConfigSpec CONFIG;
@@ -20,6 +27,9 @@ public class ServerConfig {
      * Enabled if the user requests debug logging for the recipe matching process.
      */
     public static ForgeConfigSpec.BooleanValue RECIPE_MATCHING;
+
+    private static ForgeConfigSpec.EnumValue<FieldDestabilizeHandling> FIELD_DESTABILIZE_HANDLING;
+    public static FieldDestabilizeHandling DESTABILIZE_HANDLING = FieldDestabilizeHandling.RESTORE_ALL;
 
     static {
         generateConfig();
@@ -46,6 +56,19 @@ public class ServerConfig {
 
         builder.pop();
 
+        builder.comment("Field Settings").push("field");
+
+        FIELD_DESTABILIZE_HANDLING = builder
+                .comment("Changes how the field handles a destabilization event (such as a projector breaking mid-craft)")
+                .defineEnum("destabilizeHandling", FieldDestabilizeHandling.RESTORE_ALL, EnumGetMethod.NAME_IGNORECASE);
+
+        builder.pop();
+
         CONFIG = builder.build();
+    }
+
+    @SubscribeEvent
+    public static void onConfigEvent(final ModConfig.ModConfigEvent configEvent) {
+        ServerConfig.DESTABILIZE_HANDLING = ServerConfig.FIELD_DESTABILIZE_HANDLING.get();
     }
 }
