@@ -1,7 +1,8 @@
 package dev.compactmods.crafting.recipes.blocks;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -12,6 +13,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.RecipeHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 
 public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPositionLookup> {
     @Override
@@ -50,13 +52,11 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
         BlockSpaceUtil.getBlocksIn(boundsForBlocks)
                 .map(pos -> Pair.of(pos.immutable(), lookup.getRequiredComponentKeyForPosition(pos).orElse("-")))
                 .forEach(pair -> {
-                    map[pair.getFirst().getZ()][pair.getFirst().getX()] = pair.getSecond();
+                    final BlockPos p = pair.getFirst();
+                    map[p.getX()][p.getZ()] = pair.getSecond();
                 });
 
-        List<List<String>> fin = new ArrayList<>(map.length);
-        for(int x = 0; x < boundsForBlocks.getXsize(); x++) {
-            fin.add(ImmutableList.copyOf(map[x]));
-        }
+        List<List<String>> fin = Arrays.stream(map).map(ImmutableList::copyOf).collect(Collectors.toList());
 
         DataResult<T> encoded = Codec.STRING.listOf().listOf().encode(fin, ops, ops.empty());
 
