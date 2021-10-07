@@ -92,7 +92,7 @@ public class MiniaturizationRecipeSerializerTests {
     @Test
     @Tag("minecraft")
     void SerializerHandlesJsonErrorsAppropriately() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/fail_no_size_dynamic.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");

@@ -41,7 +41,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void RequiresRecipeSizeOnAllDynamicLayers() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/fail_no_size_dynamic.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
         Optional<DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -56,7 +56,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void DoesNotFailIfNoComponentsDefined() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/warn_no_components.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/warn_no_components.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -76,7 +76,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void PartialResultIfNoOutputsEntryExists() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/fail_no_outputs_entry.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -92,7 +92,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void PartialResultIfNoOutputsExist() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/fail_no_outputs.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_outputs.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -138,7 +138,7 @@ public class MiniaturizationRecipeCodecTests {
         Assertions.assertNotNull(recipe);
         Assertions.assertFalse(recipe.getCatalyst().isEmpty());
 
-        MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/warn_no_catalyst.json");
+        MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("recipe_tests/warn_no_catalyst.json");
         Assertions.assertNotNull(noComponents);
         Assertions.assertTrue(noComponents.getCatalyst().isEmpty());
     }

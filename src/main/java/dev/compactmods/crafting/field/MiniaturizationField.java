@@ -258,8 +258,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (level == null)
             return;
 
-        // TODO - This is giving bad data with mixed layers (CM4 recipes) - fix it
-
         if (ServerConfig.FIELD_BLOCK_CHANGES.get())
             CompactCrafting.LOGGER.debug("Beginning field recipe scan: {}", this.center);
 
@@ -457,22 +455,16 @@ public class MiniaturizationField implements IMiniaturizationField {
                 break;
 
             case RESTORE_BLOCKS:
+            case DESTROY_CATALYST:
                 restoreBlocks = true;
                 break;
 
             case RESTORE_CATALYST:
-                restoreCatalyst = true;
-                break;
-
-            case DESTROY_ALL:
-                break;
-
             case DESTROY_BLOCKS:
                 restoreCatalyst = true;
                 break;
 
-            case DESTROY_CATALYST:
-                restoreBlocks = true;
+            case DESTROY_ALL:
                 break;
         }
 
