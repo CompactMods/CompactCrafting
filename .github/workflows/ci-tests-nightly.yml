@@ -1,6 +1,12 @@
 name: Gradle Tests and Nightly (CI)
 
-on: push
+on:
+  push:
+    tags-ignore:
+      - v*
+    paths-ignore:
+      - 'README.md'
+      - LICENSE
 
 jobs:
   vars:

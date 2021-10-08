@@ -285,6 +285,7 @@ task apiJar(type: Jar) {
     // Sources included because of MinecraftForge/ForgeGradle#369
     from sourceSets.api.output
     destinationDirectory = file("$rootDir/build-out")
+    classifier("api")
 }
 
 artifacts {
