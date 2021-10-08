@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.proxies.block;
 
 import javax.annotation.Nullable;
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
@@ -31,20 +31,19 @@ public class RescanFieldProxyBlock extends FieldProxyBlock {
 
     @Override
     public void neighborChanged(BlockState thisState, World level, BlockPos thisPos, Block changedBlock, BlockPos changedPos, boolean _b) {
-        if (!level.isClientSide) {
-            BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(thisPos);
-
-            doRescanRedstone(level, thisPos, tile);
+        if (level.isClientSide) {
+            return;
         }
-    }
+        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(thisPos);
 
-    private void doRescanRedstone(World level, BlockPos thisPos, BaseFieldProxyEntity tile) {
         if (level.hasNeighborSignal(thisPos)) {
             // call recipe scan
-
             if (tile != null) {
                 tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
-                        .ifPresent(IMiniaturizationField::fieldContentsChanged);
+                        .ifPresent(field -> {
+                            if(field.getCraftingState() != EnumCraftingState.CRAFTING)
+                                field.fieldContentsChanged();
+                        });
             }
         }
     }
