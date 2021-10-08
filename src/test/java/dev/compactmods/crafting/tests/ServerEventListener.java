@@ -4,16 +4,23 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.IRecipeType;
 import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.resources.FolderPackFinder;
+import net.minecraft.resources.IPackNameDecorator;
+import net.minecraft.resources.ResourcePackList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.ResourceLocation;
@@ -33,7 +40,30 @@ public class ServerEventListener {
         // final File root = server.getServerDirectory().getParentFile();
         // server.getPackRepository().addPackFinder(new FolderPackFinder());
 
-        hackyRecipeLoad(server);
+        final List<RecipeBase> miniBefore = server.getRecipeManager().getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE);
+
+        // Add "test/resources" as a resource pack to the pack repository
+        final ResourcePackList packs = server.getPackRepository();
+        final FolderPackFinder testPack = new FolderPackFinder(new File(System.getenv("TEST_RESOURCES")), IPackNameDecorator.DEFAULT);
+        packs.addPackFinder(testPack);
+        packs.reload();
+
+        // add "file/resources" to selected pack list
+        final ImmutableSet<String> toSelect = ImmutableSet.<String>builder()
+                .addAll(packs.getSelectedIds())
+                .add("file/test_data")
+                .build();
+
+        packs.setSelected(toSelect);
+        try {
+            server.reloadResources(packs.getSelectedIds()).get();
+        } catch (InterruptedException | ExecutionException e) {
+            CompactCrafting.LOGGER.error("Failed to reload test resource packs.", e);
+        }
+
+        final List<RecipeBase> miniAfter = server.getRecipeManager().getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE);
+        // hackyRecipeLoad(server);
+        CompactCrafting.LOGGER.debug("Added test miniaturization recipes.");
     }
 
     private static void hackyRecipeLoad(MinecraftServer server) {

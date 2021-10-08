@@ -1,17 +1,15 @@
 package dev.compactmods.crafting.tests.recipes.util;
 
-import java.util.Map;
+import javax.annotation.Nonnull;
 import java.util.Optional;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.common.io.Files;
 import com.google.gson.JsonElement;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.util.ResourceLocation;
@@ -39,20 +37,14 @@ public class RecipeTestUtil {
         }
     }
 
-    public static MiniaturizationRecipeComponents getComponentsFromRecipeFile(String filename) {
-        final JsonElement data = FileHelper.INSTANCE.getJsonFromFile(filename);
+    @Nonnull
+    public static Optional<MiniaturizationRecipe> getRecipeByName(IntegrationTestHelper helper, String name) {
+        return helper.getWorld().getRecipeManager().byKey(new ResourceLocation("compactcrafting", name)).map(r -> (MiniaturizationRecipe) r);
+    }
 
-
-        final Map<String, BlockComponent> blocks = Codec.unboundedMap(Codec.STRING, BlockComponent.CODEC)
-                .fieldOf("components")
-                .codec()
-                .parse(JsonOps.INSTANCE, data)
-                .getOrThrow(false, CompactCrafting.RECIPE_LOGGER::error);
-
-        MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
-        blocks.forEach(components::registerBlock);
-
-        return components;
+    @Nonnull
+    public static Optional<IRecipeComponents> getComponentsFromRecipe(IntegrationTestHelper helper, String name) {
+        return getRecipeByName(helper, name).map(MiniaturizationRecipe::getComponents);
     }
 
     public static AxisAlignedBB getFieldBounds(MiniaturizationFieldSize fieldSize, IntegrationTestHelper helper) {

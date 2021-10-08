@@ -92,17 +92,17 @@ public class ProxyLinkingTests {
         // Ensure proxy is connected to field
         Assertions.assertTrue(fieldRef.isPresent());
 
-        test.addNamedRunnable("postBreak", () -> {
+        BlockPos relNorthProjector = MiniaturizationFieldSize.MEDIUM.getProjectorLocationForDirection(relFieldCenter, Direction.NORTH);
+        test.destroyBlock(relNorthProjector, false);
+
+        test.scheduler().thenRun(5, () -> {
             final LazyOptional<IMiniaturizationField> fieldPostBreak = proxy.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD);
             fieldPostBreak.resolve();
 
             Assertions.assertFalse(fieldPostBreak.isPresent());
+
+            test.assertBlockAt(BlockPos.ZERO, Blocks.REDSTONE_LAMP.defaultBlockState().setValue(RedstoneLampBlock.LIT, false), "Redstone lamp still on");
         });
-
-        BlockPos relNorthProjector = MiniaturizationFieldSize.MEDIUM.getProjectorLocationForDirection(relFieldCenter, Direction.NORTH);
-        test.destroyBlock(relNorthProjector, false);
-
-        test.scheduler().thenRun(5, () -> test.executeNamedRunnable("postBreak"));
     }
 
 

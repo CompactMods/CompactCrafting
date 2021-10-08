@@ -88,7 +88,8 @@ public class ActiveWorldFields implements IActiveWorldFields {
     public void unregisterField(BlockPos center) {
         if(fields.containsKey(center)) {
             IMiniaturizationField removedField = fields.remove(center);
-            laziness.remove(center);
+            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
+            removed.invalidate();
 
             if (!level.isClientSide && removedField != null) {
                 // Send activation packet to clients

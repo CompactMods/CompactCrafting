@@ -31,7 +31,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void LoadsRecipeFromJson() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("data/compactcrafting/recipes/compact_walls.json");
+        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
 
         MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -109,7 +109,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void LoadsRecipeLayersCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/compact_walls.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         if (recipe == null) {
             Assertions.fail("No recipe was loaded.");
         } else {
@@ -134,7 +134,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void LoadsCatalystCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/compact_walls.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         Assertions.assertNotNull(recipe);
         Assertions.assertFalse(recipe.getCatalyst().isEmpty());
 
@@ -146,7 +146,7 @@ public class MiniaturizationRecipeCodecTests {
     @Test
     @Tag("minecraft")
     void MakesRoundTripThroughNbtCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("data/compactcrafting/recipes/compact_walls.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         if (recipe == null) {
             Assertions.fail("No recipe was loaded.");
         } else {

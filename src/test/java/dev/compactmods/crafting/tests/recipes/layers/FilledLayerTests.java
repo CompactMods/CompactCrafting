@@ -8,6 +8,7 @@ import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
 import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
@@ -142,7 +143,10 @@ public class FilledLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void FailsMatchIfAllBlocksNotIdentified(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
+        final IRecipeComponents components = new MiniaturizationRecipeComponents();
+        // note the lack of a G component here, missing "GLASS"
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
+        components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
         final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 

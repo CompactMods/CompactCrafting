@@ -1,12 +1,11 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
-        jcenter()
         mavenCentral()
     }
 
     dependencies {
-        classpath "net.minecraftforge.gradle:ForgeGradle:4.1.12"
+        classpath "net.minecraftforge.gradle:ForgeGradle:5.1.+"
     }
 }
 
@@ -28,7 +27,7 @@ archivesBaseName = mod_id
 println("Mod ID: ${mod_id}");
 println("Version: ${version}");
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
+java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 sourceSets {
     api {
@@ -139,7 +138,8 @@ minecraft {
             parent runs.server
 
             workingDirectory project.file('run/test')
-            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
+            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
+            // The main class which launches a customized server which then runs JUnit tests
             ideaModule "${project.name}.test"
             property 'forge.logging.console.level', 'unittest'
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
@@ -161,7 +161,8 @@ minecraft {
             parent runs.server
 
             workingDirectory project.file('run/test')
-            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher' // The main class which launches a customized server which then runs JUnit tests
+            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
+            // The main class which launches a customized server which then runs JUnit tests
             ideaModule "${project.name}.test"
             property 'forge.logging.console.level', 'unittest'
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
@@ -220,7 +221,11 @@ repositories {
 
     maven {
         name "MCJUnitLib - CM Github"
-        url = uri("https://maven.pkg.github.com/CompactMods/mcjunitlib")
+        url = "https://maven.pkg.github.com/CompactMods/mcjunitlib"
+        content {
+            includeGroup "com.github.alcatrazEscapee"
+        }
+
         credentials {
             username = project.findProperty("gpr.actor") ?: System.getenv("GITHUB_ACTOR")
             password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
@@ -228,7 +233,7 @@ repositories {
     }
 }
 
-def dev_mods = fileTree(dev_mods_dir).filter { it -> it.isFile() }.files.name.collect( { format(it) } )
+def dev_mods = fileTree("mods").filter { it -> it.isFile() }.files.name.collect({ format(it) })
 
 dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
@@ -239,10 +244,7 @@ dependencies {
     testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
 
     // Deobfuscate each dev mod for runtime
-    dev_mods.each {
-        compileOnly fg.deobf(it)
-        runtimeOnly fg.deobf(it)
-    }
+    dev_mods.each { implementation fg.deobf(it) }
 
     // JEI
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
@@ -253,6 +255,10 @@ dependencies {
     runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
 }
 
+processResources {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+}
+
 jar {
     from sourceSets.api.output
     from sourceSets.main.output
@@ -261,12 +267,12 @@ jar {
     finalizedBy('reobfJar')
     manifest {
         attributes([
-            "Specification-Title": "compactcrafting",
-            "Specification-Vendor": "robotgryphon",
-            "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": project.name,
-            "Implementation-Version":  isRelease ? archiveVersion : "nightly-${gitCommitHash}",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Specification-Title"     : "compactcrafting",
+                "Specification-Vendor"    : "robotgryphon",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : isRelease ? archiveVersion : "nightly-${gitCommitHash}",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
@@ -274,7 +280,6 @@ jar {
 task apiJar(type: Jar) {
     // Sources included because of MinecraftForge/ForgeGradle#369
     from sourceSets.api.output
-    archiveClassifier = 'api'
     destinationDirectory = file("$rootDir/build-out")
 }
 
@@ -322,6 +327,6 @@ publishing {
 
 test {
     useJUnitPlatform() {
-         excludeTags "minecraft"
+        excludeTags "minecraft"
     }
 }

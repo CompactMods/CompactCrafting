@@ -95,7 +95,10 @@ public class MixedLayerTests {
         Assertions.assertNotNull(layer);
 
         // Layer has [G, I, O, -] defined in spec - we want to include all but -
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
+        components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
         layer.dropNonRequiredComponents(components);
 
@@ -108,7 +111,9 @@ public class MixedLayerTests {
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void MixedLayerMatchesWorldInExactMatchScenario(IntegrationTestHelper helper) {
 
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/medium_glass_walls_obsidian_center.json");
+        final MiniaturizationRecipeComponents components =  new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
@@ -148,7 +153,10 @@ public class MixedLayerTests {
     @Tag("minecraft")
     @IntegrationTest("medium_glass_walls_obsidian_center")
     void MixedLayerDeniesMatchIfAllComponentsNotIdentified(IntegrationTestHelper helper) {
-        final MiniaturizationRecipeComponents components = RecipeTestUtil.getComponentsFromRecipeFile("data/compactcrafting/recipes/basic_mixed_medium_iron.json");
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        components.registerBlock("G", new BlockComponent(Blocks.GLASS));
+        components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
+        components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
         helper.setBlockState(BlockPos.ZERO, Blocks.IRON_BLOCK.defaultBlockState());
 
