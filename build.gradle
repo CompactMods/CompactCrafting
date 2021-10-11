@@ -145,7 +145,7 @@ minecraft {
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
-            environment "TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
             arg '--keepAlive'
             forceExit = false
             mods {
@@ -168,7 +168,7 @@ minecraft {
             environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
             environment 'target', 'fmltestserver'
             environment 'targetModId', "${mod_id}"
-            environment "TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
             arg '--crashOnFailedTests'
             forceExit = false
             mods {
@@ -288,8 +288,16 @@ task apiJar(type: Jar) {
     classifier("api")
 }
 
+task testJar(type: Jar) {
+    from sourceSets.api.output
+    from sourceSets.main.output
+    from sourceSets.test.output
+    destinationDirectory = file("$rootDir/build-out")
+    classifier("tests")
+}
+
 artifacts {
-    archives jar, apiJar
+    archives jar, apiJar, testJar
 }
 
 publishing {
@@ -302,6 +310,7 @@ publishing {
                 artifact(apiJar) {
                     classifier = "api"
                 }
+                artifact(testJar)
             }
         }
 
@@ -313,6 +322,7 @@ publishing {
                 artifact(apiJar) {
                     classifier = "api"
                 }
+                artifact(testJar)
             }
         }
     }

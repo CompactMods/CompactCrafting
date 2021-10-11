@@ -24,22 +24,26 @@ public class ServerEventListener {
 
         // Add "test/resources" as a resource pack to the pack repository
         final ResourcePackList packs = server.getPackRepository();
-        final FolderPackFinder testPack = new FolderPackFinder(new File(System.getenv("TEST_RESOURCES")), IPackNameDecorator.DEFAULT);
-        packs.addPackFinder(testPack);
-        packs.reload();
 
-        // add "file/resources" to selected pack list
-        final ImmutableSet<String> toSelect = ImmutableSet.<String>builder()
-                .addAll(packs.getSelectedIds())
-                .add("file/test_data")
-                .build();
+        final String cc_test_resources = System.getenv("CC_TEST_RESOURCES");
+        if(cc_test_resources != null) {
+            final FolderPackFinder testPack = new FolderPackFinder(new File(cc_test_resources), IPackNameDecorator.DEFAULT);
+            packs.addPackFinder(testPack);
+            packs.reload();
 
-        packs.setSelected(toSelect);
-        
-        try {
-            server.reloadResources(packs.getSelectedIds()).get();
-        } catch (InterruptedException | ExecutionException e) {
-            CompactCrafting.LOGGER.error("Failed to reload test resource packs.", e);
+            // add "file/resources" to selected pack list
+            final ImmutableSet<String> toSelect = ImmutableSet.<String>builder()
+                    .addAll(packs.getSelectedIds())
+                    .add("file/test_data")
+                    .build();
+
+            packs.setSelected(toSelect);
+
+            try {
+                server.reloadResources(packs.getSelectedIds()).get();
+            } catch (InterruptedException | ExecutionException e) {
+                CompactCrafting.LOGGER.error("Failed to reload test resource packs.", e);
+            }
         }
     }
 
