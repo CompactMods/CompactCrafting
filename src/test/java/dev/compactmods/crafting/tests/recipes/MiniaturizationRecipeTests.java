@@ -19,6 +19,8 @@ import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
+import dev.compactmods.tester.annotations.MCTestClass;
+import dev.compactmods.tester.annotations.StructureFile;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.item.ItemStack;
@@ -32,8 +34,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@MCTestClass
 @IntegrationTestClass("recipes")
-public class MiniaturiationRecipeTests {
+public class MiniaturizationRecipeTests {
 
     private static RecipeManager RECIPES;
 
@@ -80,6 +83,7 @@ public class MiniaturiationRecipeTests {
     }
 
     @Tag("minecraft")
+    @StructureFile("ender_crystal")
     @IntegrationTest("ender_crystal")
     void FakesFakeInventories(IntegrationTestHelper helper) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
