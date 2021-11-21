@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.projector;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
@@ -108,9 +109,7 @@ public abstract class ProjectorHelper {
             MiniaturizationFieldSize size = fieldSize.get();
             BlockPos center = size.getCenterFromProjector(initialProjector, projectorFacing);
 
-            return size.getProjectorLocations(center)
-                    // inverted filter - if the projector doesn't point to the center or isn't a projector, add to list
-                    .filter(proj -> !projectorFacesCenter(level, proj, center, size));
+            return getMissingProjectors(level, size, center);
         } else {
             // No opposing projector to limit field size.
             // Scan for a cross-axis projector to try to limit.
@@ -123,13 +122,19 @@ public abstract class ProjectorHelper {
                 MiniaturizationFieldSize matchedSize = firstMatchedSize.get();
 
                 BlockPos matchedCenter = matchedSize.getCenterFromProjector(initialProjector, projectorFacing);
-                return matchedSize.getProjectorLocations(matchedCenter)
-                        .filter(proj -> !ProjectorHelper.projectorFacesCenter(level, proj, matchedCenter, matchedSize));
+                return ProjectorHelper.getMissingProjectors(level, matchedSize, matchedCenter);
             } else {
                 // Need an opposing projector set up to limit size
                 return ProjectorHelper.getValidOppositePositions(initialProjector, projectorFacing);
             }
         }
+    }
+
+    @Nonnull
+    public static Stream<BlockPos> getMissingProjectors(IBlockReader level, MiniaturizationFieldSize size, BlockPos center) {
+        return size.getProjectorLocations(center)
+                // inverted filter - if the projector doesn't point to the center or isn't a projector, add to list
+                .filter(proj -> !projectorFacesCenter(level, proj, center, size));
     }
 
     public static boolean projectorFacesCenter(IBlockReader world, BlockPos proj, BlockPos actualCenter, MiniaturizationFieldSize size) {

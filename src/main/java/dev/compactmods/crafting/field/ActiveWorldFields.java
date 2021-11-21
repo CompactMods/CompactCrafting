@@ -11,7 +11,10 @@ import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorTile;
+import dev.compactmods.crafting.projector.ProjectorHelper;
+import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -72,12 +75,28 @@ public class ActiveWorldFields implements IActiveWorldFields {
         laziness.put(center, lazy);
         field.setRef(lazy);
 
+        final Optional<BlockPos> anyMissing = ProjectorHelper
+                .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
+                .findFirst();
+
+        if(anyMissing.isPresent()) {
+            CompactCrafting.LOGGER.warn("Trying to register an active field with missing projector at: {}", anyMissing.get());
+            return field;
+        }
+
         field.getProjectorPositions().forEach(pos -> {
-            TileEntity tileAt = level.getBlockEntity(pos);
-            if(tileAt instanceof FieldProjectorTile) {
-                ((FieldProjectorTile) tileAt).setFieldRef(lazy);
+            BlockState stateAt = level.getBlockState(pos);
+            if(!(stateAt.getBlock() instanceof FieldProjectorBlock))
+                return;
+
+            if(stateAt.hasTileEntity()) {
+                TileEntity tileAt = level.getBlockEntity(pos);
+                if (tileAt instanceof FieldProjectorTile) {
+                    ((FieldProjectorTile) tileAt).setFieldRef(lazy);
+                }
             }
         });
+        
         lazy.addListener(lo -> {
             lo.ifPresent(this::unregisterField);
         });
