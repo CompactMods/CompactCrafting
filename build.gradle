@@ -21,7 +21,7 @@ def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
 def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
 
 version = isRelease ? mod_version : "${mod_version}+${gitCommitHash}"
-group = "dev.compactmods"
+group = isRelease ? "dev.compactmods" : "dev.compactmods.nightly"
 archivesBaseName = mod_id
 
 println("Mod ID: ${mod_id}");
@@ -304,7 +304,6 @@ publishing {
     publications {
         maven(MavenPublication) {
             artifactId = mod_id
-            group = "dev.compactmods"
             artifacts {
                 artifact jar
                 artifact(apiJar) {
@@ -316,7 +315,6 @@ publishing {
 
         nightlyMaven(MavenPublication) {
             artifactId = mod_id
-            group = "dev.compactmods.nightly"
             artifacts {
                 artifact(jar)
                 artifact(apiJar) {

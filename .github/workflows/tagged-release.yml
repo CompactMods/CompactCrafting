@@ -238,8 +238,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Publish package
-        run: ./gradlew publish -x test
+        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository -x test
         env:
-          CM_RELEASE: true
+          CM_RELEASE: "true"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
