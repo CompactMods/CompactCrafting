@@ -15,6 +15,11 @@ public interface IActiveWorldFields {
 
     void tickFields();
 
+    /**
+     * Adds a field instance. This is typically called during world load; use this safely.
+     * @param field The field to register.
+     */
+    default void addFieldInstance(IMiniaturizationField field) {}
     IMiniaturizationField registerField(IMiniaturizationField field);
 
     void unregisterField(BlockPos center);

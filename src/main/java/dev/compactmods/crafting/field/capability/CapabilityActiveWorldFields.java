@@ -55,7 +55,7 @@ public class CapabilityActiveWorldFields {
                             MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
                             field.loadServerData(f);
 
-                            instance.registerField(field);
+                            instance.addFieldInstance(field);
                         });
                     }
                 },

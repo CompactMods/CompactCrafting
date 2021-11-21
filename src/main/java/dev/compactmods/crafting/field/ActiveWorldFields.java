@@ -65,7 +65,8 @@ public class ActiveWorldFields implements IActiveWorldFields {
         loaded.forEach(IMiniaturizationField::tick);
     }
 
-    public IMiniaturizationField registerField(IMiniaturizationField field) {
+    @Override
+    public void addFieldInstance(IMiniaturizationField field) {
         field.setLevel(level);
 
         BlockPos center = field.getCenter();
@@ -75,6 +76,12 @@ public class ActiveWorldFields implements IActiveWorldFields {
         laziness.put(center, lazy);
         field.setRef(lazy);
 
+        lazy.addListener(lo -> {
+            lo.ifPresent(this::unregisterField);
+        });
+    }
+
+    public IMiniaturizationField registerField(IMiniaturizationField field) {
         final Optional<BlockPos> anyMissing = ProjectorHelper
                 .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
                 .findFirst();
@@ -84,6 +91,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
             return field;
         }
 
+        addFieldInstance(field);
         field.getProjectorPositions().forEach(pos -> {
             BlockState stateAt = level.getBlockState(pos);
             if(!(stateAt.getBlock() instanceof FieldProjectorBlock))
@@ -92,13 +100,9 @@ public class ActiveWorldFields implements IActiveWorldFields {
             if(stateAt.hasTileEntity()) {
                 TileEntity tileAt = level.getBlockEntity(pos);
                 if (tileAt instanceof FieldProjectorTile) {
-                    ((FieldProjectorTile) tileAt).setFieldRef(lazy);
+                    ((FieldProjectorTile) tileAt).setFieldRef(field.getRef());
                 }
             }
-        });
-        
-        lazy.addListener(lo -> {
-            lo.ifPresent(this::unregisterField);
         });
 
         return field;
