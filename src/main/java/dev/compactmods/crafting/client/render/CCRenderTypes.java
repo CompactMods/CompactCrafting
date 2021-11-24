@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.projector.render;
+package dev.compactmods.crafting.client.render;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -36,13 +36,12 @@ public class CCRenderTypes extends RenderType {
                     .setWriteMaskState(COLOR_WRITE)
                     .createCompositeState(false));
 
-//    public static final RenderType FIELD_PROJECTION_ARC = RenderType.create("projection_field_arc",
-//            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 256,
-//            RenderType.State.builder()
-//                    .setTransparencyState(PROJECTION_TRANSPARENCY)
-//                    .setCullState(new RenderState.CullState(false))
-//                    .setWriteMaskState(new RenderState.WriteMaskState(true, true))
-//                    .createCompositeState(false));
+    public static final RenderType PHANTOM = create("phantom", DefaultVertexFormats.BLOCK, 7, 2097152, true, false, RenderType.State.builder()
+            .setShadeModelState(RenderState.SMOOTH_SHADE)
+            .setLightmapState(RenderState.LIGHTMAP)
+            .setTextureState(BLOCK_SHEET_MIPPED)
+            .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+            .createCompositeState(true));
 
 
 

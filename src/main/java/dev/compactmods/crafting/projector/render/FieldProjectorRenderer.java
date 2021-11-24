@@ -6,6 +6,10 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
+import dev.compactmods.crafting.client.render.CubeRenderHelper;
+import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
+import dev.compactmods.crafting.client.render.RotationSpeed;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorTile;
@@ -33,22 +37,6 @@ import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class FieldProjectorRenderer extends TileEntityRenderer<FieldProjectorTile> {
-
-    enum RotationSpeed {
-        SLOW(5000),
-        MEDIUM(2500),
-        FAST(1000);
-
-        private int speed;
-
-        RotationSpeed(int speed) {
-            this.speed = speed;
-        }
-
-        public int getSpeed() {
-            return speed;
-        }
-    }
 
     public static final ResourceLocation FIELD_DISH_RL = new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector_dish");
 

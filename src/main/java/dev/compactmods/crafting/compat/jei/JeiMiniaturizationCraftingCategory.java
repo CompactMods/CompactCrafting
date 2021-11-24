@@ -9,7 +9,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.client.fakeworld.RenderingWorld;
-import dev.compactmods.crafting.projector.render.CCRenderTypes;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.client.ui.ScreenArea;

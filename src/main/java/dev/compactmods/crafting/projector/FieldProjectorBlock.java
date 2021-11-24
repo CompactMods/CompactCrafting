@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
@@ -158,8 +159,15 @@ public class FieldProjectorBlock extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (world.isClientSide)
+        if (world.isClientSide) {
+            player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                    .ifPresent(rend -> {
+                        rend.resetRenderTime();
+                        rend.setProjector(world, pos);
+                    });
+
             return ActionResultType.SUCCESS;
+        }
 
         ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING))
                 .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));

@@ -4,12 +4,14 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
+import dev.compactmods.crafting.capability.IProjectorRenderInfo;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.field.render.CraftingPreviewRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.ActiveRenderInfo;
 import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
@@ -28,6 +30,12 @@ public class ClientEventHandler {
     public static void onTick(final TickEvent.ClientTickEvent evt) {
         if (evt.phase != TickEvent.Phase.START) return;
 
+        final ClientPlayerEntity player = Minecraft.getInstance().player;
+        if(player != null) {
+            player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                    .ifPresent(IProjectorRenderInfo::tick);
+        }
+
         ClientWorld level = Minecraft.getInstance().level;
         if (level != null && !Minecraft.getInstance().isPaused()) {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
@@ -37,12 +45,13 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public static void onWorldRender(final RenderWorldLastEvent event) {
-        final WorldRenderer renderer = event.getContext();
-
         final Minecraft mc = Minecraft.getInstance();
 
         if (mc.level == null)
             return;
+
+        mc.player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                .ifPresent(render -> render.render(event.getMatrixStack()));
 
         final ActiveRenderInfo mainCamera = mc.gameRenderer.getMainCamera();
         final RayTraceResult hitResult = mc.hitResult;

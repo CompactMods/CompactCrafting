@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.projector.render;
+package dev.compactmods.crafting.client.render;
 
 public enum EnumCubeFaceCorner {
     BOTTOM_LEFT,
