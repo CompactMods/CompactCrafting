@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
@@ -15,7 +16,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.EnumProperty;
@@ -158,11 +158,15 @@ public class FieldProjectorBlock extends Block {
     @Override
     @SuppressWarnings("deprecation")
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
-        if (world.isClientSide)
-            return ActionResultType.SUCCESS;
+        if (world.isClientSide) {
+            player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                    .ifPresent(rend -> {
+                        rend.resetRenderTime();
+                        rend.setProjector(world, pos);
+                    });
 
-        ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING))
-                .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));
+            return ActionResultType.SUCCESS;
+        }
 
         // Uncomment for debug block placement
 //        Arrays.stream(FieldProjectionSize.values()).forEach(size -> {

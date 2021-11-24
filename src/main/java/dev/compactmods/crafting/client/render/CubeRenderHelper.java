@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.projector.render;
+package dev.compactmods.crafting.client.render;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.vertex.IVertexBuilder;
@@ -98,7 +98,7 @@ public abstract class CubeRenderHelper {
 
     public static double getScanLineHeight(AxisAlignedBB cube, double gameTime) {
         // Get the height of the scan line
-        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -FieldProjectorRenderer.RotationSpeed.MEDIUM.getSpeed()) + 1.0d) / 2) * (cube.getYsize());
+        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -RotationSpeed.MEDIUM.getSpeed()) + 1.0d) / 2) * (cube.getYsize());
         double scanHeight = (cube.minY + zAngle);
 
         return scanHeight;
