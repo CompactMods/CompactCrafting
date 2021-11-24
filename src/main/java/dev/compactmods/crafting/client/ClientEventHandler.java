@@ -86,5 +86,7 @@ public class ClientEventHandler {
                                 stack.popPose();
                             });
                 });
+
+        buffers.endBatch();
     }
 }

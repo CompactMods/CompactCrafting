@@ -14,11 +14,13 @@ public class ClientConfig {
 
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
     private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
+    private static ForgeConfigSpec.IntValue PLACEMENT_TIME;
 
     public static ForgeConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
 
     public static int projectorColor = 0xFFFFFFFF;
     public static int projectorOffColor = 0xFFFFFFFF;
+    public static int placementTime = 60;
 
     static {
         generateConfig();
@@ -50,6 +52,10 @@ public class ClientConfig {
                 .comment("Whether or not activating F3 will enable debug renderers.")
                 .define("projectorDebugger", false);
 
+        PLACEMENT_TIME = builder
+                .comment("How long (ticks) the placement helper will show on right-clicking a projector.")
+                .defineInRange("placementTime", 160, 60, 240);
+
         builder.pop();
 
         CONFIG = builder.build();
@@ -59,6 +65,7 @@ public class ClientConfig {
     public static void onLoad(final ModConfig.ModConfigEvent configEvent) {
         projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
         projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
+        placementTime = PLACEMENT_TIME.get();
     }
 
     private static int extractHexColor(String hex, int def) {

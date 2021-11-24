@@ -16,7 +16,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.EnumProperty;
@@ -168,9 +167,6 @@ public class FieldProjectorBlock extends Block {
 
             return ActionResultType.SUCCESS;
         }
-
-        ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING))
-                .forEach(projPos -> spawnPlacementParticle((ServerWorld) world, projPos, ParticleTypes.BARRIER));
 
         // Uncomment for debug block placement
 //        Arrays.stream(FieldProjectionSize.values()).forEach(size -> {
