@@ -91,8 +91,14 @@ public interface IMiniaturizationField {
 
     void setRecipe(ResourceLocation id);
 
-    default void handleProjectorBroken() {}
+    default void handleDestabilize() {}
 
     LazyOptional<IMiniaturizationField> getRef();
     void setRef(LazyOptional<IMiniaturizationField> ref);
+
+    void enable();
+    void disable();
+    void checkRedstone();
+
+    boolean enabled();
 }

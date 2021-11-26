@@ -203,7 +203,7 @@ public class FieldProjectorBlock extends Block {
 
     public static void deactivateProjector(World level, BlockPos pos) {
         BlockState currentState = level.getBlockState(pos);
-        if(currentState.getBlock() instanceof FieldProjectorBlock) {
+        if (currentState.getBlock() instanceof FieldProjectorBlock) {
             BlockState newState = currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
             level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
         }
@@ -282,11 +282,42 @@ public class FieldProjectorBlock extends Block {
             level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
                 if (fields.hasActiveField(fieldCenter)) {
                     final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
-                    if(field == null) return;
+                    if (field == null) return;
 
-                    fields.unregisterField(fieldCenter);
-                    field.handleProjectorBroken();
+                    if (field.enabled()) {
+                        fields.unregisterField(fieldCenter);
+                        field.handleDestabilize();
+                    }
                 }
+            });
+        }
+    }
+
+    @Override
+    public void neighborChanged(BlockState state, World level, BlockPos pos, Block changer, BlockPos changedPos, boolean update) {
+        super.neighborChanged(state, level, pos, changer, changedPos, update);
+        if (level.isClientSide)
+            return;
+
+        if (isActive(state)) {
+            TileEntity tile = level.getBlockEntity(pos);
+            if (tile instanceof FieldProjectorTile) {
+                FieldProjectorTile fpt = (FieldProjectorTile) tile;
+                if (level.getBestNeighborSignal(pos) > 0) {
+                    // receiving power from some side, turn off rendering
+                    fpt.getField().ifPresent(IMiniaturizationField::disable);
+                } else {
+                    // check other projectors, if there's a redstone signal anywhere, we disable the field
+                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
+                }
+            }
+        } else {
+            // not active, but we may be re-enabling a disabled field
+            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
+                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
+                level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
+                });
             });
         }
     }

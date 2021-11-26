@@ -4,6 +4,7 @@ import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.capability.IProjectorRenderInfo;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
@@ -64,6 +65,7 @@ public class ClientEventHandler {
                             .filter(field -> Vector3d.atCenterOf(field.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))
                             .filter(field -> field.getCraftingState() == EnumCraftingState.CRAFTING)
                             .filter(field -> field.getCurrentRecipe().isPresent())
+                            .filter(IMiniaturizationField::enabled)
                             .forEach(field -> {
                                 BlockPos center = field.getCenter();
 
