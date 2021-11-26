@@ -159,11 +159,14 @@ public class FieldProjectorBlock extends Block {
     @SuppressWarnings("deprecation")
     public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
         if (world.isClientSide) {
-            player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
-                    .ifPresent(rend -> {
-                        rend.resetRenderTime();
-                        rend.setProjector(world, pos);
-                    });
+            final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
+            if(hasMissing) {
+                player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                        .ifPresent(rend -> {
+                            rend.resetRenderTime();
+                            rend.setProjector(world, pos);
+                        });
+            }
 
             return ActionResultType.SUCCESS;
         }
