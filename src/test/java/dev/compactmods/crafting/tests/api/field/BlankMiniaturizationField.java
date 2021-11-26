@@ -102,4 +102,24 @@ public class BlankMiniaturizationField implements IMiniaturizationField {
     public void setRef(LazyOptional<IMiniaturizationField> ref) {
 
     }
+
+    @Override
+    public void enable() {
+
+    }
+
+    @Override
+    public void disable() {
+
+    }
+
+    @Override
+    public void checkRedstone() {
+
+    }
+
+    @Override
+    public boolean enabled() {
+        return true;
+    }
 }

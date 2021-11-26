@@ -12,8 +12,12 @@ import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
+import dev.compactmods.crafting.network.FieldActivatedPacket;
+import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -26,6 +30,7 @@ import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -61,6 +66,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
     private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
+    private boolean disabled = false;
 
     public MiniaturizationField() {
     }
@@ -191,7 +197,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void tick() {
-        if (level == null)
+        if (level == null || this.disabled)
             return;
 
         // Set in a block update handler to mark that the field has changed
@@ -205,7 +211,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             tickCrafting();
     }
 
-    public void tickCrafting() {
+    private void tickCrafting() {
         AxisAlignedBB fieldBounds = getBounds();
 
         if (level == null || this.currentRecipe == null)
@@ -216,6 +222,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             case MATCHED:
 
                 // We grow the bounds check here a little to support patterns that are exactly the size of the field
+                // TODO - #35 - Support NBT filters in catalyst items
                 List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
                 if (catalystEntities.size() > 0) {
 
@@ -440,7 +447,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void handleProjectorBroken() {
+    public void handleDestabilize() {
         if (craftingState != EnumCraftingState.CRAFTING || matchedBlocks == null)
             return;
 
@@ -492,4 +499,52 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void setRef(LazyOptional<IMiniaturizationField> lazyReference) {
         this.lazyReference = lazyReference;
     }
+
+    @Override
+    public void disable() {
+        this.disabled = true;
+        if(this.craftingState != EnumCraftingState.NOT_MATCHED)
+            handleDestabilize();
+
+        getProjectorPositions().forEach(proj -> {
+            FieldProjectorBlock.deactivateProjector(level, proj);
+        });
+
+        FieldDeactivatedPacket update = new FieldDeactivatedPacket(size, center);
+        NetworkHandler.MAIN_CHANNEL.send(
+                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(center)), update);
+    }
+
+    @Override
+    public void enable() {
+        this.disabled = false;
+        fieldContentsChanged();
+        getProjectorPositions().forEach(proj -> {
+            FieldProjectorBlock.activateProjector(level, proj, this.size);
+            TileEntity projTile = level.getBlockEntity(proj);
+            if(projTile instanceof FieldProjectorTile) {
+                ((FieldProjectorTile) projTile).setFieldRef(lazyReference);
+            }
+        });
+
+        FieldActivatedPacket update = new FieldActivatedPacket(this);
+        NetworkHandler.MAIN_CHANNEL.send(
+                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(center)), update);
+    }
+
+    @Override
+    public void checkRedstone() {
+        this.disabled = getProjectorPositions()
+                .anyMatch(proj -> level.getBestNeighborSignal(proj) > 0);
+
+        if (disabled) disable();
+        else enable();
+    }
+
+    @Override
+    public boolean enabled() {
+        return !this.disabled;
+    }
+
+
 }
