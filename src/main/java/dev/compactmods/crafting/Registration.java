@@ -1,6 +1,7 @@
 package dev.compactmods.crafting;
 
 import java.util.function.Supplier;
+import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.field.block.FieldCraftingPreviewBlock;
 import dev.compactmods.crafting.field.tile.FieldCraftingPreviewTile;
 import dev.compactmods.crafting.items.FieldProjectorItem;
@@ -18,7 +19,6 @@ import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.SimpleRecipeLayerType;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
-import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
@@ -79,6 +79,10 @@ public class Registration {
     public static final RegistryObject<Block> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
             new FieldProjectorBlock(AbstractBlock.Properties.of(Material.METAL)
                     .strength(8, 20)
+                    .isRedstoneConductor((state, level, pos) -> true)
+                    .requiresCorrectToolForDrops()
+                    .harvestTool(ToolType.PICKAXE)
+                    .harvestLevel(1) // requires stone pickaxe
             ));
 
     public static final RegistryObject<Block> FIELD_CRAFTING_PREVIEW_BLOCK = BLOCKS.register("field_crafting_preview", () ->
