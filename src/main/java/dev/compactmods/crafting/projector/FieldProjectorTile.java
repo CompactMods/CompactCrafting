@@ -8,8 +8,10 @@ import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import net.minecraft.block.BlockState;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Direction;
+import net.minecraft.util.concurrent.TickDelayedTask;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockReader;
@@ -37,25 +39,35 @@ public class FieldProjectorTile extends TileEntity {
     @Override
     public void setLevelAndPosition(World level, BlockPos pos) {
         super.setLevelAndPosition(level, pos);
-        this.levelFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+        this.levelFields = level.getCapability(CapabilityActiveWorldFields.FIELDS);
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
 
-        if (level != null && level.isClientSide) {
-            this.fieldCap = levelFields.lazyMap(fields -> {
-                BlockState state = getBlockState();
-                return fields.getLazy(FieldProjectorBlock.getFieldCenter(state, worldPosition));
-            }).orElse(LazyOptional.empty());
+        if (level != null) {
+            if(level.isClientSide) {
+                loadFieldFromState();
+            } else {
+                MinecraftServer server = level.getServer();
+                if(server != null)
+                    server.tell(new TickDelayedTask(0, this::loadFieldFromState));
+            }
         }
+    }
+
+    private void loadFieldFromState() {
+        this.fieldCap = levelFields.lazyMap(fields -> {
+            BlockState state = getBlockState();
+            return fields.getLazy(FieldProjectorBlock.getFieldCenter(state, worldPosition));
+        }).orElse(LazyOptional.empty());
     }
 
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        if (cap == CapabilityActiveWorldFields.FIELDS)
             return levelFields.cast();
 
         if (cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)

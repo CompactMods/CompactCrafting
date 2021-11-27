@@ -20,7 +20,7 @@ import net.minecraftforge.common.capabilities.CapabilityManager;
 public class CapabilityActiveWorldFields {
 
     @CapabilityInject(IActiveWorldFields.class)
-    public static Capability<IActiveWorldFields> ACTIVE_WORLD_FIELDS = null;
+    public static Capability<IActiveWorldFields> FIELDS = null;
 
     public static void setup() {
         CapabilityManager.INSTANCE.register(

@@ -6,6 +6,7 @@ buildscript {
 
     dependencies {
         classpath "net.minecraftforge.gradle:ForgeGradle:5.1.+"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
     }
 }
 
@@ -13,9 +14,11 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
 }
 
 apply plugin: "net.minecraftforge.gradle"
+apply plugin: 'com.github.johnrengelman.shadow'
 
 def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
 def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
@@ -28,6 +31,11 @@ println("Mod ID: ${mod_id}");
 println("Version: ${version}");
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+configurations {
+    shadow.extendsFrom library
+    implementation.extendsFrom library
+}
 
 sourceSets {
     api {
@@ -80,6 +88,9 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run/client')
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', '' // 'SCAN,REGISTRIES,REGISTRYDUMP'
@@ -243,8 +254,13 @@ dependencies {
 
     testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
 
+    library "io.reactivex.rxjava3:rxjava:3.1.1";
+
     // Deobfuscate each dev mod for runtime
     dev_mods.each { implementation fg.deobf(it) }
+
+    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3318114"))
+    runtimeOnly(fg.deobf("curse.maven:sues-407174:3188120"))
 
     // JEI
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
@@ -263,12 +279,25 @@ processTestResources {
     duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
+reobf {
+    shadowJar {}
+}
+
+shadowJar {
+    exclude "LICENSE*"
+    finalizedBy 'reobfShadowJar'
+    minimize()
+    relocate 'io.reactivex', 'dev.compactmods.crafting.lib.reactivex'
+}
+
 jar {
     from sourceSets.api.output
     from sourceSets.main.output
 
     destinationDir = file("$rootDir/build-out")
     finalizedBy('reobfJar')
+    finalizedBy('reobfShadowJar')
+
     manifest {
         attributes([
                 "Specification-Title"     : "compactcrafting",

@@ -413,6 +413,8 @@ public class MiniaturizationField implements IMiniaturizationField {
             nbt.put("matchedBlocks", matchedBlocks.save(new CompoundNBT()));
         }
 
+        nbt.putBoolean("disabled", this.disabled);
+
         return nbt;
     }
 
@@ -433,6 +435,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         } else {
             this.matchedBlocks = null;
         }
+
+        this.disabled = nbt.contains("disabled") && nbt.getBoolean("disabled");
     }
 
     @Override

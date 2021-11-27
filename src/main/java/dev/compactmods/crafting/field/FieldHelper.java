@@ -33,7 +33,7 @@ public abstract class FieldHelper {
 
         final Vector3d centerBlockChanged = Vector3d.atCenterOf(pos);
         if (nearbyProjectors.length > 0) {
-            final IActiveWorldFields fields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+            final IActiveWorldFields fields = level.getCapability(CapabilityActiveWorldFields.FIELDS)
                     .orElseThrow(() -> new MissingFieldsException("Could not fetch fields off level: " + level.dimension()));
 
             final Optional<IMiniaturizationField> affectedField = fields.getFields()

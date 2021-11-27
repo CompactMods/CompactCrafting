@@ -16,6 +16,7 @@ import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.projector.ProjectorHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
@@ -87,7 +88,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .findFirst();
 
         if(anyMissing.isPresent()) {
-            CompactCrafting.LOGGER.warn("Trying to register an active field with missing projector at: {}", anyMissing.get());
+            CompactCrafting.LOGGER.warn("Trying to register an active field with missing projector at {}; real state: {}", anyMissing.get(), level.getBlockState(anyMissing.get()));
             return field;
         }
 
@@ -148,5 +149,10 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .stream()
                 .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
                 .map(Map.Entry::getValue);
+    }
+
+    @Override
+    public RegistryKey<World> getLevel() {
+        return level.dimension();
     }
 }
