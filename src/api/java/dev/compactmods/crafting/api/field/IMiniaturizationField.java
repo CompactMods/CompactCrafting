@@ -13,6 +13,8 @@ import net.minecraftforge.common.util.LazyOptional;
 
 public interface IMiniaturizationField {
 
+    default void dispose() {}
+
     AxisAlignedBB getBounds();
 
     MiniaturizationFieldSize getFieldSize();
@@ -54,8 +56,6 @@ public interface IMiniaturizationField {
     default CompoundNBT serverData() {
         return new CompoundNBT();
     }
-
-    default void loadServerData(CompoundNBT nbt) {}
 
     default CompoundNBT clientData() {
         CompoundNBT data = new CompoundNBT();

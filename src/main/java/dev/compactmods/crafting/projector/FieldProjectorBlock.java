@@ -273,6 +273,7 @@ public class FieldProjectorBlock extends Block {
                     if (field.enabled()) {
                         fields.unregisterField(fieldCenter);
                         field.handleDestabilize();
+                        field.dispose();
                     }
                 }
             });

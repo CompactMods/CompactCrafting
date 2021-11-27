@@ -1,18 +1,15 @@
 package dev.compactmods.crafting.field.capability;
 
 import javax.annotation.Nullable;
+import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.field.ActiveWorldFields;
 import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
 import net.minecraftforge.common.capabilities.CapabilityManager;
@@ -48,13 +45,7 @@ public class CapabilityActiveWorldFields {
                             if(!(item instanceof CompoundNBT))
                                 return;
 
-                            CompoundNBT f = (CompoundNBT) item;
-                            MiniaturizationFieldSize size = MiniaturizationFieldSize.valueOf(f.getString("size"));
-                            BlockPos center = NBTUtil.readBlockPos(f.getCompound("center"));
-
-                            MiniaturizationField field = MiniaturizationField.fromSizeAndCenter(size, center);
-                            field.loadServerData(f);
-
+                            MiniaturizationField field = new MiniaturizationField((CompoundNBT) item);
                             instance.addFieldInstance(field);
                         });
                     }

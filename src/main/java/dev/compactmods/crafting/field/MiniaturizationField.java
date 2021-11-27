@@ -12,6 +12,7 @@ import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
+import dev.compactmods.crafting.events.WorldEventHandler;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
@@ -22,6 +23,7 @@ import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
+import io.reactivex.rxjava3.disposables.Disposable;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -35,10 +37,12 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.feature.template.PlacementSettings;
 import net.minecraft.world.gen.feature.template.Template;
 import net.minecraft.world.server.ServerWorld;
@@ -68,6 +72,8 @@ public class MiniaturizationField implements IMiniaturizationField {
     private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
     private boolean disabled = false;
 
+    private static Disposable CHUNK_LISTENER;
+
     public MiniaturizationField() {
     }
 
@@ -75,6 +81,51 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.center = center;
         this.size = size;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
+
+        setupChunkListener();
+    }
+
+    public MiniaturizationField(CompoundNBT nbt) {
+        this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
+
+        this.center = NBTUtil.readBlockPos(nbt.getCompound("center"));
+        this.size = MiniaturizationFieldSize.valueOf(nbt.getString("size"));
+
+        setupChunkListener();
+
+        // temp load recipe
+        if (nbt.contains("recipe")) {
+            this.recipeId = new ResourceLocation(nbt.getString("recipe"));
+            this.craftingProgress = nbt.getInt("progress");
+        }
+
+        if (nbt.contains("matchedBlocks")) {
+            Template t = new Template();
+            t.load(nbt.getCompound("matchedBlocks"));
+            this.matchedBlocks = t;
+        } else {
+            this.matchedBlocks = null;
+        }
+
+        this.disabled = nbt.contains("disabled") && nbt.getBoolean("disabled");
+    }
+
+    private void setupChunkListener() {
+        // add projector and central chunks
+        final Set<ChunkPos> insideChunks = getProjectorPositions().map(ChunkPos::new).distinct().collect(Collectors.toSet());
+        insideChunks.add(new ChunkPos(center));
+
+        CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {
+            boolean sameLevel = ((Chunk) ce.getChunk()).getLevel().dimension().equals(level.dimension());
+            boolean watchedChunk = insideChunks.contains(ce.getChunk().getPos());
+            return sameLevel && watchedChunk;
+        }).subscribe((changed) -> this.checkLoaded());
+    }
+
+    @Override
+    public void dispose() {
+        if (!CHUNK_LISTENER.isDisposed())
+            CHUNK_LISTENER.dispose();
     }
 
     public static MiniaturizationField fromSizeAndCenter(MiniaturizationFieldSize fieldSize, BlockPos center) {
@@ -368,7 +419,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public void checkLoaded() {
-        CompactCrafting.LOGGER.trace("Checking loaded state.");
+        CompactCrafting.LOGGER.debug("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {
@@ -416,27 +467,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         nbt.putBoolean("disabled", this.disabled);
 
         return nbt;
-    }
-
-    @Override
-    public void loadServerData(CompoundNBT nbt) {
-        this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
-
-        // temp load recipe
-        if (nbt.contains("recipe")) {
-            this.recipeId = new ResourceLocation(nbt.getString("recipe"));
-            this.craftingProgress = nbt.getInt("progress");
-        }
-
-        if (nbt.contains("matchedBlocks")) {
-            Template t = new Template();
-            t.load(nbt.getCompound("matchedBlocks"));
-            this.matchedBlocks = t;
-        } else {
-            this.matchedBlocks = null;
-        }
-
-        this.disabled = nbt.contains("disabled") && nbt.getBoolean("disabled");
     }
 
     @Override
@@ -507,7 +537,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public void disable() {
         this.disabled = true;
-        if(this.craftingState != EnumCraftingState.NOT_MATCHED)
+        if (this.craftingState != EnumCraftingState.NOT_MATCHED)
             handleDestabilize();
 
         getProjectorPositions().forEach(proj -> {
@@ -526,7 +556,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         getProjectorPositions().forEach(proj -> {
             FieldProjectorBlock.activateProjector(level, proj, this.size);
             TileEntity projTile = level.getBlockEntity(proj);
-            if(projTile instanceof FieldProjectorTile) {
+            if (projTile instanceof FieldProjectorTile) {
                 ((FieldProjectorTile) projTile).setFieldRef(lazyReference);
             }
         });
