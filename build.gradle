@@ -6,7 +6,6 @@ buildscript {
 
     dependencies {
         classpath "net.minecraftforge.gradle:ForgeGradle:5.1.+"
-        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
     }
 }
 
@@ -14,11 +13,10 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
 
 apply plugin: "net.minecraftforge.gradle"
-apply plugin: 'com.github.johnrengelman.shadow'
 
 def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
 def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
@@ -291,12 +289,12 @@ shadowJar {
 }
 
 jar {
+    classifier("slim")
     from sourceSets.api.output
     from sourceSets.main.output
 
     destinationDir = file("$rootDir/build-out")
     finalizedBy('reobfJar')
-    finalizedBy('reobfShadowJar')
 
     manifest {
         attributes([
@@ -326,7 +324,7 @@ task testJar(type: Jar) {
 }
 
 artifacts {
-    archives jar, apiJar, testJar
+    archives jar, shadowJar, apiJar, testJar
 }
 
 publishing {
@@ -335,6 +333,7 @@ publishing {
             artifactId = mod_id
             artifacts {
                 artifact jar
+                artifact(shadowJar)
                 artifact(apiJar) {
                     classifier = "api"
                 }
@@ -346,6 +345,7 @@ publishing {
             artifactId = mod_id
             artifacts {
                 artifact(jar)
+                artifact(shadowJar)
                 artifact(apiJar) {
                     classifier = "api"
                 }
