@@ -3,6 +3,7 @@ package dev.compactmods.crafting.api.recipe;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
+import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import net.minecraft.item.ItemStack;
@@ -10,7 +11,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 
 public interface IMiniaturizationRecipe {
-    ItemStack getCatalyst();
+    ICatalystMatcher getCatalyst();
 
     ItemStack[] getOutputs();
 

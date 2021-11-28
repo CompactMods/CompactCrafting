@@ -1,5 +1,8 @@
 package dev.compactmods.crafting.recipes.catalyst;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.Registration;
@@ -41,6 +44,16 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
     @Override
     public CatalystType<?> getType() {
         return Registration.TAGGED_ITEM_CATALYST.get();
+    }
+
+    @Override
+    public Set<ItemStack> getPossible() {
+        if(tag == null)
+            return Collections.emptySet();
+
+        return tag.getValues().stream()
+                .map(ItemStack::new)
+                .collect(Collectors.toSet());
     }
 
     @Override

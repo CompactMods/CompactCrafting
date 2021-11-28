@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
@@ -58,6 +59,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Nullable
     private MiniaturizationRecipe currentRecipe = null;
     private Template matchedBlocks;
+    private Set<Item> matchedCatalysts;
 
     @Nullable
     private ResourceLocation recipeId = null;
@@ -273,9 +275,12 @@ public class MiniaturizationField implements IMiniaturizationField {
             case MATCHED:
 
                 // We grow the bounds check here a little to support patterns that are exactly the size of the field
-                // TODO - #35 - Support NBT filters in catalyst items
-                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
+                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst());
                 if (catalystEntities.size() > 0) {
+
+                    matchedCatalysts = catalystEntities.stream()
+                            .map((ItemEntity t) -> t.getItem().getItem())
+                            .collect(Collectors.toSet());
 
                     // Only remove items and clear the field on servers
                     if (!level.isClientSide) {
@@ -406,10 +411,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.craftingState = state;
     }
 
-    private List<ItemEntity> getCatalystsInField(IWorld level, AxisAlignedBB fieldBounds, Item itemFilter) {
+    private List<ItemEntity> getCatalystsInField(IWorld level, AxisAlignedBB fieldBounds, ICatalystMatcher itemFilter) {
         List<ItemEntity> itemsInRange = level.getEntitiesOfClass(ItemEntity.class, fieldBounds);
         return itemsInRange.stream()
-                .filter(ise -> ise.getItem().getItem() == itemFilter)
+                .filter(ise -> itemFilter.matches(ise.getItem()))
                 .collect(Collectors.toList());
     }
 
@@ -444,8 +449,6 @@ public class MiniaturizationField implements IMiniaturizationField {
             this.listeners.remove(fl);
         });
     }
-
-    // TODO - Basic data class codec for necessary info ?
 
     @Override
     public CompoundNBT serverData() {
@@ -487,6 +490,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         if (level.isClientSide) return;
 
+        // TODO - Look at dumping items into an inventory if it's attached to a projector, helps automation (in the weird cases)
         boolean restoreBlocks = false;
         boolean restoreCatalyst = false;
         switch (ServerConfig.DESTABILIZE_HANDLING) {
@@ -515,13 +519,21 @@ public class MiniaturizationField implements IMiniaturizationField {
                     new PlacementSettings(), level.random);
         }
 
-        final ItemStack catalyst = currentRecipe.getCatalyst();
-        if (restoreCatalyst && !catalyst.isEmpty()) {
-            final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
-            final ItemEntity ie = new ItemEntity(level, northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(), catalyst);
-            // ie.setNoGravity(true);
+        if(currentRecipe != null) {
+            final ICatalystMatcher catalyst = currentRecipe.getCatalyst();
+            if (restoreCatalyst) {
+                final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
 
-            level.addFreshEntity(ie);
+                for(Item cat : matchedCatalysts) {
+                    final ItemEntity ie = new ItemEntity(level,
+                            northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(),
+                            new ItemStack(cat));
+
+                    // ie.setNoGravity(true);
+
+                    level.addFreshEntity(ie);
+                }
+            }
         }
     }
 

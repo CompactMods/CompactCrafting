@@ -1,5 +1,7 @@
 package dev.compactmods.crafting.recipes.catalyst;
 
+import java.util.HashSet;
+import java.util.Set;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.Registration;
@@ -28,6 +30,10 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
         this.item = ForgeRegistries.ITEMS.getValue(item);
     }
 
+    public ItemStackCatalystMatcher(ItemStack stack) {
+        this.item = stack.getItem();
+    }
+
     public ResourceLocation getItemId() {
         return item.getRegistryName();
     }
@@ -40,6 +46,13 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
     @Override
     public CatalystType<?> getType() {
         return Registration.ITEM_STACK_CATALYST.get();
+    }
+
+    @Override
+    public Set<ItemStack> getPossible() {
+        final HashSet<ItemStack> set = new HashSet<>();
+        set.add(new ItemStack(item));
+        return set;
     }
 
     @Override

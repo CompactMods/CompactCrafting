@@ -136,11 +136,11 @@ public class MiniaturizationRecipeCodecTests {
     void LoadsCatalystCorrectly() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         Assertions.assertNotNull(recipe);
-        Assertions.assertFalse(recipe.getCatalyst().isEmpty());
+        Assertions.assertNotNull(recipe.getCatalyst());
 
         MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("recipe_tests/warn_no_catalyst.json");
         Assertions.assertNotNull(noComponents);
-        Assertions.assertTrue(noComponents.getCatalyst().isEmpty());
+        Assertions.assertNull(noComponents.getCatalyst());
     }
 
     @Test

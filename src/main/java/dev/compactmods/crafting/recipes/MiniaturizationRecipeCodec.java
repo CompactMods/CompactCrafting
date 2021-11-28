@@ -8,12 +8,15 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.*;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
+import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -78,15 +81,31 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
         recipe.recalculateDimensions();
 
-        ItemStack catalyst = ItemStack.CODEC.fieldOf("catalyst").codec()
-                .parse(ops, input)
-                .resultOrPartial(errorBuilder::append)
-                .orElse(ItemStack.EMPTY);
-
-        if (catalyst.isEmpty()) {
-            CompactCrafting.LOGGER.warn("Warning: recipe has no catalyst; this may be unintentional.");
+        final Optional<T> catalystNode = ops.get(input, "catalyst").result();
+        if(!catalystNode.isPresent()) {
+            if(debugOutput)
+                CompactCrafting.LOGGER.warn("No catalyst node defined in recipe; this is likely a bad file!");
         } else {
-            recipe.setCatalyst(catalyst);
+            final Optional<T> catalystType = ops.get(catalystNode.get(), "type").result();
+            if(!catalystType.isPresent()) {
+                if(debugOutput)
+                    CompactCrafting.LOGGER.warn("Error: no catalyst type defined; falling back to the itemstack handler.");
+
+                final ItemStack stackData = ItemStack.CODEC.fieldOf("catalyst").codec()
+                        .parse(ops, input)
+                        .resultOrPartial(errorBuilder::append)
+                        .orElse(ItemStack.EMPTY);
+
+                recipe.setCatalyst(new ItemStackCatalystMatcher(stackData));
+            } else {
+                ICatalystMatcher catalyst = CatalystMatcherCodec.MATCHER_CODEC.fieldOf("catalyst").codec()
+                        .parse(ops, input)
+                        .resultOrPartial(errorBuilder::append)
+                        .orElse(new ItemStackCatalystMatcher(ItemStack.EMPTY));
+
+                // ICatalystMatcher catalyst = new ItemTagCatalystMatcher(ItemTags.PLANKS);
+                recipe.setCatalyst(catalyst);
+            }
         }
 
         Optional<List<ItemStack>> outputs = ItemStack.CODEC.listOf().fieldOf("outputs").codec()
@@ -132,8 +151,9 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         DataResult<T> components = Codec.unboundedMap(Codec.STRING, COMPONENT_CODEC)
                 .encodeStart(ops, recipe.getComponents().getAllComponents());
 
-        ItemStack catalystItem = recipe.getCatalyst();
-        DataResult<T> catalyst = ItemStack.CODEC.encodeStart(ops, catalystItem == null ? ItemStack.EMPTY : catalystItem);
+        ICatalystMatcher catalystItem = recipe.getCatalyst();
+
+        DataResult<T> catalyst = CatalystMatcherCodec.MATCHER_CODEC.encodeStart(ops, catalystItem);
 
         DataResult<T> outputs = ItemStack.CODEC.listOf()
                 .encodeStart(ops, ImmutableList.copyOf(recipe.getOutputs()));
