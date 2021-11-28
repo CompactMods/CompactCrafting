@@ -55,7 +55,8 @@ sourceSets {
             srcDir 'src/generated/resources'
         }
 
-        compileClasspath += compileClasspath += sourceSets.api.output
+        runtimeClasspath += sourceSets.api.output
+        compileClasspath += sourceSets.api.output
     }
 
     test {
@@ -288,6 +289,9 @@ tasks.withType(Jar).configureEach {
 
 shadowJar {
     classifier ""
+    from sourceSets.api.output
+    from sourceSets.main.output
+
     configurations = [project.configurations.shade]
     exclude "LICENSE*"
     finalizedBy 'reobfShadowJar'
