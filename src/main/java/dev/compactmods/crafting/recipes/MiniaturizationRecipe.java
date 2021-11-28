@@ -16,7 +16,6 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
@@ -52,7 +51,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     public MiniaturizationRecipe() {
         this.recipeSize = -1;
         this.layers = new TreeMap<>();
-        this.catalyst = new ItemStackCatalystMatcher(ItemStack.EMPTY);
+        this.catalyst = null;
         this.outputs = new ItemStack[0];
         this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
