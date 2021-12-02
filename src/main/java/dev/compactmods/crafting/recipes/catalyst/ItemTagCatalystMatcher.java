@@ -19,7 +19,7 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
 
     private static final Codec<ItemTagCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
             ITag.codec(() -> TagCollectionManager.getInstance().getItems())
-                    .fieldOf("tag").forGetter(ItemTagCatalystMatcher::getTag)
+                    .fieldOf("tag").forGetter((is) -> is.tag)
     ).apply(i, ItemTagCatalystMatcher::new));
 
     private final ITag<Item> tag;
@@ -30,10 +30,6 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
 
     public ItemTagCatalystMatcher(ITag<Item> tag) {
         this.tag = tag;
-    }
-
-    private ITag<Item> getTag() {
-        return tag;
     }
 
     @Override

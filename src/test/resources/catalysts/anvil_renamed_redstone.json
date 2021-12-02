@@ -1,0 +1,9 @@
+{
+  "type": "compactcrafting:item",
+  "item": "minecraft:redstone",
+  "nbt": {
+    "display": {
+      "Name": "{\"text\":\"Renamed Item\"}"
+    }
+  }
+}

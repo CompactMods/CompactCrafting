@@ -3,6 +3,7 @@ package dev.compactmods.crafting.tests.catalyst;
 import java.util.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
@@ -39,6 +40,17 @@ public class CatalystJsonTests {
 
         final CatalystType<?> type = catalyst.get();
         Assertions.assertTrue(type instanceof ItemStackCatalystMatcher);
+    }
+
+    @Test
+    @Tag("minecraft")
+    void FailsDecodeOnUnmatchedCatalystType() {
+        JsonElement node = new JsonPrimitive("compactcrafting:nonexistent");
+
+        final Optional<DataResult.PartialResult<CatalystType<?>>> catalyst = CatalystMatcherCodec.INSTANCE.parse(JsonOps.INSTANCE, node)
+                .error();
+
+        Assertions.assertTrue(catalyst.isPresent());
     }
 
     @Test

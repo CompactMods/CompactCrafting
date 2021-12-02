@@ -20,9 +20,6 @@ public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
     @Override
     public <T> DataResult<T> encode(CatalystType<?> input, DynamicOps<T> ops, T prefix) {
         ResourceLocation key = input.getRegistryName();
-        if(key == null)
-            return DataResult.error("Unknown registry element " + input);
-
         T toMerge = ops.createString(key.toString());
         return ops.mergeToPrimitive(prefix, toMerge);
     }

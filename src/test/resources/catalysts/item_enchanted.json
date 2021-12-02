@@ -1,0 +1,16 @@
+{
+  "_comment": "/give @p diamond_sword{display:{Name:\"\\\"HelloThere\\\"\"},Enchantments:[{id:sharpness,lvl:5}]} 1",
+  "type": "compactcrafting:item",
+  "item": "minecraft:diamond_sword",
+  "nbt": {
+    "display": {
+      "Name": "HelloThere"
+    },
+    "Enchantments": [
+      {
+        "id": "minecraft:sharpness",
+        "lvl": [1,2,3,4,5]
+      }
+    ]
+  }
+}
