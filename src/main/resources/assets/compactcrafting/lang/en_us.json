@@ -5,7 +5,7 @@
   "block.compactcrafting.rescan_proxy": "Field Proxy (Rescan)",
   "block.compactcrafting.match_proxy": "Field Proxy (Match)",
 
-  "item.compactcrafting.field_dish": "Miniaturization Projector Dish",
+  "item.compactcrafting.projector_dish": "Miniaturization Projector Dish",
   "item.compactcrafting.base": "Base",
 
   "compactcrafting.jei.miniaturization.title": "Miniaturization Crafting",

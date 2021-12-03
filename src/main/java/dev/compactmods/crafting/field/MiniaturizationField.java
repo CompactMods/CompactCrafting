@@ -7,11 +7,13 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
+import dev.compactmods.crafting.events.WorldEventHandler;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
@@ -22,6 +24,7 @@ import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
+import io.reactivex.rxjava3.disposables.Disposable;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.item.Item;
@@ -35,10 +38,12 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.world.IServerWorld;
 import net.minecraft.world.IWorld;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.gen.feature.template.PlacementSettings;
 import net.minecraft.world.gen.feature.template.Template;
 import net.minecraft.world.server.ServerWorld;
@@ -54,6 +59,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Nullable
     private MiniaturizationRecipe currentRecipe = null;
     private Template matchedBlocks;
+    private Set<Item> matchedCatalysts;
 
     @Nullable
     private ResourceLocation recipeId = null;
@@ -68,6 +74,8 @@ public class MiniaturizationField implements IMiniaturizationField {
     private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
     private boolean disabled = false;
 
+    private static Disposable CHUNK_LISTENER;
+
     public MiniaturizationField() {
     }
 
@@ -75,6 +83,51 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.center = center;
         this.size = size;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
+
+        setupChunkListener();
+    }
+
+    public MiniaturizationField(CompoundNBT nbt) {
+        this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
+
+        this.center = NBTUtil.readBlockPos(nbt.getCompound("center"));
+        this.size = MiniaturizationFieldSize.valueOf(nbt.getString("size"));
+
+        setupChunkListener();
+
+        // temp load recipe
+        if (nbt.contains("recipe")) {
+            this.recipeId = new ResourceLocation(nbt.getString("recipe"));
+            this.craftingProgress = nbt.getInt("progress");
+        }
+
+        if (nbt.contains("matchedBlocks")) {
+            Template t = new Template();
+            t.load(nbt.getCompound("matchedBlocks"));
+            this.matchedBlocks = t;
+        } else {
+            this.matchedBlocks = null;
+        }
+
+        this.disabled = nbt.contains("disabled") && nbt.getBoolean("disabled");
+    }
+
+    private void setupChunkListener() {
+        // add projector and central chunks
+        final Set<ChunkPos> insideChunks = getProjectorPositions().map(ChunkPos::new).distinct().collect(Collectors.toSet());
+        insideChunks.add(new ChunkPos(center));
+
+        CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {
+            boolean sameLevel = ((Chunk) ce.getChunk()).getLevel().dimension().equals(level.dimension());
+            boolean watchedChunk = insideChunks.contains(ce.getChunk().getPos());
+            return sameLevel && watchedChunk;
+        }).subscribe((changed) -> this.checkLoaded());
+    }
+
+    @Override
+    public void dispose() {
+        if (!CHUNK_LISTENER.isDisposed())
+            CHUNK_LISTENER.dispose();
     }
 
     public static MiniaturizationField fromSizeAndCenter(MiniaturizationFieldSize fieldSize, BlockPos center) {
@@ -222,9 +275,12 @@ public class MiniaturizationField implements IMiniaturizationField {
             case MATCHED:
 
                 // We grow the bounds check here a little to support patterns that are exactly the size of the field
-                // TODO - #35 - Support NBT filters in catalyst items
-                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst().getItem());
+                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.getCatalyst());
                 if (catalystEntities.size() > 0) {
+
+                    matchedCatalysts = catalystEntities.stream()
+                            .map((ItemEntity t) -> t.getItem().getItem())
+                            .collect(Collectors.toSet());
 
                     // Only remove items and clear the field on servers
                     if (!level.isClientSide) {
@@ -355,10 +411,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.craftingState = state;
     }
 
-    private List<ItemEntity> getCatalystsInField(IWorld level, AxisAlignedBB fieldBounds, Item itemFilter) {
+    private List<ItemEntity> getCatalystsInField(IWorld level, AxisAlignedBB fieldBounds, ICatalystMatcher itemFilter) {
         List<ItemEntity> itemsInRange = level.getEntitiesOfClass(ItemEntity.class, fieldBounds);
         return itemsInRange.stream()
-                .filter(ise -> ise.getItem().getItem() == itemFilter)
+                .filter(ise -> itemFilter.matches(ise.getItem()))
                 .collect(Collectors.toList());
     }
 
@@ -368,7 +424,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public void checkLoaded() {
-        CompactCrafting.LOGGER.trace("Checking loaded state.");
+        CompactCrafting.LOGGER.debug("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {
@@ -394,8 +450,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         });
     }
 
-    // TODO - Basic data class codec for necessary info ?
-
     @Override
     public CompoundNBT serverData() {
         CompoundNBT nbt = new CompoundNBT();
@@ -413,26 +467,9 @@ public class MiniaturizationField implements IMiniaturizationField {
             nbt.put("matchedBlocks", matchedBlocks.save(new CompoundNBT()));
         }
 
+        nbt.putBoolean("disabled", this.disabled);
+
         return nbt;
-    }
-
-    @Override
-    public void loadServerData(CompoundNBT nbt) {
-        this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
-
-        // temp load recipe
-        if (nbt.contains("recipe")) {
-            this.recipeId = new ResourceLocation(nbt.getString("recipe"));
-            this.craftingProgress = nbt.getInt("progress");
-        }
-
-        if (nbt.contains("matchedBlocks")) {
-            Template t = new Template();
-            t.load(nbt.getCompound("matchedBlocks"));
-            this.matchedBlocks = t;
-        } else {
-            this.matchedBlocks = null;
-        }
     }
 
     @Override
@@ -453,6 +490,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         if (level.isClientSide) return;
 
+        // TODO - Look at dumping items into an inventory if it's attached to a projector, helps automation (in the weird cases)
         boolean restoreBlocks = false;
         boolean restoreCatalyst = false;
         switch (ServerConfig.DESTABILIZE_HANDLING) {
@@ -481,13 +519,21 @@ public class MiniaturizationField implements IMiniaturizationField {
                     new PlacementSettings(), level.random);
         }
 
-        final ItemStack catalyst = currentRecipe.getCatalyst();
-        if (restoreCatalyst && !catalyst.isEmpty()) {
-            final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
-            final ItemEntity ie = new ItemEntity(level, northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(), catalyst);
-            // ie.setNoGravity(true);
+        if(currentRecipe != null) {
+            final ICatalystMatcher catalyst = currentRecipe.getCatalyst();
+            if (restoreCatalyst) {
+                final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
 
-            level.addFreshEntity(ie);
+                for(Item cat : matchedCatalysts) {
+                    final ItemEntity ie = new ItemEntity(level,
+                            northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(),
+                            new ItemStack(cat));
+
+                    // ie.setNoGravity(true);
+
+                    level.addFreshEntity(ie);
+                }
+            }
         }
     }
 
@@ -503,7 +549,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public void disable() {
         this.disabled = true;
-        if(this.craftingState != EnumCraftingState.NOT_MATCHED)
+        if (this.craftingState != EnumCraftingState.NOT_MATCHED)
             handleDestabilize();
 
         getProjectorPositions().forEach(proj -> {
@@ -522,7 +568,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         getProjectorPositions().forEach(proj -> {
             FieldProjectorBlock.activateProjector(level, proj, this.size);
             TileEntity projTile = level.getBlockEntity(proj);
-            if(projTile instanceof FieldProjectorTile) {
+            if (projTile instanceof FieldProjectorTile) {
                 ((FieldProjectorTile) projTile).setFieldRef(lazyReference);
             }
         });

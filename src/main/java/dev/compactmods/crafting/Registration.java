@@ -1,6 +1,7 @@
 package dev.compactmods.crafting;
 
 import java.util.function.Supplier;
+import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.field.block.FieldCraftingPreviewBlock;
 import dev.compactmods.crafting.field.tile.FieldCraftingPreviewTile;
@@ -14,6 +15,8 @@ import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
 import dev.compactmods.crafting.proxies.item.FieldProxyItem;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
+import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
+import dev.compactmods.crafting.recipes.catalyst.ItemTagCatalystMatcher;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
@@ -56,9 +59,15 @@ public class Registration {
     public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, CompactCrafting.MOD_ID);
     public static IForgeRegistry<RecipeLayerType<?>> RECIPE_LAYER_TYPES;
 
+    public static DeferredRegister<CatalystType<?>> CATALYSTS = DeferredRegister.create((Class) CatalystType.class, CompactCrafting.MOD_ID);
+    public static IForgeRegistry<CatalystType<?>> CATALYST_TYPES;
+
     static {
         RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
                 .tagFolder("recipe_layers"));
+
+        CATALYSTS.makeRegistry("catalyst_types", () -> new RegistryBuilder<CatalystType<?>>()
+                .tagFolder("catalyst_types"));
     }
 
     // ================================================================================================================
@@ -167,6 +176,17 @@ public class Registration {
 
     // endregion ======================================================================================================
 
+    // ================================================================================================================
+    // region  CATALYST TYPES
+    // ================================================================================================================
+    public static final RegistryObject<CatalystType<ItemStackCatalystMatcher>> ITEM_STACK_CATALYST =
+            CATALYSTS.register("item", ItemStackCatalystMatcher::new);
+
+    public static final RegistryObject<CatalystType<ItemTagCatalystMatcher>> TAGGED_ITEM_CATALYST =
+            CATALYSTS.register("tag", ItemTagCatalystMatcher::new);
+
+    // endregion ======================================================================================================
+
     // region =========================================================================================================
 
     public static void init() {
@@ -181,12 +201,19 @@ public class Registration {
         MINIATURIZATION_RECIPE_TYPE.register();
 
         RECIPE_LAYERS.register(eventBus);
+        CATALYSTS.register(eventBus);
     }
 
     @SubscribeEvent
     @SuppressWarnings("unused")
-    public static void onRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
+    public static void layerRegistration(RegistryEvent.Register<RecipeLayerType<?>> evt) {
         RECIPE_LAYER_TYPES = evt.getRegistry();
+    }
+
+    @SubscribeEvent
+    @SuppressWarnings("unused")
+    public static void catalystRegistration(RegistryEvent.Register<CatalystType<?>> evt) {
+        CATALYST_TYPES = evt.getRegistry();
     }
     // endregion ======================================================================================================
 }

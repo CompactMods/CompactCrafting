@@ -128,26 +128,32 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     //region Recipe Slots and Items
     @Override
     public void setIngredients(MiniaturizationRecipe recipe, IIngredients ing) {
-        List<ItemStack> inputs = new ArrayList<>();
+        List<List<ItemStack>> inputs = new ArrayList<>(1 + recipe.getComponents().size());
+
+        if (recipe.getCatalyst() != null && !recipe.getCatalyst().matches(ItemStack.EMPTY))
+            inputs.add(0, new ArrayList<>(recipe.getCatalyst().getPossible()));
+        else
+            inputs.add(0, Collections.singletonList(new ItemStack(Items.REDSTONE)));
 
         IRecipeComponents components = recipe.getComponents();
+        int index = 1;
         for (String compKey : components.getBlockComponents().keySet()) {
             Optional<IRecipeBlockComponent> requiredBlock = components.getBlock(compKey);
+            int finalIndex = index;
             requiredBlock.ifPresent(bs -> {
                 // TODO - Abstract this better, need to be more flexible for other component types in the future
                 if (bs instanceof BlockComponent) {
                     BlockComponent bsc = (BlockComponent) bs;
                     Item bi = bsc.getBlock().asItem();
                     if (bi != Items.AIR)
-                        inputs.add(new ItemStack(bi));
+                        inputs.add(finalIndex, Collections.singletonList(new ItemStack(bi)));
                 }
             });
+
+            index++;
         }
 
-        if(!recipe.getCatalyst().isEmpty())
-            inputs.add(recipe.getCatalyst());
-
-        ing.setInputs(VanillaTypes.ITEM, inputs);
+        ing.setInputLists(VanillaTypes.ITEM, inputs);
         ing.setOutputs(VanillaTypes.ITEM, Arrays.asList(recipe.getOutputs()));
     }
 
@@ -167,7 +173,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         try {
             addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
 
-            catalystSlot = addCatalystSlots(recipe, 0, 0, guiItemStacks, numComponentSlots);
+            catalystSlot = addCatalystSlots(recipe, guiItemStacks, numComponentSlots);
             int fromRightEdge = this.background.getWidth() - (18 * 2) - GUTTER_X;
             addOutputSlots(recipe, fromRightEdge, 8, guiItemStacks, numComponentSlots);
         } catch (Exception ex) {
@@ -196,10 +202,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         });
     }
 
-    private int addCatalystSlots(MiniaturizationRecipe recipe, int GUTTER_X, int OFFSET_Y, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
+    private int addCatalystSlots(MiniaturizationRecipe recipe, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
         int catalystSlot = numComponentSlots + 5 + 1;
-        guiItemStacks.init(catalystSlot, true, GUTTER_X, OFFSET_Y);
-        guiItemStacks.set(catalystSlot, recipe.getCatalyst());
+        guiItemStacks.init(catalystSlot, true, 0, 0);
+        if(!recipe.getCatalyst().matches(ItemStack.EMPTY))
+            guiItemStacks.set(catalystSlot, new ArrayList<>(recipe.getCatalyst().getPossible()));
+
         guiItemStacks.setBackground(catalystSlot, slotDrawable);
         return catalystSlot;
     }
@@ -345,7 +353,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         try {
             AbstractGui.fill(
                     mx,
-                     scissorBounds.x, scissorBounds.y,
+                    scissorBounds.x, scissorBounds.y,
                     scissorBounds.x + scissorBounds.width,
                     scissorBounds.height,
                     0xFF404040

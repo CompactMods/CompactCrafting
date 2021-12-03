@@ -39,7 +39,7 @@ public class ClientEventHandler {
 
         ClientWorld level = Minecraft.getInstance().level;
         if (level != null && !Minecraft.getInstance().isPaused()) {
-            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+            level.getCapability(CapabilityActiveWorldFields.FIELDS)
                     .ifPresent(IActiveWorldFields::tickFields);
         }
     }
@@ -59,7 +59,7 @@ public class ClientEventHandler {
 
         double viewDistance = 64;
         final IRenderTypeBuffer.Impl buffers = mc.renderBuffers().bufferSource();
-        mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .ifPresent(fields -> {
                     fields.getFields()
                             .filter(field -> Vector3d.atCenterOf(field.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))

@@ -1,5 +1,10 @@
 package dev.compactmods.crafting.datagen;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import dev.compactmods.crafting.Registration;
@@ -12,12 +17,6 @@ import net.minecraft.loot.*;
 import net.minecraft.loot.conditions.SurvivesExplosion;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.RegistryObject;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class LootTableGenerator extends LootTableProvider {
 
@@ -39,6 +38,8 @@ public class LootTableGenerator extends LootTableProvider {
         @Override
         protected void addTables() {
             registerSelfDroppedBlock(Registration.FIELD_PROJECTOR_BLOCK, Registration.FIELD_PROJECTOR_ITEM);
+            registerSelfDroppedBlock(Registration.MATCH_FIELD_PROXY_BLOCK, Registration.MATCH_PROXY_ITEM);
+            registerSelfDroppedBlock(Registration.RESCAN_FIELD_PROXY_BLOCK, Registration.RESCAN_PROXY_ITEM);
         }
 
         private LootPool.Builder registerSelfDroppedBlock(RegistryObject<Block> block, RegistryObject<Item> item) {
@@ -55,7 +56,9 @@ public class LootTableGenerator extends LootTableProvider {
         @Override
         protected Iterable<Block> getKnownBlocks() {
             return ImmutableList.of(
-                    Registration.FIELD_PROJECTOR_BLOCK.get()
+                    Registration.FIELD_PROJECTOR_BLOCK.get(),
+                    Registration.MATCH_FIELD_PROXY_BLOCK.get(),
+                    Registration.RESCAN_FIELD_PROXY_BLOCK.get()
             );
         }
     }

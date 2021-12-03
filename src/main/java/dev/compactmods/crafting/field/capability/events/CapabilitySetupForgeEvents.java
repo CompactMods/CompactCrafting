@@ -29,7 +29,7 @@ public class CapabilitySetupForgeEvents {
         ActiveWorldFields inst = new ActiveWorldFields(level);
 
         LazyOptional<ActiveWorldFields> opt = LazyOptional.of(() -> inst);
-        final Capability<IActiveWorldFields> capInstance = CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS;
+        final Capability<IActiveWorldFields> capInstance = CapabilityActiveWorldFields.FIELDS;
 
         ICapabilityProvider provider = new ICapabilitySerializable<ListNBT>() {
             @Override

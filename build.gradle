@@ -13,6 +13,7 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
 }
 
 apply plugin: "net.minecraftforge.gradle"
@@ -28,6 +29,12 @@ println("Mod ID: ${mod_id}");
 println("Version: ${version}");
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+
+configurations {
+    library
+    implementation.extendsFrom library
+    shade.extendsFrom library
+}
 
 sourceSets {
     api {
@@ -48,7 +55,8 @@ sourceSets {
             srcDir 'src/generated/resources'
         }
 
-        compileClasspath += compileClasspath += sourceSets.api.output
+        runtimeClasspath += sourceSets.api.output
+        compileClasspath += sourceSets.api.output
     }
 
     test {
@@ -64,12 +72,8 @@ sourceSets {
 }
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+
 minecraft {
-    // The mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   Snapshot are built nightly.
-    // stable_#            Stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // Simply re-run your setup task after changing the mappings to update your workspace.
     mappings channel: 'official', version: minecraft_version
     // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
     def resourcesDir = sourceSets.main.resources.srcDirs.first().absolutePath
@@ -80,6 +84,9 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run/client')
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', '' // 'SCAN,REGISTRIES,REGISTRYDUMP'
@@ -243,8 +250,13 @@ dependencies {
 
     testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
 
+    library "io.reactivex.rxjava3:rxjava:3.1.1";
+
     // Deobfuscate each dev mod for runtime
     dev_mods.each { implementation fg.deobf(it) }
+
+    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3318114"))
+    runtimeOnly(fg.deobf("curse.maven:sues-407174:3188120"))
 
     // JEI
     compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
@@ -263,12 +275,39 @@ processTestResources {
     duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
-jar {
+assemble {
+    dependsOn shadowJar
+}
+
+reobf {
+    shadowJar {}
+}
+
+tasks.withType(Jar).configureEach {
+    destinationDir = file("$rootDir/build-out")
+}
+
+shadowJar {
+    classifier ""
     from sourceSets.api.output
     from sourceSets.main.output
 
-    destinationDir = file("$rootDir/build-out")
+    configurations = [project.configurations.shade]
+    exclude "LICENSE*"
+    finalizedBy 'reobfShadowJar'
+    minimize()
+    relocate 'io.reactivex', 'dev.compactmods.crafting.lib.reactivex'
+    relocate 'org.reactivestreams', 'dev.compactmods.crafting.lib.reactivestreams'
+}
+
+jar {
+    classifier "slim"
+
+    from sourceSets.api.output
+    from sourceSets.main.output
+
     finalizedBy('reobfJar')
+
     manifest {
         attributes([
                 "Specification-Title"     : "compactcrafting",
@@ -284,7 +323,6 @@ jar {
 task apiJar(type: Jar) {
     // Sources included because of MinecraftForge/ForgeGradle#369
     from sourceSets.api.output
-    destinationDirectory = file("$rootDir/build-out")
     classifier("api")
 }
 
@@ -292,12 +330,11 @@ task testJar(type: Jar) {
     from sourceSets.api.output
     from sourceSets.main.output
     from sourceSets.test.output
-    destinationDirectory = file("$rootDir/build-out")
     classifier("tests")
 }
 
 artifacts {
-    archives jar, apiJar, testJar
+    archives jar, shadowJar, apiJar, testJar
 }
 
 publishing {
@@ -305,10 +342,9 @@ publishing {
         maven(MavenPublication) {
             artifactId = mod_id
             artifacts {
-                artifact jar
-                artifact(apiJar) {
-                    classifier = "api"
-                }
+                artifact(jar)
+                artifact(shadowJar)
+                artifact(apiJar)
                 artifact(testJar)
             }
         }
@@ -317,9 +353,8 @@ publishing {
             artifactId = mod_id
             artifacts {
                 artifact(jar)
-                artifact(apiJar) {
-                    classifier = "api"
-                }
+                artifact(shadowJar)
+                artifact(apiJar)
                 artifact(testJar)
             }
         }

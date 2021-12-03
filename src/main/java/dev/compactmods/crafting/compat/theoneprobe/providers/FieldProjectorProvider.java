@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.compat.theoneprobe.providers;
 
+import java.util.Set;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
@@ -48,7 +49,9 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
                         if(recipe != null) {
                             int progress = field.getProgress();
 
-                            group.item(recipe.getCatalyst());
+                            final Set<ItemStack> possible = recipe.getCatalyst().getPossible();
+                            group.item(possible.size() > 1 ? possible.stream().findAny().get() : possible.stream().findFirst().get());
+
                             group.icon(
                                     new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"),
                                     0, 0, 24, 19, info.defaultIconStyle().textureHeight(19)

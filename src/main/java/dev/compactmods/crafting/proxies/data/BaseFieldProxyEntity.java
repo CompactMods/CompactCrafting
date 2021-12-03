@@ -31,7 +31,7 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
         super.onLoad();
 
         if(fieldCenter != null && level != null) {
-            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+            level.getCapability(CapabilityActiveWorldFields.FIELDS)
                     .resolve()
                     .ifPresent(fields -> fieldChanged(fields.getLazy(fieldCenter)));
         }
@@ -47,7 +47,7 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
             return;
         }
 
-        level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .map(fields -> fields.getLazy(fieldCenter))
                 .ifPresent(f -> {
                     this.fieldCenter = fieldCenter;

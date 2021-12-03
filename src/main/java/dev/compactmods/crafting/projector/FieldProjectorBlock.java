@@ -15,7 +15,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.particles.IParticleData;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.EnumProperty;
@@ -31,7 +30,6 @@ import net.minecraft.util.math.shapes.VoxelShape;
 import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.network.PacketDistributor;
 
@@ -185,18 +183,6 @@ public class FieldProjectorBlock extends Block {
         return ActionResultType.SUCCESS;
     }
 
-    private static void spawnPlacementParticle(ServerWorld world, BlockPos location, IParticleData particle) {
-        if (world.getBlockState(location).getBlock() instanceof FieldProjectorBlock)
-            return;
-
-        world.sendParticles(particle,
-                location.getX() + 0.5f,
-                location.getY() + 0.5f,
-                location.getZ() + 0.5f,
-                1,
-                0, 0, 0, 0);
-    }
-
     public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {
         return state.getValue(SIZE).getCenterFromProjector(projector, state.getValue(FACING));
     }
@@ -247,7 +233,7 @@ public class FieldProjectorBlock extends Block {
                 fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> activateProjector(level, proj, fieldSize));
 
                 final BlockPos center = getFieldCenter(state, pos);
-                level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+                level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
                     if (!fields.hasActiveField(center)) {
                         final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
                         field.checkLoaded();
@@ -279,7 +265,7 @@ public class FieldProjectorBlock extends Block {
             fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
 
             // Remove field registration - this will also update clients
-            level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+            level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
                 if (fields.hasActiveField(fieldCenter)) {
                     final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
                     if (field == null) return;
@@ -287,6 +273,7 @@ public class FieldProjectorBlock extends Block {
                     if (field.enabled()) {
                         fields.unregisterField(fieldCenter);
                         field.handleDestabilize();
+                        field.dispose();
                     }
                 }
             });
@@ -315,7 +302,7 @@ public class FieldProjectorBlock extends Block {
             // not active, but we may be re-enabling a disabled field
             ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
                 final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
-                level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+                level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
                     fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
                 });
             });

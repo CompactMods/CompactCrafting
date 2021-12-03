@@ -85,7 +85,7 @@ public class FieldCraftingPreviewTile extends TileEntity implements ITickableTil
     public void onLoad() {
         super.onLoad();
         if (level != null) {
-            worldFields = level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS);
+            worldFields = level.getCapability(CapabilityActiveWorldFields.FIELDS);
             recipe = (IMiniaturizationRecipe) level.getRecipeManager().byKey(recipeId).orElse(null);
         }
     }

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
@@ -38,7 +39,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     private int recipeSize;
     private ResourceLocation id;
     private TreeMap<Integer, IRecipeLayer> layers;
-    private ItemStack catalyst;
+    private ICatalystMatcher catalyst;
     private ItemStack[] outputs;
     private AxisAlignedBB dimensions;
 
@@ -50,7 +51,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     public MiniaturizationRecipe() {
         this.recipeSize = -1;
         this.layers = new TreeMap<>();
-        this.catalyst = ItemStack.EMPTY;
+        this.catalyst = null;
         this.outputs = new ItemStack[0];
         this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
@@ -271,7 +272,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.outputs = outputs.toArray(new ItemStack[0]);
     }
 
-    public ItemStack getCatalyst() {
+    public ICatalystMatcher getCatalyst() {
         return this.catalyst;
     }
 
@@ -321,7 +322,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.recalculateDimensions();
     }
 
-    public void setCatalyst(ItemStack catalyst) {
-        this.catalyst = catalyst.copy();
+    public void setCatalyst(ICatalystMatcher catalyst) {
+        this.catalyst = catalyst;
     }
 }

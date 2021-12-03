@@ -73,7 +73,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
             for (int y = -1; y > -10; y--) {
                 BlockPos realPos = new BlockPos(pos.getX(), pos.getY() + y, pos.getZ());
-                if(!level.isStateAtPosition(realPos, AbstractBlock.AbstractBlockState::isAir))
+                if (!level.isStateAtPosition(realPos, AbstractBlock.AbstractBlockState::isAir))
                     break;
 
                 matrixStack.pushPose();
@@ -108,16 +108,17 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
     public void setProjector(World level, BlockPos initial) {
         remainingProjectors.clear();
 
-        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestOppositeSize(level, initial);
         final Direction initialFacing = FieldProjectorBlock.getDirection(level, initial).orElse(Direction.UP);
-        if(fieldSize.isPresent()) {
+        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestSize(level, initial, initialFacing);
+
+        if (fieldSize.isPresent()) {
             final BlockPos center = fieldSize.get().getCenterFromProjector(initial, initialFacing);
             Direction.Plane.HORIZONTAL.stream()
                     .forEach(dir -> {
-                        if(dir == initialFacing) return;
-                        
+                        if (dir.getOpposite() == initialFacing) return;
                         final BlockPos location = fieldSize.get().getProjectorLocationForDirection(center, dir);
-                        remainingProjectors.put(location, dir.getOpposite());
+                        if (!(level.getBlockState(location).getBlock() instanceof FieldProjectorBlock))
+                            remainingProjectors.put(location, dir.getOpposite());
                     });
         } else {
             ProjectorHelper.getValidOppositePositions(initial, initialFacing)

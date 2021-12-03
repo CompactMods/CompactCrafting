@@ -28,7 +28,7 @@ public abstract class ClientPacketHandler {
             field.setLevel(cw);
             field.loadClientData(fieldClientData);
 
-            mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+            mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
                     .ifPresent(fields -> fields.registerField(field));
         });
     }
@@ -37,7 +37,7 @@ public abstract class ClientPacketHandler {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
             ClientWorld cw = mc.level;
-            cw.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+            cw.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
                 fields.get(center).map(IMiniaturizationField::getProjectorPositions)
                         .orElse(Stream.empty())
                         .forEach(proj -> FieldProjectorBlock.deactivateProjector(cw, proj));
@@ -56,7 +56,7 @@ public abstract class ClientPacketHandler {
         field.setLevel(mc.level);
         field.loadClientData(fieldData);
 
-        mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .ifPresent(fields -> {
                     fields.setLevel(mc.level);
                     CompactCrafting.LOGGER.debug("Registering field on client");
@@ -80,7 +80,7 @@ public abstract class ClientPacketHandler {
         if (mc.level == null)
             return;
 
-        mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .ifPresent(fields -> fields.unregisterField(fieldCenter));
     }
 
@@ -89,7 +89,7 @@ public abstract class ClientPacketHandler {
         if (mc.level == null)
             return;
 
-        mc.level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS)
+        mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .lazyMap(af -> af.get(center))
                 .ifPresent(field -> field.ifPresent(f -> f.setRecipe(recipe)));
     }

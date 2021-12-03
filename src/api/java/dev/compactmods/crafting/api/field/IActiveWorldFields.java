@@ -2,6 +2,7 @@ package dev.compactmods.crafting.api.field;
 
 import java.util.Optional;
 import java.util.stream.Stream;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
@@ -32,4 +33,6 @@ public interface IActiveWorldFields {
     boolean hasActiveField(BlockPos center);
 
     Stream<IMiniaturizationField> getFields(ChunkPos chunk);
+
+    RegistryKey<World> getLevel();
 }

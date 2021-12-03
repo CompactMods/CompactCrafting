@@ -68,7 +68,7 @@ public class ProjectorPlacementTests {
 
         final ServerWorld level = test.getWorld();
 
-        level.getCapability(CapabilityActiveWorldFields.ACTIVE_WORLD_FIELDS).ifPresent(fields -> {
+        level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
             Assertions.assertTrue(fields.hasActiveField(center), "Expected field instance to exist.");
 
             final Optional<IMiniaturizationField> field = Assertions.assertDoesNotThrow(() -> fields.get(center));

@@ -14,6 +14,13 @@ import net.minecraft.world.IBlockReader;
  * Contains utility methods for working with a set of projectors in a given space.
  */
 public abstract class ProjectorHelper {
+    public static Optional<MiniaturizationFieldSize> getClosestSize(IBlockReader level, BlockPos initial, Direction facing) {
+        final Optional<MiniaturizationFieldSize> opposing = getClosestOppositeSize(level, initial, facing);
+        if(opposing.isPresent()) return opposing;
+
+        return getSmallestCrossAxisSize(level, initial, facing);
+    }
+
     public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(IBlockReader level, BlockPos initial, Direction facing) {
         return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
                 .filter(size -> {
@@ -113,9 +120,7 @@ public abstract class ProjectorHelper {
         } else {
             // No opposing projector to limit field size.
             // Scan for a cross-axis projector to try to limit.
-            Optional<MiniaturizationFieldSize> firstMatchedSize = Stream.of(MiniaturizationFieldSize.VALID_SIZES)
-                    .filter(size -> hasValidCrossProjector(level, initialProjector, projectorFacing, size))
-                    .findFirst();
+            Optional<MiniaturizationFieldSize> firstMatchedSize = getSmallestCrossAxisSize(level, initialProjector, projectorFacing);
 
             if (firstMatchedSize.isPresent()) {
                 // One of the projectors on the cross axis were valid
@@ -128,6 +133,13 @@ public abstract class ProjectorHelper {
                 return ProjectorHelper.getValidOppositePositions(initialProjector, projectorFacing);
             }
         }
+    }
+
+    @Nonnull
+    private static Optional<MiniaturizationFieldSize> getSmallestCrossAxisSize(IBlockReader level, BlockPos initial, Direction facing) {
+        return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
+                .filter(size -> hasValidCrossProjector(level, initial, facing, size))
+                .findFirst();
     }
 
     @Nonnull
