@@ -8,15 +8,22 @@ import java.util.function.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import dev.compactmods.crafting.Registration;
-import net.minecraft.block.Block;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.LootTableProvider;
-import net.minecraft.data.loot.BlockLootTables;
-import net.minecraft.item.Item;
-import net.minecraft.loot.*;
-import net.minecraft.loot.conditions.SurvivesExplosion;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.RegistryObject;
+import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.LootTables;
+import net.minecraft.world.level.storage.loot.ValidationContext;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraftforge.registries.RegistryObject;
 
 public class LootTableGenerator extends LootTableProvider {
 
@@ -25,16 +32,16 @@ public class LootTableGenerator extends LootTableProvider {
     }
 
     @Override
-    protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootParameterSet>> getTables() {
-        return ImmutableList.of(Pair.of(Blocks::new, LootParameterSets.BLOCK));
+    protected List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> getTables() {
+        return ImmutableList.of(Pair.of(Blocks::new, LootContextParamSets.BLOCK));
     }
 
     @Override
-    protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker) {
-        map.forEach((name, table) -> LootTableManager.validate(validationtracker, name, table));
+    protected void validate(Map<ResourceLocation, LootTable> map, ValidationContext validationtracker) {
+        map.forEach((name, table) -> LootTables.validate(validationtracker, name, table));
     }
 
-    private static class Blocks extends BlockLootTables {
+    private static class Blocks extends BlockLoot {
         @Override
         protected void addTables() {
             registerSelfDroppedBlock(Registration.FIELD_PROJECTOR_BLOCK, Registration.FIELD_PROJECTOR_ITEM);
@@ -45,9 +52,9 @@ public class LootTableGenerator extends LootTableProvider {
         private LootPool.Builder registerSelfDroppedBlock(RegistryObject<Block> block, RegistryObject<Item> item) {
             LootPool.Builder builder = LootPool.lootPool()
                     .name(block.get().getRegistryName().toString())
-                    .setRolls(ConstantRange.exactly(1))
-                    .when(SurvivesExplosion.survivesExplosion())
-                    .add(ItemLootEntry.lootTableItem(item.get()));
+                    .setRolls(ConstantValue.exactly(1))
+                    .when(ExplosionCondition.survivesExplosion())
+                    .add(LootItem.lootTableItem(item.get()));
 
             this.add(block.get(), LootTable.lootTable().withPool(builder));
             return builder;

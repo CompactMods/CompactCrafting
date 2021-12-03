@@ -9,12 +9,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
@@ -23,13 +22,13 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
 
     public static final Codec<ItemStackCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
             ResourceLocation.CODEC.fieldOf("item").forGetter(ItemStackCatalystMatcher::getItemId),
-            CompoundNBT.CODEC.optionalFieldOf("nbt").forGetter(ItemStackCatalystMatcher::getNbtTag)
+            CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(ItemStackCatalystMatcher::getNbtTag)
     ).apply(i, ItemStackCatalystMatcher::new));
 
     private final Predicate<ItemStack> nbtMatcher;
 
-    private Optional<CompoundNBT> getNbtTag() {
-        return Optional.of(new CompoundNBT());
+    private Optional<CompoundTag> getNbtTag() {
+        return Optional.of(new CompoundTag());
     }
 
     private final Item item;
@@ -40,7 +39,7 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
     }
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    public ItemStackCatalystMatcher(ResourceLocation item, Optional<CompoundNBT> nbt) {
+    public ItemStackCatalystMatcher(ResourceLocation item, Optional<CompoundTag> nbt) {
         this.item = ForgeRegistries.ITEMS.getValue(item);
         this.nbtMatcher = buildMatcher(nbt.orElse(null));
     }
@@ -50,7 +49,7 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
         this.nbtMatcher = (s) -> true;
     }
 
-    private Predicate<ItemStack> buildMatcher(CompoundNBT filter) {
+    private Predicate<ItemStack> buildMatcher(CompoundTag filter) {
         if(filter == null)
             return (stack) -> true;
 
@@ -61,7 +60,7 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
         };
     }
 
-    private boolean tagMatched(CompoundNBT node, CompoundNBT filter) {
+    private boolean tagMatched(CompoundTag node, CompoundTag filter) {
         // filter: "mycompound: {}"
         if(filter.isEmpty()) return true;
 
@@ -70,12 +69,12 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
                 return false;
 
             final byte tagType = filter.getTagType(key);
-            if (tagType == Constants.NBT.TAG_COMPOUND) {
+            if (tagType == Tag.TAG_COMPOUND) {
                 // nested properties, recurse deeper
                 return tagMatched(node.getCompound(key), filter.getCompound(key));
             } else {
                 // all other key types are "primitives" - direct match time
-                INBT primitive = node.get(key);
+                Tag primitive = node.get(key);
                 if(primitive == null) return false;
 
                 return primitive.equals(filter.get(key));

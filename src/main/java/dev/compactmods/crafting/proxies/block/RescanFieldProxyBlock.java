@@ -5,32 +5,27 @@ import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
-public class RescanFieldProxyBlock extends FieldProxyBlock {
+public class RescanFieldProxyBlock extends FieldProxyBlock implements EntityBlock {
 
     public RescanFieldProxyBlock(Properties props) {
         super(props);
     }
 
-    @Override
-    public boolean hasTileEntity(BlockState state) {
-        return true;
-    }
-
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        return new RescanFieldProxyEntity();
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new RescanFieldProxyEntity(pos, state);
     }
 
     @Override
-    public void neighborChanged(BlockState thisState, World level, BlockPos thisPos, Block changedBlock, BlockPos changedPos, boolean _b) {
+    public void neighborChanged(BlockState thisState, Level level, BlockPos thisPos, Block changedBlock, BlockPos changedPos, boolean _b) {
         if (level.isClientSide) {
             return;
         }

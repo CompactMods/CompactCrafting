@@ -1,22 +1,21 @@
 package dev.compactmods.crafting.items;
 
+import javax.annotation.Nullable;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.client.ui.container.TestContainer;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.inventory.container.INamedContainerProvider;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.network.NetworkHooks;
-
-import javax.annotation.Nullable;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.network.NetworkHooks;
 
 public class TestItem extends Item {
     public TestItem(Properties p_i48487_1_) {
@@ -24,24 +23,24 @@ public class TestItem extends Item {
     }
 
     @Override
-    public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         if(!level.isClientSide) {
-            INamedContainerProvider p = new INamedContainerProvider() {
+            MenuProvider p = new MenuProvider() {
                 @Override
-                public ITextComponent getDisplayName() {
-                    return new TranslationTextComponent(CompactCrafting.MOD_ID.concat(".gui.test"));
+                public Component getDisplayName() {
+                    return new TranslatableComponent(CompactCrafting.MOD_ID.concat(".gui.test"));
                 }
 
                 @Nullable
                 @Override
-                public Container createMenu(int cid, PlayerInventory playerInv, PlayerEntity player) {
+                public AbstractContainerMenu createMenu(int cid, Inventory playerInv, Player player) {
                     return new TestContainer(cid, level, playerInv, player);
                 }
             };
 
-            NetworkHooks.openGui((ServerPlayerEntity) player, p);
+            NetworkHooks.openGui((ServerPlayer) player, p);
         }
 
-        return ActionResult.pass(player.getItemInHand(hand));
+        return InteractionResultHolder.pass(player.getItemInHand(hand));
     }
 }

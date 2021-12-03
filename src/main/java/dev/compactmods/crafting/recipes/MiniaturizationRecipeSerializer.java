@@ -1,19 +1,18 @@
 package dev.compactmods.crafting.recipes;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.server.ServerConfig;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
-        implements IRecipeSerializer<MiniaturizationRecipe> {
+public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+        implements RecipeSerializer<MiniaturizationRecipe> {
 
     @Override
     public MiniaturizationRecipe fromJson(ResourceLocation recipeId, JsonObject json) {
@@ -36,7 +35,7 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
 
     @Nullable
     @Override
-    public MiniaturizationRecipe fromNetwork(ResourceLocation recipeId, PacketBuffer buffer) {
+    public MiniaturizationRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer) {
         boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
         if (debugReg) CompactCrafting.LOGGER.debug("Starting recipe read: {}", recipeId);
 
@@ -45,29 +44,20 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<IRecipeS
             return null;
         }
 
-        try {
-            final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
-            recipe.setId(recipeId);
+        final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
+        recipe.setId(recipeId);
 
-            if(debugReg) CompactCrafting.LOGGER.debug("Finished recipe read: {}", recipeId);
+        if(debugReg) CompactCrafting.LOGGER.debug("Finished recipe read: {}", recipeId);
 
-            return recipe;
-        } catch (IOException e) {
-            CompactCrafting.LOGGER.error(String.format("Miniaturization recipe failed to decode: %s", recipeId), e);
-            return null;
-        }
+        return recipe;
     }
 
     @Override
-    public void toNetwork(PacketBuffer buffer, MiniaturizationRecipe recipe) {
+    public void toNetwork(FriendlyByteBuf buffer, MiniaturizationRecipe recipe) {
         boolean debugReg = ServerConfig.RECIPE_REGISTRATION.get();
-        if(debugReg && recipe != null)
+        if(debugReg)
             CompactCrafting.LOGGER.debug("Sending recipe over network: {}", recipe.getRecipeIdentifier());
 
-        try {
-            buffer.writeWithCodec(MiniaturizationRecipe.CODEC, recipe);
-        } catch (IOException ioe) {
-                CompactCrafting.LOGGER.error("Failed to encode recipe for network.", ioe);
-        }
+        buffer.writeWithCodec(MiniaturizationRecipe.CODEC, recipe);
     }
 }

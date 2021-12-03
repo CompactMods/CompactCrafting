@@ -1,35 +1,33 @@
 package dev.compactmods.crafting.client.ui.widget.tab;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import java.util.function.Consumer;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.client.ui.UiHelper;
 import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPostBackgroundRenderable;
 import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPreBackgroundRenderable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.IRenderable;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Vector2f;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.Widget;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec2;
 
-import java.util.function.Consumer;
-
-public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
+public class GuiTab implements Widget, GuiEventListener, IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
 
     protected final ResourceLocation TEXTURE = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/widget/tabs.png");
 
     private final ItemRenderer itemRenderer;
-    private final FontRenderer fontRenderer;
+    private final Font fontRenderer;
     private TabsWidget container;
     private boolean isAlignedRight;
     private ItemStack icon;
 
-    protected Vector2f screenPosition;
+    protected Vec2 screenPosition;
     private Consumer<GuiTab> clickHandler;
 
     public GuiTab(TabsWidget container, ItemStack icon) {
@@ -55,7 +53,7 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
         return this;
     }
 
-    public void setPosition(Vector2f screenPosition) {
+    public void setPosition(Vec2 screenPosition) {
         this.screenPosition = screenPosition;
     }
 
@@ -79,12 +77,12 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
     }
 
     @Override
-    public void render(MatrixStack ms, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack ms, int mouseX, int mouseY, float partialTicks) {
 
     }
 
-    protected void renderTabButton(MatrixStack matrix, boolean isActive, boolean topRow, boolean rightAligned, ItemStack icon) {
-        Vector2f tabPos = this.screenPosition;
+    protected void renderTabButton(PoseStack matrix, boolean isActive, boolean topRow, boolean rightAligned, ItemStack icon) {
+        Vec2 tabPos = this.screenPosition;
 
         int uvU = 0;
         int uvV = 0;
@@ -111,30 +109,29 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
             renderPosY -= 4;
         }
 
-        RenderSystem.color3f(1F, 1F, 1F); //Forge: Reset color in case Items change it.
         RenderSystem.enableBlend(); //Forge: Make sure blend is enabled else tabs show a white border.
-        AbstractGui.blit(matrix, (int) renderPosX, (int) renderPosY, 0, (float) uvU, (float) uvV, 28, 32, 256, 256);
+        GuiComponent.blit(matrix, (int) renderPosX, (int) renderPosY, 0, (float) uvU, (float) uvV, 28, 32, 256, 256);
 
-        RenderSystem.pushMatrix();
-        Matrix4f m = matrix.last().pose();
-        RenderSystem.multMatrix(m);
-
-        int iconRenderX = (int) renderPosX + 6;
-        int iconRenderY = (int) renderPosY + 8 + (topRow ? 1 : -1);
-        RenderSystem.enableRescaleNormal();
-
-        this.itemRenderer.renderAndDecorateItem(icon, iconRenderX, iconRenderY);
-        this.itemRenderer.renderGuiItemDecorations(this.fontRenderer, icon, iconRenderX, iconRenderY);
-
-        RenderSystem.popMatrix();
+//        RenderSystem.pushMatrix();
+//        Matrix4f m = matrix.last().pose();
+//        RenderSystem.multMatrix(m);
+//
+//        int iconRenderX = (int) renderPosX + 6;
+//        int iconRenderY = (int) renderPosY + 8 + (topRow ? 1 : -1);
+//        RenderSystem.enableRescaleNormal();
+//
+//        this.itemRenderer.renderAndDecorateItem(icon, iconRenderX, iconRenderY);
+//        this.itemRenderer.renderGuiItemDecorations(this.fontRenderer, icon, iconRenderX, iconRenderY);
+//
+//        RenderSystem.popMatrix();
     }
 
     @Override
-    public void renderPostBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderPostBackground(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (container.isActive(this)) {
             // Renders active tab above rest of background
             matrixStack.pushPose();
-            Minecraft.getInstance().getTextureManager().bind(TEXTURE);
+            Minecraft.getInstance().getTextureManager().bindForSetup(TEXTURE);
             renderTabButton(matrixStack, true,
                     container.getSide() == EnumTabWidgetSide.TOP,
                     isAlignedRight, icon);
@@ -144,9 +141,9 @@ public class GuiTab implements IRenderable, IGuiEventListener, IWidgetPreBackgro
     }
 
     @Override
-    public void renderPreBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderPreBackground(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (!container.isActive(this)) {
-            Minecraft.getInstance().getTextureManager().bind(TEXTURE);
+            Minecraft.getInstance().getTextureManager().bindForSetup(TEXTURE);
             renderTabButton(matrixStack, false,
                     container.getSide() == EnumTabWidgetSide.TOP,
                     isAlignedRight, this.icon);

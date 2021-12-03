@@ -1,8 +1,8 @@
 package dev.compactmods.crafting.client.ui.widget;
 
-import net.minecraft.client.gui.screen.IScreen;
-import net.minecraft.util.math.vector.Vector2f;
+import net.minecraft.client.renderer.texture.Tickable;
+import net.minecraft.world.phys.Vec2;
 
-public interface IWidgetScreen extends IScreen {
-    Vector2f getScreenSize();
+public interface IWidgetScreen extends Tickable {
+    Vec2 getScreenSize();
 }

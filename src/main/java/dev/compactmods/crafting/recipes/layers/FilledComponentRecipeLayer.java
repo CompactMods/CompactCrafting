@@ -16,20 +16,21 @@ import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
 
     private final String componentKey;
-    private AxisAlignedBB recipeDimensions;
+    private AABB recipeDimensions;
 
     public static final Codec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.create(in -> in.group(
             Codec.STRING.fieldOf("component").forGetter(FilledComponentRecipeLayer::getComponent)
         ).apply(in, FilledComponentRecipeLayer::new));
 
     public FilledComponentRecipeLayer(String component) {
-        this.recipeDimensions = AxisAlignedBB.ofSize(0, 0, 0);
+        this.recipeDimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
         this.componentKey = component;
     }
 
@@ -88,7 +89,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
      *
      * @param dimensions The new dimensions of the recipe.
      */
-    public void setRecipeDimensions(AxisAlignedBB dimensions) {
+    public void setRecipeDimensions(AABB dimensions) {
         this.recipeDimensions = dimensions;
     }
 }

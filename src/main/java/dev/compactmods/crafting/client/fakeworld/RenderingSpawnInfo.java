@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.client.fakeworld;
 
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.GameRules;
-import net.minecraft.world.storage.ISpawnWorldInfo;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.storage.WritableLevelData;
 
-public class RenderingSpawnInfo implements ISpawnWorldInfo {
+public class RenderingSpawnInfo implements WritableLevelData {
     private static final GameRules RULES = new GameRules();
 
     private int spawnX;

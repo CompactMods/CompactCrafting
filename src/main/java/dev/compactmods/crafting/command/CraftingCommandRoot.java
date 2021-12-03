@@ -8,11 +8,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.compactmods.crafting.CompactCrafting;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.ChatType;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -27,16 +27,16 @@ public class CraftingCommandRoot {
         register(event.getDispatcher());
     }
 
-    private static void register(CommandDispatcher<CommandSource> dispatcher) {
-        final LiteralArgumentBuilder<CommandSource> root = LiteralArgumentBuilder.literal(CompactCrafting.MOD_ID);
+    private static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        final LiteralArgumentBuilder<CommandSourceStack> root = LiteralArgumentBuilder.literal(CompactCrafting.MOD_ID);
         root.then(Commands.literal("test")
                 .requires(cs -> cs.hasPermission(2))
                 .executes(CraftingCommandRoot::test));
         dispatcher.register(root);
     }
 
-    private static int test(CommandContext<CommandSource> ctx) throws CommandSyntaxException {
-        final ServerPlayerEntity player = ctx.getSource().getPlayerOrException();
+    private static int test(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        final ServerPlayer player = ctx.getSource().getPlayerOrException();
 
         if(PREV != null && !PREV.isDisposed()) {
             PREV.dispose();
@@ -48,12 +48,12 @@ public class CraftingCommandRoot {
             PREV = l.buffer(500, TimeUnit.MILLISECONDS)
                     .subscribe(times -> {
                         if (!times.isEmpty())
-                            player.sendMessage(new StringTextComponent(String.join(",", times.stream()
+                            player.sendMessage(new TextComponent(String.join(",", times.stream()
                                     .map(Object::toString).toArray(String[]::new))), ChatType.CHAT, player.getUUID());
                     }, err -> {
                         CompactCrafting.LOGGER.debug("error");
                     }, () -> {
-                        player.sendMessage(new StringTextComponent("done"), ChatType.CHAT, player.getUUID());
+                        player.sendMessage(new TextComponent("done"), ChatType.CHAT, player.getUUID());
                     });
 
             player.server.submitAsync(() -> {

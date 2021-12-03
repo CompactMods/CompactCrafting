@@ -1,11 +1,11 @@
 package dev.compactmods.crafting.recipes.setup;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
-public abstract class RecipeBase implements IRecipe<FakeInventory> {
+public abstract class RecipeBase implements Recipe<FakeInventory> {
 
     /**
      * Used to check if a recipe matches current crafting inventory
@@ -14,7 +14,7 @@ public abstract class RecipeBase implements IRecipe<FakeInventory> {
      * @param worldIn
      */
     @Override
-    public boolean matches(FakeInventory inv, World worldIn) {
+    public boolean matches(FakeInventory inv, Level worldIn) {
         return true;
     }
 

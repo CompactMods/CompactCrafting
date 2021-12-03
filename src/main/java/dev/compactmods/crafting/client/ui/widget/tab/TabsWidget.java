@@ -1,7 +1,9 @@
 package dev.compactmods.crafting.client.ui.widget.tab;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import java.util.HashMap;
+import java.util.Map;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.client.ui.UiHelper;
 import dev.compactmods.crafting.client.ui.widget.IWidgetScreen;
@@ -9,20 +11,17 @@ import dev.compactmods.crafting.client.ui.widget.WidgetBase;
 import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPostBackgroundRenderable;
 import dev.compactmods.crafting.client.ui.widget.renderable.IWidgetPreBackgroundRenderable;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.renderer.ItemRenderer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.StringTextComponent;
-
-import java.util.HashMap;
-import java.util.Map;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 
 public class TabsWidget extends WidgetBase implements
-        IGuiEventListener,
+        GuiEventListener,
         IWidgetPreBackgroundRenderable, IWidgetPostBackgroundRenderable {
 
     protected final ResourceLocation TEXTURE = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/widget/tabs.png");
@@ -33,7 +32,7 @@ public class TabsWidget extends WidgetBase implements
     protected final int ARROW_OFFSET_DISABLED = 1;
     protected final int ARROW_OFFSET_HOVERED = 2;
 
-    protected final Vector2f ARROW_TEXTURE_SIZE = new Vector2f(10, 15);
+    protected final Vec2 ARROW_TEXTURE_SIZE = new Vec2(10, 15);
 
     private final ItemRenderer itemRenderer;
     protected Map<Integer, GuiTab> tabs;
@@ -60,7 +59,7 @@ public class TabsWidget extends WidgetBase implements
         boolean firstAdded = tabs.isEmpty();
 
         this.tabs.put(tabs.size(), tab);
-        Vector2f bake = getTabPosition(tab);
+        Vec2 bake = getTabPosition(tab);
         tab.setPosition(bake);
 
         if (firstAdded)
@@ -72,7 +71,7 @@ public class TabsWidget extends WidgetBase implements
 
     public void layout() {
         for (GuiTab tab : tabs.values()) {
-            Vector2f bake = getTabPosition(tab);
+            Vec2 bake = getTabPosition(tab);
             tab.setPosition(bake);
         }
 
@@ -85,7 +84,7 @@ public class TabsWidget extends WidgetBase implements
         return this;
     }
 
-    protected Vector3d getRealRelativePos(double mouseX, double mouseY) {
+    protected Vec3 getRealRelativePos(double mouseX, double mouseY) {
         double realX = mouseX;
         double realY = mouseY;
         switch (screenSide) {
@@ -100,18 +99,18 @@ public class TabsWidget extends WidgetBase implements
                 break;
         }
 
-        return new Vector3d(realX, realY, 0);
+        return new Vec3(realX, realY, 0);
     }
 
     @Override
     public boolean isMouseOver(double mouseX, double mouseY) {
-        Vector3d realCoords = getRealRelativePos(mouseX, mouseY);
+        Vec3 realCoords = getRealRelativePos(mouseX, mouseY);
         return UiHelper.pointInBounds(realCoords.x, realCoords.y, 0, 0, width, height);
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        Vector3d realCoords = getRealRelativePos(mouseX, mouseY);
+        Vec3 realCoords = getRealRelativePos(mouseX, mouseY);
         for (GuiTab tab : tabs.values()) {
             if (tab.isOver(realCoords.x, realCoords.y)) {
                 double tabX = realCoords.x - tab.screenPosition.x;
@@ -125,8 +124,8 @@ public class TabsWidget extends WidgetBase implements
     }
 
     @Override
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        FontRenderer font = Minecraft.getInstance().font;
+    public void render(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+        Font font = Minecraft.getInstance().font;
 
         String page = String.format("%d/%d", currentPage + 1, numPages);
         int width = font.width(page);
@@ -135,7 +134,7 @@ public class TabsWidget extends WidgetBase implements
         int yOffset = -font.lineHeight - 28 - 2;
         int yOffsetArrows = -28 - (int) ARROW_TEXTURE_SIZE.y;
 
-        RenderSystem.pushMatrix();
+        // RenderSystem.pushMatrix();
         if (this.screenSide == EnumTabWidgetSide.BOTTOM) {
             matrixStack.translate(0, parentHeight, 0);
             yOffset = height + 4;
@@ -143,11 +142,11 @@ public class TabsWidget extends WidgetBase implements
         }
 
         font.draw(matrixStack,
-                new StringTextComponent(page),
+                new TextComponent(page),
                 xOffset, yOffset, 0xFFFFFFFF);
 
-        Minecraft.getInstance().getTextureManager().bind(TEXTURE);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1);
+        Minecraft.getInstance().getTextureManager().bindForSetup(TEXTURE);
+        RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.enableDepthTest();
@@ -159,7 +158,7 @@ public class TabsWidget extends WidgetBase implements
         float arrowLeftU = ARROW_OFFSET_X;
         float arrowLeftV = ARROW_OFFSET_Y + ARROW_TEXTURE_SIZE.y;
 
-        Vector3d realCoords = getRealRelativePos(mouseX, mouseY);
+        Vec3 realCoords = getRealRelativePos(mouseX, mouseY);
 
         boolean mouseOverAL = mouseX > 0 && mouseX <= 100;
         CompactCrafting.LOGGER.debug(String.format("%s,%s", mouseX, mouseY));
@@ -169,23 +168,23 @@ public class TabsWidget extends WidgetBase implements
         if (mouseOverAL)
             arrowLeftU += (2 * ARROW_TEXTURE_SIZE.x);
 
-        AbstractGui.blit(matrixStack,
+        GuiComponent.blit(matrixStack,
                 arrowLeft, yOffsetArrows, 0,
                 arrowLeftU, arrowLeftV,
                 (int) ARROW_TEXTURE_SIZE.x, (int) ARROW_TEXTURE_SIZE.y,
                 256, 256);
 
-        AbstractGui.blit(matrixStack,
+        GuiComponent.blit(matrixStack,
                 arrowRight, yOffsetArrows, 0,
                 ARROW_OFFSET_X, ARROW_OFFSET_Y,
                 (int) ARROW_TEXTURE_SIZE.x, (int) ARROW_TEXTURE_SIZE.y,
                 256, 256);
 
-        RenderSystem.popMatrix();
+        // RenderSystem.popMatrix();
     }
 
     @Override
-    public void renderPreBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderPreBackground(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (!this.tabs.isEmpty()) {
             int numTabs = getNumberTabs();
             int numTabsPerRow = width / 28;
@@ -210,7 +209,7 @@ public class TabsWidget extends WidgetBase implements
     }
 
     @Override
-    public void renderPostBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
+    public void renderPostBackground(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         if (!this.tabs.isEmpty()) {
             matrixStack.pushPose();
             if (this.screenSide == EnumTabWidgetSide.BOTTOM)
@@ -240,16 +239,16 @@ public class TabsWidget extends WidgetBase implements
         return -1;
     }
 
-    public Vector2f getTabPosition(GuiTab tab) {
+    public Vec2 getTabPosition(GuiTab tab) {
         int index = getTabIndex(tab);
         if (index == -1)
-            return Vector2f.MIN;
+            return Vec2.MIN;
 
         if (!tab.isOnRight())
-            return new Vector2f(tab.getWidth() * index, 0);
+            return new Vec2(tab.getWidth() * index, 0);
 
         float x = this.width - (tab.getWidth() * (tabs.size() - index));
-        return new Vector2f(x, 0);
+        return new Vec2(x, 0);
     }
 
     public boolean isActive(GuiTab tab) {

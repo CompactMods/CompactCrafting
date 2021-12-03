@@ -6,7 +6,7 @@ import dev.compactmods.crafting.api.FieldDestabilizeHandling;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ServerConfig {
@@ -68,7 +68,7 @@ public class ServerConfig {
     }
 
     @SubscribeEvent
-    public static void onConfigEvent(final ModConfig.ModConfigEvent configEvent) {
+    public static void onConfigEvent(final ModConfigEvent configEvent) {
         ServerConfig.DESTABILIZE_HANDLING = ServerConfig.FIELD_DESTABILIZE_HANDLING.get();
     }
 }

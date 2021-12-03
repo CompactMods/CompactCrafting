@@ -9,23 +9,27 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.projector.ProjectorHelper;
-import net.minecraft.block.BlockState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
-public class ActiveWorldFields implements IActiveWorldFields {
+public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<ListTag> {
 
-    private World level;
+    private Level level;
 
     /**
      * Holds a set of miniaturization fields that are active, referenced by their center point.
@@ -38,14 +42,14 @@ public class ActiveWorldFields implements IActiveWorldFields {
         this.laziness = new HashMap<>();
     }
 
-    public ActiveWorldFields(World level) {
+    public ActiveWorldFields(Level level) {
         this();
         this.level = level;
     }
 
 
     @Override
-    public void setLevel(World level) {
+    public void setLevel(Level level) {
         this.level = level;
     }
 
@@ -59,7 +63,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .filter(IMiniaturizationField::isLoaded)
                 .collect(Collectors.toSet());
 
-        if(loaded.isEmpty())
+        if (loaded.isEmpty())
             return;
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
@@ -87,7 +91,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
                 .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
                 .findFirst();
 
-        if(anyMissing.isPresent()) {
+        if (anyMissing.isPresent()) {
             CompactCrafting.LOGGER.warn("Trying to register an active field with missing projector at {}; real state: {}", anyMissing.get(), level.getBlockState(anyMissing.get()));
             return field;
         }
@@ -95,11 +99,11 @@ public class ActiveWorldFields implements IActiveWorldFields {
         addFieldInstance(field);
         field.getProjectorPositions().forEach(pos -> {
             BlockState stateAt = level.getBlockState(pos);
-            if(!(stateAt.getBlock() instanceof FieldProjectorBlock))
+            if (!(stateAt.getBlock() instanceof FieldProjectorBlock))
                 return;
 
-            if(stateAt.hasTileEntity()) {
-                TileEntity tileAt = level.getBlockEntity(pos);
+            if (stateAt.hasBlockEntity()) {
+                BlockEntity tileAt = level.getBlockEntity(pos);
                 if (tileAt instanceof FieldProjectorTile) {
                     ((FieldProjectorTile) tileAt).setFieldRef(field.getRef());
                 }
@@ -110,7 +114,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
     }
 
     public void unregisterField(BlockPos center) {
-        if(fields.containsKey(center)) {
+        if (fields.containsKey(center)) {
             IMiniaturizationField removedField = fields.remove(center);
             final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
             removed.invalidate();
@@ -152,7 +156,24 @@ public class ActiveWorldFields implements IActiveWorldFields {
     }
 
     @Override
-    public RegistryKey<World> getLevel() {
+    public ResourceKey<Level> getLevel() {
         return level.dimension();
+    }
+
+    @Override
+    public ListTag serializeNBT() {
+        return getFields()
+                .map(IMiniaturizationField::serverData)
+                .collect(NbtListCollector.toNbtList());
+    }
+
+    @Override
+    public void deserializeNBT(ListTag nbt) {
+        nbt.forEach(item -> {
+            if (item instanceof CompoundTag ct) {
+                MiniaturizationField field = new MiniaturizationField(ct);
+                addFieldInstance(field);
+            }
+        });
     }
 }

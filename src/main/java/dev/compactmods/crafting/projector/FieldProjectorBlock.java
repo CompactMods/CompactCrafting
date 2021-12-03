@@ -11,47 +11,47 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItemUseContext;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.EnumProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.network.PacketDistributor;
 
-public class FieldProjectorBlock extends Block {
+public class FieldProjectorBlock extends Block implements EntityBlock {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
     public static final EnumProperty<MiniaturizationFieldSize> SIZE = EnumProperty.create("field", MiniaturizationFieldSize.class);
 
-    private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
+    private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
-    private static final VoxelShape POLE = VoxelShapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
+    private static final VoxelShape POLE = Shapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
 
-    private static final VoxelShape DISH_WEST = VoxelShapes.box(3 / 16d, 0.5d, 3 / 16d,
+    private static final VoxelShape DISH_WEST = Shapes.box(3 / 16d, 0.5d, 3 / 16d,
             7 / 16d, 1, 13 / 16d);
 
-    private static final VoxelShape DISH_EAST = VoxelShapes.box(9 / 16d, 0.5d, 3 / 16d,
+    private static final VoxelShape DISH_EAST = Shapes.box(9 / 16d, 0.5d, 3 / 16d,
             13 / 16d, 1, 13 / 16d);
 
-    private static final VoxelShape DISH_NORTH = VoxelShapes.box(3 / 16d, 0.5d, 3 / 16d,
+    private static final VoxelShape DISH_NORTH = Shapes.box(3 / 16d, 0.5d, 3 / 16d,
             13 / 16d, 1, 7 / 16d);
 
-    private static final VoxelShape DISH_SOUTH = VoxelShapes.box(3 / 16d, 0.5d, 9 / 16d,
+    private static final VoxelShape DISH_SOUTH = Shapes.box(3 / 16d, 0.5d, 9 / 16d,
             13 / 16d, 1, 13 / 16d);
 
     public FieldProjectorBlock(Properties properties) {
@@ -62,7 +62,7 @@ public class FieldProjectorBlock extends Block {
                 .setValue(SIZE, MiniaturizationFieldSize.INACTIVE));
     }
 
-    public static Optional<Direction> getDirection(IBlockReader world, BlockPos position) {
+    public static Optional<Direction> getDirection(BlockGetter world, BlockPos position) {
         BlockState positionState = world.getBlockState(position);
 
         // The passed block position was not a field projector, cannot continue
@@ -75,42 +75,42 @@ public class FieldProjectorBlock extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getShape(BlockState state, IBlockReader levelReader, BlockPos pos, ISelectionContext ctx) {
+    public VoxelShape getShape(BlockState state, BlockGetter levelReader, BlockPos pos, CollisionContext ctx) {
         Direction dir = state.getValue(FieldProjectorBlock.FACING);
 
         switch (dir) {
             case WEST:
-                return VoxelShapes.or(BASE, POLE, DISH_WEST);
+                return Shapes.or(BASE, POLE, DISH_WEST);
 
             case NORTH:
-                return VoxelShapes.or(BASE, POLE, DISH_NORTH);
+                return Shapes.or(BASE, POLE, DISH_NORTH);
 
             case EAST:
-                return VoxelShapes.or(BASE, POLE, DISH_EAST);
+                return Shapes.or(BASE, POLE, DISH_EAST);
 
             case SOUTH:
-                return VoxelShapes.or(BASE, POLE, DISH_SOUTH);
+                return Shapes.or(BASE, POLE, DISH_SOUTH);
         }
 
-        return VoxelShapes.or(BASE, POLE);
+        return Shapes.or(BASE, POLE);
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getOcclusionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
-        return VoxelShapes.empty();
+    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+        return Shapes.empty();
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
         builder.add(FACING).add(SIZE);
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context) {
-        World level = context.getLevel();
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Direction looking = context.getHorizontalDirection();
 
@@ -140,22 +140,8 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
-    public boolean hasTileEntity(BlockState state) {
-        return isActive(state);
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world) {
-        if (isActive(state))
-            return new FieldProjectorTile(world, state);
-
-        return null;
-    }
-
-    @Override
     @SuppressWarnings("deprecation")
-    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit) {
+    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (world.isClientSide) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
             if(hasMissing) {
@@ -166,7 +152,7 @@ public class FieldProjectorBlock extends Block {
                         });
             }
 
-            return ActionResultType.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         // Uncomment for debug block placement
@@ -180,22 +166,22 @@ public class FieldProjectorBlock extends Block {
 //            });
 //        });
 
-        return ActionResultType.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 
     public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {
         return state.getValue(SIZE).getCenterFromProjector(projector, state.getValue(FACING));
     }
 
-    public static void deactivateProjector(World level, BlockPos pos) {
+    public static void deactivateProjector(Level level, BlockPos pos) {
         BlockState currentState = level.getBlockState(pos);
         if (currentState.getBlock() instanceof FieldProjectorBlock) {
             BlockState newState = currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
-            level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            level.setBlock(pos, newState, Block.UPDATE_ALL);
         }
     }
 
-    public static void activateProjector(World level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
+    public static void activateProjector(Level level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
         if (level.isLoaded(pos)) {
             BlockState currentState = level.getBlockState(pos);
             if (!(currentState.getBlock() instanceof FieldProjectorBlock)) {
@@ -204,14 +190,14 @@ public class FieldProjectorBlock extends Block {
 
             if (currentState.getValue(SIZE) != fieldSize) {
                 BlockState newState = currentState.setValue(SIZE, fieldSize);
-                level.setBlock(pos, newState, Constants.BlockFlags.DEFAULT_AND_RERENDER);
+                level.setBlock(pos, newState, Block.UPDATE_ALL);
             }
         }
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public void onPlace(BlockState state, World level, BlockPos pos, BlockState oldState, boolean b) {
+    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean b) {
         if (!isActive(state))
             return;
 
@@ -223,7 +209,7 @@ public class FieldProjectorBlock extends Block {
 
         // If there are missing projectors but the projector is supposed to be active, deactivate
         if (hasMissing) {
-            level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Constants.BlockFlags.DEFAULT_AND_RERENDER);
+            level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Block.UPDATE_ALL);
         } else {
             final MinecraftServer server = level.getServer();
             if (server == null)
@@ -257,7 +243,7 @@ public class FieldProjectorBlock extends Block {
 
     // only called on the server
     @Override
-    public void onRemove(BlockState oldState, World level, BlockPos pos, BlockState newState, boolean p_196243_5_) {
+    public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean p_196243_5_) {
         final BlockPos fieldCenter = getFieldCenter(oldState, pos);
         final MiniaturizationFieldSize fieldSize = oldState.getValue(SIZE);
 
@@ -281,13 +267,13 @@ public class FieldProjectorBlock extends Block {
     }
 
     @Override
-    public void neighborChanged(BlockState state, World level, BlockPos pos, Block changer, BlockPos changedPos, boolean update) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block changer, BlockPos changedPos, boolean update) {
         super.neighborChanged(state, level, pos, changer, changedPos, update);
         if (level.isClientSide)
             return;
 
         if (isActive(state)) {
-            TileEntity tile = level.getBlockEntity(pos);
+            BlockEntity tile = level.getBlockEntity(pos);
             if (tile instanceof FieldProjectorTile) {
                 FieldProjectorTile fpt = (FieldProjectorTile) tile;
                 if (level.getBestNeighborSignal(pos) > 0) {
@@ -307,5 +293,14 @@ public class FieldProjectorBlock extends Block {
                 });
             });
         }
+    }
+
+    @Nullable
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        if (isActive(state))
+            return new FieldProjectorTile(pos, state);
+
+        return null;
     }
 }

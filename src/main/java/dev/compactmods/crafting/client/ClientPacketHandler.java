@@ -9,19 +9,19 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorTile;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.BlockPos;
 
 public abstract class ClientPacketHandler {
 
-    public static void handleFieldActivation(IMiniaturizationField field, CompoundNBT fieldClientData) {
+    public static void handleFieldActivation(IMiniaturizationField field, CompoundTag fieldClientData) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
-            ClientWorld cw = mc.level;
+            ClientLevel cw = mc.level;
             if (cw == null)
                 return;
 
@@ -36,7 +36,7 @@ public abstract class ClientPacketHandler {
     public static void handleFieldDeactivation(BlockPos center) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
-            ClientWorld cw = mc.level;
+            ClientLevel cw = mc.level;
             cw.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
                 fields.get(center).map(IMiniaturizationField::getProjectorPositions)
                         .orElse(Stream.empty())
@@ -47,7 +47,7 @@ public abstract class ClientPacketHandler {
         });
     }
 
-    public static void handleFieldData(CompoundNBT fieldData) {
+    public static void handleFieldData(CompoundTag fieldData) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null)
             return;

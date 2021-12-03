@@ -4,7 +4,7 @@ import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
@@ -25,30 +25,30 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MainWindow;
+import net.minecraft.world.level.block.state.BlockState;
+import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.sounds.SoundManager;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvents;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Matrix4f;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Quaternion;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import org.lwjgl.BufferUtils;
@@ -57,7 +57,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     public static final ResourceLocation UID = new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization");
     private final IDrawable icon;
-    private final BlockRendererDispatcher blocks;
+    private final BlockRenderDispatcher blocks;
     private RenderingWorld previewLevel;
 
     private IGuiHelper guiHelper;
@@ -184,18 +184,18 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         int finalCatalystSlot = catalystSlot;
         guiItemStacks.addTooltipCallback((slot, b, itemStack, tooltip) -> {
             if (slot >= 0 && slot < recipe.getComponents().size()) {
-                IFormattableTextComponent text =
-                        new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
-                                .withStyle(TextFormatting.GRAY)
-                                .withStyle(TextFormatting.ITALIC);
+                MutableComponent text =
+                        new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
+                                .withStyle(ChatFormatting.GRAY)
+                                .withStyle(ChatFormatting.ITALIC);
 
                 tooltip.add(text);
             }
 
             if (slot == finalCatalystSlot) {
-                IFormattableTextComponent text = new TranslationTextComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
-                        .withStyle(TextFormatting.YELLOW)
-                        .withStyle(TextFormatting.ITALIC);
+                MutableComponent text = new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
+                        .withStyle(ChatFormatting.YELLOW)
+                        .withStyle(ChatFormatting.ITALIC);
 
                 tooltip.add(text);
             }
@@ -262,25 +262,25 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     @Override
     public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
 
-        SoundHandler handler = Minecraft.getInstance().getSoundManager();
+        SoundManager handler = Minecraft.getInstance().getSoundManager();
 
 
         if (explodeToggle.contains(mouseX, mouseY)) {
             explodeMulti = exploded ? 1.0d : 1.6d;
             exploded = !exploded;
-            handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerSwap.contains(mouseX, mouseY)) {
             singleLayer = !singleLayer;
-            handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+            handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             return true;
         }
 
         if (layerUp.contains(mouseX, mouseY) && singleLayer) {
             if (singleLayerOffset < recipe.getDimensions().getYsize() - 1) {
-                handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset++;
             }
 
@@ -289,7 +289,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
         if (layerDown.contains(mouseX, mouseY) && singleLayer) {
             if (singleLayerOffset > 0) {
-                handler.play(SimpleSound.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 singleLayerOffset--;
             }
 
@@ -301,7 +301,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
 
     //region Rendering help
     private void drawScaledTexture(
-            MatrixStack matrixStack,
+            PoseStack matrixStack,
             ResourceLocation texture,
             ScreenArea area,
             float u, float v,
@@ -312,17 +312,17 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         minecraft.getTextureManager().bind(texture);
 
         RenderSystem.enableDepthTest();
-        AbstractGui.blit(matrixStack, area.x, area.y, area.width, area.height,
+        GuiComponent.blit(matrixStack, area.x, area.y, area.width, area.height,
                 u, v, uWidth, vHeight, textureWidth, textureHeight);
     }
 
     //endregion
 
     @Override
-    public void draw(MiniaturizationRecipe recipe, MatrixStack mx, double mouseX, double mouseY) {
-        AxisAlignedBB dims = recipe.getDimensions();
+    public void draw(MiniaturizationRecipe recipe, PoseStack mx, double mouseX, double mouseY) {
+        AABB dims = recipe.getDimensions();
 
-        MainWindow mainWindow = Minecraft.getInstance().getWindow();
+        Window mainWindow = Minecraft.getInstance().getWindow();
 
         drawScaledTexture(mx,
                 new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-field.png"),
@@ -349,9 +349,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         if (previewLevel != null) renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
     }
 
-    private void renderRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, double guiScaleFactor, ScreenArea scissorBounds) {
+    private void renderRecipe(MiniaturizationRecipe recipe, PoseStack mx, AABB dims, double guiScaleFactor, ScreenArea scissorBounds) {
         try {
-            AbstractGui.fill(
+            GuiComponent.fill(
                     mx,
                     scissorBounds.x, scissorBounds.y,
                     scissorBounds.x + scissorBounds.width,
@@ -359,7 +359,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     0xFF404040
             );
 
-            IRenderTypeBuffer.Impl buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+            MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
 
             final double scale = Minecraft.getInstance().getWindow().getGuiScale();
             final Matrix4f matrix = mx.last().pose();
@@ -367,7 +367,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             matrix.store(buf);
 
             // { x, y, z }
-            Vector3d translation = new Vector3d(
+            Vec3 translation = new Vec3(
                     buf.get(12) * scale,
                     buf.get(13) * scale,
                     buf.get(14) * scale);
@@ -397,7 +397,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             // 03 = 11
             // 01 = 13
 
-            Vector3d dimsVec = new Vector3d(dims.getXsize(), dims.getYsize(), dims.getZsize());
+            Vec3 dimsVec = new Vec3(dims.getXsize(), dims.getYsize(), dims.getZsize());
             float recipeAvgDim = (float) dimsVec.length();
             float previewScale = (float) ((3 + Math.exp(3 - (recipeAvgDim / 5))) / explodeMulti);
             mx.scale(previewScale, -previewScale, previewScale);
@@ -414,7 +414,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void drawActualRecipe(MiniaturizationRecipe recipe, MatrixStack mx, AxisAlignedBB dims, IRenderTypeBuffer.Impl buffers) {
+    private void drawActualRecipe(MiniaturizationRecipe recipe, PoseStack mx, AABB dims, MultiBufferSource.BufferSource buffers) {
         double gameTime = Minecraft.getInstance().level.getGameTime();
         double test = Math.toDegrees(gameTime) / 15;
         mx.mulPose(new Quaternion(35f,
@@ -446,7 +446,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
     }
 
-    private void renderPreviewControls(MatrixStack mx, AxisAlignedBB dims) {
+    private void renderPreviewControls(PoseStack mx, AABB dims) {
         mx.pushPose();
         mx.translate(0, 0, 10);
 
@@ -477,11 +477,11 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         mx.popPose();
     }
 
-    private void renderRecipeLayer(MiniaturizationRecipe recipe, MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeLayer l, int layerY) {
+    private void renderRecipeLayer(MiniaturizationRecipe recipe, PoseStack mx, MultiBufferSource.BufferSource buffers, IRecipeLayer l, int layerY) {
         // Begin layer
         mx.pushPose();
 
-        AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), layerY);
+        AABB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), layerY);
         BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
             mx.pushPose();
 
@@ -504,20 +504,20 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         mx.popPose();
     }
 
-    private void renderComponent(MatrixStack mx, IRenderTypeBuffer.Impl buffers, IRecipeBlockComponent state, BlockPos filledPos) {
+    private void renderComponent(PoseStack mx, MultiBufferSource.BufferSource buffers, IRecipeBlockComponent state, BlockPos filledPos) {
         // TODO - Render switching at fixed interval
         if (state.didErrorRendering())
             return;
 
         BlockState state1 = state.getRenderState();
         // Thanks Immersive, Astral, and others
-        IRenderTypeBuffer light = CCRenderTypes.disableLighting(buffers);
+        MultiBufferSource light = CCRenderTypes.disableLighting(buffers);
 
         IModelData data = EmptyModelData.INSTANCE;
         if (previewLevel != null && state1.hasTileEntity()) {
             // create fake world instance
             // get tile entity - extend EmptyBlockReader with impl
-            TileEntity be = previewLevel.getBlockEntity(filledPos);
+            BlockEntity be = previewLevel.getBlockEntity(filledPos);
             if (be != null)
                 data = be.getModelData();
         }

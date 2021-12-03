@@ -28,7 +28,7 @@ archivesBaseName = mod_id
 println("Mod ID: ${mod_id}");
 println("Version: ${version}");
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(8)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 configurations {
     library
@@ -59,19 +59,25 @@ sourceSets {
         compileClasspath += sourceSets.api.output
     }
 
-    test {
-        compileClasspath += sourceSets.api.output
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.api.output
-        runtimeClasspath += sourceSets.main.output
-
-        resources {
-            srcDir "src/test/resources"
-        }
-    }
+//    test {
+//        compileClasspath += sourceSets.api.output
+//        compileClasspath += sourceSets.main.output
+//        runtimeClasspath += sourceSets.api.output
+//        runtimeClasspath += sourceSets.main.output
+//
+//        resources {
+//            srcDir "src/test/resources"
+//        }
+//    }
 }
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
+
+minecraft.runs.all {
+    lazyToken('minecraft_classpath') {
+        configurations.library.copyRecursive().resolve().collect { it.absolutePath }.join(File.pathSeparator)
+    }
+}
 
 minecraft {
     mappings channel: 'official', version: minecraft_version
@@ -141,51 +147,51 @@ minecraft {
             }
         }
 
-        unitTests {
-            parent runs.server
-
-            workingDirectory project.file('run/test')
-            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
-            // The main class which launches a customized server which then runs JUnit tests
-            ideaModule "${project.name}.test"
-            property 'forge.logging.console.level', 'unittest'
-            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
-            environment 'target', 'fmltestserver'
-            environment 'targetModId', "${mod_id}"
-            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
-            arg '--keepAlive'
-            forceExit = false
-            mods {
-                compactcrafting {
-                    source sourceSets.main
-                    source sourceSets.api
-                    source sourceSets.test
-                }
-            }
-        }
-
-        unitTestsCI {
-            parent runs.server
-
-            workingDirectory project.file('run/test')
-            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
-            // The main class which launches a customized server which then runs JUnit tests
-            ideaModule "${project.name}.test"
-            property 'forge.logging.console.level', 'unittest'
-            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
-            environment 'target', 'fmltestserver'
-            environment 'targetModId', "${mod_id}"
-            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
-            arg '--crashOnFailedTests'
-            forceExit = false
-            mods {
-                compactcrafting {
-                    source sourceSets.main
-                    source sourceSets.api
-                    source sourceSets.test
-                }
-            }
-        }
+//        unitTests {
+//            parent runs.server
+//
+//            workingDirectory project.file('run/test')
+//            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
+//            // The main class which launches a customized server which then runs JUnit tests
+//            ideaModule "${project.name}.test"
+//            property 'forge.logging.console.level', 'unittest'
+//            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
+//            environment 'target', 'fmltestserver'
+//            environment 'targetModId', "${mod_id}"
+//            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+//            arg '--keepAlive'
+//            forceExit = false
+//            mods {
+//                compactcrafting {
+//                    source sourceSets.main
+//                    source sourceSets.api
+//                    source sourceSets.test
+//                }
+//            }
+//        }
+//
+//        unitTestsCI {
+//            parent runs.server
+//
+//            workingDirectory project.file('run/test')
+//            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
+//            // The main class which launches a customized server which then runs JUnit tests
+//            ideaModule "${project.name}.test"
+//            property 'forge.logging.console.level', 'unittest'
+//            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
+//            environment 'target', 'fmltestserver'
+//            environment 'targetModId', "${mod_id}"
+//            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+//            arg '--crashOnFailedTests'
+//            forceExit = false
+//            mods {
+//                compactcrafting {
+//                    source sourceSets.main
+//                    source sourceSets.api
+//                    source sourceSets.test
+//                }
+//            }
+//        }
     }
 }
 
@@ -248,23 +254,23 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
+    // testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
 
     library "io.reactivex.rxjava3:rxjava:3.1.1";
 
     // Deobfuscate each dev mod for runtime
     dev_mods.each { implementation fg.deobf(it) }
 
-    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3318114"))
-    runtimeOnly(fg.deobf("curse.maven:sues-407174:3188120"))
+    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3542531"))
+    runtimeOnly(fg.deobf("curse.maven:shutupexperimental-407174:3544525"))
 
     // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    // compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
+    // runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 
     // The One Probe
-    compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
-    runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+    // compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
+    // runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
 }
 
 processResources {
@@ -326,15 +332,22 @@ task apiJar(type: Jar) {
     classifier("api")
 }
 
-task testJar(type: Jar) {
-    from sourceSets.api.output
-    from sourceSets.main.output
-    from sourceSets.test.output
-    classifier("tests")
+//task testJar(type: Jar) {
+//    from sourceSets.api.output
+//    from sourceSets.main.output
+//    from sourceSets.test.output
+//    classifier("tests")
+//}
+
+// Allow higher number of errors.
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xmaxerrs" << "9999"
+    }
 }
 
 artifacts {
-    archives jar, shadowJar, apiJar, testJar
+    archives jar, shadowJar, apiJar //, testJar
 }
 
 publishing {
@@ -345,7 +358,7 @@ publishing {
                 artifact(jar)
                 artifact(shadowJar)
                 artifact(apiJar)
-                artifact(testJar)
+                //artifact(testJar)
             }
         }
 
@@ -355,7 +368,7 @@ publishing {
                 artifact(jar)
                 artifact(shadowJar)
                 artifact(apiJar)
-                artifact(testJar)
+                //artifact(testJar)
             }
         }
     }
@@ -373,8 +386,8 @@ publishing {
     }
 }
 
-test {
-    useJUnitPlatform() {
-        excludeTags "minecraft"
-    }
-}
+//test {
+//    useJUnitPlatform() {
+//        excludeTags "minecraft"
+//    }
+//}

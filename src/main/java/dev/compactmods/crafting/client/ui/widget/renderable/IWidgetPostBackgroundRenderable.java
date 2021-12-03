@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.client.ui.widget.renderable;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 
 public interface IWidgetPostBackgroundRenderable {
-    void renderPostBackground(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks);
+    void renderPostBackground(PoseStack matrixStack, int mouseX, int mouseY, float partialTicks);
 }

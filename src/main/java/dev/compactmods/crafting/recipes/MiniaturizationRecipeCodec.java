@@ -20,7 +20,7 @@ import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
 import dev.compactmods.crafting.server.ServerConfig;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
 
 public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> {
 

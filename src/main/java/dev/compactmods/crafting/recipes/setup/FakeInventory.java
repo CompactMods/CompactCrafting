@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.recipes.setup;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 
-public class FakeInventory implements IInventory {
+public class FakeInventory implements Container {
     /**
      * Returns the number of slots in the inventory.
      */
@@ -71,7 +71,7 @@ public class FakeInventory implements IInventory {
      * @param player
      */
     @Override
-    public boolean stillValid(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return false;
     }
 

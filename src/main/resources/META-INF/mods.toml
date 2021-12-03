@@ -2,9 +2,9 @@
 modLoader="javafml" #mandatory
 
 # A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion="[34,36)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+loaderVersion="[38,39)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 
-license="All rights reserved"
+license="MIT"
 
 # A list of mods - how many allowed here is determined by the individual mod loader
 [[mods]]
@@ -39,7 +39,7 @@ Based off of the Compact Machines mod pre-1.16.
     # Does this dependency have to exist - if not, ordering below must be specified
     mandatory=true #mandatory
     # The version range of the dependency
-    versionRange="[34,36)" #mandatory
+    versionRange="[38,39)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the relationship is not mandatory
     ordering="NONE"
     # Side this dependency is applied on - BOTH, CLIENT or SERVER
@@ -49,21 +49,21 @@ Based off of the Compact Machines mod pre-1.16.
 [[dependencies.compactcrafting]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.3, 1.17)"
+    versionRange="[1.18,1.19)"
     ordering="NONE"
     side="BOTH"
 
-[[dependencies.compactcrafting]]
-    modId="jei"
-    mandatory=false
-    versionRange="[7.7.1.110,)"
-    ordering="BEFORE"
-    side="BOTH"
-
-[[dependencies.compactcrafting]]
-    modId="theoneprobe"
-    mandatory=false
-    versionRange="[1.16-3.1.4,)"
-    ordering="BEFORE"
-    side="BOTH"
+#[[dependencies.compactcrafting]]
+#    modId="jei"
+#    mandatory=false
+#    versionRange="[7.7.1.110,)"
+#    ordering="BEFORE"
+#    side="BOTH"
+#
+#[[dependencies.compactcrafting]]
+#    modId="theoneprobe"
+#    mandatory=false
+#    versionRange="[1.16-3.1.4,)"
+#    ordering="BEFORE"
+#    side="BOTH"
 

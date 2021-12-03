@@ -20,11 +20,12 @@ import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer {
-    private final AxisAlignedBB dimensions;
+    private final AABB dimensions;
     private final ComponentPositionLookup componentLookup;
 
     public static final Codec<MixedComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -34,7 +35,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
     ).apply(i, MixedComponentRecipeLayer::new));
 
     public MixedComponentRecipeLayer() {
-        this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
+        this.dimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
         this.componentLookup = new ComponentPositionLookup();
     }
 
@@ -47,7 +48,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
         return this.componentLookup;
     }
 
-    public AxisAlignedBB getDimensions() {
+    public AABB getDimensions() {
         return this.dimensions;
     }
 

@@ -9,35 +9,37 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import com.google.common.collect.ImmutableSet;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.ListTag;
 
-public class NbtListCollector implements Collector<INBT, List<INBT>, ListNBT> {
+import java.util.stream.Collector.Characteristics;
 
-    public static List<INBT> combineLists(List<INBT> res1, List<INBT> res2) {
+public class NbtListCollector implements Collector<Tag, List<Tag>, ListTag> {
+
+    public static List<Tag> combineLists(List<Tag> res1, List<Tag> res2) {
         res1.addAll(res2);
         return res1;
     }
 
     @Override
-    public Supplier<List<INBT>> supplier() {
+    public Supplier<List<Tag>> supplier() {
         return ArrayList::new;
     }
 
     @Override
-    public BiConsumer<List<INBT>, INBT> accumulator() {
+    public BiConsumer<List<Tag>, Tag> accumulator() {
         return List::add;
     }
 
     @Override
-    public BinaryOperator<List<INBT>> combiner() {
+    public BinaryOperator<List<Tag>> combiner() {
         return NbtListCollector::combineLists;
     }
 
     @Override
-    public Function<List<INBT>, ListNBT> finisher() {
+    public Function<List<Tag>, ListTag> finisher() {
         return (items) -> {
-            ListNBT list = new ListNBT();
+            ListTag list = new ListTag();
             list.addAll(items);
             return list;
         };

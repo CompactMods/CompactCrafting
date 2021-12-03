@@ -25,30 +25,30 @@ import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import io.reactivex.rxjava3.disposables.Disposable;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.particles.ParticleTypes;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.IServerWorld;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.gen.feature.template.PlacementSettings;
-import net.minecraft.world.gen.feature.template.Template;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
 public class MiniaturizationField implements IMiniaturizationField {
 
@@ -58,7 +58,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Nullable
     private MiniaturizationRecipe currentRecipe = null;
-    private Template matchedBlocks;
+    private StructureTemplate matchedBlocks;
     private Set<Item> matchedCatalysts;
 
     @Nullable
@@ -67,7 +67,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     private EnumCraftingState craftingState;
     private long rescanTime;
 
-    private World level;
+    private Level level;
     private int craftingProgress = 0;
 
     private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
@@ -87,10 +87,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         setupChunkListener();
     }
 
-    public MiniaturizationField(CompoundNBT nbt) {
+    public MiniaturizationField(CompoundTag nbt) {
         this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
 
-        this.center = NBTUtil.readBlockPos(nbt.getCompound("center"));
+        this.center = NbtUtils.readBlockPos(nbt.getCompound("center"));
         this.size = MiniaturizationFieldSize.valueOf(nbt.getString("size"));
 
         setupChunkListener();
@@ -102,7 +102,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         if (nbt.contains("matchedBlocks")) {
-            Template t = new Template();
+            StructureTemplate t = new StructureTemplate();
             t.load(nbt.getCompound("matchedBlocks"));
             this.matchedBlocks = t;
         } else {
@@ -118,7 +118,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         insideChunks.add(new ChunkPos(center));
 
         CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {
-            boolean sameLevel = ((Chunk) ce.getChunk()).getLevel().dimension().equals(level.dimension());
+            boolean sameLevel = ((LevelChunk) ce.getChunk()).getLevel().dimension().equals(level.dimension());
             boolean watchedChunk = insideChunks.contains(ce.getChunk().getPos());
             return sameLevel && watchedChunk;
         }).subscribe((changed) -> this.checkLoaded());
@@ -161,7 +161,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setLevel(World level) {
+    public void setLevel(Level level) {
         this.level = level;
 
         getRecipeFromId();
@@ -170,7 +170,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     private void getRecipeFromId() {
         // Load recipe information from temporary id variable
         if (level != null && this.recipeId != null) {
-            final Optional<? extends IRecipe<?>> r = level.getRecipeManager().byKey(recipeId);
+            final Optional<? extends Recipe<?>> r = level.getRecipeManager().byKey(recipeId);
             if (!r.isPresent()) {
                 clearRecipe();
                 return;
@@ -196,7 +196,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         return this.size.getProjectorLocations(center);
     }
 
-    public AxisAlignedBB getBounds() {
+    public AABB getBounds() {
         return this.size.getBoundsAtPosition(center);
     }
 
@@ -206,7 +206,7 @@ public class MiniaturizationField implements IMiniaturizationField {
                 .map(BlockPos::immutable);
     }
 
-    public AxisAlignedBB getFilledBounds() {
+    public AABB getFilledBounds() {
         BlockPos[] filled = getFilledBlocks().toArray(BlockPos[]::new);
         return BlockSpaceUtil.getBoundsForBlocks(filled);
     }
@@ -214,12 +214,12 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void clearBlocks() {
         // Remove blocks from the world
         getFilledBlocks()
-                .sorted(Comparator.comparingInt(Vector3i::getY).reversed()) // top down so stuff like redstone doesn't drop as items
+                .sorted(Comparator.comparingInt(Vec3i::getY).reversed()) // top down so stuff like redstone doesn't drop as items
                 .forEach(blockPos -> {
                     level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), 7);
 
-                    if (level instanceof ServerWorld) {
-                        ((ServerWorld) level).sendParticles(ParticleTypes.LARGE_SMOKE,
+                    if (level instanceof ServerLevel) {
+                        ((ServerLevel) level).sendParticles(ParticleTypes.LARGE_SMOKE,
                                 blockPos.getX() + 0.5f, blockPos.getY() + 0.5f, blockPos.getZ() + 0.5f,
                                 1, 0d, 0.05D, 0D, 0.25d);
                     }
@@ -265,7 +265,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     private void tickCrafting() {
-        AxisAlignedBB fieldBounds = getBounds();
+        AABB fieldBounds = getBounds();
 
         if (level == null || this.currentRecipe == null)
             return;
@@ -336,7 +336,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         //   RECIPE BEGIN
         // ===========================================================================================================
 
-        AxisAlignedBB filledBounds = getFilledBounds();
+        AABB filledBounds = getFilledBounds();
 
         /*
          * Dry run - we have the data from the field on what's filled and how large
@@ -373,9 +373,9 @@ public class MiniaturizationField implements IMiniaturizationField {
             if (!recipeMatches)
                 continue;
 
-            this.matchedBlocks = new Template();
+            this.matchedBlocks = new StructureTemplate();
 
-            final AxisAlignedBB fieldBounds = size.getBoundsAtPosition(center);
+            final AABB fieldBounds = size.getBoundsAtPosition(center);
             BlockPos minPos = new BlockPos(fieldBounds.minX, fieldBounds.minY, fieldBounds.minZ);
 
             // boolean here is to capture entities - TODO maybe
@@ -411,7 +411,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.craftingState = state;
     }
 
-    private List<ItemEntity> getCatalystsInField(IWorld level, AxisAlignedBB fieldBounds, ICatalystMatcher itemFilter) {
+    private List<ItemEntity> getCatalystsInField(LevelAccessor level, AABB fieldBounds, ICatalystMatcher itemFilter) {
         List<ItemEntity> itemsInRange = level.getEntitiesOfClass(ItemEntity.class, fieldBounds);
         return itemsInRange.stream()
                 .filter(ise -> itemFilter.matches(ise.getItem()))
@@ -451,10 +451,10 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public CompoundNBT serverData() {
-        CompoundNBT nbt = new CompoundNBT();
+    public CompoundTag serverData() {
+        CompoundTag nbt = new CompoundTag();
         nbt.putString("size", size.name());
-        nbt.put("center", NBTUtil.writeBlockPos(center));
+        nbt.put("center", NbtUtils.writeBlockPos(center));
 
         nbt.putString("state", craftingState.name());
 
@@ -464,7 +464,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         if (matchedBlocks != null) {
-            nbt.put("matchedBlocks", matchedBlocks.save(new CompoundNBT()));
+            nbt.put("matchedBlocks", matchedBlocks.save(new CompoundTag()));
         }
 
         nbt.putBoolean("disabled", this.disabled);
@@ -514,9 +514,11 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         if (restoreBlocks) {
-            AxisAlignedBB bounds = getBounds();
-            matchedBlocks.placeInWorld((IServerWorld) level, new BlockPos(bounds.minX, bounds.minY, bounds.minZ),
-                    new PlacementSettings(), level.random);
+            AABB bounds = getBounds();
+            BlockPos placeAt = new BlockPos(bounds.minX, bounds.minY, bounds.minZ);
+            // TODO - Check the const here, 2 may be wrong
+            matchedBlocks.placeInWorld((ServerLevelAccessor) level, placeAt, placeAt,
+                    new StructurePlaceSettings(), level.random, 2);
         }
 
         if(currentRecipe != null) {
@@ -567,7 +569,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         fieldContentsChanged();
         getProjectorPositions().forEach(proj -> {
             FieldProjectorBlock.activateProjector(level, proj, this.size);
-            TileEntity projTile = level.getBlockEntity(proj);
+            BlockEntity projTile = level.getBlockEntity(proj);
             if (projTile instanceof FieldProjectorTile) {
                 ((FieldProjectorTile) projTile).setFieldRef(lazyReference);
             }

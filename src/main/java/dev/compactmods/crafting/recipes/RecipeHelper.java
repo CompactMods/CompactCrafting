@@ -2,8 +2,8 @@ package dev.compactmods.crafting.recipes;
 
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
 
 public abstract class RecipeHelper {
 
@@ -37,7 +37,7 @@ public abstract class RecipeHelper {
         return map;
     }
 
-    public static String[][] generateArrayFromBounds(AxisAlignedBB boundsForBlocks) {
+    public static String[][] generateArrayFromBounds(AABB boundsForBlocks) {
         int zMax = (int) boundsForBlocks.getZsize();
         String[][] map = new String[(int) boundsForBlocks.getXsize()][];
         for(int x = 0; x < boundsForBlocks.getXsize(); x++) map[x] = new String[zMax];

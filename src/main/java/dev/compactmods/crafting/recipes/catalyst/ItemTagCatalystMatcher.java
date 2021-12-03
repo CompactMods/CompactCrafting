@@ -8,33 +8,34 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.tags.ITag;
-import net.minecraft.tags.TagCollectionManager;
+import net.minecraft.core.Registry;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.tags.Tag;
+import net.minecraft.tags.SerializationTags;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
         implements ICatalystMatcher, CatalystType<ItemTagCatalystMatcher> {
 
     private static final Codec<ItemTagCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ITag.codec(() -> TagCollectionManager.getInstance().getItems())
+            Tag.codec(() -> SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY))
                     .fieldOf("tag").forGetter((is) -> is.tag)
     ).apply(i, ItemTagCatalystMatcher::new));
 
-    private final ITag<Item> tag;
+    private final Tag<Item> tag;
 
     public ItemTagCatalystMatcher() {
         this.tag = null;
     }
 
-    public ItemTagCatalystMatcher(ITag<Item> tag) {
+    public ItemTagCatalystMatcher(Tag<Item> tag) {
         this.tag = tag;
     }
 
     @Override
     public boolean matches(ItemStack stack) {
-        return stack.getItem().is(tag);
+        return stack.getItem().getTags().contains(tag);
     }
 
     @Override

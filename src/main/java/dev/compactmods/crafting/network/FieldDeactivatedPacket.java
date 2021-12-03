@@ -1,17 +1,15 @@
 package dev.compactmods.crafting.network;
 
-import java.io.IOException;
 import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.network.NetworkEvent;
 
 public class FieldDeactivatedPacket {
 
@@ -33,25 +31,14 @@ public class FieldDeactivatedPacket {
                 .map(BlockPos::immutable).toArray(BlockPos[]::new);
     }
 
-    public FieldDeactivatedPacket(PacketBuffer buf) {
-        FieldDeactivatedPacket pkt = null;
-        try {
-            pkt = buf.readWithCodec(CODEC);
-        } catch (IOException e) {
-            CompactCrafting.LOGGER.error(e);
-        }
+    public FieldDeactivatedPacket(FriendlyByteBuf buf) {
+        FieldDeactivatedPacket pkt = buf.readWithCodec(CODEC);
 
-        if(pkt != null) {
-            this.fieldSize = pkt.fieldSize;
-            this.fieldCenter = pkt.fieldCenter;
+        this.fieldSize = pkt.fieldSize;
+        this.fieldCenter = pkt.fieldCenter;
 
-            this.projectors = fieldSize.getProjectorLocations(fieldCenter)
-                    .map(BlockPos::immutable).toArray(BlockPos[]::new);
-        } else {
-            this.fieldSize = MiniaturizationFieldSize.INACTIVE;
-            this.fieldCenter = BlockPos.ZERO;
-            this.projectors = new BlockPos[0];
-        }
+        this.projectors = fieldSize.getProjectorLocations(fieldCenter)
+                .map(BlockPos::immutable).toArray(BlockPos[]::new);
     }
 
     public static boolean handle(FieldDeactivatedPacket message, Supplier<NetworkEvent.Context> context) {
@@ -62,11 +49,7 @@ public class FieldDeactivatedPacket {
         return true;
     }
 
-    public static void encode(FieldDeactivatedPacket pkt, PacketBuffer buf) {
-        try {
-            buf.writeWithCodec(CODEC, pkt);
-        } catch (IOException e) {
-            CompactCrafting.LOGGER.error(e);
-        }
+    public static void encode(FieldDeactivatedPacket pkt, FriendlyByteBuf buf) {
+        buf.writeWithCodec(CODEC, pkt);
     }
 }

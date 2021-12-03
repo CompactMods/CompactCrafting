@@ -10,10 +10,10 @@ import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.util.CodecExtensions;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.Property;
-import net.minecraft.state.StateContainer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.block.state.StateDefinition;
 
 public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
@@ -46,7 +46,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
         this(block);
         validStates.clear();
 
-        StateContainer<Block, BlockState> stateContainer = this.block.getStateDefinition();
+        StateDefinition<Block, BlockState> stateContainer = this.block.getStateDefinition();
         propertyRequirements.ifPresent(userRequestedValues -> {
             for (Map.Entry<String, List<String>> userPropFilter : userRequestedValues.entrySet()) {
                 validateAndAddUserFilter(stateContainer, userPropFilter);
@@ -66,7 +66,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
         this.validStates.addAll(valid);
     }
 
-    private void validateAndAddUserFilter(StateContainer<Block, BlockState> stateContainer, Map.Entry<String, List<String>> userPropFilter) {
+    private void validateAndAddUserFilter(StateDefinition<Block, BlockState> stateContainer, Map.Entry<String, List<String>> userPropFilter) {
         String propertyName = userPropFilter.getKey();
 
         Property<?> prop = stateContainer.getProperty(propertyName);

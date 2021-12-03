@@ -6,7 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public final class RecipeLayerTypeCodec implements Codec<RecipeLayerType<?>> {
     // Lifted and modified from a Forge PR #7668, temporary until Forge itself supports the Codec interface

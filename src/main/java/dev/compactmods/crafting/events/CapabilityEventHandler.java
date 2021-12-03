@@ -6,10 +6,10 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.capability.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.render.ClientProjectorRenderInfo;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -23,7 +23,7 @@ public class CapabilityEventHandler {
 
     @SubscribeEvent
     public static void onCapPlayerAttach(final AttachCapabilitiesEvent<Entity> event) {
-        if(event.getObject() instanceof PlayerEntity) {
+        if(event.getObject() instanceof Player) {
             ClientProjectorRenderInfo backend = new ClientProjectorRenderInfo();
             LazyOptional<IProjectorRenderInfo> renderData = LazyOptional.of(() -> backend);
 

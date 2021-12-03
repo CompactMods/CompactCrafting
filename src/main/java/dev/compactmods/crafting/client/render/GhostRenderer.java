@@ -2,56 +2,56 @@ package dev.compactmods.crafting.client.render;
 
 import javax.annotation.Nullable;
 import java.util.Random;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
-import net.minecraft.block.BlockState;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.color.BlockColors;
-import net.minecraft.client.renderer.model.BakedQuad;
-import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.ColorHelper;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.FastColor;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 public class GhostRenderer {
-    public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, MatrixStack matrix, IRenderTypeBuffer buffer) {
+    public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer) {
         renderTransparentBlock(state, pos, matrix, buffer, 100);
     }
 
-    public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, MatrixStack matrix, IRenderTypeBuffer buffer, int ticksLeft) {
+    public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer, int ticksLeft) {
         final Minecraft mc = Minecraft.getInstance();
         final BlockColors colors = mc.getBlockColors();
 
         // clamp b/n 0-100, effective range 0 - 0.9f
         final float alpha = ticksLeft >= 100 ? 0.9f : 0.9f * Math.max(ticksLeft / 100f, .1f);
 
-        IVertexBuilder builder = buffer.getBuffer(CCRenderTypes.PHANTOM);
-        IBakedModel model = mc.getBlockRenderer().getBlockModel(state.getBlockState());
+        VertexConsumer builder = buffer.getBuffer(CCRenderTypes.PHANTOM);
+        BakedModel model = mc.getBlockRenderer().getBlockModel(state);
         if (model != mc.getModelManager().getMissingModel()) {
             for(Direction dir : Direction.values())
-                model.getQuads(state.getBlockState(), dir, new Random(42L), EmptyModelData.INSTANCE)
+                model.getQuads(state, dir, new Random(42L), EmptyModelData.INSTANCE)
                         .forEach(quad -> addQuad(state, pos, matrix, mc, colors, builder, quad, alpha));
 
-            model.getQuads(state.getBlockState(), null, new Random(42L), EmptyModelData.INSTANCE)
+            model.getQuads(state, null, new Random(42L), EmptyModelData.INSTANCE)
                     .forEach(quad -> addQuad(state, pos, matrix, mc, colors, builder, quad, alpha));
         }
     }
 
-    private static void addQuad(BlockState state, @Nullable BlockPos pos, MatrixStack matrix, Minecraft mc, BlockColors colors, IVertexBuilder builder, BakedQuad quad, float alpha) {
+    private static void addQuad(BlockState state, @Nullable BlockPos pos, PoseStack matrix, Minecraft mc, BlockColors colors, VertexConsumer builder, BakedQuad quad, float alpha) {
         int color = quad.isTinted() ? colors.getColor(state, mc.level, pos, quad.getTintIndex()) :
-                ColorHelper.PackedColor.color(255, 255, 255, 255);
+                FastColor.ARGB32.color(255, 255, 255, 255);
 
-        final float red = ColorHelper.PackedColor.red(color) / 255f;
-        final float green = ColorHelper.PackedColor.green(color) / 255f;
-        final float blue = ColorHelper.PackedColor.blue(color) / 255f;
+        final float red = FastColor.ARGB32.red(color) / 255f;
+        final float green = FastColor.ARGB32.green(color) / 255f;
+        final float blue = FastColor.ARGB32.blue(color) / 255f;
 
-        final float trueAlpha = MathHelper.clamp(0.01f, alpha, 0.06f);
-        builder.addVertexData(matrix.last(), quad,
+        final float trueAlpha = Mth.clamp(0.01f, alpha, 0.06f);
+        builder.putBulkData(matrix.last(), quad,
                 red,
                 green,
                 blue,

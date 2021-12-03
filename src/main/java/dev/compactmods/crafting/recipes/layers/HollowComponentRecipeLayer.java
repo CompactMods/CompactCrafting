@@ -14,13 +14,13 @@ import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
 
 public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
 
     private final String componentKey;
-    private AxisAlignedBB recipeDimensions;
+    private AABB recipeDimensions;
     private Set<BlockPos> filledPositions;
 
     public static final Codec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -101,7 +101,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     @Override
-    public void setRecipeDimensions(AxisAlignedBB dimensions) {
+    public void setRecipeDimensions(AABB dimensions) {
         this.recipeDimensions = dimensions;
         this.recalculateRequirements();
     }

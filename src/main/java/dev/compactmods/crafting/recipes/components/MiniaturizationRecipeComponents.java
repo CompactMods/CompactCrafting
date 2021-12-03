@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class MiniaturizationRecipeComponents implements IRecipeComponents {
 

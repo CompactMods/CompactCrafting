@@ -5,24 +5,26 @@ import java.util.List;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorTile;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
+
+import net.minecraft.world.item.Item.Properties;
 
 public class FieldProxyItem extends BlockItem {
     public FieldProxyItem(Block block, Properties props) {
@@ -30,53 +32,53 @@ public class FieldProxyItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable World level, List<ITextComponent> text, ITooltipFlag flags) {
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> text, TooltipFlag flags) {
 
         boolean isLinked = false;
         if(stack.hasTag()) {
-            CompoundNBT field = stack.getOrCreateTagElement("field");
+            CompoundTag field = stack.getOrCreateTagElement("field");
             if(field.contains("center")) {
                 isLinked = true;
 
-                BlockPos linkedCenter = NBTUtil.readBlockPos(field.getCompound("center"));
-                text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_bound", linkedCenter)
-                    .withStyle(TextFormatting.ITALIC).withStyle(TextFormatting.AQUA));
+                BlockPos linkedCenter = NbtUtils.readBlockPos(field.getCompound("center"));
+                text.add(new TranslatableComponent("tooltip.compactcrafting.proxy_bound", linkedCenter)
+                    .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.AQUA));
             }
         }
 
         if(!isLinked) {
-            text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_bind_hint")
-                .withStyle(TextFormatting.DARK_GRAY));
+            text.add(new TranslatableComponent("tooltip.compactcrafting.proxy_bind_hint")
+                .withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_unbind_hint")
-                    .withStyle(TextFormatting.DARK_GRAY));
+            text.add(new TranslatableComponent("tooltip.compactcrafting.proxy_unbind_hint")
+                    .withStyle(ChatFormatting.DARK_GRAY));
         }
 
-        text.add(new TranslationTextComponent("tooltip.compactcrafting.proxy_hint").withStyle(TextFormatting.DARK_GRAY));
+        text.add(new TranslatableComponent("tooltip.compactcrafting.proxy_hint").withStyle(ChatFormatting.DARK_GRAY));
 
         super.appendHoverText(stack, level, text, flags);
     }
 
     @Override
-    public ActionResult<ItemStack> use(World level, PlayerEntity player, Hand hand) {
+    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if(player.isDiscrete() && hand == Hand.MAIN_HAND) {
+        if(player.isDiscrete() && hand == InteractionHand.MAIN_HAND) {
             // used in the air while sneaking
-            player.displayClientMessage(new StringTextComponent("clearing field data"), true);
+            player.displayClientMessage(new TextComponent("clearing field data"), true);
 
             // clear field position
             stack.removeTagKey("field");
 
-            return ActionResult.success(stack);
+            return InteractionResultHolder.success(stack);
         }
 
-        return ActionResult.pass(stack);
+        return InteractionResultHolder.pass(stack);
     }
 
     @Override
-    public ActionResultType useOn(ItemUseContext context) {
-        World level = context.getLevel();
-        PlayerEntity player = context.getPlayer();
+    public InteractionResult useOn(UseOnContext context) {
+        Level level = context.getLevel();
+        Player player = context.getPlayer();
 
         ItemStack stack = context.getItemInHand();
 
@@ -87,7 +89,7 @@ public class FieldProxyItem extends BlockItem {
 
             // if used on a projector while sneaking
             if (usedState.getBlock() instanceof FieldProjectorBlock) {
-                player.displayClientMessage(new StringTextComponent("copying field position"), true);
+                player.displayClientMessage(new TextComponent("copying field position"), true);
 
                 FieldProjectorTile tile = (FieldProjectorTile) level.getBlockEntity(usedAt);
                 if (tile != null) {
@@ -97,11 +99,11 @@ public class FieldProxyItem extends BlockItem {
 
                                 // write field center
                                 stack.getOrCreateTagElement("field")
-                                        .put("center", NBTUtil.writeBlockPos(fieldCenter));
+                                        .put("center", NbtUtils.writeBlockPos(fieldCenter));
                             });
                 }
 
-                return ActionResultType.sidedSuccess(level.isClientSide);
+                return InteractionResult.sidedSuccess(level.isClientSide);
             }
         }
 

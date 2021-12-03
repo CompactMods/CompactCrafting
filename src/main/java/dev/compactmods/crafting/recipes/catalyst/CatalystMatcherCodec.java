@@ -7,7 +7,7 @@ import com.mojang.serialization.DynamicOps;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 
 public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
 

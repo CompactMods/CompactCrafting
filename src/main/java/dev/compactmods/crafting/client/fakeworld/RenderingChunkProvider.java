@@ -1,35 +1,35 @@
 package dev.compactmods.crafting.client.fakeworld;
 
-import com.mojang.datafixers.util.Pair;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.chunk.AbstractChunkProvider;
-import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.EmptyChunk;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.lighting.WorldLightManager;
-
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
+import com.mojang.datafixers.util.Pair;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
+import net.minecraft.world.level.lighting.LevelLightEngine;
 
-public class RenderingChunkProvider extends AbstractChunkProvider {
+public class RenderingChunkProvider extends ChunkSource {
     private final MiniaturizationRecipe recipe;
 
-    private final Map<ChunkPos, IChunk> chunks;
+    private final Map<ChunkPos, ChunkAccess> chunks;
     private final RenderingWorld renderingLevel;
-    private final WorldLightManager lightManager;
+    private final LevelLightEngine lightManager;
 
     public RenderingChunkProvider(RenderingWorld renderingLevel, MiniaturizationRecipe recipe) {
         this.recipe = recipe;
 
         this.renderingLevel = renderingLevel;
-        this.lightManager = new WorldLightManager(this, true, true);
+        this.lightManager = new LevelLightEngine(this, true, true);
 
         Map<ChunkPos, List<BlockPos>> byChunk = new HashMap<>();
         BlockPos.betweenClosedStream(this.recipe.getDimensions())
@@ -45,8 +45,13 @@ public class RenderingChunkProvider extends AbstractChunkProvider {
 
     @Nullable
     @Override
-    public IChunk getChunk(int cx, int cz, ChunkStatus status, boolean load) {
-        return chunks.computeIfAbsent(new ChunkPos(cx, cz), p -> new EmptyChunk(renderingLevel, p));
+    public ChunkAccess getChunk(int cx, int cz, ChunkStatus status, boolean load) {
+        return chunks.computeIfAbsent(new ChunkPos(cx, cz), p -> new EmptyLevelChunk(renderingLevel, p));
+    }
+
+    @Override
+    public void tick(BooleanSupplier p_156184_) {
+
     }
 
     @Override
@@ -55,12 +60,17 @@ public class RenderingChunkProvider extends AbstractChunkProvider {
     }
 
     @Override
-    public WorldLightManager getLightEngine() {
+    public int getLoadedChunksCount() {
+        return chunks.size();
+    }
+
+    @Override
+    public LevelLightEngine getLightEngine() {
         return lightManager;
     }
 
     @Override
-    public IBlockReader getLevel() {
+    public BlockGetter getLevel() {
         return renderingLevel;
     }
 }

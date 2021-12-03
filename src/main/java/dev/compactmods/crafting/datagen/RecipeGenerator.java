@@ -1,11 +1,14 @@
 package dev.compactmods.crafting.datagen;
 
-import dev.compactmods.crafting.Registration;
-import net.minecraft.data.*;
-import net.minecraft.item.Items;
-import net.minecraftforge.common.Tags;
-
 import java.util.function.Consumer;
+import dev.compactmods.crafting.Registration;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeProvider;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.ShapelessRecipeBuilder;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.common.Tags;
 
 public class RecipeGenerator extends RecipeProvider {
     public RecipeGenerator(DataGenerator gen) {
@@ -13,7 +16,7 @@ public class RecipeGenerator extends RecipeProvider {
     }
 
     @Override
-    protected void buildShapelessRecipes(Consumer<IFinishedRecipe> consumer) {
+    protected void buildCraftingRecipes(Consumer<FinishedRecipe> consumer) {
         ShapelessRecipeBuilder.shapeless(Registration.FIELD_PROJECTOR_ITEM.get(), 1)
                 .requires(Registration.BASE_ITEM.get())
                 .requires(Registration.PROJECTOR_DISH_ITEM.get())

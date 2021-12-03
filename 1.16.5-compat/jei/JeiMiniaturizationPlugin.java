@@ -10,10 +10,10 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 
@@ -43,7 +43,7 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        ClientWorld w = Minecraft.getInstance().level;
+        ClientLevel w = Minecraft.getInstance().level;
         RecipeManager rm = w == null ? null : w.getRecipeManager();
         if(rm != null) {
             List<RecipeBase> miniRecipes = rm.getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE);

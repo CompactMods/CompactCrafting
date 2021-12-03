@@ -8,12 +8,12 @@ import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import mcjty.theoneprobe.api.*;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 public class FieldProjectorProvider implements IProbeInfoProvider {
     @Override
@@ -22,7 +22,7 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
     }
 
     @Override
-    public void addProbeInfo(ProbeMode mode, IProbeInfo info, PlayerEntity player, World level, BlockState state, IProbeHitData hitData) {
+    public void addProbeInfo(ProbeMode mode, IProbeInfo info, Player player, Level level, BlockState state, IProbeHitData hitData) {
         if (!(state.getBlock() instanceof FieldProjectorBlock))
             return;
 
@@ -81,12 +81,12 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
 
                             if (field.getCraftingState() == EnumCraftingState.MATCHED && progress == 0) {
                                 recipeProgress
-                                        .text(new TranslationTextComponent(CompactCrafting.MOD_ID + ".top.awaiting_catalyst"));
+                                        .text(new TranslatableComponent(CompactCrafting.MOD_ID + ".top.awaiting_catalyst"));
 
                             } else {
                                 if(mode == ProbeMode.EXTENDED) {
                                     recipeProgress
-                                            .text(new TranslationTextComponent(CompactCrafting.MOD_ID + ".top.progress", progress, recipe.getCraftingTime()));
+                                            .text(new TranslatableComponent(CompactCrafting.MOD_ID + ".top.progress", progress, recipe.getCraftingTime()));
                                 }
                             }
                         }

@@ -4,7 +4,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;

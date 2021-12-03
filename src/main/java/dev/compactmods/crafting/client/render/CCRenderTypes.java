@@ -1,84 +1,44 @@
 package dev.compactmods.crafting.client.render;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import dev.compactmods.crafting.CompactCrafting;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.renderer.RenderState;
+import java.util.OptionalDouble;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
+import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.renderer.vertex.VertexFormat;
-import org.lwjgl.opengl.GL11;
 
 public class CCRenderTypes extends RenderType {
 
-    public CCRenderTypes(String p_i225992_1_, VertexFormat p_i225992_2_, int p_i225992_3_, int p_i225992_4_, boolean p_i225992_5_, boolean p_i225992_6_, Runnable p_i225992_7_, Runnable p_i225992_8_) {
-        super(p_i225992_1_, p_i225992_2_, p_i225992_3_, p_i225992_4_, p_i225992_5_, p_i225992_6_, p_i225992_7_, p_i225992_8_);
-    }
-
-    public static final RenderState.TransparencyState FIELD_TRANSPARENCY = new RenderState.TransparencyState("field_transparency", () -> {
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-    }, () -> {
-        RenderSystem.disableBlend();
-        RenderSystem.defaultBlendFunc();
-    });
-
-    public static final RenderType FIELD_RENDER_TYPE = create("projection_field",
-            DefaultVertexFormats.POSITION_COLOR, GL11.GL_QUADS, 512,
-            RenderType.State.builder()
-                    .setLightmapState(NO_LIGHTMAP)
-                    .setLayeringState(RenderState.POLYGON_OFFSET_LAYERING)
-                    .setTransparencyState(FIELD_TRANSPARENCY)
-                    .setDepthTestState(RenderState.LEQUAL_DEPTH_TEST)
-                    .setTextureState(NO_TEXTURE)
-                    .setCullState(RenderState.NO_CULL)
-                    .setWriteMaskState(COLOR_WRITE)
+    public static final RenderType LINE_STRIP = create("line_strip",
+            DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINE_STRIP, 256, false, false,
+            RenderType.CompositeState.builder().setShaderState(RENDERTYPE_LINES_SHADER)
+                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.of(4f)))
+                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setOutputState(ITEM_ENTITY_TARGET)
+                    .setWriteMaskState(COLOR_DEPTH_WRITE)
+                    .setCullState(NO_CULL)
                     .createCompositeState(false));
 
-    public static final RenderType PHANTOM = create("phantom", DefaultVertexFormats.BLOCK, 7, 2097152, true, false, RenderType.State.builder()
-            .setShadeModelState(RenderState.SMOOTH_SHADE)
-            .setLightmapState(RenderState.LIGHTMAP)
+    public static final RenderType FIELD_RENDER_TYPE = create("projection_field",
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 262144, false, true,
+            RenderType.CompositeState.builder()
+                    .setLineState(new LineStateShard(OptionalDouble.of(4f)))
+                    .setLightmapState(LIGHTMAP)
+                    .setShaderState(ShaderStateShard.POSITION_COLOR_SHADER)
+                    .setTextureState(RenderStateShard.NO_TEXTURE)
+                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
+                    .setOutputState(TRANSLUCENT_TARGET)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .createCompositeState(true));
+
+    public static final RenderType PHANTOM = create("phantom", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, false, RenderType.CompositeState.builder()
+            .setShaderState(ShaderStateShard.BLOCK_SHADER)
+            .setLightmapState(RenderStateShard.LIGHTMAP)
             .setTextureState(BLOCK_SHEET_MIPPED)
             .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
             .createCompositeState(true));
 
-
-
-    public static IRenderTypeBuffer disableLighting(IRenderTypeBuffer.Impl in)
-    {
-        return wrapWithAdditional(
-                in,
-                "no_lighting",
-                RenderSystem::disableLighting,
-                RenderSystem::enableLighting
-        );
-    }
-
-    private static IRenderTypeBuffer wrapWithAdditional(
-            IRenderTypeBuffer in,
-            String name,
-            Runnable setup,
-            Runnable teardown
-    )
-    {
-        return type -> in.getBuffer(new RenderType(
-                CompactCrafting.MOD_ID+":"+type+"_"+name,
-                type.format(),
-                type.mode(),
-                type.bufferSize(),
-                type.affectsCrumbling(),
-                false, // needsSorting is private and shouldn't be too relevant here
-                () -> {
-                    type.setupRenderState();
-                    setup.run();
-                },
-                () -> {
-                    teardown.run();
-                    type.clearRenderState();
-                }
-        )
-        {
-        });
+    public CCRenderTypes(String p_173178_, VertexFormat p_173179_, VertexFormat.Mode p_173180_, int p_173181_, boolean p_173182_, boolean p_173183_, Runnable p_173184_, Runnable p_173185_) {
+        super(p_173178_, p_173179_, p_173180_, p_173181_, p_173182_, p_173183_, p_173184_, p_173185_);
     }
 }

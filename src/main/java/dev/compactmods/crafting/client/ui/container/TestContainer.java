@@ -1,17 +1,17 @@
 package dev.compactmods.crafting.client.ui.container;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.container.Container;
-import net.minecraft.world.World;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 
-public class TestContainer extends Container {
+public class TestContainer extends AbstractContainerMenu {
     private IItemHandler playerInventory;
 
-    public TestContainer(int cid, World world, PlayerInventory inv, PlayerEntity player) {
+    public TestContainer(int cid, Level world, Inventory inv, Player player) {
         super(ContainerRegistration.TEST_CONTAINER.get(), cid);
         this.playerInventory = new InvWrapper(inv);
 
@@ -19,7 +19,7 @@ public class TestContainer extends Container {
     }
 
     @Override
-    public boolean stillValid(PlayerEntity player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 

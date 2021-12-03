@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.api.recipe.layers.dim;
 
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.world.phys.AABB;
 
 public interface IFixedSizedRecipeLayer {
 
@@ -9,6 +9,6 @@ public interface IFixedSizedRecipeLayer {
      *
      * @return
      */
-    AxisAlignedBB getDimensions();
+    AABB getDimensions();
 
 }

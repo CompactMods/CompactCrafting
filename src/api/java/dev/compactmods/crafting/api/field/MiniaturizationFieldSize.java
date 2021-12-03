@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
-import net.minecraft.util.Direction;
-import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.phys.AABB;
 
-public enum MiniaturizationFieldSize implements IStringSerializable {
+public enum MiniaturizationFieldSize implements StringRepresentable {
     /**
      * Inactive field. Does not have dimensions.
      */
@@ -141,12 +141,12 @@ public enum MiniaturizationFieldSize implements IStringSerializable {
         return getProjectorLocationForDirection(center, projectorFacing);
     }
 
-    public AxisAlignedBB getBoundsAtOrigin() {
+    public AABB getBoundsAtOrigin() {
         return getBoundsAtPosition(getOriginCenter());
     }
 
-    public AxisAlignedBB getBoundsAtPosition(BlockPos center) {
-        return new AxisAlignedBB(center).inflate(this.size);
+    public AABB getBoundsAtPosition(BlockPos center) {
+        return new AABB(center).inflate(this.size);
     }
 
     @Override

@@ -8,18 +8,19 @@ import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.chunk.EmptyChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.EmptyLevelChunk;
+import net.minecraft.world.level.material.FluidState;
 
-public class RecipeChunk extends EmptyChunk {
+public class RecipeChunk extends EmptyLevelChunk {
     private final MiniaturizationRecipe recipe;
     private final Map<BlockPos, BlockState> blockCache;
-    private final Map<BlockPos, TileEntity> tileCache;
+    private final Map<BlockPos, BlockEntity> tileCache;
 
     public RecipeChunk(RenderingWorld renderingLevel, ChunkPos chunkPos, MiniaturizationRecipe recipe) {
         super(renderingLevel, chunkPos);
@@ -45,10 +46,10 @@ public class RecipeChunk extends EmptyChunk {
 
             blockCache.put(pos, posState);
 
-            if(posState.hasTileEntity()) {
-                TileEntity tile = posState.createTileEntity(renderingLevel);
+            if(posState.getBlock() instanceof EntityBlock eb) {
+                BlockEntity tile = eb.newBlockEntity(pos.immutable(), posState);
                 if(tile != null) {
-                    tile.setLevelAndPosition(renderingLevel, pos.immutable());
+                    tile.setLevel(renderingLevel);
                     tileCache.put(pos.immutable(), tile);
                 }
             }
@@ -70,13 +71,13 @@ public class RecipeChunk extends EmptyChunk {
 
     @Nullable
     @Override
-    public TileEntity getBlockEntity(BlockPos pos) {
+    public BlockEntity getBlockEntity(BlockPos pos) {
         return tileCache.get(pos);
     }
 
     @Nullable
     @Override
-    public TileEntity getBlockEntity(BlockPos pos, CreateEntityType createType) {
+    public BlockEntity getBlockEntity(BlockPos pos, EntityCreationType createType) {
         return tileCache.get(pos);
     }
 }

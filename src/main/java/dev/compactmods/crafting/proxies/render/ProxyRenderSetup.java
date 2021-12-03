@@ -3,7 +3,7 @@ package dev.compactmods.crafting.proxies.render;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderTypeLookup;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,8 +18,8 @@ public class ProxyRenderSetup {
     public static void init(final FMLClientSetupEvent event) {
         // ClientRegistry.bindTileEntityRenderer(Registration.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
 
-        RenderTypeLookup.setRenderLayer(Registration.MATCH_FIELD_PROXY_BLOCK.get(), RenderType.cutoutMipped());
-        RenderTypeLookup.setRenderLayer(Registration.RESCAN_FIELD_PROXY_BLOCK.get(), RenderType.cutoutMipped());
+        ItemBlockRenderTypes.setRenderLayer(Registration.MATCH_FIELD_PROXY_BLOCK.get(), RenderType.cutoutMipped());
+        ItemBlockRenderTypes.setRenderLayer(Registration.RESCAN_FIELD_PROXY_BLOCK.get(), RenderType.cutoutMipped());
     }
 
     @SubscribeEvent

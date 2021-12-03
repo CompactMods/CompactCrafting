@@ -3,10 +3,10 @@ package dev.compactmods.crafting.api.recipe.layers;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 
 public interface IRecipeBlocks {
 
@@ -34,7 +34,7 @@ public interface IRecipeBlocks {
     
     Map<String, Integer> getKnownComponentTotals();
 
-    AxisAlignedBB getSourceBounds();
+    AABB getSourceBounds();
 
     boolean allIdentified();
 
@@ -42,22 +42,22 @@ public interface IRecipeBlocks {
 
     Stream<BlockPos> getPositionsForComponent(String component);
 
-    AxisAlignedBB getFilledBounds();
+    AABB getFilledBounds();
 
-    IRecipeBlocks slice(AxisAlignedBB bounds);
+    IRecipeBlocks slice(AABB bounds);
 
-    IRecipeBlocks offset(Vector3i amount);
+    IRecipeBlocks offset(Vec3i amount);
 
     default IRecipeBlocks below(int offset) {
-        return offset(new Vector3i(0, -offset, 0));
+        return offset(new Vec3i(0, -offset, 0));
     }
 
     default IRecipeBlocks above(int offset) {
-        return offset(new Vector3i(0, offset, 0));
+        return offset(new Vec3i(0, offset, 0));
     }
 
     default IRecipeBlocks normalize() {
-        AxisAlignedBB sb = getSourceBounds();
+        AABB sb = getSourceBounds();
         BlockPos offset = new BlockPos(-sb.minX, -sb.minY, -sb.minZ);
         return offset(offset);
     }

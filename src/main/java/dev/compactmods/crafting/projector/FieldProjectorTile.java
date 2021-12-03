@@ -7,29 +7,24 @@ import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
-import net.minecraft.block.BlockState;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.Direction;
-import net.minecraft.util.concurrent.TickDelayedTask;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.server.TickTask;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-public class FieldProjectorTile extends TileEntity {
+public class FieldProjectorTile extends BlockEntity {
 
     protected LazyOptional<IMiniaturizationField> fieldCap = LazyOptional.empty();
     protected LazyOptional<IActiveWorldFields> levelFields = LazyOptional.empty();
 
-    public FieldProjectorTile() {
-        super(Registration.FIELD_PROJECTOR_TILE.get());
-    }
-
-    public FieldProjectorTile(IBlockReader level, BlockState state) {
-        super(Registration.FIELD_PROJECTOR_TILE.get());
+    public FieldProjectorTile(BlockPos pos, BlockState state) {
+        super(Registration.FIELD_PROJECTOR_TILE.get(), pos, state);
     }
 
     public Direction getProjectorSide() {
@@ -37,9 +32,9 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     @Override
-    public void setLevelAndPosition(World level, BlockPos pos) {
-        super.setLevelAndPosition(level, pos);
-        this.levelFields = level.getCapability(CapabilityActiveWorldFields.FIELDS);
+    public void setLevel(Level level) {
+        super.setLevel(level);
+        this.levelFields = this.level.getCapability(CapabilityActiveWorldFields.FIELDS);
     }
 
     @Override
@@ -52,7 +47,7 @@ public class FieldProjectorTile extends TileEntity {
             } else {
                 MinecraftServer server = level.getServer();
                 if(server != null)
-                    server.tell(new TickDelayedTask(0, this::loadFieldFromState));
+                    server.tell(new TickTask(0, this::loadFieldFromState));
             }
         }
     }
@@ -77,12 +72,12 @@ public class FieldProjectorTile extends TileEntity {
     }
 
     @Override
-    public AxisAlignedBB getRenderBoundingBox() {
+    public AABB getRenderBoundingBox() {
         // Check - if we have a valid field use the entire field plus space
         // Otherwise just use the super implementation
         return fieldCap
                 .map(f -> f.getBounds().inflate(20))
-                .orElse(new AxisAlignedBB(worldPosition).inflate(20));
+                .orElse(new AABB(worldPosition).inflate(20));
     }
 
     public LazyOptional<IMiniaturizationField> getField() {

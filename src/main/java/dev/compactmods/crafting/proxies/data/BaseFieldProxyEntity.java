@@ -5,25 +5,25 @@ import javax.annotation.Nullable;
 import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-public abstract class BaseFieldProxyEntity extends TileEntity {
+public abstract class BaseFieldProxyEntity extends BlockEntity {
 
     @Nullable
     protected BlockPos fieldCenter;
 
     protected LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
-    public BaseFieldProxyEntity(TileEntityType<? extends BaseFieldProxyEntity> type) {
-        super(type);
+    public BaseFieldProxyEntity(BlockEntityType<? extends BaseFieldProxyEntity> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     @Override
@@ -76,23 +76,20 @@ public abstract class BaseFieldProxyEntity extends TileEntity {
     }
 
     @Override
-    public CompoundNBT save(CompoundNBT tag) {
-        tag = super.save(tag);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        CompoundNBT finalTag = tag;
         field.ifPresent(field -> {
-            finalTag.put("center", NBTUtil.writeBlockPos(field.getCenter()));
+            tag.put("center", NbtUtils.writeBlockPos(field.getCenter()));
         });
-
-        return finalTag;
     }
-
+    
     @Override
-    public void load(BlockState state, CompoundNBT tag) {
-        super.load(state, tag);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
         if(tag.contains("center")) {
-            this.fieldCenter = NBTUtil.readBlockPos(tag.getCompound("center"));
+            this.fieldCenter = NbtUtils.readBlockPos(tag.getCompound("center"));
         }
     }
 }

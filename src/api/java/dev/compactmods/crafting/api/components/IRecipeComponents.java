@@ -3,7 +3,7 @@ package dev.compactmods.crafting.api.components;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 
 public interface IRecipeComponents {
 

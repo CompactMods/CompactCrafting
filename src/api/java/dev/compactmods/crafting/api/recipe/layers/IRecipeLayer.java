@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public interface IRecipeLayer {
 

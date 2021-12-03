@@ -8,16 +8,16 @@ import dev.compactmods.crafting.network.ClientFieldWatchPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
-import net.minecraftforge.fml.network.PacketDistributor;
+import net.minecraftforge.network.PacketDistributor;
 
 @SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID)
@@ -30,9 +30,9 @@ public class WorldEventHandler {
     }
 
     @SubscribeEvent
-    public static void onServerStarted(final FMLServerStartedEvent evt) {
+    public static void onServerStarted(final ServerStartedEvent evt) {
         CompactCrafting.LOGGER.trace("Server started; calling previously active fields to validate themselves.");
-        for (ServerWorld level : evt.getServer().getAllLevels()) {
+        for (ServerLevel level : evt.getServer().getAllLevels()) {
             level.getCapability(CapabilityActiveWorldFields.FIELDS)
                     .resolve()
                     .ifPresent(fields -> {
@@ -55,9 +55,9 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onStartChunkTracking(final ChunkWatchEvent.Watch event) {
-        final ServerPlayerEntity player = event.getPlayer();
+        final ServerPlayer player = event.getPlayer();
         final ChunkPos pos = event.getPos();
-        final ServerWorld level = event.getWorld();
+        final ServerLevel level = event.getWorld();
 
         level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .map(f -> f.getFields(pos))
@@ -75,9 +75,9 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onStopChunkTracking(final ChunkWatchEvent.UnWatch event) {
-        final ServerPlayerEntity player = event.getPlayer();
+        final ServerPlayer player = event.getPlayer();
         final ChunkPos pos = event.getPos();
-        final ServerWorld level = event.getWorld();
+        final ServerLevel level = event.getWorld();
 
         level.getCapability(CapabilityActiveWorldFields.FIELDS)
                 .map(f -> f.getFields(pos))

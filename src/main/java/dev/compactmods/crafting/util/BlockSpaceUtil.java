@@ -5,23 +5,23 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.Vec3;
 
 public abstract class BlockSpaceUtil {
 
-    public static AxisAlignedBB getLayerBounds(MiniaturizationFieldSize fieldSize, int layerOffset) {
-        AxisAlignedBB fieldBounds = fieldSize.getBoundsAtOrigin();
+    public static AABB getLayerBounds(MiniaturizationFieldSize fieldSize, int layerOffset) {
+        AABB fieldBounds = fieldSize.getBoundsAtOrigin();
         return getLayerBounds(fieldBounds, layerOffset);
     }
 
-    public static AxisAlignedBB getLayerBounds(AxisAlignedBB fieldBounds, int layerOffset) {
-        return new AxisAlignedBB(
-                new Vector3d(fieldBounds.minX, fieldBounds.minY + layerOffset, fieldBounds.minZ),
-                new Vector3d(fieldBounds.maxX, (fieldBounds.minY + layerOffset) + 1, fieldBounds.maxZ)
+    public static AABB getLayerBounds(AABB fieldBounds, int layerOffset) {
+        return new AABB(
+                new Vec3(fieldBounds.minX, fieldBounds.minY + layerOffset, fieldBounds.minZ),
+                new Vec3(fieldBounds.maxX, (fieldBounds.minY + layerOffset) + 1, fieldBounds.maxZ)
         );
     }
 
@@ -30,7 +30,7 @@ public abstract class BlockSpaceUtil {
     }
 
     public static Map<BlockPos, BlockPos> rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {
-        AxisAlignedBB bounds = getBoundsForBlocks(positions);
+        AABB bounds = getBoundsForBlocks(positions);
 
         // Rotation around a normalized world offset (smallest position is 0,0)
         Map<BlockPos, BlockPos> rotatedPreNormalize = Stream.of(positions)
@@ -40,7 +40,7 @@ public abstract class BlockSpaceUtil {
                 .map(p -> new BlockPos[]{p[0], p[1].immutable()})
                 .collect(Collectors.toMap(p -> p[0], p -> p[1]));
 
-        AxisAlignedBB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize.values());
+        AABB rotatedBounds = BlockSpaceUtil.getBoundsForBlocks(rotatedPreNormalize.values());
 
         // Re-Normalize the positions to fix the offsetting that rotation does (we're rotating in place)
         Map<BlockPos, BlockPos> realPositions = new HashMap<>();
@@ -53,7 +53,7 @@ public abstract class BlockSpaceUtil {
         return realPositions;
     }
 
-    public static boolean boundsFitsInside(AxisAlignedBB inner, AxisAlignedBB outer) {
+    public static boolean boundsFitsInside(AABB inner, AABB outer) {
         if (inner.getZsize() > outer.getZsize())
             return false;
 
@@ -67,40 +67,40 @@ public abstract class BlockSpaceUtil {
     }
 
     public static Stream<BlockPos> getBlocksIn(MiniaturizationFieldSize fieldSize, int layerOffset) {
-        AxisAlignedBB layerBounds = getLayerBounds(fieldSize, layerOffset);
+        AABB layerBounds = getLayerBounds(fieldSize, layerOffset);
         return getBlocksIn(layerBounds);
     }
 
     @Nonnull
-    public static Stream<BlockPos> getBlocksIn(AxisAlignedBB bounds) {
+    public static Stream<BlockPos> getBlocksIn(AABB bounds) {
         return BlockPos.betweenClosedStream(bounds.contract(1, 1, 1));
     }
 
 
-    public static AxisAlignedBB getBoundsForBlocks(BlockPos[] filled) {
+    public static AABB getBoundsForBlocks(BlockPos[] filled) {
         return getBoundsForBlocks(Arrays.asList(filled));
     }
 
-    public static AxisAlignedBB getBoundsForBlocks(Collection<BlockPos> filled) {
+    public static AABB getBoundsForBlocks(Collection<BlockPos> filled) {
         if (filled.size() == 0)
-            return AxisAlignedBB.ofSize(0, 0, 0);
+            return AABB.ofSize(Vec3.ZERO,0, 0, 0);
 
-        MutableBoundingBox trimmedBounds = null;
+        BoundingBox trimmedBounds = null;
         for (BlockPos filledPos : filled) {
             if (trimmedBounds == null) {
-                trimmedBounds = new MutableBoundingBox(filledPos, filledPos);
+                trimmedBounds = BoundingBox.fromCorners(filledPos, filledPos);
                 continue;
             }
 
-            MutableBoundingBox checkPos = new MutableBoundingBox(filledPos, filledPos);
+            BoundingBox checkPos = BoundingBox.fromCorners(filledPos, filledPos);
             if (!trimmedBounds.intersects(checkPos))
-                trimmedBounds.expand(checkPos);
+                trimmedBounds.encapsulate(checkPos);
         }
 
-        return AxisAlignedBB.of(trimmedBounds);
+        return AABB.of(trimmedBounds);
     }
 
-    public static AxisAlignedBB getBoundsForBlocks(Stream<BlockPos> positions) {
+    public static AABB getBoundsForBlocks(Stream<BlockPos> positions) {
         final Set<BlockPos> collect = positions.map(BlockPos::immutable).collect(Collectors.toSet());
         return getBoundsForBlocks(collect);
     }
@@ -112,7 +112,7 @@ public abstract class BlockSpaceUtil {
      * @param pos         The position to normalize.
      * @return
      */
-    public static BlockPos normalizeLayerPosition(AxisAlignedBB fieldBounds, BlockPos pos) {
+    public static BlockPos normalizeLayerPosition(AABB fieldBounds, BlockPos pos) {
         return new BlockPos(
                 pos.getX() - fieldBounds.minX,
                 pos.getY() - fieldBounds.minY,
@@ -127,7 +127,7 @@ public abstract class BlockSpaceUtil {
      * @param fieldPositions The non-air block positions in the field (world coordinates).
      * @return
      */
-    public static BlockPos[] normalizeLayerPositions(AxisAlignedBB fieldBounds, BlockPos[] fieldPositions) {
+    public static BlockPos[] normalizeLayerPositions(AABB fieldBounds, BlockPos[] fieldPositions) {
         // Normalize the block positions so the recipe can match easier
         return Stream.of(fieldPositions)
                 .parallel()
@@ -136,7 +136,7 @@ public abstract class BlockSpaceUtil {
                 .toArray(BlockPos[]::new);
     }
 
-    public static BlockPos denormalizeLayerPosition(AxisAlignedBB realBounds, BlockPos normPos) {
+    public static BlockPos denormalizeLayerPosition(AABB realBounds, BlockPos normPos) {
         return new BlockPos(
                 realBounds.minX + normPos.getX(),
                 realBounds.minY + normPos.getY(),
@@ -144,7 +144,7 @@ public abstract class BlockSpaceUtil {
         );
     }
 
-    public static AxisAlignedBB getCenterBounds(AxisAlignedBB bounds) {
+    public static AABB getCenterBounds(AABB bounds) {
         boolean xEven = bounds.getXsize() % 2 == 0;
         boolean yEven = bounds.getYsize() % 2 == 0;
         boolean zEven = bounds.getZsize() % 2 == 0;
@@ -154,21 +154,21 @@ public abstract class BlockSpaceUtil {
         double yExpansion = yEven ? 1 : 0.5d;
         double zExpansion = zEven ? 1 : 0.5d;
 
-        return new AxisAlignedBB(bounds.getCenter(), bounds.getCenter())
+        return new AABB(bounds.getCenter(), bounds.getCenter())
                 .inflate(xExpansion, yExpansion, zExpansion);
     }
 
-    public static Stream<BlockPos> getCenterPositions(AxisAlignedBB bounds) {
+    public static Stream<BlockPos> getCenterPositions(AABB bounds) {
         return getBlocksIn(getCenterBounds(bounds));
     }
 
-    public static Stream<BlockPos> getInnerPositions(AxisAlignedBB bounds) {
-        AxisAlignedBB insideBounds = bounds.contract(2, 0, 2).move(1, 0, 1);
+    public static Stream<BlockPos> getInnerPositions(AABB bounds) {
+        AABB insideBounds = bounds.contract(2, 0, 2).move(1, 0, 1);
 
         return BlockSpaceUtil.getBlocksIn(insideBounds);
     }
 
-    public static Stream<BlockPos> getWallPositions(AxisAlignedBB bounds) {
+    public static Stream<BlockPos> getWallPositions(AABB bounds) {
 
 
         Set<BlockPos> allPositions = BlockSpaceUtil.getBlocksIn(bounds)
@@ -183,11 +183,11 @@ public abstract class BlockSpaceUtil {
         return allPositions.stream();
     }
 
-    public static BlockPos getOffset(AxisAlignedBB bounds) {
+    public static BlockPos getOffset(AABB bounds) {
         return new BlockPos(bounds.minX, bounds.minY, bounds.maxZ);
     }
 
-    public static Stream<BlockPos> getCornersOfBounds(AxisAlignedBB bounds) {
+    public static Stream<BlockPos> getCornersOfBounds(AABB bounds) {
         boolean upperRequired = bounds.maxY > bounds.minY;
         Set<BlockPos> positions = new HashSet<>(upperRequired ? 8 : 4);
 

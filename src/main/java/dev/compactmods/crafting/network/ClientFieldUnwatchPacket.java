@@ -2,9 +2,9 @@ package dev.compactmods.crafting.network;
 
 import java.util.function.Supplier;
 import dev.compactmods.crafting.client.ClientPacketHandler;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public class ClientFieldUnwatchPacket {
 
@@ -14,11 +14,11 @@ public class ClientFieldUnwatchPacket {
         this.center = center;
     }
 
-    public ClientFieldUnwatchPacket(PacketBuffer buf) {
+    public ClientFieldUnwatchPacket(FriendlyByteBuf buf) {
         this.center = buf.readBlockPos();
     }
 
-    public static void encode(ClientFieldUnwatchPacket pkt, PacketBuffer buf) {
+    public static void encode(ClientFieldUnwatchPacket pkt, FriendlyByteBuf buf) {
         buf.writeBlockPos(pkt.center);
     }
 

@@ -2,13 +2,13 @@ package dev.compactmods.crafting.network;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
-import dev.compactmods.crafting.client.ClientPacketHandler;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.network.NetworkEvent;
+import dev.compactmods.crafting.client.ClientPacketHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
 
 public class FieldRecipeChangedPacket {
 
@@ -22,7 +22,7 @@ public class FieldRecipeChangedPacket {
         this.recipe = field.getCurrentRecipe().map(IMiniaturizationRecipe::getRecipeIdentifier).orElse(null);
     }
 
-    public FieldRecipeChangedPacket(PacketBuffer buf) {
+    public FieldRecipeChangedPacket(FriendlyByteBuf buf) {
         this.fieldCenter = buf.readBlockPos();
         if(buf.readBoolean())
             this.recipe = ResourceLocation.tryParse(buf.readUtf());
@@ -30,7 +30,7 @@ public class FieldRecipeChangedPacket {
             this.recipe = null;
     }
 
-    public static void encode(FieldRecipeChangedPacket pkt, PacketBuffer buf) {
+    public static void encode(FieldRecipeChangedPacket pkt, FriendlyByteBuf buf) {
         buf.writeBlockPos(pkt.fieldCenter);
         buf.writeBoolean(pkt.recipe != null);
         if(pkt.recipe != null)

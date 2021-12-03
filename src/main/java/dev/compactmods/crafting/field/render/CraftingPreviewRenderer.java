@@ -1,23 +1,23 @@
 package dev.compactmods.crafting.field.render;
 
 import java.util.Optional;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.MathUtil;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import net.minecraft.block.BlockState;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import com.mojang.math.Vector3f;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 public class CraftingPreviewRenderer {
-    public static void render(IMiniaturizationRecipe recipe, double progress, MatrixStack stack, IRenderTypeBuffer buffers, int light, int overlay) {
-        BlockRendererDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
+    public static void render(IMiniaturizationRecipe recipe, double progress, PoseStack stack, MultiBufferSource buffers, int light, int overlay) {
+        BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
         if(recipe == null)
             return;
@@ -39,7 +39,7 @@ public class CraftingPreviewRenderer {
             double angle = (gameTime  % 360.0) * 2.0d;
             stack.mulPose(Vector3f.YP.rotationDegrees((float) angle));
 
-            AxisAlignedBB dimensions = recipe.getDimensions();
+            AABB dimensions = recipe.getDimensions();
             stack.translate(-(dimensions.getXsize() / 2), -(dimensions.getYsize() / 2), -(dimensions.getZsize() / 2));
 
 
@@ -52,7 +52,7 @@ public class CraftingPreviewRenderer {
                 Optional<IRecipeLayer> layer = recipe.getLayer(y);
                 int finalY = y;
                 layer.ifPresent(l -> {
-                    AxisAlignedBB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), finalY);
+                    AABB layerBounds = BlockSpaceUtil.getLayerBounds(recipe.getDimensions(), finalY);
                     BlockPos.betweenClosedStream(layerBounds).forEach(filledPos -> {
                         stack.pushPose();
                         stack.translate(filledPos.getX(), 0, filledPos.getZ());
@@ -63,7 +63,7 @@ public class CraftingPreviewRenderer {
                                 .ifPresent(comp -> {
                                     // TODO - Render switching
                                     BlockState state1 = comp.getRenderState();
-                                    blockRenderer.renderBlock(state1, stack, buffers, light, overlay, EmptyModelData.INSTANCE);
+                                    blockRenderer.renderSingleBlock(state1, stack, buffers, light, overlay, EmptyModelData.INSTANCE);
                                 });
 
                         stack.popPose();

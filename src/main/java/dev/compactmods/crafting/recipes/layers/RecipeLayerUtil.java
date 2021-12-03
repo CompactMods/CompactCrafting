@@ -4,9 +4,9 @@ import java.util.*;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.core.BlockPos;
 
 public final class RecipeLayerUtil {
 

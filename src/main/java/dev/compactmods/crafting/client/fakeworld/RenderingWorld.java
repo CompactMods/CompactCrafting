@@ -1,36 +1,37 @@
 package dev.compactmods.crafting.client.fakeworld;
 
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.crafting.RecipeManager;
-import net.minecraft.profiler.EmptyProfiler;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.tags.ITagCollectionSupplier;
-import net.minecraft.util.Direction;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.DimensionType;
-import net.minecraft.world.EmptyTickList;
-import net.minecraft.world.ITickList;
-import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.chunk.AbstractChunkProvider;
-import net.minecraft.world.storage.MapData;
-
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.TagContainer;
+import net.minecraft.util.profiling.InactiveProfiler;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.entity.LevelEntityGetter;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.ticks.BlackholeTickAccess;
+import net.minecraft.world.ticks.LevelTickAccess;
 
-public class RenderingWorld extends World {
+public class RenderingWorld extends Level {
 
     private final MiniaturizationRecipe recipe;
 
@@ -39,8 +40,8 @@ public class RenderingWorld extends World {
     private final RenderingChunkProvider chunkProvider;
 
     public RenderingWorld(MiniaturizationRecipe recipe) {
-        super(new RenderingSpawnInfo(), World.OVERWORLD, DimensionType.DEFAULT_OVERWORLD,
-                () -> EmptyProfiler.INSTANCE, true, false, 0);
+        super(new RenderingSpawnInfo(), Level.OVERWORLD, DimensionType.DEFAULT_OVERWORLD,
+                () -> InactiveProfiler.INSTANCE, true, false, 0);
         this.recipe = recipe;
         this.chunkProvider = new RenderingChunkProvider(this, recipe);
     }
@@ -51,13 +52,18 @@ public class RenderingWorld extends World {
     }
 
     @Override
-    public void playSound(@Nullable PlayerEntity p_184148_1_, double p_184148_2_, double p_184148_4_, double p_184148_6_, SoundEvent p_184148_8_, SoundCategory p_184148_9_, float p_184148_10_, float p_184148_11_) {
+    public void playSound(@Nullable Player p_184148_1_, double p_184148_2_, double p_184148_4_, double p_184148_6_, SoundEvent p_184148_8_, SoundSource p_184148_9_, float p_184148_10_, float p_184148_11_) {
 
     }
 
     @Override
-    public void playSound(@Nullable PlayerEntity p_217384_1_, Entity p_217384_2_, SoundEvent p_217384_3_, SoundCategory p_217384_4_, float p_217384_5_, float p_217384_6_) {
+    public void playSound(@Nullable Player p_217384_1_, Entity p_217384_2_, SoundEvent p_217384_3_, SoundSource p_217384_4_, float p_217384_5_, float p_217384_6_) {
 
+    }
+
+    @Override
+    public String gatherChunkSourceStats() {
+        return null;
     }
 
     @Nullable
@@ -68,12 +74,12 @@ public class RenderingWorld extends World {
 
     @Nullable
     @Override
-    public MapData getMapData(String p_217406_1_) {
+    public MapItemSavedData getMapData(String p_217406_1_) {
         return null;
     }
 
     @Override
-    public void setMapData(MapData p_217399_1_) {
+    public void setMapData(String p_151533_, MapItemSavedData p_151534_) {
 
     }
 
@@ -98,32 +104,42 @@ public class RenderingWorld extends World {
     }
 
     @Override
-    public ITagCollectionSupplier getTagManager() {
-        return ITagCollectionSupplier.EMPTY;
+    public TagContainer getTagManager() {
+        return TagContainer.EMPTY;
     }
 
     @Override
-    public ITickList<Block> getBlockTicks() {
+    protected LevelEntityGetter<Entity> getEntities() {
         return null;
     }
 
     @Override
-    public ITickList<Fluid> getLiquidTicks() {
-        return EmptyTickList.empty();
+    public LevelTickAccess<Block> getBlockTicks() {
+        return BlackholeTickAccess.emptyLevelList();
     }
 
     @Override
-    public AbstractChunkProvider getChunkSource() {
+    public LevelTickAccess<Fluid> getFluidTicks() {
+        return BlackholeTickAccess.emptyLevelList();
+    }
+
+    @Override
+    public ChunkSource getChunkSource() {
         return chunkProvider;
     }
 
     @Override
-    public void levelEvent(@Nullable PlayerEntity p_217378_1_, int p_217378_2_, BlockPos p_217378_3_, int p_217378_4_) {
+    public void levelEvent(@Nullable Player p_217378_1_, int p_217378_2_, BlockPos p_217378_3_, int p_217378_4_) {
 
     }
 
     @Override
-    public DynamicRegistries registryAccess() {
+    public void gameEvent(@Nullable Entity p_151549_, GameEvent p_151550_, BlockPos p_151551_) {
+
+    }
+
+    @Override
+    public RegistryAccess registryAccess() {
         return Minecraft.getInstance().level.registryAccess();
     }
 
@@ -133,7 +149,7 @@ public class RenderingWorld extends World {
     }
 
     @Override
-    public List<? extends PlayerEntity> players() {
+    public List<? extends Player> players() {
         return Collections.emptyList();
     }
 

@@ -12,8 +12,8 @@ import com.mojang.serialization.codecs.PrimitiveCodec;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.RecipeHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
 
 public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPositionLookup> {
     @Override
@@ -46,7 +46,7 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
 
     @Override
     public <T> T write(DynamicOps<T> ops, ComponentPositionLookup lookup) {
-        AxisAlignedBB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(lookup.getAllPositions());
+        AABB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(lookup.getAllPositions());
         final String[][] map = RecipeHelper.generateArrayFromBounds(boundsForBlocks);
 
         BlockSpaceUtil.getBlocksIn(boundsForBlocks)

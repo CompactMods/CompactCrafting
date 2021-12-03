@@ -1,22 +1,21 @@
 package dev.compactmods.crafting.proxies.listener;
 
-import dev.compactmods.crafting.proxies.block.FieldProxyBlock;
+import javax.annotation.Nullable;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-
-import javax.annotation.Nullable;
+import dev.compactmods.crafting.proxies.block.FieldProxyBlock;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class MatchModeProxyFieldListener implements IFieldListener {
 
-    private final World level;
+    private final Level level;
     private final BlockPos location;
 
-    public MatchModeProxyFieldListener(World level, BlockPos location) {
+    public MatchModeProxyFieldListener(Level level, BlockPos location) {
         this.level = level;
         this.location = location;
     }
@@ -32,7 +31,7 @@ public class MatchModeProxyFieldListener implements IFieldListener {
 
                 if (currentState.getValue(FieldProxyBlock.SIGNAL) != newPower) {
                     BlockState updated = currentState.setValue(FieldProxyBlock.SIGNAL, newPower);
-                    level.setBlock(location, updated, Constants.BlockFlags.DEFAULT_AND_RERENDER);
+                    level.setBlock(location, updated, Block.UPDATE_ALL);
                 }
             }
         }

@@ -5,22 +5,22 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.BlockGetter;
 
 public class RecipeBlocks implements IRecipeBlocks {
 
-    private AxisAlignedBB sourceBounds;
-    private AxisAlignedBB filledBounds;
+    private AABB sourceBounds;
+    private AABB filledBounds;
     private final ComponentPositionLookup lookup;
     private final Map<BlockPos, BlockState> states;
     private final Set<BlockPos> unmatchedStates;
 
-    protected RecipeBlocks(AxisAlignedBB bounds) {
+    protected RecipeBlocks(AABB bounds) {
         this.sourceBounds = bounds;
         this.filledBounds = BlockSpaceUtil.getBoundsForBlocks(BlockSpaceUtil.getBlocksIn(bounds));
         lookup = new ComponentPositionLookup();
@@ -34,7 +34,7 @@ public class RecipeBlocks implements IRecipeBlocks {
     }
 
     public static RecipeBlocks createEmpty() {
-        return new RecipeBlocks(AxisAlignedBB.ofSize(0, 0, 0));
+        return new RecipeBlocks(AABB.ofSize(Vec3.ZERO, 0, 0, 0));
     }
 
     private void copyInfoFrom(IRecipeBlocks original, BlockPos offset) {
@@ -55,7 +55,7 @@ public class RecipeBlocks implements IRecipeBlocks {
         rebuildComponentTotals();
     }
 
-    public RecipeBlocks(AxisAlignedBB bounds, Map<BlockPos, BlockState> states,
+    public RecipeBlocks(AABB bounds, Map<BlockPos, BlockState> states,
                         Map<BlockPos, String> components, Set<BlockPos> unmatchedStates) {
         this(bounds);
         this.states.putAll(states);
@@ -65,7 +65,7 @@ public class RecipeBlocks implements IRecipeBlocks {
         this.lookup.rebuildComponentTotals();
     }
 
-    public static RecipeBlocks create(IBlockReader blocks, IRecipeComponents components, AxisAlignedBB bounds) {
+    public static RecipeBlocks create(BlockGetter blocks, IRecipeComponents components, AABB bounds) {
         RecipeBlocks instance = new RecipeBlocks(bounds);
 
         BlockSpaceUtil.getBlocksIn(bounds).map(BlockPos::immutable).forEach(pos -> {
@@ -88,7 +88,7 @@ public class RecipeBlocks implements IRecipeBlocks {
     }
 
     @Override
-    public AxisAlignedBB getSourceBounds() {
+    public AABB getSourceBounds() {
         return this.sourceBounds;
     }
 
@@ -108,7 +108,7 @@ public class RecipeBlocks implements IRecipeBlocks {
     }
 
     @Override
-    public AxisAlignedBB getFilledBounds() {
+    public AABB getFilledBounds() {
         return this.filledBounds;
     }
 
@@ -148,18 +148,18 @@ public class RecipeBlocks implements IRecipeBlocks {
     }
 
     @Override
-    public IRecipeBlocks slice(AxisAlignedBB bounds) {
+    public IRecipeBlocks slice(AABB bounds) {
         final RecipeBlocks blocks = new RecipeBlocks(sourceBounds.intersect(bounds));
         blocks.copyInfoFrom(this, BlockPos.ZERO);
         return blocks;
     }
 
     @Override
-    public IRecipeBlocks offset(Vector3i amount) {
+    public IRecipeBlocks offset(Vec3i amount) {
         final RecipeBlocks copy = new RecipeBlocks(this.filledBounds);
         copy.copyInfoFrom(this, new BlockPos(amount));
 
-        copy.filledBounds = copy.filledBounds.move(new Vector3d(amount.getX(), amount.getY(), amount.getZ()));
+        copy.filledBounds = copy.filledBounds.move(new Vec3(amount.getX(), amount.getY(), amount.getZ()));
         copy.sourceBounds = copy.sourceBounds.move(new BlockPos(amount));
 
         return copy;

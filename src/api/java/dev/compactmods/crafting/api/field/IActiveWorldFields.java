@@ -2,15 +2,15 @@ package dev.compactmods.crafting.api.field;
 
 import java.util.Optional;
 import java.util.stream.Stream;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.util.LazyOptional;
 
 public interface IActiveWorldFields {
 
-    void setLevel(World level);
+    void setLevel(Level level);
 
     Stream<IMiniaturizationField> getFields();
 
@@ -34,5 +34,5 @@ public interface IActiveWorldFields {
 
     Stream<IMiniaturizationField> getFields(ChunkPos chunk);
 
-    RegistryKey<World> getLevel();
+    ResourceKey<Level> getLevel();
 }

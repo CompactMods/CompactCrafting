@@ -8,11 +8,11 @@ import mcjty.theoneprobe.api.IProbeHitData;
 import mcjty.theoneprobe.api.IProbeInfo;
 import mcjty.theoneprobe.api.IProbeInfoProvider;
 import mcjty.theoneprobe.api.ProbeMode;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.Level;
 
 public class FieldProxyProvider implements IProbeInfoProvider {
     @Override
@@ -21,7 +21,7 @@ public class FieldProxyProvider implements IProbeInfoProvider {
     }
 
     @Override
-    public void addProbeInfo(ProbeMode mode, IProbeInfo info, PlayerEntity player, World level, BlockState state, IProbeHitData hitData) {
+    public void addProbeInfo(ProbeMode mode, IProbeInfo info, Player player, Level level, BlockState state, IProbeHitData hitData) {
         if (!(state.getBlock() instanceof FieldProxyBlock))
             return;
 
@@ -33,7 +33,7 @@ public class FieldProxyProvider implements IProbeInfoProvider {
                 .ifPresent(field -> {
                     BlockPos fieldCenter = field.getCenter();
 
-                    info.text(new TranslationTextComponent("tooltip.compactcrafting.proxy_bound", fieldCenter.toString()));
+                    info.text(new TranslatableComponent("tooltip.compactcrafting.proxy_bound", fieldCenter.toString()));
                 });
     }
 }

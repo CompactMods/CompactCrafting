@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.client.ui.gui;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.Registration;
@@ -12,21 +12,21 @@ import dev.compactmods.crafting.client.ui.widget.WidgetHolder;
 import dev.compactmods.crafting.client.ui.widget.tab.EnumTabWidgetSide;
 import dev.compactmods.crafting.client.ui.widget.tab.GuiTab;
 import dev.compactmods.crafting.client.ui.widget.tab.TabsWidget;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Vector2f;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
 
 public class TestScreen extends ContainerWidgetScreen<TestContainer> implements IWidgetScreen {
 
     private ResourceLocation GUI = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/edit-screen.png");
-    private final PlayerEntity player;
+    private final Player player;
 
-    public TestScreen(TestContainer c, PlayerInventory inv, ITextComponent name) {
+    public TestScreen(TestContainer c, Inventory inv, Component name) {
         super(c, inv, name);
         this.player = inv.player;
 
@@ -47,7 +47,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
 
         new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {
-                    player.displayClientMessage(new StringTextComponent("hi!"), true);
+                    player.displayClientMessage(new TextComponent("hi!"), true);
                 });
 
         new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));
@@ -68,7 +68,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
     }
 
     @Override
-    public void render(MatrixStack ms, int mouseX, int mouseY, float partialTicks) {
+    public void render(PoseStack ms, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(ms);
         super.render(ms, mouseX, mouseY, partialTicks);
 
@@ -79,14 +79,14 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
     }
 
     @Override
-    protected void renderLabels(MatrixStack ms, int mouseX, int mouseY) {
+    protected void renderLabels(PoseStack ms, int mouseX, int mouseY) {
         // this.font.draw(ms, this.title, (float)this.titleLabelX, (float)this.titleLabelY, 4210752);
-        this.font.draw(ms, this.inventory.getDisplayName(), (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
+        this.font.draw(ms, this.player.getInventory().getDisplayName(), (float) this.inventoryLabelX, (float) this.inventoryLabelY, 4210752);
     }
 
     @Override
-    protected void renderBg(MatrixStack ms, float partialTicks, int mouseX, int mouseY) {
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+    protected void renderBg(PoseStack ms, float partialTicks, int mouseX, int mouseY) {
+        RenderSystem.clearColor(1.0F, 1.0F, 1.0F, 1.0F);
         int relX = (this.width - this.imageWidth) / 2;
         int relY = (this.height - this.imageHeight) / 2;
 
@@ -95,7 +95,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
         this.widgets.renderPreBackground(ms, mouseX, mouseY, partialTicks);
         ms.popPose();
 
-        this.minecraft.getTextureManager().bind(GUI);
+        this.minecraft.getTextureManager().bindForSetup(GUI);
         this.blit(ms, relX, relY, 0, 0, this.imageWidth, this.imageHeight);
 
         ms.pushPose();
@@ -128,7 +128,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
     }
 
     @Override
-    public Vector2f getScreenSize() {
-        return new Vector2f(this.imageWidth, this.imageHeight);
+    public Vec2 getScreenSize() {
+        return new Vec2(this.imageWidth, this.imageHeight);
     }
 }

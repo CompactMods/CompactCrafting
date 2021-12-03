@@ -1,33 +1,30 @@
 package dev.compactmods.crafting.proxies.block;
 
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.NBTUtil;
-import net.minecraft.state.IntegerProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public abstract class FieldProxyBlock extends Block {
     public static IntegerProperty SIGNAL = BlockStateProperties.POWER;
 
-    private static final VoxelShape BASE = VoxelShapes.box(0, 0, 0, 1, 6 / 16d, 1);
+    private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
-    private static final VoxelShape POLE = VoxelShapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
+    private static final VoxelShape POLE = Shapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
 
     public FieldProxyBlock(Properties props) {
         super(props);
@@ -35,50 +32,51 @@ public abstract class FieldProxyBlock extends Block {
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getShape(BlockState state, IBlockReader levelReader, BlockPos pos, ISelectionContext ctx) {
-        return VoxelShapes.or(BASE, POLE);
+    public VoxelShape getShape(BlockState state, BlockGetter levelReader, BlockPos pos, CollisionContext ctx) {
+        return Shapes.or(BASE, POLE);
     }
 
     @Override
     @SuppressWarnings("deprecation")
-    public VoxelShape getOcclusionShape(BlockState state, IBlockReader worldIn, BlockPos pos) {
-        return VoxelShapes.empty();
+    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+        return Shapes.empty();
     }
 
     @Override
-    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(SIGNAL);
     }
 
+    // TODO - Proxy pick block
+//    @Override
+//    public ItemStack getPickBlock(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
+//        ItemStack stack = new ItemStack(this);
+//
+//        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
+//        if (tile != null) {
+//            tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+//                    .ifPresent(field -> {
+//                        CompoundTag fieldInfo = stack.getOrCreateTagElement("field");
+//                        fieldInfo.put("center", NbtUtils.writeBlockPos(field.getCenter()));
+//                    });
+//        }
+//
+//        return stack;
+//    }
+
     @Override
-    public ItemStack getPickBlock(BlockState state, RayTraceResult target, IBlockReader level, BlockPos pos, PlayerEntity player) {
-        ItemStack stack = new ItemStack(this);
-
-        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
-        if (tile != null) {
-            tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
-                    .ifPresent(field -> {
-                        CompoundNBT fieldInfo = stack.getOrCreateTagElement("field");
-                        fieldInfo.put("center", NBTUtil.writeBlockPos(field.getCenter()));
-                    });
-        }
-
-        return stack;
-    }
-
-    @Override
-    public void setPlacedBy(World level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         super.setPlacedBy(level, placedAt, state, entity, stack);
 
         BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(placedAt);
 
         if (stack.hasTag()) {
-            CompoundNBT nbt = stack.getTag();
+            CompoundTag nbt = stack.getTag();
 
             if (nbt != null && nbt.contains("field")) {
-                CompoundNBT fieldData = nbt.getCompound("field");
+                CompoundTag fieldData = nbt.getCompound("field");
                 if (fieldData.contains("center")) {
-                    BlockPos center = NBTUtil.readBlockPos(fieldData.getCompound("center"));
+                    BlockPos center = NbtUtils.readBlockPos(fieldData.getCompound("center"));
 
                     if (tile != null)
                         tile.updateField(center);
@@ -88,7 +86,7 @@ public abstract class FieldProxyBlock extends Block {
     }
 
     @Override
-    public boolean canConnectRedstone(BlockState state, IBlockReader world, BlockPos pos, @Nullable Direction side) {
+    public boolean canConnectRedstone(BlockState state, BlockGetter world, BlockPos pos, @Nullable Direction side) {
         return true;
     }
 }

@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.crafting;
 
-import net.minecraft.entity.item.ItemEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 
 public abstract class CraftingHelper {
 
@@ -21,7 +21,7 @@ public abstract class CraftingHelper {
 
         // Delete the item entity; stack had exactly enough
         if(stack.getCount() == count) {
-            item.remove();
+            item.discard();
             return true;
         }
 

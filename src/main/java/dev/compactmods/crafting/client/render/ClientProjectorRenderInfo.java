@@ -3,24 +3,24 @@ package dev.compactmods.crafting.client.render;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.capability.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.ProjectorHelper;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ActiveRenderInfo;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.util.Direction;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.World;
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.Level;
 
 public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
@@ -45,17 +45,17 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
     }
 
     @Override
-    public void render(MatrixStack matrixStack) {
+    public void render(PoseStack matrixStack) {
         if (this.renderTime == 0) return;
         if (this.remainingProjectors.isEmpty()) return;
 
         final Minecraft mc = Minecraft.getInstance();
-        final IRenderTypeBuffer.Impl buffers = mc.renderBuffers().bufferSource();
-        final ActiveRenderInfo mainCamera = mc.gameRenderer.getMainCamera();
-        final ClientWorld level = mc.level;
+        final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+        final Camera mainCamera = mc.gameRenderer.getMainCamera();
+        final ClientLevel level = mc.level;
 
         matrixStack.pushPose();
-        Vector3d projectedView = mainCamera.getPosition();
+        Vec3 projectedView = mainCamera.getPosition();
         matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
 
         remainingProjectors.forEach((pos, dir) -> {
@@ -73,7 +73,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
             for (int y = -1; y > -10; y--) {
                 BlockPos realPos = new BlockPos(pos.getX(), pos.getY() + y, pos.getZ());
-                if (!level.isStateAtPosition(realPos, AbstractBlock.AbstractBlockState::isAir))
+                if (!level.isStateAtPosition(realPos, BlockBehaviour.BlockStateBase::isAir))
                     break;
 
                 matrixStack.pushPose();
@@ -105,7 +105,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
     }
 
     @Override
-    public void setProjector(World level, BlockPos initial) {
+    public void setProjector(Level level, BlockPos initial) {
         remainingProjectors.clear();
 
         final Direction initialFacing = FieldProjectorBlock.getDirection(level, initial).orElse(Direction.UP);

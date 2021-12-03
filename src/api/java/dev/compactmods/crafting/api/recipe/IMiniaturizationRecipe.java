@@ -6,9 +6,9 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 
 public interface IMiniaturizationRecipe {
     ICatalystMatcher getCatalyst();
@@ -19,7 +19,7 @@ public interface IMiniaturizationRecipe {
 
     int getCraftingTime();
 
-    AxisAlignedBB getDimensions();
+    AABB getDimensions();
 
     Optional<IRecipeLayer> getLayer(int layer);
 

@@ -22,13 +22,13 @@ import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
@@ -41,7 +41,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     private TreeMap<Integer, IRecipeLayer> layers;
     private ICatalystMatcher catalyst;
     private ItemStack[] outputs;
-    private AxisAlignedBB dimensions;
+    private AABB dimensions;
 
     private Map<String, Integer> cachedComponentTotals;
     private final IRecipeComponents components;
@@ -53,7 +53,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.layers = new TreeMap<>();
         this.catalyst = null;
         this.outputs = new ItemStack[0];
-        this.dimensions = AxisAlignedBB.ofSize(0, 0, 0);
+        this.dimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
     }
 
@@ -101,12 +101,12 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
         boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
         if (!hasAnyRigidLayers) {
-            this.dimensions = new AxisAlignedBB(0, 0, 0, recipeSize, height, recipeSize);
+            this.dimensions = new AABB(0, 0, 0, recipeSize, height, recipeSize);
         } else {
             for (IRecipeLayer l : this.layers.values()) {
                 // We only need to worry about fixed-dimension layers; the fluid layers will adapt
                 if (l instanceof IFixedSizedRecipeLayer) {
-                    AxisAlignedBB dimensions = ((IFixedSizedRecipeLayer) l).getDimensions();
+                    AABB dimensions = ((IFixedSizedRecipeLayer) l).getDimensions();
                     if (dimensions.getXsize() > x)
                         x = (int) Math.ceil(dimensions.getXsize());
 
@@ -115,7 +115,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 }
             }
 
-            this.dimensions = new AxisAlignedBB(Vector3d.ZERO, new Vector3d(x, height, z));
+            this.dimensions = new AABB(Vec3.ZERO, new Vec3(x, height, z));
         }
 
         updateFluidLayerDimensions();
@@ -123,7 +123,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
     private void updateFluidLayerDimensions() {
         // Update all the dynamic recipe layers
-        final AxisAlignedBB footprint = BlockSpaceUtil.getLayerBounds(dimensions, 0);
+        final AABB footprint = BlockSpaceUtil.getLayerBounds(dimensions, 0);
         this.layers.values()
                 .stream()
                 .filter(l -> l instanceof IDynamicSizedRecipeLayer)
@@ -153,7 +153,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         }
 
         // We know that the recipe will at least fit inside the current projection field
-        AxisAlignedBB filledBounds = blocks.getFilledBounds();
+        AABB filledBounds = blocks.getFilledBounds();
 
         Rotation[] validRotations = Rotation.values();
 
@@ -243,7 +243,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 .sum();
     }
 
-    public AxisAlignedBB getDimensions() {
+    public AABB getDimensions() {
         return this.dimensions;
     }
 
@@ -287,12 +287,12 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<?> getSerializer() {
         return Registration.MINIATURIZATION_SERIALIZER.get();
     }
 
     @Override
-    public IRecipeType<?> getType() {
+    public RecipeType<?> getType() {
         return Registration.MINIATURIZATION_RECIPE_TYPE;
     }
 

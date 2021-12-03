@@ -1,9 +1,9 @@
 package dev.compactmods.crafting.capability;
 
 import java.util.Set;
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public interface IProjectorRenderInfo {
 
@@ -11,11 +11,11 @@ public interface IProjectorRenderInfo {
 
     int getRenderTimeLeft();
 
-    void render(MatrixStack matrixStack);
+    void render(PoseStack matrixStack);
 
     void tick();
 
     void resetRenderTime();
 
-    void setProjector(World world, BlockPos pos);
+    void setProjector(Level world, BlockPos pos);
 }

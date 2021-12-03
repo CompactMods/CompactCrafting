@@ -1,29 +1,29 @@
 package dev.compactmods.crafting.network;
 
 import java.util.function.Supplier;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraftforge.network.NetworkEvent;
 
 public class ClientFieldWatchPacket {
 
     private final IMiniaturizationField field;
-    private final CompoundNBT clientData;
+    private final CompoundTag clientData;
 
     public ClientFieldWatchPacket(IMiniaturizationField field) {
         this.field = field;
         this.clientData = field.clientData();
     }
 
-    public ClientFieldWatchPacket(PacketBuffer buf) {
+    public ClientFieldWatchPacket(FriendlyByteBuf buf) {
         this.field = new MiniaturizationField();
         this.clientData = buf.readAnySizeNbt();
     }
 
-    public static void encode(ClientFieldWatchPacket pkt, PacketBuffer buf) {
+    public static void encode(ClientFieldWatchPacket pkt, FriendlyByteBuf buf) {
         buf.writeNbt(pkt.field.clientData());
     }
 
