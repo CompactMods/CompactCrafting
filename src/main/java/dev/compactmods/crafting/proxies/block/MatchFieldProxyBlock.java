@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.proxies.block;
 
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,7 +24,7 @@ public class MatchFieldProxyBlock extends FieldProxyBlock implements EntityBlock
 
         MatchFieldProxyEntity tile = (MatchFieldProxyEntity) level.getBlockEntity(placedAt);
         if (tile != null) {
-            tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+            tile.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
                     .ifPresent(field -> {
                         int signal = field.getCurrentRecipe().isPresent() ? 15 : 0;
                         level.setBlock(placedAt, currState.setValue(SIGNAL, signal), Block.UPDATE_ALL);

@@ -8,19 +8,22 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
+public class FilledComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
+        implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer,
+        RecipeLayerType<FilledComponentRecipeLayer> {
 
     private final String componentKey;
     private AABB recipeDimensions;
@@ -28,6 +31,11 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     public static final Codec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.create(in -> in.group(
             Codec.STRING.fieldOf("component").forGetter(FilledComponentRecipeLayer::getComponent)
         ).apply(in, FilledComponentRecipeLayer::new));
+
+    public FilledComponentRecipeLayer() {
+        this.recipeDimensions = AABB.unitCubeFromLowerCorner(Vec3.ZERO);
+        this.componentKey = "-";
+    }
 
     public FilledComponentRecipeLayer(String component) {
         this.recipeDimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
@@ -81,7 +89,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     }
 
     public RecipeLayerType<?> getType() {
-        return Registration.FILLED_LAYER_SERIALIZER.get();
+        return CCLayerTypes.FILLED_LAYER_SERIALIZER.get();
     }
 
     /**
@@ -91,5 +99,10 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
      */
     public void setRecipeDimensions(AABB dimensions) {
         this.recipeDimensions = dimensions;
+    }
+
+    @Override
+    public Codec<FilledComponentRecipeLayer> getCodec() {
+        return CODEC;
     }
 }

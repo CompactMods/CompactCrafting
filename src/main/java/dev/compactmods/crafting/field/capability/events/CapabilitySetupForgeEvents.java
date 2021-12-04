@@ -4,8 +4,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.field.ActiveWorldFields;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
@@ -26,7 +26,7 @@ public class CapabilitySetupForgeEvents {
         ActiveWorldFields inst = new ActiveWorldFields(level);
 
         LazyOptional<ActiveWorldFields> opt = LazyOptional.of(() -> inst);
-        final Capability<IActiveWorldFields> capInstance = CapabilityActiveWorldFields.FIELDS;
+        final Capability<IActiveWorldFields> capInstance = CCCapabilities.FIELDS;
 
         event.addCapability(new ResourceLocation(CompactCrafting.MOD_ID, "world_fields"), new ICapabilityProvider() {
             @Nonnull

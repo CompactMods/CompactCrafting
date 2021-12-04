@@ -7,10 +7,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.*;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ComponentRegistration {
@@ -19,6 +16,8 @@ public class ComponentRegistration {
 
     @SuppressWarnings("unchecked")
     public static DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create((Class) RecipeComponentType.class, CompactCrafting.MOD_ID);
+
+    public static IForgeRegistry<RecipeComponentType<?>> COMPONENTS;
 
     // ================================================================================================================
     //   RECIPE COMPONENTS
@@ -42,7 +41,7 @@ public class ComponentRegistration {
     @SubscribeEvent
     @SuppressWarnings("unused")
     public static void newRegistries(final RegistryEvent.NewRegistry evt) {
-        IForgeRegistry<RecipeComponentType<?>> components = new RegistryBuilder<RecipeComponentType<?>>()
+        COMPONENTS = new RegistryBuilder<RecipeComponentType<?>>()
                 .setName(RECIPE_COMPONENTS_ID)
                 .setType(c(RecipeComponentType.class))
                 .tagFolder(RECIPE_COMPONENTS_ID.getPath())

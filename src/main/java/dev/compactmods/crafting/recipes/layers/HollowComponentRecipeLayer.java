@@ -1,23 +1,29 @@
 package dev.compactmods.crafting.recipes.layers;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
+public class HollowComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
+        implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer,
+        RecipeLayerType<HollowComponentRecipeLayer> {
 
     private final String componentKey;
     private AABB recipeDimensions;
@@ -27,6 +33,11 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
             Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponent)
     ).apply(i, HollowComponentRecipeLayer::new));
 
+    public HollowComponentRecipeLayer() {
+        this.componentKey = null;
+        this.filledPositions = Collections.emptySet();
+    }
+
     public HollowComponentRecipeLayer(String component) {
         this.componentKey = component;
         this.filledPositions = Collections.emptySet();
@@ -34,7 +45,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public RecipeLayerType<?> getType() {
-        return Registration.HOLLOW_LAYER_TYPE.get();
+        return CCLayerTypes.HOLLOW_LAYER_TYPE.get();
     }
 
     @Override
@@ -119,5 +130,10 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     public String getComponent() {
         return this.componentKey;
+    }
+
+    @Override
+    public Codec<HollowComponentRecipeLayer> getCodec() {
+        return CODEC;
     }
 }

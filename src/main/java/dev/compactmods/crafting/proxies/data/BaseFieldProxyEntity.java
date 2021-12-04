@@ -2,16 +2,15 @@ package dev.compactmods.crafting.proxies.data;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import net.minecraft.world.level.block.state.BlockState;
+import dev.compactmods.crafting.core.CCCapabilities;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.core.Direction;
-import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
@@ -31,7 +30,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
         super.onLoad();
 
         if(fieldCenter != null && level != null) {
-            level.getCapability(CapabilityActiveWorldFields.FIELDS)
+            level.getCapability(CCCapabilities.FIELDS)
                     .resolve()
                     .ifPresent(fields -> fieldChanged(fields.getLazy(fieldCenter)));
         }
@@ -47,7 +46,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
             return;
         }
 
-        level.getCapability(CapabilityActiveWorldFields.FIELDS)
+        level.getCapability(CCCapabilities.FIELDS)
                 .map(fields -> fields.getLazy(fieldCenter))
                 .ifPresent(f -> {
                     this.fieldCenter = fieldCenter;
@@ -69,7 +68,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if(cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+        if(cap == CCCapabilities.MINIATURIZATION_FIELD)
             return field.cast();
 
         return super.getCapability(cap, side);

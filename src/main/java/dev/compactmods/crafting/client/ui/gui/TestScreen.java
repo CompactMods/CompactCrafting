@@ -1,9 +1,8 @@
 package dev.compactmods.crafting.client.ui.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.client.ui.container.TestContainer;
 import dev.compactmods.crafting.client.ui.widget.ContainerWidgetScreen;
 import dev.compactmods.crafting.client.ui.widget.IWidgetScreen;
@@ -12,14 +11,15 @@ import dev.compactmods.crafting.client.ui.widget.WidgetHolder;
 import dev.compactmods.crafting.client.ui.widget.tab.EnumTabWidgetSide;
 import dev.compactmods.crafting.client.ui.widget.tab.GuiTab;
 import dev.compactmods.crafting.client.ui.widget.tab.TabsWidget;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec2;
+import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.Vec2;
 
 public class TestScreen extends ContainerWidgetScreen<TestContainer> implements IWidgetScreen {
 
@@ -45,7 +45,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
         TabsWidget tabsTop = new TabsWidget(this, imageWidth, 28 + 20)
                 .withSide(EnumTabWidgetSide.TOP);
 
-        new GuiTab(tabsTop, new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()))
+        new GuiTab(tabsTop, new ItemStack(CCBlocks.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {
                     player.displayClientMessage(new TextComponent("hi!"), true);
                 });

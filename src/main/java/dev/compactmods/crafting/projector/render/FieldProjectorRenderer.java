@@ -14,7 +14,7 @@ import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
 import dev.compactmods.crafting.client.render.RotationSpeed;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorTile;
+import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -37,7 +37,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.common.util.LazyOptional;
 
-public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorTile> {
+public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity> {
 
     public static final ResourceLocation FIELD_DISH_RL = new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector_dish");
 
@@ -50,7 +50,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     }
 
     @Override
-    public void render(FieldProjectorTile tile, float partialTicks, PoseStack matrixStack, MultiBufferSource buffers, int combinedLightIn, int combinedOverlayIn) {
+    public void render(FieldProjectorEntity tile, float partialTicks, PoseStack matrixStack, MultiBufferSource buffers, int combinedLightIn, int combinedOverlayIn) {
         long gameTime = tile.getLevel().getGameTime();
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
@@ -87,7 +87,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         return bakedModelCached;
     }
 
-    private void renderDish(FieldProjectorTile te, PoseStack mx, MultiBufferSource buffer, int combinedLight, int combinedOverlay, long gameTime) {
+    private void renderDish(FieldProjectorEntity te, PoseStack mx, MultiBufferSource buffer, int combinedLight, int combinedOverlay, long gameTime) {
 
         BlockState state = te.getBlockState();
 
@@ -138,7 +138,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
      * Handles rendering the main projection cube in the center of the projection area.
      * Should only be called by the main projector (typically the NORTH projector)
      */
-    private void drawFieldFace(FieldProjectorTile tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds) {
+    private void drawFieldFace(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds) {
 
         Direction projectorDir = tile.getProjectorSide();
 
@@ -155,7 +155,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             hoveringProjector = ((BlockHitResult) hr).getBlockPos().equals(tile.getBlockPos());
         }
 
-        if (hoveringProjector) {
+        if (ClientConfig.doDebugRender() && hoveringProjector) {
             VertexConsumer lineBuilder = buffers.getBuffer(RenderType.lines());
 
             Vec3 debugOrigin = new Vec3(.5, .5, .5);
@@ -229,7 +229,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
      * Handles drawing the projection arcs that connect the projector blocks to the main projection
      * in the center of the crafting area.
      */
-    private void drawProjectorArcs(FieldProjectorTile tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
+    private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
 
         try {
             VertexConsumer builder = buffers.getBuffer(RenderType.lightning());
@@ -290,7 +290,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
      * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
      * where the projection arcs meet the main projection cube.
      */
-    private void drawScanLine(FieldProjectorTile tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
+    private void drawScanLine(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
         VertexConsumer builder = buffers.getBuffer(RenderType.lines());
 
         Vec3 tilePos = new Vec3(
@@ -315,7 +315,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     }
 
     @Override
-    public boolean shouldRenderOffScreen(FieldProjectorTile te) {
+    public boolean shouldRenderOffScreen(FieldProjectorEntity te) {
         return true;
     }
 

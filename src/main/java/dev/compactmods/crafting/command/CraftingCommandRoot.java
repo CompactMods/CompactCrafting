@@ -9,10 +9,9 @@ import dev.compactmods.crafting.CompactCrafting;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -29,9 +28,9 @@ public class CraftingCommandRoot {
 
     private static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         final LiteralArgumentBuilder<CommandSourceStack> root = LiteralArgumentBuilder.literal(CompactCrafting.MOD_ID);
-        root.then(Commands.literal("test")
-                .requires(cs -> cs.hasPermission(2))
-                .executes(CraftingCommandRoot::test));
+//        root.then(Commands.literal("test")
+//                .requires(cs -> cs.hasPermission(2))
+//                .executes(CraftingCommandRoot::test));
         dispatcher.register(root);
     }
 

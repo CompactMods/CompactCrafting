@@ -2,7 +2,7 @@ package dev.compactmods.crafting.proxies.block;
 
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
 import net.minecraft.core.BlockPos;
@@ -34,7 +34,7 @@ public class RescanFieldProxyBlock extends FieldProxyBlock implements EntityBloc
         if (level.hasNeighborSignal(thisPos)) {
             // call recipe scan
             if (tile != null) {
-                tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+                tile.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
                         .ifPresent(field -> {
                             if(field.getCraftingState() != EnumCraftingState.CRAFTING)
                                 field.fieldContentsChanged();

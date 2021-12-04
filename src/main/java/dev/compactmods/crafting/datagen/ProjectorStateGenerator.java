@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import net.minecraft.data.DataGenerator;
 import net.minecraft.core.Direction;
+import net.minecraft.data.DataGenerator;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -22,7 +22,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
         projectorDishModel();
         projectorStaticModel();
 
-        this.getVariantBuilder(Registration.FIELD_PROJECTOR_BLOCK.get())
+        this.getVariantBuilder(CCBlocks.FIELD_PROJECTOR_BLOCK.get())
                 .forAllStates(state -> {
                     Direction dir = state.getValue(FieldProjectorBlock.FACING);
                     boolean active = FieldProjectorBlock.isActive(state);

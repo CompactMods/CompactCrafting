@@ -6,12 +6,14 @@ import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
-public interface IMiniaturizationField {
+public interface IMiniaturizationField extends INBTSerializable<Tag> {
 
     default void dispose() {}
 

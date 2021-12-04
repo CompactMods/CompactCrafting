@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
@@ -288,12 +288,12 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
     @Override
     public RecipeSerializer<?> getSerializer() {
-        return Registration.MINIATURIZATION_SERIALIZER.get();
+        return CCMiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
     }
 
     @Override
     public RecipeType<?> getType() {
-        return Registration.MINIATURIZATION_RECIPE_TYPE;
+        return CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE;
     }
 
     @Override

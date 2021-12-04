@@ -7,8 +7,8 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import net.minecraft.core.BlockPos;
@@ -219,7 +219,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                 fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> activateProjector(level, proj, fieldSize));
 
                 final BlockPos center = getFieldCenter(state, pos);
-                level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
+                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
                     if (!fields.hasActiveField(center)) {
                         final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
                         field.checkLoaded();
@@ -251,7 +251,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
 
             // Remove field registration - this will also update clients
-            level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
+            level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
                 if (fields.hasActiveField(fieldCenter)) {
                     final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
                     if (field == null) return;
@@ -274,8 +274,8 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
         if (isActive(state)) {
             BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof FieldProjectorTile) {
-                FieldProjectorTile fpt = (FieldProjectorTile) tile;
+            if (tile instanceof FieldProjectorEntity) {
+                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
                 if (level.getBestNeighborSignal(pos) > 0) {
                     // receiving power from some side, turn off rendering
                     fpt.getField().ifPresent(IMiniaturizationField::disable);
@@ -288,7 +288,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             // not active, but we may be re-enabling a disabled field
             ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
                 final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
-                level.getCapability(CapabilityActiveWorldFields.FIELDS).ifPresent(fields -> {
+                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
                     fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
                 });
             });
@@ -299,7 +299,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         if (isActive(state))
-            return new FieldProjectorTile(pos, state);
+            return new FieldProjectorEntity(pos, state);
 
         return null;
     }

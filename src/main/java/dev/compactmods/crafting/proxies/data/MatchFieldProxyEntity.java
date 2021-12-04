@@ -2,10 +2,10 @@ package dev.compactmods.crafting.proxies.data;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.field.capability.CapabilityFieldListener;
+import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.listener.MatchModeProxyFieldListener;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,7 +17,7 @@ public class MatchFieldProxyEntity extends BaseFieldProxyEntity {
     protected LazyOptional<IFieldListener> listener = LazyOptional.empty();
 
     public MatchFieldProxyEntity(BlockPos pos, BlockState state) {
-        super(Registration.MATCH_PROXY_ENTITY.get(), pos, state);
+        super(CCBlocks.MATCH_PROXY_ENTITY.get(), pos, state);
     }
 
     @Override
@@ -35,7 +35,7 @@ public class MatchFieldProxyEntity extends BaseFieldProxyEntity {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if(cap == CapabilityFieldListener.FIELD_LISTENER)
+        if(cap == CCCapabilities.FIELD_LISTENER)
             return listener.cast();
 
         return super.getCapability(cap, side);

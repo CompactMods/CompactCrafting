@@ -4,8 +4,8 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import net.minecraft.resources.ResourceLocation;
 
 public final class RecipeLayerTypeCodec implements Codec<RecipeLayerType<?>> {
@@ -16,10 +16,10 @@ public final class RecipeLayerTypeCodec implements Codec<RecipeLayerType<?>> {
 
     public static <T> DataResult<Pair<RecipeLayerType<?>, T>> handleDecodeResult(Pair<ResourceLocation, T> keyValuePair) {
         ResourceLocation id = keyValuePair.getFirst();
-        if(!Registration.RECIPE_LAYER_TYPES.containsKey(id))
+        if(!CCLayerTypes.RECIPE_LAYER_TYPES.containsKey(id))
             return DataResult.error("Unknown registry key: " + id);
 
-        return DataResult.success(keyValuePair.mapFirst(Registration.RECIPE_LAYER_TYPES::getValue));
+        return DataResult.success(keyValuePair.mapFirst(CCLayerTypes.RECIPE_LAYER_TYPES::getValue));
     }
 
     @Override

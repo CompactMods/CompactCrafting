@@ -13,7 +13,7 @@ import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorTile;
+import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import dev.compactmods.crafting.projector.ProjectorHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -104,8 +104,8 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
 
             if (stateAt.hasBlockEntity()) {
                 BlockEntity tileAt = level.getBlockEntity(pos);
-                if (tileAt instanceof FieldProjectorTile) {
-                    ((FieldProjectorTile) tileAt).setFieldRef(field.getRef());
+                if (tileAt instanceof FieldProjectorEntity) {
+                    ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
                 }
             }
         });

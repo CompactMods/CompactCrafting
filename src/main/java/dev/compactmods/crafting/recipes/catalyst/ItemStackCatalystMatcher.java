@@ -6,9 +6,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
+import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
@@ -93,7 +93,7 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
 
     @Override
     public CatalystType<?> getType() {
-        return Registration.ITEM_STACK_CATALYST.get();
+        return CCCatalystTypes.ITEM_STACK_CATALYST.get();
     }
 
     @Override

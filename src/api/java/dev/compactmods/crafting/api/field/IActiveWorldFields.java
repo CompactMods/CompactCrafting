@@ -3,12 +3,14 @@ package dev.compactmods.crafting.api.field;
 import java.util.Optional;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.common.util.LazyOptional;
 
-public interface IActiveWorldFields {
+public interface IActiveWorldFields extends INBTSerializable<ListTag> {
 
     void setLevel(Level level);
 

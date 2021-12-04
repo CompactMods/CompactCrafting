@@ -2,6 +2,7 @@ package dev.compactmods.crafting;
 
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.ui.container.ContainerRegistration;
+import dev.compactmods.crafting.core.*;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -36,7 +37,12 @@ public class CompactCrafting
         mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
         mlCtx.registerConfig(ModConfig.Type.SERVER, ServerConfig.CONFIG);
 
-        Registration.init();
+        CCBlocks.init(modBus);
+        CCCatalystTypes.init(modBus);
+        CCItems.init(modBus);
+        CCLayerTypes.init(modBus);
+        CCMiniaturizationRecipes.init(modBus);
+
         ComponentRegistration.init(modBus);
         ContainerRegistration.init(modBus);
     }
@@ -53,7 +59,7 @@ public class CompactCrafting
 
         @Override
         public ItemStack makeIcon() {
-            return new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get());
+            return new ItemStack(CCItems.FIELD_PROJECTOR_ITEM.get());
         }
     }
 }

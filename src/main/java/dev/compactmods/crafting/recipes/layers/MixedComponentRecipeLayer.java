@@ -10,21 +10,24 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer {
+public class MixedComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
+        implements IRecipeLayer, IFixedSizedRecipeLayer,
+RecipeLayerType<MixedComponentRecipeLayer> {
     private final AABB dimensions;
     private final ComponentPositionLookup componentLookup;
 
@@ -147,6 +150,11 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public RecipeLayerType<?> getType() {
-        return Registration.MIXED_LAYER_TYPE.get();
+        return CCLayerTypes.MIXED_LAYER_TYPE.get();
+    }
+
+    @Override
+    public Codec<MixedComponentRecipeLayer> getCodec() {
+        return CODEC;
     }
 }

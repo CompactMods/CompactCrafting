@@ -4,9 +4,9 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
+import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.resources.ResourceLocation;
 
 public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
@@ -31,9 +31,9 @@ public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
 
     private static <CatalystMatcher> DataResult<Pair<CatalystType<?>, CatalystMatcher>> handleDecodeResult(Pair<ResourceLocation, CatalystMatcher> pair) {
         ResourceLocation id = pair.getFirst();
-        if(!Registration.CATALYST_TYPES.containsKey(id))
+        if(!CCCatalystTypes.CATALYST_TYPES.containsKey(id))
             return DataResult.error("Unknown registry key: " + id);
 
-        return DataResult.success(pair.mapFirst(Registration.CATALYST_TYPES::getValue));
+        return DataResult.success(pair.mapFirst(CCCatalystTypes.CATALYST_TYPES::getValue));
     }
 }

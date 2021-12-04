@@ -2,11 +2,10 @@ package dev.compactmods.crafting.projector;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
+import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.core.CCCapabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
@@ -18,13 +17,13 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
 
-public class FieldProjectorTile extends BlockEntity {
+public class FieldProjectorEntity extends BlockEntity {
 
     protected LazyOptional<IMiniaturizationField> fieldCap = LazyOptional.empty();
     protected LazyOptional<IActiveWorldFields> levelFields = LazyOptional.empty();
 
-    public FieldProjectorTile(BlockPos pos, BlockState state) {
-        super(Registration.FIELD_PROJECTOR_TILE.get(), pos, state);
+    public FieldProjectorEntity(BlockPos pos, BlockState state) {
+        super(CCBlocks.FIELD_PROJECTOR_TILE.get(), pos, state);
     }
 
     public Direction getProjectorSide() {
@@ -34,7 +33,7 @@ public class FieldProjectorTile extends BlockEntity {
     @Override
     public void setLevel(Level level) {
         super.setLevel(level);
-        this.levelFields = this.level.getCapability(CapabilityActiveWorldFields.FIELDS);
+        this.levelFields = this.level.getCapability(CCCapabilities.FIELDS);
     }
 
     @Override
@@ -62,10 +61,10 @@ public class FieldProjectorTile extends BlockEntity {
     @Nonnull
     @Override
     public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-        if (cap == CapabilityActiveWorldFields.FIELDS)
+        if (cap == CCCapabilities.FIELDS)
             return levelFields.cast();
 
-        if (cap == CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+        if (cap == CCCapabilities.MINIATURIZATION_FIELD)
             return fieldCap.cast();
 
         return super.getCapability(cap, side);

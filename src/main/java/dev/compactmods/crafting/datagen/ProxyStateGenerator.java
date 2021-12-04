@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -16,12 +16,12 @@ public class ProxyStateGenerator extends BlockStateProvider {
 
     @Override
     protected void registerStatesAndModels() {
-        getVariantBuilder(Registration.MATCH_FIELD_PROXY_BLOCK.get())
+        getVariantBuilder(CCBlocks.MATCH_FIELD_PROXY_BLOCK.get())
                 .forAllStates(state -> ConfiguredModel.builder()
                         .modelFile(models().getExistingFile(modLoc("block/base")))
                         .build());
 
-        getVariantBuilder(Registration.RESCAN_FIELD_PROXY_BLOCK.get())
+        getVariantBuilder(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get())
                 .forAllStates(state -> ConfiguredModel.builder()
                         .modelFile(models().getExistingFile(modLoc("block/base")))
                         .build());

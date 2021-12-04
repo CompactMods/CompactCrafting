@@ -1,7 +1,8 @@
 package dev.compactmods.crafting.projector.render;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.core.CCItems;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -18,22 +19,22 @@ public class FieldProjectorRenderSetup {
 
     @SubscribeEvent
     public static void regRenderer(final EntityRenderersEvent.RegisterRenderers evt) {
-        evt.registerBlockEntityRenderer(Registration.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+        evt.registerBlockEntityRenderer(CCBlocks.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
     }
 
     @SubscribeEvent
     public static void init(final FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(Registration.FIELD_PROJECTOR_BLOCK.get(), RenderType.cutoutMipped());
+        ItemBlockRenderTypes.setRenderLayer(CCBlocks.FIELD_PROJECTOR_BLOCK.get(), RenderType.cutoutMipped());
     }
 
     @SubscribeEvent
     public static void onBlockColors(final ColorHandlerEvent.Block colors) {
-        colors.getBlockColors().register(new FieldProjectorColors.Block(), Registration.FIELD_PROJECTOR_BLOCK.get());
+        colors.getBlockColors().register(new FieldProjectorColors.Block(), CCBlocks.FIELD_PROJECTOR_BLOCK.get());
     }
 
     @SubscribeEvent
     public static void onItemColors(final ColorHandlerEvent.Item itemColors) {
-        itemColors.getItemColors().register(new FieldProjectorColors.Item(), Registration.FIELD_PROJECTOR_ITEM.get());
+        itemColors.getItemColors().register(new FieldProjectorColors.Item(), CCItems.FIELD_PROJECTOR_ITEM.get());
     }
 
     @SubscribeEvent

@@ -5,14 +5,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
+import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.core.Registry;
+import net.minecraft.tags.SerializationTags;
+import net.minecraft.tags.Tag;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.tags.Tag;
-import net.minecraft.tags.SerializationTags;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
@@ -40,7 +40,7 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
 
     @Override
     public CatalystType<?> getType() {
-        return Registration.TAGGED_ITEM_CATALYST.get();
+        return CCCatalystTypes.TAGGED_ITEM_CATALYST.get();
     }
 
     @Override

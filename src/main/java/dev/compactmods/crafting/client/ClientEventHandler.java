@@ -7,7 +7,7 @@ import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.capability.IProjectorRenderInfo;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.field.render.CraftingPreviewRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -39,7 +39,7 @@ public class ClientEventHandler {
 
         ClientLevel level = Minecraft.getInstance().level;
         if (level != null && !Minecraft.getInstance().isPaused()) {
-            level.getCapability(CapabilityActiveWorldFields.FIELDS)
+            level.getCapability(CCCapabilities.FIELDS)
                     .ifPresent(IActiveWorldFields::tickFields);
         }
     }
@@ -59,7 +59,7 @@ public class ClientEventHandler {
 
         double viewDistance = 64;
         final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        mc.level.getCapability(CapabilityActiveWorldFields.FIELDS)
+        mc.level.getCapability(CCCapabilities.FIELDS)
                 .ifPresent(fields -> {
                     fields.getFields()
                             .filter(field -> Vec3.atCenterOf(field.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))

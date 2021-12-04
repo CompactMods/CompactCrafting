@@ -2,7 +2,7 @@ package dev.compactmods.crafting.events;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.field.capability.CapabilityActiveWorldFields;
+import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.network.ClientFieldUnwatchPacket;
 import dev.compactmods.crafting.network.ClientFieldWatchPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
@@ -33,7 +33,7 @@ public class WorldEventHandler {
     public static void onServerStarted(final ServerStartedEvent evt) {
         CompactCrafting.LOGGER.trace("Server started; calling previously active fields to validate themselves.");
         for (ServerLevel level : evt.getServer().getAllLevels()) {
-            level.getCapability(CapabilityActiveWorldFields.FIELDS)
+            level.getCapability(CCCapabilities.FIELDS)
                     .resolve()
                     .ifPresent(fields -> {
                         fields.setLevel(level);
@@ -49,7 +49,7 @@ public class WorldEventHandler {
     public static void onWorldTick(final TickEvent.WorldTickEvent evt) {
         if (evt.phase != TickEvent.Phase.START) return;
 
-        evt.world.getCapability(CapabilityActiveWorldFields.FIELDS)
+        evt.world.getCapability(CCCapabilities.FIELDS)
                 .ifPresent(IActiveWorldFields::tickFields);
     }
 
@@ -59,7 +59,7 @@ public class WorldEventHandler {
         final ChunkPos pos = event.getPos();
         final ServerLevel level = event.getWorld();
 
-        level.getCapability(CapabilityActiveWorldFields.FIELDS)
+        level.getCapability(CCCapabilities.FIELDS)
                 .map(f -> f.getFields(pos))
                 .ifPresent(activeFields -> {
                     activeFields.forEach(field -> {
@@ -79,7 +79,7 @@ public class WorldEventHandler {
         final ChunkPos pos = event.getPos();
         final ServerLevel level = event.getWorld();
 
-        level.getCapability(CapabilityActiveWorldFields.FIELDS)
+        level.getCapability(CCCapabilities.FIELDS)
                 .map(f -> f.getFields(pos))
                 .ifPresent(activeFields -> {
                     activeFields.forEach(field -> {

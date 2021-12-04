@@ -5,7 +5,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.field.IFieldListener;
@@ -19,7 +19,7 @@ import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorTile;
+import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -31,6 +31,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -345,7 +346,7 @@ public class MiniaturizationField implements IMiniaturizationField {
          * filled space.
          */
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
-                .getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE)
+                .getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE)
                 .stream().map(r -> (MiniaturizationRecipe) r)
                 .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), filledBounds))
                 .collect(Collectors.toSet());
@@ -521,12 +522,12 @@ public class MiniaturizationField implements IMiniaturizationField {
                     new StructurePlaceSettings(), level.random, 2);
         }
 
-        if(currentRecipe != null) {
+        if (currentRecipe != null) {
             final ICatalystMatcher catalyst = currentRecipe.getCatalyst();
             if (restoreCatalyst) {
                 final BlockPos northLoc = size.getProjectorLocationForDirection(center, Direction.NORTH);
 
-                for(Item cat : matchedCatalysts) {
+                for (Item cat : matchedCatalysts) {
                     final ItemEntity ie = new ItemEntity(level,
                             northLoc.getX(), center.getY() + 1.5f, northLoc.getZ(),
                             new ItemStack(cat));
@@ -570,8 +571,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         getProjectorPositions().forEach(proj -> {
             FieldProjectorBlock.activateProjector(level, proj, this.size);
             BlockEntity projTile = level.getBlockEntity(proj);
-            if (projTile instanceof FieldProjectorTile) {
-                ((FieldProjectorTile) projTile).setFieldRef(lazyReference);
+            if (projTile instanceof FieldProjectorEntity) {
+                ((FieldProjectorEntity) projTile).setFieldRef(lazyReference);
             }
         });
 
@@ -595,4 +596,29 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
 
+    @Override
+    public Tag serializeNBT() {
+        CompoundTag fieldInfo = new CompoundTag();
+        fieldInfo.put("center", NbtUtils.writeBlockPos(center));
+        fieldInfo.putString("size", size.name());
+
+        fieldInfo.putString("craftingState", craftingState.name());
+
+        if (currentRecipe != null)
+            fieldInfo.putString("recipe", currentRecipe.getRecipeIdentifier().toString());
+
+        return fieldInfo;
+    }
+
+    @Override
+    public void deserializeNBT(Tag nbt) {
+        if (nbt instanceof CompoundTag fieldInfo) {
+            this.center = NbtUtils.readBlockPos(fieldInfo.getCompound("center"));
+            this.size = MiniaturizationFieldSize.valueOf(fieldInfo.getString("size"));
+
+            if (fieldInfo.contains("craftingState")) {
+                this.craftingState = EnumCraftingState.valueOf(fieldInfo.getString("craftingState"));
+            }
+        }
+    }
 }
