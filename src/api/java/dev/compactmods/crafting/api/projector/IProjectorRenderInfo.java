@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.capability;
+package dev.compactmods.crafting.api.projector;
 
 import java.util.Set;
 import com.mojang.blaze3d.vertex.PoseStack;

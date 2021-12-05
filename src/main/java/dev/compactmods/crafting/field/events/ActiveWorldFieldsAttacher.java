@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.field.capability.events;
+package dev.compactmods.crafting.field.events;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class CapabilitySetupForgeEvents {
+public class ActiveWorldFieldsAttacher {
 
     @SubscribeEvent
     public static void onCapWorldAttach(final AttachCapabilitiesEvent<Level> event) {

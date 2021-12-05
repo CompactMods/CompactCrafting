@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.capability.IProjectorRenderInfo;
+import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;

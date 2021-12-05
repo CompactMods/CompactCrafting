@@ -3,13 +3,13 @@ package dev.compactmods.crafting.events;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
-import dev.compactmods.crafting.capability.IProjectorRenderInfo;
+import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.render.ClientProjectorRenderInfo;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import dev.compactmods.crafting.core.CCCapabilities;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -31,7 +31,7 @@ public class CapabilityEventHandler {
                 @Nonnull
                 @Override
                 public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
-                    if (cap == CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                    if (cap == CCCapabilities.TEMP_PROJECTOR_RENDERING)
                         return renderData.cast();
 
                     return LazyOptional.empty();

@@ -6,7 +6,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.capability.CapabilityProjectorRenderInfo;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
@@ -145,7 +144,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (world.isClientSide) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
             if(hasMissing) {
-                player.getCapability(CapabilityProjectorRenderInfo.TEMP_PROJECTOR_RENDERING)
+                player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
                         .ifPresent(rend -> {
                             rend.resetRenderTime();
                             rend.setProjector(world, pos);
