@@ -28,9 +28,9 @@ public class CraftingCommandRoot {
 
     private static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         final LiteralArgumentBuilder<CommandSourceStack> root = LiteralArgumentBuilder.literal(CompactCrafting.MOD_ID);
-//        root.then(Commands.literal("test")
-//                .requires(cs -> cs.hasPermission(2))
-//                .executes(CraftingCommandRoot::test));
+
+        root.then(FieldInfoCommand.create());
+
         dispatcher.register(root);
     }
 
