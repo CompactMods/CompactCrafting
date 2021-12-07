@@ -4,19 +4,21 @@ import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Matrix4f;
+import com.mojang.math.Quaternion;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
-import dev.compactmods.crafting.client.fakeworld.RenderingWorld;
-import dev.compactmods.crafting.client.render.CCRenderTypes;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.client.ui.ScreenArea;
-import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.crafting.client.fakeworld.RenderingWorld;
+import dev.compactmods.crafting.client.ui.ScreenArea;
+import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.recipes.components.BlockComponent;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -25,30 +27,29 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.world.level.block.state.BlockState;
-import com.mojang.blaze3d.platform.Window;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiComponent;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.sounds.SoundManager;
-import net.minecraft.client.gui.GuiComponent;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Quaternion;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.client.model.data.EmptyModelData;
 import net.minecraftforge.client.model.data.IModelData;
 import org.lwjgl.BufferUtils;
@@ -91,7 +92,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         this.guiHelper = guiHelper;
         this.background = guiHelper.createBlankDrawable(width, height);
         this.slotDrawable = guiHelper.getSlotDrawable();
-        this.icon = guiHelper.createDrawableIngredient(new ItemStack(Registration.FIELD_PROJECTOR_BLOCK.get()));
+        this.icon = guiHelper.createDrawableIngredient(new ItemStack(CCBlocks.FIELD_PROJECTOR_BLOCK.get()));
         this.arrowOutputs = guiHelper.createDrawable(new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"), 0, 0, 24, 19);
 
         this.blocks = Minecraft.getInstance().getBlockRenderer();
@@ -110,8 +111,8 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     }
 
     @Override
-    public String getTitle() {
-        return I18n.get(CompactCrafting.MOD_ID + ".jei.miniaturization.title");
+    public Component getTitle() {
+        return new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.title");
     }
 
     @Override
@@ -308,12 +309,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             int uWidth, int vHeight,
             int textureWidth, int textureHeight) {
 
-        Minecraft minecraft = Minecraft.getInstance();
-        minecraft.getTextureManager().bind(texture);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.setShaderTexture(0, texture);
 
         RenderSystem.enableDepthTest();
-        GuiComponent.blit(matrixStack, area.x, area.y, area.width, area.height,
-                u, v, uWidth, vHeight, textureWidth, textureHeight);
+        GuiComponent.blit(matrixStack, area.x, area.y, area.width, area.height, u, v, uWidth, vHeight, textureWidth, textureHeight);
     }
 
     //endregion
@@ -510,11 +511,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             return;
 
         BlockState state1 = state.getRenderState();
-        // Thanks Immersive, Astral, and others
-        MultiBufferSource light = CCRenderTypes.disableLighting(buffers);
 
         IModelData data = EmptyModelData.INSTANCE;
-        if (previewLevel != null && state1.hasTileEntity()) {
+        if (previewLevel != null && state1.hasBlockEntity()) {
             // create fake world instance
             // get tile entity - extend EmptyBlockReader with impl
             BlockEntity be = previewLevel.getBlockEntity(filledPos);
@@ -523,10 +522,16 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
 
         try {
-            blocks.renderBlock(state1,
+//            final RenderBuffers buffs = Minecraft.getInstance().renderBuffers();
+//            final BufferBuilder builder = buffs.fixedBufferPack().builder(RenderType.solid());
+//            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
+//            blocks.renderBatched(state1, BlockPos.ZERO, this.previewLevel, mx, builder, false, this.previewLevel.random, data);
+//            builder.end();
+
+            blocks.renderSingleBlock(state1,
                     mx,
-                    light,
-                    0xf000f0,
+                    buffers,
+                    LightTexture.FULL_SKY,
                     OverlayTexture.NO_OVERLAY,
                     data);
         } catch (Exception e) {

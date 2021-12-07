@@ -1,9 +1,9 @@
-package dev.compactmods.crafting.tests.util;
+package dev.compactmods.crafting.tests;
 
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ public class BlockSpaceUtilTests {
         int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
-        AxisAlignedBB field = new AxisAlignedBB(min, max);
+        var field = new AABB(min, max);
 
         BlockPos actual = BlockSpaceUtil.normalizeLayerPosition(field, min);
 
@@ -30,7 +30,7 @@ public class BlockSpaceUtilTests {
         int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
-        AxisAlignedBB field = new AxisAlignedBB(min, max);
+        AABB field = new AABB(min, max);
 
         BlockPos[] actual = BlockSpaceUtil.normalizeLayerPositions(field, new BlockPos[]{
                 new BlockPos(100, 0, 100),
@@ -52,7 +52,7 @@ public class BlockSpaceUtilTests {
         int largeSize = MiniaturizationFieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
-        AxisAlignedBB field = new AxisAlignedBB(min, max);
+        AABB field = new AABB(min, max);
 
         BlockPos original = new BlockPos(100, 0, 100);
 

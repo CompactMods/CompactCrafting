@@ -1,12 +1,11 @@
-package dev.compactmods.crafting.tests.util;
-
-import dev.compactmods.crafting.recipes.RecipeHelper;
-import net.minecraft.util.math.BlockPos;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+package dev.compactmods.crafting.tests;
 
 import java.util.Arrays;
 import java.util.Map;
+import dev.compactmods.crafting.recipes.RecipeHelper;
+import net.minecraft.core.BlockPos;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 class RecipeLoaderUtilTest {
 

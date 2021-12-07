@@ -59,6 +59,15 @@ sourceSets {
         compileClasspath += sourceSets.api.output
     }
 
+    test {
+        java { srcDir "src/main/test" }
+
+        runtimeClasspath += sourceSets.api.output
+        compileClasspath += sourceSets.api.output
+        runtimeClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.main.output
+    }
+
 //    test {
 //        compileClasspath += sourceSets.api.output
 //        compileClasspath += sourceSets.main.output
@@ -254,6 +263,7 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
     // testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
 
     library "io.reactivex.rxjava3:rxjava:3.1.1";
@@ -265,8 +275,8 @@ dependencies {
     runtimeOnly(fg.deobf("curse.maven:shutupexperimental-407174:3544525"))
 
     // JEI
-    // compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    // runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
 
     // The One Probe
     // compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
@@ -386,8 +396,6 @@ publishing {
     }
 }
 
-//test {
-//    useJUnitPlatform() {
-//        excludeTags "minecraft"
-//    }
-//}
+test {
+    useJUnitPlatform()
+}

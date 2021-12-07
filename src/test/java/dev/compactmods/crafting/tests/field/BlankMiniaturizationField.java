@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.tests.api.field;
+package dev.compactmods.crafting.tests.field;
 
 import java.util.Optional;
 import dev.compactmods.crafting.api.EnumCraftingState;
@@ -6,16 +6,19 @@ import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class BlankMiniaturizationField implements IMiniaturizationField {
     @Override
-    public AxisAlignedBB getBounds() {
-        return AxisAlignedBB.ofSize(0, 0, 0);
+    public AABB getBounds() {
+        return AABB.ofSize(Vec3.ZERO, 0, 0, 0);
     }
 
     @Override
@@ -74,7 +77,7 @@ public class BlankMiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setLevel(World level) {
+    public void setLevel(Level level) {
 
     }
 
@@ -121,5 +124,15 @@ public class BlankMiniaturizationField implements IMiniaturizationField {
     @Override
     public boolean enabled() {
         return true;
+    }
+
+    @Override
+    public Tag serializeNBT() {
+        return new CompoundTag();
+    }
+
+    @Override
+    public void deserializeNBT(Tag nbt) {
+
     }
 }

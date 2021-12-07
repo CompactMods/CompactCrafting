@@ -1,14 +1,13 @@
 package dev.compactmods.crafting.tests;
 
-import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.Rotation;
-import net.minecraft.util.math.BlockPos;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Rotation;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class RotationsTest {
 

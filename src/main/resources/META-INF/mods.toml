@@ -53,12 +53,12 @@ Based off of the Compact Machines mod pre-1.16.
     ordering="NONE"
     side="BOTH"
 
-#[[dependencies.compactcrafting]]
-#    modId="jei"
-#    mandatory=false
-#    versionRange="[7.7.1.110,)"
-#    ordering="BEFORE"
-#    side="BOTH"
+[[dependencies.compactcrafting]]
+    modId="jei"
+    mandatory=false
+    versionRange="[9.0.0.40,)"
+    ordering="BEFORE"
+    side="BOTH"
 #
 #[[dependencies.compactcrafting]]
 #    modId="theoneprobe"

@@ -1,7 +1,9 @@
 package dev.compactmods.crafting.compat.jei;
 
+import java.util.List;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.Registration;
+import dev.compactmods.crafting.core.CCItems;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
@@ -11,11 +13,9 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeManager;
-import net.minecraft.resources.ResourceLocation;
-
-import java.util.List;
 
 @JeiPlugin
 public class JeiMiniaturizationPlugin implements IModPlugin {
@@ -36,7 +36,7 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(
-                new ItemStack(Registration.FIELD_PROJECTOR_ITEM.get(), 4),
+                new ItemStack(CCItems.FIELD_PROJECTOR_ITEM.get(), 4),
                 JeiMiniaturizationCraftingCategory.UID);
 
     }
@@ -46,7 +46,7 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
         ClientLevel w = Minecraft.getInstance().level;
         RecipeManager rm = w == null ? null : w.getRecipeManager();
         if(rm != null) {
-            List<RecipeBase> miniRecipes = rm.getAllRecipesFor(Registration.MINIATURIZATION_RECIPE_TYPE);
+            List<RecipeBase> miniRecipes = rm.getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE);
             registration.addRecipes(miniRecipes, JeiMiniaturizationCraftingCategory.UID);
         }
     }
