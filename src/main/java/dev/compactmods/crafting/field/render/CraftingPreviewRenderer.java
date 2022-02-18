@@ -2,17 +2,20 @@ package dev.compactmods.crafting.field.render;
 
 import java.util.Optional;
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.compactmods.crafting.util.BlockSpaceUtil;
-import dev.compactmods.crafting.util.MathUtil;
+import com.mojang.math.Vector3f;
+import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
-import net.minecraft.world.level.block.state.BlockState;
+import dev.compactmods.crafting.util.BlockSpaceUtil;
+import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import com.mojang.math.Vector3f;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 public class CraftingPreviewRenderer {
@@ -42,7 +45,6 @@ public class CraftingPreviewRenderer {
             AABB dimensions = recipe.getDimensions();
             stack.translate(-(dimensions.getXsize() / 2), -(dimensions.getYsize() / 2), -(dimensions.getZsize() / 2));
 
-
             double ySize = recipe.getDimensions().getYsize();
 
             for (int y = 0; y < ySize; y++) {
@@ -60,11 +62,7 @@ public class CraftingPreviewRenderer {
                         BlockPos zeroedPos = filledPos.below(finalY);
                         l.getComponentForPosition(zeroedPos)
                                 .flatMap(recipe.getComponents()::getBlock)
-                                .ifPresent(comp -> {
-                                    // TODO - Render switching
-                                    BlockState state1 = comp.getRenderState();
-                                    blockRenderer.renderSingleBlock(state1, stack, buffers, light, overlay, EmptyModelData.INSTANCE);
-                                });
+                                .ifPresent(comp -> renderSingleBlock(stack, buffers, blockRenderer, comp));
 
                         stack.popPose();
                     });
@@ -79,5 +77,13 @@ public class CraftingPreviewRenderer {
         }
 
         stack.popPose();
+    }
+
+    private static void renderSingleBlock(PoseStack stack, MultiBufferSource buffers, BlockRenderDispatcher blockRenderer, IRecipeBlockComponent comp) {
+        // TODO - Render switching
+        BlockState state1 = comp.getRenderState();
+        final Minecraft mc = Minecraft.getInstance();
+
+        blockRenderer.renderSingleBlock(state1, stack, buffers, LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, EmptyModelData.INSTANCE);
     }
 }

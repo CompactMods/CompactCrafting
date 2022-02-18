@@ -1,35 +1,44 @@
 package dev.compactmods.crafting.client.render;
 
-import java.util.OptionalDouble;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 
 public class CCRenderTypes extends RenderType {
-
-    public static final RenderType LINE_STRIP = create("line_strip",
-            DefaultVertexFormat.POSITION_COLOR_NORMAL, VertexFormat.Mode.LINE_STRIP, 256, false, false,
-            RenderType.CompositeState.builder().setShaderState(RENDERTYPE_LINES_SHADER)
-                    .setLineState(new RenderStateShard.LineStateShard(OptionalDouble.of(4f)))
-                    .setLayeringState(VIEW_OFFSET_Z_LAYERING)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setOutputState(ITEM_ENTITY_TARGET)
-                    .setWriteMaskState(COLOR_DEPTH_WRITE)
-                    .setCullState(NO_CULL)
-                    .createCompositeState(false));
+    protected static final RenderStateShard.TransparencyStateShard TRANSLUCENT_TRANSPARENCY = new RenderStateShard.TransparencyStateShard("cc_translucent", () -> {
+        RenderSystem.enableBlend();
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+    }, () -> {
+        RenderSystem.disableBlend();
+        RenderSystem.defaultBlendFunc();
+    });
 
     public static final RenderType FIELD_RENDER_TYPE = create("projection_field",
-            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 262144, false, true,
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, RenderType.MEDIUM_BUFFER_SIZE, false, true,
             RenderType.CompositeState.builder()
-                    .setLineState(new LineStateShard(OptionalDouble.of(4f)))
-                    .setLightmapState(LIGHTMAP)
-                    .setShaderState(ShaderStateShard.POSITION_COLOR_SHADER)
-                    .setTextureState(RenderStateShard.NO_TEXTURE)
-                    .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                    .setOutputState(TRANSLUCENT_TARGET)
-                    .setCullState(RenderStateShard.NO_CULL)
+                    .setTransparencyState(new TransparencyStateShard("transparent", () -> {
+                        RenderSystem.enableBlend();
+                        RenderSystem.enableDepthTest();
+                        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                    }, () -> {
+                        RenderSystem.disableDepthTest();
+                        RenderSystem.disableBlend();
+                        RenderSystem.defaultBlendFunc();
+                    }))
+                    .setTextureState(NO_TEXTURE)
+                    .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
+                    .setOutputState(RenderType.OUTLINE_TARGET)
                     .createCompositeState(true));
+
+//                    .setShaderState(RenderStateShard.RENDERTYPE_TRANSLUCENT_SHADER)
+//                    .setWriteMaskState(COLOR_DEPTH_WRITE)
+//                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+//                    .setOutputState(OutputStateShard.TRANSLUCENT_TARGET)
+//                    .setCullState(RenderStateShard.NO_CULL)
+//                    .createCompositeState(false));
 
     public static final RenderType PHANTOM = create("phantom", DefaultVertexFormat.BLOCK, VertexFormat.Mode.QUADS, 2097152, true, false, RenderType.CompositeState.builder()
             .setShaderState(ShaderStateShard.BLOCK_SHADER)

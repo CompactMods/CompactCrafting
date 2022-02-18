@@ -1,17 +1,20 @@
 package dev.compactmods.crafting.client;
 
+import javax.annotation.Nonnull;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
+import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.field.render.CraftingPreviewRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -50,9 +53,12 @@ public class ClientEventHandler {
         if (mc.level == null)
             return;
 
-        mc.player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
-                .ifPresent(render -> render.render(event.getPoseStack()));
+        doProjectorRender(event, mc);
+        doFieldPreviewRender(event, mc);
+    }
 
+    @Nonnull
+    private static void doFieldPreviewRender(RenderLevelLastEvent event, Minecraft mc) {
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final HitResult hitResult = mc.hitResult;
 
@@ -79,15 +85,22 @@ public class ClientEventHandler {
                                         (double) center.getZ()
                                 );
 
+                                final IMiniaturizationRecipe rec = field.getCurrentRecipe().get();
+                                final int prog = field.getProgress();
+
                                 CraftingPreviewRenderer.render(
-                                        field.getCurrentRecipe().get(), field.getProgress(), stack,
-                                        buffers, 15728880, OverlayTexture.NO_OVERLAY
+                                        rec, prog, stack,
+                                        buffers, LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY
                                 );
 
                                 stack.popPose();
                             });
                 });
-
         buffers.endBatch();
+    }
+
+    private static void doProjectorRender(RenderLevelLastEvent event, Minecraft mc) {
+        mc.player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
+                .ifPresent(render -> render.render(event.getPoseStack()));
     }
 }

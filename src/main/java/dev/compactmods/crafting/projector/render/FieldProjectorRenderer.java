@@ -191,7 +191,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             mx.popPose();
         }
 
-        VertexConsumer builder = buffers.getBuffer(RenderType.lightning());
+        VertexConsumer builder = buffers.getBuffer(RenderType.lines());
 
         double expansion = 0.005;
         AABB slightlyBiggerBecauseFoxes = fieldBounds
@@ -203,26 +203,21 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         // North and South projectors render the top and bottom faces
         int color = getProjectionColor(EnumProjectorColorType.FIELD);
 
-        if(projectorDir == Direction.NORTH) {
-            for(Direction dir : Direction.values())
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, dir);
-        }
+        switch (projectorDir) {
+            case NORTH:
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.UP);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
 
-//        switch (projectorDir) {
-//            case NORTH:
-//                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.UP);
-//                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-//                break;
-//
-//            case SOUTH:
-//                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.DOWN);
-//                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-//                break;
-//
-//            default:
-//                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-//                break;
-//        }
+            case SOUTH:
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.DOWN);
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
+
+            default:
+                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
+                break;
+        }
     }
 
     /**
@@ -232,7 +227,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
 
         try {
-            VertexConsumer builder = buffers.getBuffer(RenderType.lightning());
+            VertexConsumer builder = buffers.getBuffer(RenderType.lines());
 
             Direction facing = tile.getProjectorSide();
 

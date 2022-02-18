@@ -4,18 +4,19 @@ import javax.annotation.Nullable;
 import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.util.FastColor;
-import net.minecraft.core.Direction;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.EmptyModelData;
 
 public class GhostRenderer {
@@ -31,7 +32,8 @@ public class GhostRenderer {
         final float alpha = ticksLeft >= 100 ? 0.9f : 0.9f * Math.max(ticksLeft / 100f, .1f);
 
         VertexConsumer builder = buffer.getBuffer(CCRenderTypes.PHANTOM);
-        BakedModel model = mc.getBlockRenderer().getBlockModel(state);
+        final BlockRenderDispatcher dispatcher = mc.getBlockRenderer();
+        BakedModel model = dispatcher.getBlockModel(state);
         if (model != mc.getModelManager().getMissingModel()) {
             for(Direction dir : Direction.values())
                 model.getQuads(state, dir, new Random(42L), EmptyModelData.INSTANCE)
@@ -56,6 +58,6 @@ public class GhostRenderer {
                 green,
                 blue,
                 trueAlpha,
-                LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+                LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY);
     }
 }

@@ -58,7 +58,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
         Vec3 projectedView = mainCamera.getPosition();
         matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
 
-        remainingProjectors.forEach((pos, dir) -> {
+        for(BlockPos pos : remainingProjectors.keySet()) {
             matrixStack.pushPose();
             matrixStack.translate(
                     (double) pos.getX() + 0.05,
@@ -66,9 +66,9 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
                     (double) pos.getZ() + 0.05
             );
 
-            matrixStack.scale(0.9f, 0.9f, 0.9f);
+            matrixStack.scale(.9f, .9f, .9f);
 
-            GhostRenderer.renderTransparentBlock(baseState.setValue(FieldProjectorBlock.FACING, dir), pos, matrixStack, buffers, renderTime);
+            GhostRenderer.renderTransparentBlock(baseState.setValue(FieldProjectorBlock.FACING, remainingProjectors.get(pos)), pos, matrixStack, buffers, renderTime);
             matrixStack.popPose();
 
             for (int y = -1; y > -10; y--) {
@@ -84,10 +84,10 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
                 );
 
                 matrixStack.scale(0.6f, 0.6f, 0.6f);
-                GhostRenderer.renderTransparentBlock(Blocks.BLACK_STAINED_GLASS.defaultBlockState(), null, matrixStack, buffers, renderTime);
+                GhostRenderer.renderTransparentBlock(Blocks.BLACK_STAINED_GLASS.defaultBlockState(), realPos, matrixStack, buffers, renderTime);
                 matrixStack.popPose();
             }
-        });
+        }
 
         matrixStack.popPose();
         buffers.endBatch();
