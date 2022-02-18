@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 // @IntegrationTestClass("projectors")
 public class Projectors {
 
-    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "small_field")
+    @GameTest(template = "small_field", templateNamespace = CompactCrafting.MOD_ID)
     public static void CanPlaceProjector(final GameTestHelper test) {
         final BlockPos fieldCenter = MiniaturizationFieldSize.SMALL.getOriginCenterFromCorner()
                 .above();

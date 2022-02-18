@@ -9,29 +9,18 @@ import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.NBTDynamicOps;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class MiniaturizationRecipeCodecTests {
 
-    @Tag("minecraft")
-    @org.junit.jupiter.api.BeforeAll
-    static void BeforeAllTests() {
-        ServerConfig.RECIPE_REGISTRATION.set(true);
-        ServerConfig.RECIPE_MATCHING.set(true);
-        ServerConfig.FIELD_BLOCK_CHANGES.set(true);
-    }
-
     @Test
-    @Tag("minecraft")
     void LoadsRecipeFromJson() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
+        JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
 
         MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -39,9 +28,8 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void RequiresRecipeSizeOnAllDynamicLayers() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
+        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
         Optional<DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -54,9 +42,8 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void DoesNotFailIfNoComponentsDefined() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/warn_no_components.json");
+        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/warn_no_components.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -74,9 +61,8 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void PartialResultIfNoOutputsEntryExists() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
+        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -90,9 +76,8 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void PartialResultIfNoOutputsExist() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_outputs.json");
+        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs.json");
 
         Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
@@ -107,7 +92,6 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void LoadsRecipeLayersCorrectly() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         if (recipe == null) {
@@ -132,7 +116,6 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void LoadsCatalystCorrectly() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         Assertions.assertNotNull(recipe);
@@ -144,18 +127,17 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void MakesRoundTripThroughNbtCorrectly() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
         if (recipe == null) {
             Assertions.fail("No recipe was loaded.");
         } else {
-            DataResult<INBT> dr = MiniaturizationRecipe.CODEC.encodeStart(NBTDynamicOps.INSTANCE, recipe);
-            Optional<INBT> res = dr.resultOrPartial(Assertions::fail);
+            DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);
+            Optional<Tag> res = dr.resultOrPartial(Assertions::fail);
 
-            INBT nbtRecipe = res.get();
+            Tag nbtRecipe = res.get();
 
-            MiniaturizationRecipe rFromNbt = MiniaturizationRecipe.CODEC.parse(NBTDynamicOps.INSTANCE, nbtRecipe)
+            MiniaturizationRecipe rFromNbt = MiniaturizationRecipe.CODEC.parse(NbtOps.INSTANCE, nbtRecipe)
                     .getOrThrow(false, Assertions::fail);
 
             // There should only be two layers loaded from the file

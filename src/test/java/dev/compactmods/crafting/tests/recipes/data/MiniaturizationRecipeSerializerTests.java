@@ -8,16 +8,14 @@ import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import io.netty.buffer.Unpooled;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class MiniaturizationRecipeSerializerTests {
 
-    @Tag("minecraft")
     @org.junit.jupiter.api.BeforeAll
     static void BeforeAllTests() {
         ServerConfig.RECIPE_REGISTRATION.set(true);
@@ -26,12 +24,11 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanSerialize() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
-        PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
+        var buf = new FriendlyByteBuf(Unpooled.buffer());
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         Assertions.assertDoesNotThrow(() -> s.toNetwork(buf, recipe));
 
@@ -39,12 +36,11 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanRoundTripOverNetwork() {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
 
-        PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
+        var buf = new FriendlyByteBuf(Unpooled.buffer());
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
 
         Assertions.assertDoesNotThrow(() -> s.toNetwork(buf, recipe));
@@ -60,9 +56,8 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void DoesNotSerializeBadRecipeOverNetwork() {
-        PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
+        var buf = new FriendlyByteBuf(Unpooled.buffer());
         Assertions.assertDoesNotThrow(() -> {
             MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
             s.toNetwork(buf, null);
@@ -73,9 +68,8 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void SerializerCanDeserializeJson() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
+        JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
@@ -86,9 +80,8 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void SerializerHandlesJsonErrorsAppropriately() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
+        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
@@ -99,12 +92,11 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void SerializerHandlesDecodingEmptyBuffer() {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 
-        PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
+        var buf = new FriendlyByteBuf(Unpooled.buffer());
         final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> {
             return s.fromNetwork(id, buf);
         });
@@ -113,13 +105,12 @@ public class MiniaturizationRecipeSerializerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void SerializerHandlesDecodingEmptyCompound() {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 
-        PacketBuffer buf = new PacketBuffer(Unpooled.buffer());
-        buf.writeNbt(new CompoundNBT());
+        var buf = new FriendlyByteBuf(Unpooled.buffer());
+        buf.writeNbt(new CompoundTag());
 
         final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> {
             return s.fromNetwork(id, buf);

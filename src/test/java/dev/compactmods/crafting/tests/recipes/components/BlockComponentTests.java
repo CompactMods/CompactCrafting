@@ -7,19 +7,17 @@ import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.tests.util.FileHelper;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.StairsBlock;
-import net.minecraft.state.properties.Half;
-import net.minecraft.state.properties.StairsShape;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Half;
+import net.minecraft.world.level.block.state.properties.StairsShape;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class BlockComponentTests {
 
     @Test
-    @Tag("minecraft")
     void CanCreateInstanceWithBlock() {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
         Assertions.assertNotNull(component);
@@ -27,7 +25,6 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanFetchFirstMatch() {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
@@ -37,7 +34,6 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void ToStringShowsBlockId() {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
         Assertions.assertNotNull(component);
@@ -47,9 +43,8 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanMatchBlock() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -74,19 +69,18 @@ public class BlockComponentTests {
                     }
 
                     for (BlockState bs : matched) {
-                        if (bs.getValue(StairsBlock.HALF) == Half.TOP)
+                        if (bs.getValue(StairBlock.HALF) == Half.TOP)
                             Assertions.fail("Found a state with an invalid property TOP");
 
-                        if (bs.getValue(StairsBlock.SHAPE) != StairsShape.STRAIGHT)
+                        if (bs.getValue(StairBlock.SHAPE) != StairsShape.STRAIGHT)
                             Assertions.fail("Found a state with a non-straight shape");
                     }
                 });
     }
 
     @Test
-    @Tag("minecraft")
     void CanMatchBlockNoProperties() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_no_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -115,9 +109,8 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanReserializeComponentMatcher() throws RuntimeException {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -132,9 +125,8 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void ThrowsErrorOnUnregisteredBlock() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_not_registered.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_not_registered.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .result()
@@ -144,9 +136,8 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void DoesWarnOnBadProperty() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_bad_property.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_bad_property.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -158,10 +149,9 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void DoesNotMatchDifferentBlocks() {
         // Loads a cobblestone stairs definition
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_no_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -174,10 +164,9 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void HasCorrectComponentType() {
         // Loads a cobblestone stairs definition
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_no_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -192,10 +181,9 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void HasARenderBlockstate() {
         // Loads a cobblestone stairs definition
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/block/block_no_properties.json");
+        JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -209,7 +197,6 @@ public class BlockComponentTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanHandleErrorRenderingChanges() {
 
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);

@@ -6,20 +6,18 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import dev.compactmods.crafting.Registration;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class RecipeLayerTypeCodecTests {
 
     @Test
-    @Tag("minecraft")
     void HandlesBadTypeIdentifier() {
         final DataResult<RecipeLayerType<?>> result =
                 RecipeLayerTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
@@ -28,7 +26,6 @@ public class RecipeLayerTypeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void HandlesBadRecipeType() {
         final RecipeLayerType<IRecipeLayer> FAKE_TYPE = generateFakeRecipeLayerType();
 
@@ -52,7 +49,7 @@ public class RecipeLayerTypeCodecTests {
 
             @Override
             public Class<RecipeLayerType<?>> getRegistryType() {
-                return Registration.RECIPE_LAYER_TYPES.getRegistrySuperType();
+                return CCLayerTypes.RECIPE_LAYER_TYPES.getRegistrySuperType();
             }
 
             @Override

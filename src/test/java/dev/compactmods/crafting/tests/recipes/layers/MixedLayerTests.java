@@ -6,12 +6,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -25,17 +23,15 @@ import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-@IntegrationTestClass("layers")
 public class MixedLayerTests {
 
-    @Tag("minecraft")
     @org.junit.jupiter.api.BeforeAll
     static void BeforeAllTests() {
         ServerConfig.RECIPE_REGISTRATION.set(true);
@@ -44,20 +40,20 @@ public class MixedLayerTests {
     }
 
     static MixedComponentRecipeLayer getLayerFromFile(String filename) {
-        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile(filename);
+        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
 
         DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
         return parsed.getOrThrow(false, Assertions::fail);
     }
 
     @Test
-    @Tag("minecraft")
     void CanCreateLayerInstanceManually() {
         MixedComponentRecipeLayer layer = new MixedComponentRecipeLayer();
         Assertions.assertNotNull(layer);
 
         // Dimensions - ensure zero on all dimensions
-        final AxisAlignedBB dimensions = Assertions.assertDoesNotThrow(layer::getDimensions);
+        final var dimensions = layer.getDimensions();
+
         Assertions.assertNotNull(dimensions);
         Assertions.assertEquals(0, dimensions.getXsize());
         Assertions.assertEquals(0, dimensions.getYsize());
@@ -74,9 +70,8 @@ public class MixedLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void CanCreateLayerInstance() {
-        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile("layers/mixed/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/mixed/basic.json");
 
         DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
         parsed.resultOrPartial(Assertions::fail)
@@ -89,7 +84,6 @@ public class MixedLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void MixedLayerRemovesUnknownComponents() {
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
         Assertions.assertNotNull(layer);
@@ -107,15 +101,15 @@ public class MixedLayerTests {
         Assertions.assertFalse(newList.contains("-"), "Mixed should have removed unmapped - component.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls_obsidian_center")
-    void MixedLayerMatchesWorldInExactMatchScenario(IntegrationTestHelper helper) {
 
-        final MiniaturizationRecipeComponents components =  new MiniaturizationRecipeComponents();
+    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerMatchesWorldInExactMatchScenario(final GameTestHelper helper) {
+
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/medium_glass_walls_obsidian_center.json");
@@ -126,7 +120,6 @@ public class MixedLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void MixedCanFetchAKnownGoodPosition() {
         MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
         Assertions.assertNotNull(layer);
@@ -137,7 +130,6 @@ public class MixedLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void MixedCanFetchAListOfComponentPositions() {
         MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
         Assertions.assertNotNull(layer);
@@ -150,22 +142,22 @@ public class MixedLayerTests {
         Assertions.assertEquals(15, positions.size());
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls_obsidian_center")
-    void MixedLayerDeniesMatchIfAllComponentsNotIdentified(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerDeniesMatchIfAllComponentsNotIdentified(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
         components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
-        helper.setBlockState(BlockPos.ZERO, Blocks.IRON_BLOCK.defaultBlockState());
+        helper.setBlock(BlockPos.ZERO, Blocks.IRON_BLOCK.defaultBlockState());
 
         // Force that the - component is unregistered; in a real scenario the recipe system would have remapped it
         // to an empty component due to it existing in the layer spec. Here, we're testing if a legit component in the world
         // did not match.
         components.unregisterBlock("-");
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
 
@@ -173,15 +165,15 @@ public class MixedLayerTests {
         Assertions.assertFalse(matched, "Expected layer not to match; layer matched anyway.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_filled")
-    void MixedLayerDeniesMatchIfComponentCountDiffers(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerDeniesMatchIfComponentCountDiffers(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         final Map<String, IRecipeComponent> allComponents = components.getAllComponents();
         final int worldCompCount = allComponents.keySet().size();
@@ -195,14 +187,14 @@ public class MixedLayerTests {
         Assertions.assertFalse(matched, "Expected layer not to match due to component count mismatch; layer matched anyway.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls_obsidian_center")
-    void MixedLayerDeniesMatchIfRequiredComponentsMissing(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerDeniesMatchIfRequiredComponentsMissing(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("Ob", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/medium_glass_walls_obsidian_center.json");
@@ -211,9 +203,9 @@ public class MixedLayerTests {
         Assertions.assertFalse(matched, "Expected layer not to match due to missing required components; layer matched anyway.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls_obsidian_center")
-    void MixedLayerDeniesMatchIfComponentsInWrongPositions(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerDeniesMatchIfComponentsInWrongPositions(final GameTestHelper helper) {
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/medium_glass_walls_obsidian_center.json");
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -221,13 +213,13 @@ public class MixedLayerTests {
         components.registerBlock("-", new EmptyBlockComponent());
 
         // Swap center and a corner block so the components are right but positions are wrong
-        helper.setBlockState(new BlockPos(1, 0, 1), Blocks.OBSIDIAN.defaultBlockState());
-        helper.setBlockState(new BlockPos(2, 0, 2), Blocks.AIR.defaultBlockState());
+        helper.setBlock(new BlockPos(1, 0, 1), Blocks.OBSIDIAN.defaultBlockState());
+        helper.setBlock(new BlockPos(2, 0, 2), Blocks.AIR.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
-        final Boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
+        final var matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
         Assertions.assertFalse(matched, "Expected layer not to match due to incorrect positions; layer matched anyway.");
     }
 }

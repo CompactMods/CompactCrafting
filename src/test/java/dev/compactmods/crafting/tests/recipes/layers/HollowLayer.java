@@ -6,11 +6,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTest;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestClass;
-import com.alcatrazescapee.mcjunitlib.framework.IntegrationTestHelper;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
@@ -21,33 +19,31 @@ import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-@IntegrationTestClass("layers")
-public class HollowLayerTests {
+public class HollowLayer {
 
     private HollowComponentRecipeLayer getLayerFromFile(String filename) {
-        JsonElement layerJson = FileHelper.INSTANCE.getJsonFromFile(filename);
+        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
 
         return HollowComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson)
                 .getOrThrow(false, Assertions::fail);
     }
 
     @Test
-    @Tag("minecraft")
     void CanCreateHollowLayerWithConstructor() {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         Assertions.assertNotNull(layer);
     }
 
     @Test
-    @Tag("minecraft")
     void HollowComponentCountsAreCorrectForFieldSize() {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         Assertions.assertNotNull(layer);
@@ -70,7 +66,6 @@ public class HollowLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void HollowPositionalInquiries() {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         Assertions.assertNotNull(layer);
@@ -96,7 +91,6 @@ public class HollowLayerTests {
     }
 
     @Test
-    @Tag("minecraft")
     void HollowCanReturnComponentPositions() {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         Assertions.assertNotNull(layer);
@@ -118,19 +112,19 @@ public class HollowLayerTests {
         Assertions.assertEquals(wallPositions, positionSet);
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("empty_medium")
-    void HollowFailsIfPrimaryComponentMissing(IntegrationTestHelper helper) {
-        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO);
-        helper.setBlockState(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
+
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HollowFailsIfPrimaryComponentMissing(final GameTestHelper helper) {
+        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO);
+        helper.setBlock(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
 
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("-", new EmptyBlockComponent());
 
-        final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+        final AABB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
@@ -140,17 +134,17 @@ public class HollowLayerTests {
         Assertions.assertFalse(result, "Layer matched despite not having any matchable components.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls")
-    void HollowMatchesWorldDefinitionExactly(IntegrationTestHelper helper) {
-        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO).orElse(BlockPos.ZERO);
+
+    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HollowMatchesWorldDefinitionExactly(final GameTestHelper helper) {
+        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO);
 
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
-        final AxisAlignedBB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+        final AABB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
@@ -162,14 +156,14 @@ public class HollowLayerTests {
         }
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls")
-    void HollowFailsIfAnyComponentsUnidentified(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HollowFailsIfAnyComponentsUnidentified(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
-        final AxisAlignedBB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, bounds).normalize();
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
@@ -179,19 +173,19 @@ public class HollowLayerTests {
         Assertions.assertFalse(matched, "Hollow did not pass perfect match.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls")
+
     @DisplayName("Hollow - Bad Wall Block")
-    void HollowFailsIfWorldHasBadWallBlock(IntegrationTestHelper helper) {
+    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HollowFailsIfWorldHasBadWallBlock(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
         // register gold block to get past the unknown component early fail
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
 
-        helper.setBlockState(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
+        helper.setBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
@@ -202,9 +196,9 @@ public class HollowLayerTests {
         Assertions.assertFalse(matches, "Hollow matched when BP.ZERO was a different block.");
     }
 
-    @Tag("minecraft")
-    @IntegrationTest("medium_glass_walls_obsidian_center")
-    void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(IntegrationTestHelper helper) {
+
+    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("W", new BlockComponent(Blocks.GLASS));
 
@@ -212,7 +206,7 @@ public class HollowLayerTests {
         // since otherwise, the center block will be unmatched
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getWorld(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("W");

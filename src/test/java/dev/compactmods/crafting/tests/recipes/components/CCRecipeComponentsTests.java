@@ -2,15 +2,16 @@ package dev.compactmods.crafting.tests.recipes.components;
 
 import java.util.Map;
 import java.util.Optional;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
-import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
-import net.minecraft.block.Blocks;
+import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class CCRecipeComponentsTests {
@@ -37,9 +38,8 @@ public class CCRecipeComponentsTests {
         Assertions.assertTrue(allComponents.isEmpty());
     }
 
-    @Test
-    @Tag("minecraft")
-    void CanRegisterAndFetchBlocks() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanRegisterAndFetchBlocks() {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         final BlockComponent BLOCK_COMPONENT = new BlockComponent(Blocks.GOLD_BLOCK);
         components.registerBlock("G", BLOCK_COMPONENT);
@@ -59,7 +59,6 @@ public class CCRecipeComponentsTests {
     }
 
     @Test
-    @Tag("minecraft")
     void EmptyBlocksAreActuallyEmpty() {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
@@ -93,9 +92,8 @@ public class CCRecipeComponentsTests {
         }, "Failed to register a component as 'other'.");
     }
 
-    @Test
-    @Tag("minecraft")
-    void CanGetNumberOfComponents() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanGetNumberOfComponents() {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertEquals(0, components.size());
 

@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import dev.compactmods.crafting.CompactCrafting;
 
 public class FileHelper {
 
@@ -14,13 +15,23 @@ public class FileHelper {
 
     private FileHelper() {}
 
-    public File getFile(String filename) {
+    private File getFile(String filename) {
         URL res = getClass().getClassLoader().getResource(filename);
+        if(res == null) {
+            CompactCrafting.LOGGER.error("Tried to access {} but file not found.", filename);
+            return null;
+        }
+
         return new File(res.getFile());
     }
 
-    public InputStreamReader openFile(String filename) {
+    private InputStreamReader openFile(String filename) {
         URL res = getClass().getClassLoader().getResource(filename);
+        if(res == null) {
+            CompactCrafting.LOGGER.error("Tried to access {} but file not found.", filename);
+            return null;
+        }
+
         try {
             InputStream inputStream = res.openStream();
             return new InputStreamReader(inputStream);
@@ -31,9 +42,9 @@ public class FileHelper {
         return null;
     }
 
-    public JsonElement getJsonFromFile(String filename) {
+    public static JsonElement getJsonFromFile(String filename) {
         Gson g = new Gson();
-        InputStreamReader isr = openFile(filename);
+        InputStreamReader isr = INSTANCE.openFile(filename);
         return g.fromJson(isr, JsonElement.class);
     }
 }

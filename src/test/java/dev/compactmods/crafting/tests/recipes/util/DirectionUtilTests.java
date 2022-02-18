@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.tests.recipes.util;
 
 import dev.compactmods.crafting.util.DirectionUtil;
-import net.minecraft.util.Direction;
+import net.minecraft.core.Direction;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

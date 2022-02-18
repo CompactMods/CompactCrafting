@@ -5,8 +5,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -14,10 +14,10 @@ public class BlockSpaceUtilTests {
 
     @Test
     void CanSpliceSingleLayer() {
-        AxisAlignedBB fullBounds = new AxisAlignedBB(0, 0, 0, 10, 10, 10);
-        AxisAlignedBB slice = new AxisAlignedBB(0, 0, 0, 10, 1, 10);
+        AABB fullBounds = new AABB(0, 0, 0, 10, 10, 10);
+        AABB slice = new AABB(0, 0, 0, 10, 1, 10);
 
-        final AxisAlignedBB actual = BlockSpaceUtil.getLayerBounds(fullBounds, 0);
+        final AABB actual = BlockSpaceUtil.getLayerBounds(fullBounds, 0);
 
         Assertions.assertEquals(slice, actual, "Slice did not equal actual returned value.");
     }
@@ -26,15 +26,15 @@ public class BlockSpaceUtilTests {
     void NoBlocksEqualsEmptyAxisBounds() {
         final Set<BlockPos> positions = Collections.emptySet();
 
-        final AxisAlignedBB filledBounds = BlockSpaceUtil.getBoundsForBlocks(positions);
+        final AABB filledBounds = BlockSpaceUtil.getBoundsForBlocks(positions);
 
-        Assertions.assertEquals(AxisAlignedBB.ofSize(0, 0, 0), filledBounds);
+        Assertions.assertEquals(new AABB(0, 0, 0, 0, 0, 0), filledBounds);
     }
 
     @Test
     void CanCalculateCenterBoundsOdd() {
-        AxisAlignedBB fullBounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0);
-        AxisAlignedBB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
+        AABB fullBounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0);
+        AABB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
 
         Assertions.assertEquals(1, centerBounds.getXsize());
         Assertions.assertEquals(1, centerBounds.getYsize());
@@ -47,8 +47,8 @@ public class BlockSpaceUtilTests {
 
     @Test
     void CanCalculateCenterBoundsEven() {
-        AxisAlignedBB fullBounds = new AxisAlignedBB(0, 0, 0, 6, 1, 6);
-        AxisAlignedBB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
+        AABB fullBounds = new AABB(0, 0, 0, 6, 1, 6);
+        AABB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
 
         Assertions.assertEquals(2, centerBounds.getXsize());
         Assertions.assertEquals(1, centerBounds.getYsize());
@@ -63,15 +63,15 @@ public class BlockSpaceUtilTests {
 
     @Test
     void BSBoundsFitsInside() {
-        AxisAlignedBB outer = new AxisAlignedBB(0, 0, 0, 10, 10, 10);
-        AxisAlignedBB inner = new AxisAlignedBB(1, 1, 1, 3, 3, 3);
+        AABB outer = new AABB(0, 0, 0, 10, 10, 10);
+        AABB inner = new AABB(1, 1, 1, 3, 3, 3);
 
         Assertions.assertTrue(BlockSpaceUtil.boundsFitsInside(inner, outer));
 
-        AxisAlignedBB unit = new AxisAlignedBB(0, 0, 0, 1, 1, 1);
-        AxisAlignedBB unitX = unit.expandTowards(1, 0, 0);
-        AxisAlignedBB unitY = unit.expandTowards(0, 1, 0);
-        AxisAlignedBB unitZ = unit.expandTowards(0, 0, 1);
+        AABB unit = new AABB(0, 0, 0, 1, 1, 1);
+        AABB unitX = unit.expandTowards(1, 0, 0);
+        AABB unitY = unit.expandTowards(0, 1, 0);
+        AABB unitZ = unit.expandTowards(0, 0, 1);
 
         Assertions.assertFalse(BlockSpaceUtil.boundsFitsInside(unitX, unit), "Unit should not fit in X dimension but does.");
         Assertions.assertFalse(BlockSpaceUtil.boundsFitsInside(unitY, unit), "Unit should not fit in Y dimension but does.");
@@ -80,7 +80,7 @@ public class BlockSpaceUtilTests {
 
     @Test
     void CanGetLayerBlockPositions() {
-        AxisAlignedBB layer = new AxisAlignedBB(0, 0, 0, 5, 1, 5);
+        AABB layer = new AABB(0, 0, 0, 5, 1, 5);
 
         final Set<BlockPos> positions = BlockSpaceUtil.getBlocksIn(layer)
                 .map(BlockPos::immutable)

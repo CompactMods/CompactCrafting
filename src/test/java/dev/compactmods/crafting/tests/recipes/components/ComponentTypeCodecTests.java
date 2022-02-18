@@ -7,13 +7,11 @@ import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class ComponentTypeCodecTests {
 
     @Test
-    @Tag("minecraft")
     void testFailedDecode() {
         JsonElement string = JsonOps.INSTANCE.createString("compactcrafting:bad_component_type");
 
@@ -24,7 +22,6 @@ public class ComponentTypeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void testBadEncode() {
         RecipeComponentType<?> badComponentType = new BadRecipeComponentType();
 
@@ -36,7 +33,6 @@ public class ComponentTypeCodecTests {
     }
 
     @Test
-    @Tag("minecraft")
     void testEncode() {
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, ComponentRegistration.EMPTY_BLOCK_COMPONENT.get());
 

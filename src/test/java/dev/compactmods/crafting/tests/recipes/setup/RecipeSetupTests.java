@@ -3,20 +3,17 @@ package dev.compactmods.crafting.tests.recipes.setup;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 public class RecipeSetupTests {
 
     @Test
-    @Tag("minecraft")
     void BaseRecipeType() {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
@@ -28,7 +25,6 @@ public class RecipeSetupTests {
     }
 
     @Test
-    @Tag("minecraft")
     void FakeInventory() {
         FakeInventory inv = new FakeInventory();
         Assertions.assertNotNull(inv);
@@ -53,7 +49,7 @@ public class RecipeSetupTests {
 
         Assertions.assertDoesNotThrow(inv::setChanged);
 
-        ServerWorld overworld = ServerLifecycleHooks.getCurrentServer().overworld();
+        final var overworld = ServerLifecycleHooks.getCurrentServer().overworld();
         Assertions.assertFalse(inv.stillValid(FakePlayerFactory.getMinecraft(overworld)));
 
         Assertions.assertDoesNotThrow(inv::clearContent);
