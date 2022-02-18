@@ -49,7 +49,7 @@ public class RecipeTestUtil {
     }
 
     public static AABB getFieldBounds(MiniaturizationFieldSize fieldSize, GameTestHelper helper) {
-        return fieldSize.getBoundsAtOrigin().move(helper.relativePos(BlockPos.ZERO));
+        return fieldSize.getBoundsAtOrigin(helper.absolutePos(BlockPos.ZERO).getY() + 1);
     }
 
     public static AABB getFloorLayerBounds(MiniaturizationFieldSize fieldSize, GameTestHelper helper) {

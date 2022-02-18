@@ -4,30 +4,27 @@ import java.io.File;
 import java.util.concurrent.ExecutionException;
 import com.google.common.collect.ImmutableSet;
 import dev.compactmods.crafting.CompactCrafting;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.resources.FolderPackFinder;
-import net.minecraft.resources.IPackNameDecorator;
-import net.minecraft.resources.ResourcePackList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
+import net.minecraft.server.packs.repository.FolderRepositorySource;
+import net.minecraft.server.packs.repository.PackSource;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class ServerEventListener {
 
     @SubscribeEvent
-    public static void onServerStarted(final FMLServerStartedEvent evt) {
+    public static void onServerStarted(final ServerStartedEvent evt) {
         final MinecraftServer server = evt.getServer();
 
         // Add "test/resources" as a resource pack to the pack repository
-        final ResourcePackList packs = server.getPackRepository();
+        final var packs = server.getPackRepository();
 
         final String cc_test_resources = System.getenv("CC_TEST_RESOURCES");
         if(cc_test_resources != null) {
-            final FolderPackFinder testPack = new FolderPackFinder(new File(cc_test_resources), IPackNameDecorator.DEFAULT);
+            final var testPack = new FolderRepositorySource(new File(cc_test_resources), PackSource.DEFAULT);
             packs.addPackFinder(testPack);
             packs.reload();
 
@@ -49,9 +46,9 @@ public class ServerEventListener {
 
     @SubscribeEvent
     static void onPlayerJoined(final PlayerEvent.PlayerLoggedInEvent evt) {
-        final PlayerEntity player = evt.getPlayer();
-        final MinecraftServer server = player.getServer();
-        final PlayerList players = server.getPlayerList();
+        final var player = evt.getPlayer();
+        final var server = player.getServer();
+        final var players = server.getPlayerList();
         final boolean op = players.isOp(player.getGameProfile());
         if (!op)
             players.op(player.getGameProfile());

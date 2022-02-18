@@ -5,12 +5,12 @@ import java.util.stream.Stream;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public class RecipeBlocks implements IRecipeBlocks {
 

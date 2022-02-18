@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.tests.recipes.util;
+package dev.compactmods.crafting.tests.util;
 
 import dev.compactmods.crafting.util.DirectionUtil;
 import net.minecraft.core.Direction;

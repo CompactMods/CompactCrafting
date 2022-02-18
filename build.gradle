@@ -171,6 +171,8 @@ minecraft {
             // Only runs gametests which use "examplemod" as the namespace
             args '--enableNamespace', mod_id
 
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+
             mods {
                 compactcrafting {
                     source sourceSets.api

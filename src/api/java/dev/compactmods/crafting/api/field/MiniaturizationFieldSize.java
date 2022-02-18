@@ -110,8 +110,16 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
         return new BlockPos(BlockPos.ZERO.offset(size, size, size));
     }
 
+    public BlockPos getOriginCenter(int y) {
+        return new BlockPos(0, y, 0).offset(size, size, size);
+    }
+
     public BlockPos getOriginCenterFromCorner() {
         return getOriginCenter().offset(projectorDistance, 0, projectorDistance);
+    }
+
+    public BlockPos getOriginCenterFromCorner(int y) {
+        return getOriginCenter(y).offset(projectorDistance, 0, projectorDistance);
     }
 
     public Stream<BlockPos> getProjectorLocationsAtOrigin() {
@@ -119,6 +127,13 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
                 .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
                 .filter(d -> d.getAxis().isHorizontal())
                 .map(hor -> getProjectorLocationForDirection(getOriginCenter(), hor));
+    }
+
+    public Stream<BlockPos> getProjectorLocationsAtOrigin(int y) {
+        return Arrays
+                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
+                .filter(d -> d.getAxis().isHorizontal())
+                .map(hor -> getProjectorLocationForDirection(getOriginCenter(y), hor));
     }
 
     public Stream<BlockPos> getProjectorLocations(BlockPos center) {
@@ -143,6 +158,10 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
 
     public AABB getBoundsAtOrigin() {
         return getBoundsAtPosition(getOriginCenter());
+    }
+
+    public AABB getBoundsAtOrigin(int y) {
+        return getBoundsAtPosition(getOriginCenter(y));
     }
 
     public AABB getBoundsAtPosition(BlockPos center) {

@@ -10,6 +10,7 @@ import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -39,22 +40,28 @@ public class CCRecipeComponentsTests {
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanRegisterAndFetchBlocks() {
+    public static void CanRegisterAndFetchBlocks(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         final BlockComponent BLOCK_COMPONENT = new BlockComponent(Blocks.GOLD_BLOCK);
         components.registerBlock("G", BLOCK_COMPONENT);
 
-        Assertions.assertTrue(components.hasBlock("G"), "Block not registered.");
+        if(!components.hasBlock("G"))
+            test.fail("Block not registered.");
 
         final Optional<IRecipeBlockComponent> block = components.getBlock("G");
-        Assertions.assertTrue(block.isPresent());
+        if(block.isEmpty())
+            test.fail("Did not find an expected component registered for 'G'");
 
         block.ifPresent(comp -> {
             // If the component is found, make sure it matches our original
-            Assertions.assertEquals(BLOCK_COMPONENT, comp);
+            if(!BLOCK_COMPONENT.equals(comp))
+                test.fail("Expected component to match");
 
             // Also check the default block state, since no filters are applied
-            Assertions.assertTrue(comp.matches(Blocks.GOLD_BLOCK.defaultBlockState()));
+            if(!comp.matches(Blocks.GOLD_BLOCK.defaultBlockState()))
+                test.fail("Expected component to match a specific state; did not match");
+
+            test.succeed();
         });
     }
 
@@ -93,13 +100,15 @@ public class CCRecipeComponentsTests {
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanGetNumberOfComponents() {
+    public static void CanGetNumberOfComponents(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
-        Assertions.assertEquals(0, components.size());
+        if(0 != components.size())
+            test.fail("Newly created component set should be empty");
 
         // Make sure changes affect the count
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
-        Assertions.assertEquals(1, components.size());
+        if(1 != components.size())
+            test.fail("Expected a single component registered.");
 
         // Also make sure "other" components affect the count
         components.registerOther("O", new IRecipeComponent() {
@@ -108,6 +117,10 @@ public class CCRecipeComponentsTests {
                 return null;
             }
         });
-        Assertions.assertEquals(2, components.size());
+
+        if(2 != components.size())
+            test.fail("Expected 2 components registered after other type registration.");
+
+        test.succeed();
     }
 }

@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.tests;
+package dev.compactmods.crafting.tests.recipes.util;
 
 import java.util.Arrays;
 import java.util.Map;

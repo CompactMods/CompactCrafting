@@ -12,14 +12,12 @@ import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
-import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
-import org.junit.jupiter.api.Assertions;
 
 public class RecipeLayerUtilTests {
 
@@ -32,40 +30,57 @@ public class RecipeLayerUtilTests {
 
 
     @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanRotate(final GameTestHelper helper) {
+    public static void CanRotate(final GameTestHelper test) {
         // We set up a different block in the corner, so we can tell the blocks rotated
-        helper.setBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
+        test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final IRecipeComponents components = getRecipeByName(helper, "medium_glass_walls_obsidian_center")
-                .map(MiniaturizationRecipe::getComponents).orElse(null);
+        final IRecipeComponents components = getRecipeByName(test, "medium_glass_walls_obsidian_center")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper));
+        final var floorBounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, floorBounds);
 
         final IRecipeBlocks rotatedClockwise = RecipeLayerUtil.rotate(blocks, Rotation.CLOCKWISE_90);
-        Assertions.assertNotNull(rotatedClockwise);
 
-        final Set<BlockPos> originalPositions = blocks.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
-        final Set<BlockPos> rotatedPositions = rotatedClockwise.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> originalPositions = blocks.getPositionsForComponent("G")
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
 
-        Assertions.assertNotEquals(originalPositions, rotatedPositions);
+        final Set<BlockPos> rotatedPositions = rotatedClockwise.getPositionsForComponent("G")
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
+
+        if (originalPositions.equals(rotatedPositions))
+            test.fail("Expected rotated block set to not equal original.");
+
+        test.succeed();
     }
 
-
     @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void NonRotationCreatesCopiedInstance(final GameTestHelper helper) {
-        final IRecipeComponents components = getRecipeByName(helper, "medium_glass_walls_obsidian_center")
-                .map(MiniaturizationRecipe::getComponents).orElse(null);
+    public static void NonRotationCreatesCopiedInstance(final GameTestHelper test) {
+        final IRecipeComponents components = getRecipeByName(test, "medium_glass_walls_obsidian_center")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final var blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test));
 
-        final IRecipeBlocks rotatedHarness = RecipeLayerUtil.rotate(blocks, Rotation.NONE);
-        Assertions.assertNotNull(rotatedHarness);
+        final var rotatedHarness = RecipeLayerUtil.rotate(blocks, Rotation.NONE);
 
-        final Set<BlockPos> originalPositions = blocks.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
-        final Set<BlockPos> rotatedPositions = rotatedHarness.getPositionsForComponent("G").map(BlockPos::immutable).collect(Collectors.toSet());
+        final Set<BlockPos> originalPositions = blocks.getPositionsForComponent("G")
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
 
-        Assertions.assertEquals(originalPositions, rotatedPositions);
+        final Set<BlockPos> rotatedPositions = rotatedHarness.getPositionsForComponent("G")
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
 
-        Assertions.assertNotSame(blocks, rotatedHarness);
+        if(!originalPositions.equals(rotatedPositions))
+            test.fail("Non-rotation changed block positions.");
+
+        if(blocks == rotatedHarness)
+            test.fail("Rotation method did not create new instance.");
+
+        test.succeed();
     }
 }
