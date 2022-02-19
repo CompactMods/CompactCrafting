@@ -19,28 +19,34 @@ import org.junit.jupiter.api.Assertions;
 public class RecipeBlocksTests {
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanCreate(final GameTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
+    public static void CanCreateBlocksInstance(final GameTestHelper test) {
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test));
 
-        Assertions.assertNotNull(blocks);
+        final int compCount = blocks.getNumberKnownComponents();
 
-        final int compCount = Assertions.assertDoesNotThrow(blocks::getNumberKnownComponents);
+        if(0 == compCount)
+            test.fail("No components registered.");
 
-        Assertions.assertNotEquals(0, compCount);
+        test.succeed();
     }
 
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanRebuildTotals(final GameTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
+    public static void CanRebuildTotals(final GameTestHelper test) {
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test));
 
-        Assertions.assertNotNull(blocks);
+        try {
+            blocks.rebuildComponentTotals();
+            test.succeed();
+        }
 
-        Assertions.assertDoesNotThrow(blocks::rebuildComponentTotals);
+        catch(Exception e) {
+            test.fail("Rebuilding component totals failed.");
+        }
     }
 
 
@@ -81,39 +87,46 @@ public class RecipeBlocksTests {
 
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanSliceAndOffset(final GameTestHelper helper) {
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
+    public static void CanSliceAndOffset(final GameTestHelper test) {
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
 
-        final var fieldBounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper);
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, fieldBounds);
-
-        Assertions.assertNotNull(blocks);
+        final var fieldBounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, fieldBounds);
 
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(fieldBounds, 2)).normalize();
 
-        Assertions.assertNotNull(slice);
-
         final Optional<String> c0 = slice.getComponentAtPosition(BlockPos.ZERO);
-        Assertions.assertTrue(c0.isPresent(), "Expected glass component to transfer to new blocks instance.");
-        Assertions.assertEquals("G", c0.get());
+        if(c0.isEmpty())
+            test.fail("Expected glass component to transfer to new blocks instance.");
+
+        if(!c0.get().equals("G"))
+            test.fail("Expected glass component key to be 'G'");
 
         final Map<String, Integer> totals = Assertions.assertDoesNotThrow(slice::getKnownComponentTotals);
-        Assertions.assertEquals(2, totals.size());
-        Assertions.assertTrue(totals.containsKey("G"));
-        Assertions.assertEquals(16, totals.get("G"));
+        if(2 != totals.size())
+            test.fail("Expected 2 known components to be found.");
+
+        if(!totals.containsKey("G"))
+            test.fail("Expected glass block (G) to be in found components.");
+
+        if(16 != totals.get("G"))
+            test.fail("Expected glass blocks (G) to have 16 found positions");
+
+        test.succeed();
     }
 
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanCreateWithUnknownComponents(final GameTestHelper helper) {
+    public static void CanCreateWithUnknownComponents(final GameTestHelper test) {
         // defines G and O as components - "-" should be an unknown position in this recipe
-        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
+        IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
 
         final Set<String> keys = components.getBlockComponents().keySet();
-        Assertions.assertEquals(2, keys.size());
+        if(2 != keys.size())
+            test.fail("Expected exactly 2 registered block components.");
 
-        final var bounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper);
-        final var blocks1 = RecipeBlocks.create(helper.getLevel(), components, bounds);
+        final var bounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var blocks1 = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         final IRecipeBlocks blocks = blocks1.normalize()
                 .slice(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 2))
@@ -124,6 +137,8 @@ public class RecipeBlocksTests {
                 .collect(Collectors.toSet());
 
         if (!unknownSet.isEmpty())
-            helper.fail("Expected no unmapped positions - undefined positions are air.");
+            test.fail("Expected no unmapped positions - undefined positions are air.");
+
+        test.succeed();
     }
 }

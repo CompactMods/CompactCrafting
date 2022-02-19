@@ -33,6 +33,13 @@ public class FilledLayerTests {
                 .getOrThrow(false, Assertions::fail);
     }
 
+    private static FilledComponentRecipeLayer getLayerFromFile(GameTestHelper test, String filename) {
+        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
+
+        return FilledComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow(false, test::fail);
+    }
+
     @Test
     void CanCreateLayerInstance() {
         getLayerFromFile("layers/filled/basic.json");
@@ -106,7 +113,7 @@ public class FilledLayerTests {
     // we create an actual blocks instance inside the test
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     public static void FilledFailsMatchWithEmptyBlockList(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
@@ -121,59 +128,74 @@ public class FilledLayerTests {
 
 
     @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void FilledLayerMatchesWorldInExactMatchScenario(GameTestHelper helper) {
+    public static void FilledLayerMatchesWorldInExactMatchScenario(GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
-        Assertions.assertTrue(matched);
+        try {
+            boolean matched = layer.matches(components, blocks);
+            if(!matched)
+                test.fail("Layer did not match exact scenario");
+        }
+
+        catch(Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        test.succeed();
     }
 
 
     @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void FailsMatchIfAllBlocksNotIdentified(final GameTestHelper helper) {
+    public static void FailsMatchIfAllBlocksNotIdentified(final GameTestHelper test) {
         final IRecipeComponents components = new MiniaturizationRecipeComponents();
         // note the lack of a G component here, missing "GLASS"
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
         components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
-        Assertions.assertFalse(matched);
+        boolean matched = layer.matches(components, blocks);
+        if(matched)
+            test.fail("Layer should not have matched.");
+
+        test.succeed();
     }
 
 
     @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void FailsMatchIfMoreThanOneBlockFound(final GameTestHelper helper) {
+    public static void FailsMatchIfMoreThanOneBlockFound(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
-        Assertions.assertFalse(matched);
+        boolean matched = layer.matches(components, blocks);
+        if(matched)
+            test.fail("Layer should not have matched.");
+
+        test.succeed();
     }
 
 
     @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void FailsMatchIfComponentKeyNotFound(final GameTestHelper helper) {
+    public static void FailsMatchIfComponentKeyNotFound(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
         /*
@@ -182,15 +204,17 @@ public class FilledLayerTests {
         */
         components.registerBlock("Gl", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
-        final RecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        boolean matched = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
+        boolean matched = layer.matches(components, blocks);
         if (!matched)
-            helper.fail("Layer matched despite not having the required component defined.");
+            test.fail("Layer matched despite not having the required component defined.");
+
+        test.succeed();
     }
 }

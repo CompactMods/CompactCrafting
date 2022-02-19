@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.tests.recipes.data;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Either;
@@ -16,7 +17,6 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import org.junit.jupiter.api.Assertions;
 
 public class MiniaturizationRecipeCodecTests {
 
@@ -118,69 +118,80 @@ public class MiniaturizationRecipeCodecTests {
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void LoadsRecipeLayersCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
-        if (recipe == null) {
-            Assertions.fail("No recipe was loaded.");
-        } else {
-            // There should only be two layers loaded from the file
-            Assertions.assertEquals(2, recipe.getNumberLayers());
+    public static void LoadsRecipeLayersCorrectly(final GameTestHelper test) {
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
 
-            Optional<IRecipeLayer> topLayer = recipe.getLayer(1);
-            if (!topLayer.isPresent()) {
-                Assertions.fail("No top layer loaded.");
-                return;
-            }
+        // There should only be two layers loaded from the file
+        if(2 != recipe.getNumberLayers())
+            test.fail("Expected exactly 2 layers in recipe");
 
-            IRecipeLayer lay = topLayer.get();
-
-            // Top Layer should be a redstone dust, so one 'R' component
-            Map<String, Integer> componentTotals = lay.getComponentTotals();
-            Assertions.assertTrue(componentTotals.containsKey("R"), "Expected redstone component in top layer; it does not exist.");
-            Assertions.assertEquals(1, componentTotals.get("R"), "Expected one redstone required in top layer.");
+        Optional<IRecipeLayer> topLayer = recipe.getLayer(1);
+        if (topLayer.isEmpty()) {
+            test.fail("No top layer loaded.");
+            return;
         }
+
+        IRecipeLayer lay = topLayer.get();
+
+        // Top Layer should be a redstone dust, so one 'R' component
+        Map<String, Integer> componentTotals = lay.getComponentTotals();
+        if(!componentTotals.containsKey("R"))
+            test.fail("Expected redstone component in top layer; it does not exist.");
+
+        if(1 != componentTotals.get("R"))
+            test.fail("Expected one redstone required in top layer.");
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void LoadsCatalystCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
-        Assertions.assertNotNull(recipe);
-        Assertions.assertNotNull(recipe.getCatalyst());
+    public static void LoadsCatalystCorrectly(final GameTestHelper test) {
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
+        Objects.requireNonNull(recipe);
+
+        var cat = recipe.getCatalyst();
+        if(cat == null)
+            test.fail("Expected recipe catalyst to exist.");
 
         MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("recipe_tests/warn_no_catalyst.json");
-        Assertions.assertNotNull(noComponents);
-        Assertions.assertNull(noComponents.getCatalyst());
+        Objects.requireNonNull(noComponents);
+        var cat2 = noComponents.getCatalyst();
+        if(cat2 == null)
+            test.fail("Expected recipe with no catalyst to be EMPTY, not null");
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void MakesRoundTripThroughNbtCorrectly() {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
-        if (recipe == null) {
-            Assertions.fail("No recipe was loaded.");
-        } else {
-            DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);
-            Optional<Tag> res = dr.resultOrPartial(Assertions::fail);
+    public static void MakesRoundTripThroughNbtCorrectly(final GameTestHelper test) {
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
+        DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);
+        Optional<Tag> res = dr.resultOrPartial(test::fail);
 
-            Tag nbtRecipe = res.get();
+        Tag nbtRecipe = res.get();
 
-            MiniaturizationRecipe rFromNbt = MiniaturizationRecipe.CODEC.parse(NbtOps.INSTANCE, nbtRecipe)
-                    .getOrThrow(false, Assertions::fail);
+        MiniaturizationRecipe rFromNbt = MiniaturizationRecipe.CODEC.parse(NbtOps.INSTANCE, nbtRecipe)
+                .getOrThrow(false, test::fail);
 
-            // There should only be two layers loaded from the file
-            Assertions.assertEquals(2, rFromNbt.getNumberLayers());
+        // There should only be two layers loaded from the file
+        if(2 != rFromNbt.getNumberLayers())
+            test.fail("Expected 2 layers in recipe.");
 
-            Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
-            if (!topLayer.isPresent()) {
-                Assertions.fail("No top layer loaded.");
-                return;
-            }
-
-            IRecipeLayer lay = topLayer.get();
-
-            // Top Layer should be a redstone dust, so one 'R' component
-            Map<String, Integer> componentTotals = lay.getComponentTotals();
-            Assertions.assertTrue(componentTotals.containsKey("R"), "Expected redstone component in top layer; it does not exist.");
-            Assertions.assertEquals(1, componentTotals.get("R"), "Expected one redstone required in top layer.");
+        Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
+        if (topLayer.isEmpty()) {
+            test.fail("No top layer loaded.");
         }
+
+        IRecipeLayer lay = topLayer.get();
+
+        // Top Layer should be a redstone dust, so one 'R' component
+        Map<String, Integer> componentTotals = lay.getComponentTotals();
+        if(!componentTotals.containsKey("R"))
+            test.fail("Expected redstone component in top layer; it does not exist.");
+
+        if(1 != componentTotals.get("R"))
+            test.fail("Expected one redstone required in top layer.");
+
+        test.succeed();
     }
 }

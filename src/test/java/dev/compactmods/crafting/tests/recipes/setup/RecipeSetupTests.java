@@ -9,9 +9,6 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.server.ServerLifecycleHooks;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.function.Executable;
 
 public class RecipeSetupTests {
 
@@ -21,40 +18,64 @@ public class RecipeSetupTests {
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
 
         final String typeString = type.toString();
-        Assertions.assertNotNull(typeString);
+        if(typeString == null)
+            test.fail("BaseRecipeType#toString returned null value");
 
-        Assertions.assertDoesNotThrow((Executable) type::register);
+        try {
+            type.register();
+            test.succeed();
+        }
+
+        catch(Exception ex) {
+            test.fail("Failed to complete registration call.");
+        }
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     public static void FakeInventory(final GameTestHelper test) {
         FakeInventory inv = new FakeInventory();
-        Assertions.assertNotNull(inv);
 
-        Assertions.assertTrue(inv.isEmpty());
+        if (!inv.isEmpty() || 0 != inv.getContainerSize())
+            test.fail("Expected inventory to be empty on creation.");
 
-        Assertions.assertEquals(0, inv.getContainerSize());
 
-        Assertions.assertEquals(ItemStack.EMPTY, inv.getItem(0));
+        if (!inv.getItem(0).isEmpty())
+            test.fail("Expected inventory to be empty on creation.");
 
-        Assertions.assertDoesNotThrow(() -> {
-            ItemStack response = inv.removeItem(0, 1);
-            Assertions.assertEquals(ItemStack.EMPTY, response);
-        });
+        try {
+            ItemStack i1 = inv.removeItem(0, 1);
+            if(!i1.isEmpty())
+                test.fail("Expected inventory to be empty.");
 
-        Assertions.assertDoesNotThrow(() -> {
-            ItemStack response = inv.removeItemNoUpdate(0);
-            Assertions.assertEquals(ItemStack.EMPTY, response);
-        });
+            ItemStack i2 = inv.removeItemNoUpdate(0);
+            if(!i2.isEmpty())
+                test.fail("Expected inventory to be empty.");
+        } catch (Exception ex) {
+            test.fail(ex.getMessage());
+        }
 
-        Assertions.assertDoesNotThrow(() -> inv.setItem(0, ItemStack.EMPTY));
+        try {
+            inv.setItem(0, ItemStack.EMPTY);
+            inv.setChanged();
+        }
 
-        Assertions.assertDoesNotThrow(inv::setChanged);
+        catch(Exception ex) {
+            test.fail("Marking a fake inventory changed or setting an item should not throw.");
+        }
 
-        final var overworld = ServerLifecycleHooks.getCurrentServer().overworld();
-        Assertions.assertFalse(inv.stillValid(FakePlayerFactory.getMinecraft(overworld)));
+        final var level = test.getLevel();
+        if(inv.stillValid(FakePlayerFactory.getMinecraft(level)))
+            test.fail("Players should not be able to use FakeInventory");
 
-        Assertions.assertDoesNotThrow(inv::clearContent);
+        try {
+            inv.clearContent();
+        }
+
+        catch (Exception ex) {
+            test.fail("Clearing fake inventory should not throw.");
+        }
+
+        test.succeed();
     }
 }
 

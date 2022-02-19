@@ -137,7 +137,7 @@ public class BlockComponentTests {
                 .ifPresent(matcher -> {
                     var sout = BlockComponent.CODEC
                             .encodeStart(JsonOps.INSTANCE, matcher)
-                            .resultOrPartial(Assertions::fail)
+                            .resultOrPartial(test::fail)
                             .get();
 
                     if(!sout.equals(json))

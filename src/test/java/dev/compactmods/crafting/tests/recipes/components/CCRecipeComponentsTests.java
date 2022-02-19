@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 public class CCRecipeComponentsTests {
 
     @Test
-    void CanCreateInstance() {
+    void CanCreateComponents() {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         Assertions.assertNotNull(components);
     }

@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 public class ComponentPositionLookupTests {
 
     @Test
-    void CanCreate() {
+    void CanCreatePosLookup() {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         Assertions.assertNotNull(lookup);
     }

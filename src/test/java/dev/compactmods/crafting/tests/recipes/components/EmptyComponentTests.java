@@ -19,19 +19,24 @@ import org.junit.jupiter.api.Test;
 public class EmptyComponentTests {
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void CanCreate(final GameTestHelper test) {
+    public static void CanCreateEmptyComponent(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     EmptyBlockComponent comp = res.getFirst();
 
                     boolean matchesAir = comp.matches(Blocks.AIR.defaultBlockState());
                     boolean matchesCaveAir = comp.matches(Blocks.CAVE_AIR.defaultBlockState());
 
-                    Assertions.assertTrue(matchesAir, "Expected empty to match air.");
-                    Assertions.assertTrue(matchesCaveAir, "Expected empty to match cave air.");
+                    if(!matchesAir)
+                        test.fail("Expected empty to match air.");
+
+                    if(!matchesCaveAir)
+                        test.fail("Expected empty to match cave air.");
+
+                    test.succeed();
                 });
     }
 
@@ -48,14 +53,19 @@ public class EmptyComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     EmptyBlockComponent comp = res.getFirst();
 
                     RecipeComponentType<?> type = comp.getType();
 
-                    Assertions.assertNotNull(type);
-                    Assertions.assertEquals(ComponentRegistration.EMPTY_BLOCK_COMPONENT.get(), type);
+                    if(type == null)
+                        test.fail("Got null component type");
+
+                    if(!ComponentRegistration.EMPTY_BLOCK_COMPONENT.get().equals(type))
+                        test.fail("Expected correct type");
+
+                    test.succeed();
                 });
     }
 
@@ -64,22 +74,27 @@ public class EmptyComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     EmptyBlockComponent comp = res.getFirst();
 
                     BlockState renderState = comp.getRenderState();
 
-                    Assertions.assertNotNull(renderState);
+                    if(renderState == null)
+                        test.fail("Got null render state back from component");
+
+                    test.succeed();
                 });
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     public static void CanGetBlock(final GameTestHelper test) {
         EmptyBlockComponent component = new EmptyBlockComponent();
-        Assertions.assertNotNull(component);
+        final Block block = component.getBlock();
 
-        final Block block = Assertions.assertDoesNotThrow(component::getBlock);
-        Assertions.assertTrue(block instanceof AirBlock);
+        if(block instanceof AirBlock)
+            test.succeed();
+
+        test.fail("Empty block is not air.");
     }
 }

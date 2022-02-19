@@ -25,7 +25,10 @@ public class RecipeLayerTypeCodecTests {
         final DataResult<RecipeLayerType<?>> result =
                 RecipeLayerTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
 
-        Assertions.assertTrue(result.error().isPresent());
+        if(result.error().isEmpty())
+            test.fail("Expected a deserialization error.");
+
+        test.succeed();
     }
 
     @Test

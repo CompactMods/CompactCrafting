@@ -114,9 +114,9 @@ public class HollowLayer {
 
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void HollowFailsIfPrimaryComponentMissing(final GameTestHelper helper) {
-        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO);
-        helper.setBlock(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
+    public static void HollowFailsIfPrimaryComponentMissing(final GameTestHelper test) {
+        final BlockPos zeroPoint = test.relativePos(BlockPos.ZERO);
+        test.setBlock(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
 
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -124,14 +124,17 @@ public class HollowLayer {
 
         final AABB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("G");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        final Boolean result = Assertions.assertDoesNotThrow(() -> layer.matches(components, blocks));
+        final var result = layer.matches(components, blocks);
 
-        Assertions.assertFalse(result, "Layer matched despite not having any matchable components.");
+        if (result)
+            test.fail("Layer matched despite not having any matchable components.");
+
+        test.succeed();
     }
 
 
@@ -170,22 +173,25 @@ public class HollowLayer {
 
         boolean matched = layer.matches(components, blocks);
 
-        Assertions.assertFalse(matched, "Hollow did not pass perfect match.");
+        if (!matched)
+            helper.fail("Hollow did not pass perfect match.");
+
+        helper.succeed();
     }
 
 
     @DisplayName("Hollow - Bad Wall Block")
     @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void HollowFailsIfWorldHasBadWallBlock(final GameTestHelper helper) {
+    public static void HollowFailsIfWorldHasBadWallBlock(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
         // register gold block to get past the unknown component early fail
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
 
-        helper.setBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
+        test.setBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
@@ -193,12 +199,15 @@ public class HollowLayer {
 
         final boolean matches = layer.matches(components, blocks);
 
-        Assertions.assertFalse(matches, "Hollow matched when BP.ZERO was a different block.");
+        if(matches)
+            test.fail("Hollow matched when BP.ZERO was a different block.");
+
+        test.succeed();
     }
 
 
     @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final GameTestHelper helper) {
+    public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("W", new BlockComponent(Blocks.GLASS));
 
@@ -206,7 +215,7 @@ public class HollowLayer {
         // since otherwise, the center block will be unmatched
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("W");
@@ -214,6 +223,9 @@ public class HollowLayer {
 
         final boolean matches = layer.matches(components, blocks);
 
-        Assertions.assertFalse(matches, "Hollow matched when center block was a different block.");
+        if (matches)
+            test.fail("Hollow matched when center block was a different block.");
+
+        test.succeed();
     }
 }

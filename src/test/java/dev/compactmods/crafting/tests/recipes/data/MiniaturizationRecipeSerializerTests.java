@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.tests.recipes.data;
 
+import java.util.Objects;
 import com.google.gson.JsonElement;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
@@ -13,40 +14,55 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import org.junit.jupiter.api.Assertions;
 
 public class MiniaturizationRecipeSerializerTests {
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     public static void CanSerialize(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
-        Assertions.assertNotNull(recipe);
+
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElse(null);
+        Objects.requireNonNull(recipe);
 
         var buf = new FriendlyByteBuf(Unpooled.buffer());
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
-        Assertions.assertDoesNotThrow(() -> s.toNetwork(buf, recipe));
+        s.toNetwork(buf, recipe);
 
-        Assertions.assertNotEquals(0, buf.readableBytes());
+        if (0 == buf.readableBytes())
+            test.fail("Expected recipe to have serialized into network buffer. 0 bytes available.");
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     public static void CanRoundTripOverNetwork(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
+        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElseThrow();
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
 
         var buf = new FriendlyByteBuf(Unpooled.buffer());
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
 
-        Assertions.assertDoesNotThrow(() -> s.toNetwork(buf, recipe));
 
-        Assertions.assertNotEquals(0, buf.readableBytes());
+        try {
+            s.toNetwork(buf, recipe);
+            if (buf.readableBytes() == 0)
+                test.fail("Recipe did not properly write to network buffer.");
 
-        Assertions.assertDoesNotThrow(() -> {
+        } catch (Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        try {
             MiniaturizationRecipe r = s.fromNetwork(recipe.getId(), buf);
-            Assertions.assertEquals(0, buf.readableBytes(), "Buffer was not empty after read.");
-            Assertions.assertNotNull(r, "Recipe did not have an identifier after network read.");
-        });
+            if(0 != buf.readableBytes())
+                test.fail("Buffer was not empty after read.");
 
+            if(r == null || r.getId() == null)
+                test.fail("Recipe did not load correctly, or did not have an identifier after network read.");
+        } catch (Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
@@ -55,9 +71,7 @@ public class MiniaturizationRecipeSerializerTests {
         try {
             MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
             s.toNetwork(buf, null);
-        }
-
-        catch(EncoderException ex) {
+        } catch (EncoderException ex) {
             test.succeed();
         }
 
@@ -72,9 +86,11 @@ public class MiniaturizationRecipeSerializerTests {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 
-        final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> s.fromJson(id, json.getAsJsonObject()));
+        final MiniaturizationRecipe recipe = s.fromJson(id, json.getAsJsonObject());
+        if (!id.equals(recipe.getId()))
+            test.fail("Expected recipe ID to match");
 
-        Assertions.assertEquals(id, recipe.getId());
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
@@ -83,10 +99,12 @@ public class MiniaturizationRecipeSerializerTests {
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
+        final MiniaturizationRecipe recipe = s.fromJson(id, json.getAsJsonObject());
 
-        final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> s.fromJson(id, json.getAsJsonObject()));
+        if (recipe != null)
+            test.fail("Expected recipe to be null.");
 
-        Assertions.assertNull(recipe);
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
@@ -95,11 +113,11 @@ public class MiniaturizationRecipeSerializerTests {
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 
         var buf = new FriendlyByteBuf(Unpooled.buffer());
-        final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> {
-            return s.fromNetwork(id, buf);
-        });
+        final MiniaturizationRecipe recipe = s.fromNetwork(id, buf);
+        if(recipe != null)
+            test.fail("Managed to get a recipe instance from an empty network buffer");
 
-        Assertions.assertNull(recipe);
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
@@ -110,10 +128,14 @@ public class MiniaturizationRecipeSerializerTests {
         var buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeNbt(new CompoundTag());
 
-        final MiniaturizationRecipe recipe = Assertions.assertDoesNotThrow(() -> {
-            return s.fromNetwork(id, buf);
-        });
+        try {
+            final MiniaturizationRecipe recipe = s.fromNetwork(id, buf);
+            if (recipe != null)
+                test.fail("");
+        } catch (Exception e) {
+            test.fail("Serializer should not have failed.");
+        }
 
-        Assertions.assertNull(recipe);
+        test.succeed();
     }
 }
