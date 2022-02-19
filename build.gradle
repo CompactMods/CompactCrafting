@@ -120,10 +120,19 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+
+            // Only runs gametests which use "examplemod" as the namespace
+            args '--enableNamespace', mod_id
+
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+
             mods {
                 compactcrafting {
                     source sourceSets.main
                     source sourceSets.api
+                    source sourceSets.test
                 }
             }
         }
@@ -141,6 +150,7 @@ minecraft {
             args '--all'
             args '--output', file('src/generated/resources/')
             args "--existing", file("src/main/resources")
+
 
             mods {
                 compactcrafting {
