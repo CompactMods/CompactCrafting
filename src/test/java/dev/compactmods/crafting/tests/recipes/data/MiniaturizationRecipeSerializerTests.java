@@ -4,27 +4,21 @@ import com.google.gson.JsonElement;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.EncoderException;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class MiniaturizationRecipeSerializerTests {
 
-    @org.junit.jupiter.api.BeforeAll
-    static void BeforeAllTests() {
-        ServerConfig.RECIPE_REGISTRATION.set(true);
-        ServerConfig.RECIPE_MATCHING.set(true);
-        ServerConfig.FIELD_BLOCK_CHANGES.set(true);
-    }
-
-    @Test
-    void CanSerialize() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanSerialize(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
         Assertions.assertNotNull(recipe);
 
@@ -35,8 +29,8 @@ public class MiniaturizationRecipeSerializerTests {
         Assertions.assertNotEquals(0, buf.readableBytes());
     }
 
-    @Test
-    void CanRoundTripOverNetwork() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanRoundTripOverNetwork(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
 
@@ -55,20 +49,24 @@ public class MiniaturizationRecipeSerializerTests {
 
     }
 
-    @Test
-    void DoesNotSerializeBadRecipeOverNetwork() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void DoesNotSerializeBadRecipeOverNetwork(final GameTestHelper test) {
         var buf = new FriendlyByteBuf(Unpooled.buffer());
-        Assertions.assertDoesNotThrow(() -> {
+        try {
             MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
             s.toNetwork(buf, null);
-        });
+        }
+
+        catch(EncoderException ex) {
+            test.succeed();
+        }
 
         // Nothing should be written to the buffer, since the recipe failed to serialize
-        Assertions.assertEquals(0, buf.readableBytes());
+        test.fail("Buffer write should have failed");
     }
 
-    @Test
-    void SerializerCanDeserializeJson() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void SerializerCanDeserializeJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
@@ -79,8 +77,8 @@ public class MiniaturizationRecipeSerializerTests {
         Assertions.assertEquals(id, recipe.getId());
     }
 
-    @Test
-    void SerializerHandlesJsonErrorsAppropriately() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void SerializerHandlesJsonErrorsAppropriately(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
@@ -91,8 +89,8 @@ public class MiniaturizationRecipeSerializerTests {
         Assertions.assertNull(recipe);
     }
 
-    @Test
-    void SerializerHandlesDecodingEmptyBuffer() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void SerializerHandlesDecodingEmptyBuffer(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 
@@ -104,8 +102,8 @@ public class MiniaturizationRecipeSerializerTests {
         Assertions.assertNull(recipe);
     }
 
-    @Test
-    void SerializerHandlesDecodingEmptyCompound() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void SerializerHandlesDecodingEmptyCompound(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
 

@@ -51,21 +51,32 @@ public class RecipeBlocksTests {
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
                 .normalize();
 
-        Assertions.assertNotNull(blocks);
-
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0))
                 .normalize();
 
-        Assertions.assertNotNull(slice);
-
         final Optional<String> c0 = slice.getComponentAtPosition(BlockPos.ZERO);
-        Assertions.assertTrue(c0.isPresent(), "Expected glass component to transfer to new blocks instance.");
-        Assertions.assertEquals("G", c0.get());
+        if (c0.isEmpty())
+            helper.fail("Expected glass component to transfer to new blocks instance.");
 
-        final Map<String, Integer> totals = Assertions.assertDoesNotThrow(slice::getKnownComponentTotals);
-        Assertions.assertEquals(1, totals.size());
-        Assertions.assertTrue(totals.containsKey("G"));
-        Assertions.assertEquals(25, totals.get("G"));
+        if(!"G".equals(c0.get()))
+            helper.fail("Expected glass component.");
+
+        try {
+            final Map<String, Integer> totals = slice.getKnownComponentTotals();
+            if(1 != totals.size())
+                helper.fail("Expected exactly one component in totals list");
+
+            if(!totals.containsKey("G"))
+                helper.fail("Totals did not contain glass component.");
+
+            Assertions.assertEquals(25, totals.get("G"));
+        }
+
+        catch(Exception e) {
+            helper.fail("Caught exception: " + e.getMessage());
+        }
+
+        helper.succeed();
     }
 
 

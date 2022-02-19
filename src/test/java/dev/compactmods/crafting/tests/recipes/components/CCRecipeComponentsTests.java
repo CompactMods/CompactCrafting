@@ -65,14 +65,19 @@ public class CCRecipeComponentsTests {
         });
     }
 
-    @Test
-    void EmptyBlocksAreActuallyEmpty() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void EmptyBlocksAreActuallyEmpty(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
         components.registerBlock("E", new EmptyBlockComponent());
 
-        Assertions.assertFalse(components.isEmptyBlock("G"), "gold block should not be empty");
-        Assertions.assertTrue(components.isEmptyBlock("E"), "empty block not actually empty");
+        if(components.isEmptyBlock("G"))
+            test.fail("gold block should not be empty");
+
+        if(!components.isEmptyBlock("E"))
+            test.fail("empty block not actually empty");
+
+        test.succeed();
     }
 
     @Test

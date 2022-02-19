@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 
 public class FilledLayerTests {
 
-    private FilledComponentRecipeLayer getLayerFromFile(String filename) {
+    private static FilledComponentRecipeLayer getLayerFromFile(String filename) {
         JsonElement layerJson = FileHelper.getJsonFromFile(filename);
 
         return FilledComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson)
@@ -102,8 +102,10 @@ public class FilledLayerTests {
         Assertions.assertFalse(componentForPosition.isPresent());
     }
 
-    @Test
-    void FilledFailsMatchWithEmptyBlockList() {
+    // note - we use the empty medium here just to let the gametest system run our test
+    // we create an actual blocks instance inside the test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void FilledFailsMatchWithEmptyBlockList(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
@@ -111,7 +113,10 @@ public class FilledLayerTests {
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
         RecipeBlocks blocks = RecipeBlocks.createEmpty();
-        Assertions.assertFalse(layer.matches(components, blocks));
+        if(layer.matches(components, blocks))
+            test.fail("Layer matched with empty block information.");
+
+        test.succeed();
     }
 
 

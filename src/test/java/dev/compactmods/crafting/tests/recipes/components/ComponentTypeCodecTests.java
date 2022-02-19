@@ -3,41 +3,62 @@ package dev.compactmods.crafting.tests.recipes.components;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 
 public class ComponentTypeCodecTests {
 
-    @Test
-    void testFailedDecode() {
+    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    public static void testFailedDecode(final GameTestHelper test) {
         JsonElement string = JsonOps.INSTANCE.createString("compactcrafting:bad_component_type");
 
         DataResult<RecipeComponentType<?>> result = RecipeComponentTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, string);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertTrue(result.error().isPresent());
+        if(result == null) {
+            test.fail("Expected a result, got null");
+            return;
+        }
+
+        if(result.error().isEmpty())
+            test.fail("Expected a parsing error to be present.");
+
+        test.succeed();
     }
 
-    @Test
-    void testBadEncode() {
+    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    public static void testBadEncode(final GameTestHelper test) {
         RecipeComponentType<?> badComponentType = new BadRecipeComponentType();
 
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, badComponentType);
 
-        Assertions.assertNotNull(result);
+        if(result == null) {
+            test.fail("Expected a result, got null");
+            return;
+        }
 
-        Assertions.assertTrue(result.error().isPresent());
+        if(result.error().isEmpty())
+            test.fail("Expected an error during encode");
+
+        test.succeed();
     }
 
-    @Test
-    void testEncode() {
+    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    public static void testEncode(final GameTestHelper test) {
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, ComponentRegistration.EMPTY_BLOCK_COMPONENT.get());
 
-        Assertions.assertNotNull(result);
+        if(result == null) {
+            test.fail("Expected an encoding result");
+            return;
+        }
 
-        Assertions.assertFalse(result.error().isPresent());
+        if(result.error().isPresent()) {
+            test.fail("Expected no errors during encode");
+        }
+
+        test.succeed();
     }
 }

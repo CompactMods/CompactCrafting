@@ -15,7 +15,7 @@ public class FileHelper {
 
     private FileHelper() {}
 
-    private File getFile(String filename) {
+    public File getFile(String filename) {
         URL res = getClass().getClassLoader().getResource(filename);
         if(res == null) {
             CompactCrafting.LOGGER.error("Tried to access {} but file not found.", filename);

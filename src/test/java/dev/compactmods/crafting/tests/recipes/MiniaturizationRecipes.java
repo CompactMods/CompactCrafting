@@ -13,7 +13,6 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
@@ -21,30 +20,19 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.server.ServerLifecycleHooks;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 // @MCTestClass
 public class MiniaturizationRecipes {
 
-    private static RecipeManager RECIPES;
-
-    @org.junit.jupiter.api.BeforeAll
-    static void BeforeAllTests() {
-        ServerConfig.RECIPE_REGISTRATION.set(true);
-        ServerConfig.RECIPE_MATCHING.set(true);
-        ServerConfig.FIELD_BLOCK_CHANGES.set(true);
-
-        RECIPES = ServerLifecycleHooks.getCurrentServer().getRecipeManager();
-    }
-
     @Nullable
-    private static MiniaturizationRecipe getRecipe(String name) {
-        return (MiniaturizationRecipe) RECIPES.byKey(new ResourceLocation("compactcrafting", name)).orElse(null);
+    private static MiniaturizationRecipe getRecipe(GameTestHelper testHelper, String name) {
+        return (MiniaturizationRecipe) testHelper.getLevel().getRecipeManager()
+                .byKey(new ResourceLocation("compactcrafting", name))
+                .orElse(null);
     }
 
     @Test
@@ -84,15 +72,22 @@ public class MiniaturizationRecipes {
         });
     }
 
-    @Test
-    void FakesAssemble() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void FakesAssemble(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         Assertions.assertNotNull(recipe);
 
-        Assertions.assertDoesNotThrow(() -> {
+        try {
             ItemStack result = recipe.assemble(new FakeInventory());
-            Assertions.assertTrue(result.isEmpty());
-        });
+            if(!result.isEmpty())
+                test.fail("Expected an empty result");
+        }
+
+        catch(Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        test.succeed();
     }
 
     @Test
@@ -106,8 +101,8 @@ public class MiniaturizationRecipes {
         });
     }
 
-    @Test
-    void FakesResultItem() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void FakesResultItem(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         Assertions.assertNotNull(recipe);
 
@@ -117,9 +112,9 @@ public class MiniaturizationRecipes {
         });
     }
 
-    @Test
-    void RecipeSuppliesBasicMinecraftRegistrationInfo() {
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void RecipeSuppliesBasicMinecraftRegistrationInfo(final GameTestHelper test) {
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(enderCrystal);
 
         final var serializer = Assertions.assertDoesNotThrow(enderCrystal::getSerializer);
@@ -130,18 +125,18 @@ public class MiniaturizationRecipes {
     }
 
 
-    @Test
-    void RecipeReturnsEmptyIfLayerNotRegistered() {
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void RecipeReturnsEmptyIfLayerNotRegistered(final GameTestHelper test) {
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(enderCrystal);
 
         final Optional<IRecipeLayer> layer = Assertions.assertDoesNotThrow(() -> enderCrystal.getLayer(999));
         Assertions.assertFalse(layer.isPresent());
     }
 
-    @Test
-    void FitsInCorrectFieldSizes() {
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void FitsInCorrectFieldSizes(final GameTestHelper test) {
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(enderCrystal);
 
         MiniaturizationFieldSize[] badSizes = new MiniaturizationFieldSize[]{
@@ -159,9 +154,9 @@ public class MiniaturizationRecipes {
             Assertions.assertTrue(enderCrystal.fitsInFieldSize(gs), "Did not fit in field size: " + gs);
     }
 
-    @Test
-    void CanGetComponentTotals() {
-        final MiniaturizationRecipe recipe = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanGetComponentTotals(final GameTestHelper test) {
+        final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(recipe);
 
         final Map<String, Integer> totals = Assertions.assertDoesNotThrow(recipe::getComponentTotals);
@@ -178,18 +173,18 @@ public class MiniaturizationRecipes {
         Assertions.assertEquals(1, totalObsidian);
     }
 
-    @Test
-    void UnregisteredBlockReturnsZeroCount() {
-        final MiniaturizationRecipe recipe = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void UnregisteredBlockReturnsZeroCount(final GameTestHelper test) {
+        final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(recipe);
 
         final int required = Assertions.assertDoesNotThrow(() -> recipe.getComponentRequiredCount("?"));
         Assertions.assertEquals(0, required);
     }
 
-    @Test
-    void HasCraftingTime() {
-        final MiniaturizationRecipe recipe = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HasCraftingTime(final GameTestHelper test) {
+        final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(recipe);
 
         final int required = Assertions.assertDoesNotThrow(recipe::getCraftingTime);
@@ -198,11 +193,11 @@ public class MiniaturizationRecipes {
 
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID)
-    public static void MatchesExactStructure(final GameTestHelper helper) {
-        final BlockPos zero = helper.relativePos(BlockPos.ZERO);
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    public static void MatchesExactStructure(final GameTestHelper test) {
+        final BlockPos zero = test.relativePos(BlockPos.ZERO);
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(helper.getLevel(), enderCrystal.getComponents(), enderCrystal.getDimensions().move(zero))
+                .create(test.getLevel(), enderCrystal.getComponents(), enderCrystal.getDimensions().move(zero))
                 .normalize();
 
         Assertions.assertDoesNotThrow(() -> {
@@ -213,15 +208,15 @@ public class MiniaturizationRecipes {
 
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID)
-    public static void RecipeFailsIfUnidentifiedBlock(final GameTestHelper helper) {
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    public static void RecipeFailsIfUnidentifiedBlock(final GameTestHelper test) {
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(enderCrystal);
 
         // Force an unknown component in the exact center
-        helper.setBlock(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
+        test.setBlock(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(helper.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         Assertions.assertDoesNotThrow(() -> {
@@ -230,9 +225,9 @@ public class MiniaturizationRecipes {
         });
     }
 
-    @Test
-    void CanStreamLayerInfo() {
-        final MiniaturizationRecipe enderCrystal = getRecipe("ender_crystal");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanStreamLayerInfo(final GameTestHelper test) {
+        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         final Stream<IRecipeLayer> strem = Assertions.assertDoesNotThrow(enderCrystal::getLayers);
 
         Assertions.assertNotNull(strem);
@@ -242,12 +237,12 @@ public class MiniaturizationRecipes {
     }
 
     @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID)
-    public static void RecipeFailsIfDifferentDimensions(final GameTestHelper helper) {
-        final MiniaturizationRecipe recipe = getRecipe("compact_walls");
+    public static void RecipeFailsIfDifferentDimensions(final GameTestHelper test) {
+        final MiniaturizationRecipe recipe = getRecipe(test, "compact_walls");
         Assertions.assertNotNull(recipe);
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(helper.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));
@@ -256,16 +251,16 @@ public class MiniaturizationRecipes {
 
 
     @GameTest(template = "recipes/empty_medium", templateNamespace = CompactCrafting.MOD_ID)
-    public static void RecipeFailsIfNoRotationsMatched(final GameTestHelper helper) {
-        final MiniaturizationRecipe recipe = getRecipe("ender_crystal");
+    public static void RecipeFailsIfNoRotationsMatched(final GameTestHelper test) {
+        final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
         Assertions.assertNotNull(recipe);
 
         // Set up the 8 corners to be glass, so block creation below matches field boundaries
         final BlockState glass = Blocks.GLASS.defaultBlockState();
-        BlockSpaceUtil.getCornersOfBounds(MiniaturizationFieldSize.MEDIUM).forEach(p -> helper.setBlock(p, glass));
+        BlockSpaceUtil.getCornersOfBounds(MiniaturizationFieldSize.MEDIUM).forEach(p -> test.setBlock(p, glass));
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(helper.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));

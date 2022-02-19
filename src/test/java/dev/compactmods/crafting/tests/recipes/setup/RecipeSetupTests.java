@@ -1,20 +1,22 @@
 package dev.compactmods.crafting.tests.recipes.setup;
 
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.server.ServerLifecycleHooks;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 
 public class RecipeSetupTests {
 
-    @Test
-    void BaseRecipeType() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void BaseRecipeType(final GameTestHelper test) {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
 
@@ -24,8 +26,8 @@ public class RecipeSetupTests {
         Assertions.assertDoesNotThrow((Executable) type::register);
     }
 
-    @Test
-    void FakeInventory() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void FakeInventory(final GameTestHelper test) {
         FakeInventory inv = new FakeInventory();
         Assertions.assertNotNull(inv);
 

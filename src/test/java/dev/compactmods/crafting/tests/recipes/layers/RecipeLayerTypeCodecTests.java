@@ -6,19 +6,22 @@ import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class RecipeLayerTypeCodecTests {
 
-    @Test
-    void HandlesBadTypeIdentifier() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
         final DataResult<RecipeLayerType<?>> result =
                 RecipeLayerTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
 

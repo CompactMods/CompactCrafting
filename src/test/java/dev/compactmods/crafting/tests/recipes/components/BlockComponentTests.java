@@ -3,90 +3,107 @@ package dev.compactmods.crafting.tests.recipes.components;
 import java.util.*;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.tests.util.FileHelper;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 public class BlockComponentTests {
 
-    @Test
-    void CanCreateInstanceWithBlock() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanCreateInstanceWithBlock(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
-        Assertions.assertNotNull(component);
-        Assertions.assertEquals(Blocks.GOLD_BLOCK, component.getBlock());
+        if (!Blocks.GOLD_BLOCK.equals(component.getBlock()))
+            test.fail("Expected component block to be gold");
+
+        test.succeed();
     }
 
-    @Test
-    void CanFetchFirstMatch() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanFetchFirstMatch(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
-        final Optional<BlockState> blockState = Assertions.assertDoesNotThrow(component::getFirstMatch);
-        Assertions.assertTrue(blockState.isPresent(), "Expected a state to be present.");
-        Assertions.assertEquals(Blocks.GOLD_BLOCK.defaultBlockState(), blockState.get());
+        try {
+            final Optional<BlockState> blockState = component.getFirstMatch();
+            if (blockState.isEmpty())
+                test.fail("Expected a state to be present.");
+
+            if (!Blocks.GOLD_BLOCK.defaultBlockState().equals(blockState.get()))
+                test.fail("Expected first match to be a gold block.");
+        } catch (Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        test.succeed();
     }
 
-    @Test
-    void ToStringShowsBlockId() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void ToStringShowsBlockId(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
-        Assertions.assertNotNull(component);
 
-        String toString = Assertions.assertDoesNotThrow(component::toString);
-        Assertions.assertTrue(toString.contains("minecraft:gold_block"));
+        try {
+            String toString = component.toString();
+            if (!toString.contains("minecraft:gold_block"))
+                test.fail("Expected block identifier in component toString output");
+        } catch (Exception e) {
+            test.fail(e.getMessage());
+        }
     }
 
-    @Test
-    void CanMatchBlock() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanMatchBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
-        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
-                .ifPresent(res -> {
-                    BlockComponent matcher = res.getFirst();
+        final var parseResult = BlockComponent.CODEC.parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(test::fail);
 
-                    BlockState[] tests = Blocks.COBBLESTONE_STAIRS
-                            .getStateDefinition()
-                            .getPossibleStates()
-                            .toArray(new BlockState[0]);
+        if (parseResult.isEmpty())
+            test.fail("Expected a result; got nothing");
 
-                    Hashtable<BlockState, Boolean> results = new Hashtable<>();
-                    for (BlockState stateTest : tests) {
-                        boolean matched = matcher.matches(stateTest);
-                        results.put(stateTest, matched);
-                    }
+        final var matcher = parseResult.get();
 
-                    List<BlockState> matched = new ArrayList<>();
-                    for (Map.Entry<BlockState, Boolean> e : results.entrySet()) {
-                        if (e.getValue())
-                            matched.add(e.getKey());
-                    }
+        BlockState[] tests = Blocks.COBBLESTONE_STAIRS
+                .getStateDefinition()
+                .getPossibleStates()
+                .toArray(new BlockState[0]);
 
-                    for (BlockState bs : matched) {
-                        if (bs.getValue(StairBlock.HALF) == Half.TOP)
-                            Assertions.fail("Found a state with an invalid property TOP");
+        Hashtable<BlockState, Boolean> results = new Hashtable<>();
+        for (BlockState stateTest : tests) {
+            boolean matched = matcher.matches(stateTest);
+            results.put(stateTest, matched);
+        }
 
-                        if (bs.getValue(StairBlock.SHAPE) != StairsShape.STRAIGHT)
-                            Assertions.fail("Found a state with a non-straight shape");
-                    }
-                });
+        List<BlockState> matched = new ArrayList<>();
+        for (Map.Entry<BlockState, Boolean> e : results.entrySet()) {
+            if (e.getValue())
+                matched.add(e.getKey());
+        }
+
+        for (BlockState bs : matched) {
+            if (bs.getValue(StairBlock.HALF) == Half.TOP)
+                test.fail("Found a state with an invalid property TOP");
+
+            if (bs.getValue(StairBlock.SHAPE) != StairsShape.STRAIGHT)
+                test.fail("Found a state with a non-straight shape");
+        }
     }
 
-    @Test
-    void CanMatchBlockNoProperties() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanMatchBlockNoProperties(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
-        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
-                .ifPresent(res -> {
-                    BlockComponent matcher = res.getFirst();
-
+        BlockComponent.CODEC.parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(test::fail)
+                .ifPresent(matcher -> {
                     BlockState[] tests = Blocks.COBBLESTONE_STAIRS
                             .getStateDefinition()
                             .getPossibleStates()
@@ -104,27 +121,33 @@ public class BlockComponentTests {
                             matched.add(e.getKey());
                     }
 
-                    Assertions.assertEquals(tests.length, matched.size(), "Matches does not equal number of states.");
+                    if(tests.length != matched.size())
+                        test.fail("Matches does not equal number of states.");
+
+                    test.succeed();
                 });
     }
 
-    @Test
-    void CanReserializeComponentMatcher() throws RuntimeException {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanReserializeComponentMatcher(final GameTestHelper test) throws RuntimeException {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
-        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
-                .ifPresent(res -> {
-                    BlockComponent matcher = res.getFirst();
-
-                    BlockComponent.CODEC
+        BlockComponent.CODEC.parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(test::fail)
+                .ifPresent(matcher -> {
+                    var sout = BlockComponent.CODEC
                             .encodeStart(JsonOps.INSTANCE, matcher)
                             .resultOrPartial(Assertions::fail)
                             .get();
+
+                    if(!sout.equals(json))
+                        test.fail("Output JSON did not match input");
+
+                    test.succeed();
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void ThrowsErrorOnUnregisteredBlock() {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_not_registered.json");
 
@@ -135,7 +158,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void DoesWarnOnBadProperty() {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_bad_property.json");
 
@@ -148,7 +171,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void DoesNotMatchDifferentBlocks() {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -163,7 +186,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void HasCorrectComponentType() {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -180,7 +203,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void HasARenderBlockstate() {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -196,7 +219,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @Test
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
     void CanHandleErrorRenderingChanges() {
 
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);

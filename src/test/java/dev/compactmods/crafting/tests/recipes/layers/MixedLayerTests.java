@@ -19,7 +19,6 @@ import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -31,13 +30,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class MixedLayerTests {
-
-    @org.junit.jupiter.api.BeforeAll
-    static void BeforeAllTests() {
-        ServerConfig.RECIPE_REGISTRATION.set(true);
-        ServerConfig.RECIPE_MATCHING.set(true);
-        ServerConfig.FIELD_BLOCK_CHANGES.set(true);
-    }
 
     static MixedComponentRecipeLayer getLayerFromFile(String filename) {
         JsonElement layerJson = FileHelper.getJsonFromFile(filename);
@@ -83,8 +75,8 @@ public class MixedLayerTests {
                 });
     }
 
-    @Test
-    void MixedLayerRemovesUnknownComponents() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void MixedLayerRemovesUnknownComponents(final GameTestHelper test) {
         final MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
         Assertions.assertNotNull(layer);
 

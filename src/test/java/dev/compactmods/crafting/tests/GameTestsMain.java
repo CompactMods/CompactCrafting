@@ -20,6 +20,13 @@ public class GameTestsMain {
     public static void registerTests(final RegisterGameTestsEvent game) {
         CompactCrafting.LOGGER.debug("Registering game tests.");
 
+//        try {
+//            var f = new File("test-report.xml");
+//            GlobalTestReporter.replaceWith(new JUnitLikeTestReporter(f));
+//        } catch (ParserConfigurationException e) {
+//            e.printStackTrace();
+//        }
+
         // projectors
         game.register(Projectors.class);
 

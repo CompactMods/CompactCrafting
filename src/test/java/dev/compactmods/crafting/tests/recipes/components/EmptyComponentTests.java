@@ -2,10 +2,13 @@ package dev.compactmods.crafting.tests.recipes.components;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.tests.util.FileHelper;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -15,9 +18,9 @@ import org.junit.jupiter.api.Test;
 
 public class EmptyComponentTests {
 
-    @Test
-    void CanCreate() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/empty/empty_component.json");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanCreate(final GameTestHelper test) {
+        JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -40,9 +43,9 @@ public class EmptyComponentTests {
         Assertions.assertFalse(errored);
     }
 
-    @Test
-    void HasComponentType() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/empty/empty_component.json");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HasComponentType(final GameTestHelper test) {
+        JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -56,9 +59,9 @@ public class EmptyComponentTests {
                 });
     }
 
-    @Test
-    void HasRenderState() {
-        JsonElement json = FileHelper.INSTANCE.getJsonFromFile("components/empty/empty_component.json");
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void HasRenderState(final GameTestHelper test) {
+        JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
         EmptyBlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
                 .resultOrPartial(Assertions::fail)
@@ -71,8 +74,8 @@ public class EmptyComponentTests {
                 });
     }
 
-    @Test
-    void CanGetBlock() {
+    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    public static void CanGetBlock(final GameTestHelper test) {
         EmptyBlockComponent component = new EmptyBlockComponent();
         Assertions.assertNotNull(component);
 
