@@ -10,9 +10,11 @@ import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class ComponentTypeCodecTests {
 
-    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void testFailedDecode(final GameTestHelper test) {
         JsonElement string = JsonOps.INSTANCE.createString("compactcrafting:bad_component_type");
 
@@ -29,7 +31,7 @@ public class ComponentTypeCodecTests {
         test.succeed();
     }
 
-    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void testBadEncode(final GameTestHelper test) {
         RecipeComponentType<?> badComponentType = new BadRecipeComponentType();
 
@@ -46,7 +48,7 @@ public class ComponentTypeCodecTests {
         test.succeed();
     }
 
-    @GameTest(templateNamespace = CompactCrafting.MOD_ID, template = "empty_medium", prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void testEncode(final GameTestHelper test) {
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, ComponentRegistration.EMPTY_BLOCK_COMPONENT.get());
 

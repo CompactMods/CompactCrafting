@@ -15,12 +15,16 @@ import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeLayerTypeCodecTests {
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "empty_medium")
     public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
         final DataResult<RecipeLayerType<?>> result =
                 RecipeLayerTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));

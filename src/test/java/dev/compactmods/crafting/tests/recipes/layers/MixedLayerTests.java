@@ -23,9 +23,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class MixedLayerTests {
 
     static MixedComponentRecipeLayer getLayerFromFile(String filename) {
@@ -79,7 +83,7 @@ public class MixedLayerTests {
                 });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void MixedLayerRemovesUnknownComponents(final GameTestHelper test) {
         final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/basic.json");
         Objects.requireNonNull(layer);
@@ -101,7 +105,7 @@ public class MixedLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerMatchesWorldInExactMatchScenario(final GameTestHelper test) {
 
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
@@ -145,7 +149,7 @@ public class MixedLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfAllComponentsNotIdentified(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -171,7 +175,7 @@ public class MixedLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_filled")
     public static void MixedLayerDeniesMatchIfComponentCountDiffers(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -197,7 +201,7 @@ public class MixedLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfRequiredComponentsMissing(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -216,7 +220,7 @@ public class MixedLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfComponentsInWrongPositions(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));

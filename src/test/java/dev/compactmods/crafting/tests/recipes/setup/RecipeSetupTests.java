@@ -9,10 +9,14 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeSetupTests {
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void BaseRecipeType(final GameTestHelper test) {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
@@ -31,7 +35,7 @@ public class RecipeSetupTests {
         }
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void FakeInventory(final GameTestHelper test) {
         FakeInventory inv = new FakeInventory();
 

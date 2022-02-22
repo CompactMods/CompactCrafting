@@ -16,9 +16,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class EmptyComponentTests {
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void CanCreateEmptyComponent(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -48,7 +50,7 @@ public class EmptyComponentTests {
         Assertions.assertFalse(errored);
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void HasComponentType(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -69,7 +71,7 @@ public class EmptyComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void HasRenderState(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -87,7 +89,7 @@ public class EmptyComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void CanGetBlock(final GameTestHelper test) {
         EmptyBlockComponent component = new EmptyBlockComponent();
         final Block block = component.getBlock();

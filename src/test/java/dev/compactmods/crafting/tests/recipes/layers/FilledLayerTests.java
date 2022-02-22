@@ -21,9 +21,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class FilledLayerTests {
 
     private static FilledComponentRecipeLayer getLayerFromFile(String filename) {
@@ -111,7 +115,7 @@ public class FilledLayerTests {
 
     // note - we use the empty medium here just to let the gametest system run our test
     // we create an actual blocks instance inside the test
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void FilledFailsMatchWithEmptyBlockList(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
@@ -127,7 +131,7 @@ public class FilledLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_filled")
     public static void FilledLayerMatchesWorldInExactMatchScenario(GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -153,7 +157,7 @@ public class FilledLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void FailsMatchIfAllBlocksNotIdentified(final GameTestHelper test) {
         final IRecipeComponents components = new MiniaturizationRecipeComponents();
         // note the lack of a G component here, missing "GLASS"
@@ -174,7 +178,7 @@ public class FilledLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void FailsMatchIfMoreThanOneBlockFound(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -194,7 +198,7 @@ public class FilledLayerTests {
     }
 
 
-    @GameTest(template = "medium_glass_filled", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_filled")
     public static void FailsMatchIfComponentKeyNotFound(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 

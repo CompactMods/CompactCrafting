@@ -61,7 +61,7 @@ sourceSets {
     }
 
     test {
-        java { srcDir "src/main/test" }
+        java { srcDir "src/test/java" }
 
         resources {
             srcDir "src/test/resources"
@@ -123,9 +123,6 @@ minecraft {
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
 
-            // Only runs gametests which use "examplemod" as the namespace
-            args '--enableNamespace', mod_id
-
             environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
 
             mods {
@@ -151,7 +148,6 @@ minecraft {
             args '--output', file('src/generated/resources/')
             args "--existing", file("src/main/resources")
 
-
             mods {
                 compactcrafting {
                     source sourceSets.main
@@ -160,7 +156,7 @@ minecraft {
             }
         }
 
-        gametestserver {
+        gameTestServer {
             workingDirectory project.file('run/gametest')
 
             // Recommended logging data for a userdev environment
@@ -177,9 +173,6 @@ minecraft {
 
             property 'mixin.env.remapRefMap', 'true'
             property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
-
-            // Only runs gametests which use "examplemod" as the namespace
-            args '--enableNamespace', mod_id
 
             environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
 

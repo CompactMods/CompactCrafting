@@ -14,11 +14,15 @@ import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeBlocksTests {
 
-    @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "recipes/ender_crystal")
     public static void CanCreateBlocksInstance(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
@@ -33,7 +37,7 @@ public class RecipeBlocksTests {
     }
 
 
-    @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "recipes/ender_crystal")
     public static void CanRebuildTotals(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
@@ -50,7 +54,7 @@ public class RecipeBlocksTests {
     }
 
 
-    @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "recipes/ender_crystal")
     public static void CanSlice(final GameTestHelper helper) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
 
@@ -86,7 +90,7 @@ public class RecipeBlocksTests {
     }
 
 
-    @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "recipes/ender_crystal")
     public static void CanSliceAndOffset(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
 
@@ -116,7 +120,7 @@ public class RecipeBlocksTests {
     }
 
 
-    @GameTest(template = "recipes/ender_crystal", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "recipes/ender_crystal")
     public static void CanCreateWithUnknownComponents(final GameTestHelper test) {
         // defines G and O as components - "-" should be an unknown position in this recipe
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();

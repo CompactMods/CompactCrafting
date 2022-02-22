@@ -15,11 +15,12 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.gametest.GameTestHolder;
 
-// @IntegrationTestClass("projectors")
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class Projectors {
 
-    @GameTest(template = "small_field", templateNamespace = CompactCrafting.MOD_ID)
+    @GameTest(template = "small_field")
     public static void CanPlaceProjector(final GameTestHelper test) {
         final BlockPos fieldCenter = MiniaturizationFieldSize.SMALL.getOriginCenterFromCorner()
                 .above();
@@ -61,7 +62,7 @@ public class Projectors {
         test.succeed();
     }
 
-    @GameTest(template = "small_field", templateNamespace = CompactCrafting.MOD_ID)
+    @GameTest(template = "small_field")
     public static void GeneratesFieldCapabilityInstance(final GameTestHelper test) {
         final BlockPos center = test.absolutePos(MiniaturizationFieldSize.SMALL.getOriginCenterFromCorner().above());
 
@@ -88,7 +89,7 @@ public class Projectors {
         });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID)
+    @GameTest(template = "empty_medium")
     public static void PlacingSingleActiveProjectorDeactivatesIt(final GameTestHelper test) {
         final BlockState stateSmall = CCBlocks.FIELD_PROJECTOR_BLOCK.get()
                 .defaultBlockState()
@@ -117,9 +118,4 @@ public class Projectors {
 
         test.succeed();
     }
-
-//    @IntegrationTest("empty_medium")
-//    void FailureTest(IntegrationTestHelper test) {
-//        Assertions.fail("Uncomment in production.");
-//    }
 }

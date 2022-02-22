@@ -18,7 +18,11 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeLayerUtilTests {
 
     @Nonnull
@@ -29,7 +33,7 @@ public class RecipeLayerUtilTests {
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void CanRotate(final GameTestHelper test) {
         // We set up a different block in the corner, so we can tell the blocks rotated
         test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
@@ -57,7 +61,7 @@ public class RecipeLayerUtilTests {
         test.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void NonRotationCreatesCopiedInstance(final GameTestHelper test) {
         final IRecipeComponents components = getRecipeByName(test, "medium_glass_walls_obsidian_center")
                 .map(MiniaturizationRecipe::getComponents)

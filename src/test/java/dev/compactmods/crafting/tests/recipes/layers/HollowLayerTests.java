@@ -24,11 +24,15 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-public class HollowLayer {
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
+public class HollowLayerTests {
 
     private HollowComponentRecipeLayer getLayerFromFile(String filename) {
         JsonElement layerJson = FileHelper.getJsonFromFile(filename);
@@ -113,7 +117,7 @@ public class HollowLayer {
     }
 
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void HollowFailsIfPrimaryComponentMissing(final GameTestHelper test) {
         final BlockPos zeroPoint = test.relativePos(BlockPos.ZERO);
         test.setBlock(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
@@ -138,7 +142,7 @@ public class HollowLayer {
     }
 
 
-    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls")
     public static void HollowMatchesWorldDefinitionExactly(final GameTestHelper helper) {
         final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO);
 
@@ -160,7 +164,7 @@ public class HollowLayer {
     }
 
 
-    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls")
     public static void HollowFailsIfAnyComponentsUnidentified(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
@@ -181,7 +185,7 @@ public class HollowLayer {
 
 
     @DisplayName("Hollow - Bad Wall Block")
-    @GameTest(template = "medium_glass_walls", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls")
     public static void HollowFailsIfWorldHasBadWallBlock(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
@@ -199,14 +203,14 @@ public class HollowLayer {
 
         final boolean matches = layer.matches(components, blocks);
 
-        if(matches)
+        if (matches)
             test.fail("Hollow matched when BP.ZERO was a different block.");
 
         test.succeed();
     }
 
 
-    @GameTest(template = "medium_glass_walls_obsidian_center", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("W", new BlockComponent(Blocks.GLASS));

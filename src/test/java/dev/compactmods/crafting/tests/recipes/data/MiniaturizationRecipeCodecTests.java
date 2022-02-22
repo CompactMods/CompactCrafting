@@ -17,10 +17,14 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class MiniaturizationRecipeCodecTests {
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void LoadsRecipeFromJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
 
@@ -29,7 +33,7 @@ public class MiniaturizationRecipeCodecTests {
                 .ifPresent(res -> test.succeed());
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void RequiresRecipeSizeOnAllDynamicLayers(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
@@ -47,7 +51,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void DoesNotFailIfNoComponentsDefined(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/warn_no_components.json");
 
@@ -74,7 +78,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void PartialResultIfNoOutputsEntryExists(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
 
@@ -94,7 +98,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void PartialResultIfNoOutputsExist(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs.json");
 
@@ -117,7 +121,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void LoadsRecipeLayersCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
 
@@ -144,7 +148,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void LoadsCatalystCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
         Objects.requireNonNull(recipe);
@@ -162,7 +166,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void MakesRoundTripThroughNbtCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
         DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);
