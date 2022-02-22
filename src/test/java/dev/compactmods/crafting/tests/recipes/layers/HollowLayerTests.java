@@ -144,12 +144,10 @@ public class HollowLayerTests {
 
     @GameTest(template = "medium_glass_walls")
     public static void HollowMatchesWorldDefinitionExactly(final GameTestHelper helper) {
-        final BlockPos zeroPoint = helper.relativePos(BlockPos.ZERO);
-
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
@@ -161,6 +159,8 @@ public class HollowLayerTests {
         if (!matched) {
             helper.fail("Hollow did not pass perfect match.");
         }
+
+        helper.succeed();
     }
 
 
@@ -177,8 +177,8 @@ public class HollowLayerTests {
 
         boolean matched = layer.matches(components, blocks);
 
-        if (!matched)
-            helper.fail("Hollow did not pass perfect match.");
+        if (matched)
+            helper.fail("Hollow matched, despite having unidentified, non-air components.");
 
         helper.succeed();
     }
@@ -193,7 +193,7 @@ public class HollowLayerTests {
         // register gold block to get past the unknown component early fail
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
 
-        test.setBlock(BlockPos.ZERO, Blocks.GOLD_BLOCK.defaultBlockState());
+        test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
 
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();

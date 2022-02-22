@@ -195,13 +195,16 @@ public class BlockComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     BlockComponent comp = res.getFirst();
 
                     boolean matchesAnvil = comp.matches(Blocks.ANVIL.defaultBlockState());
-                    Assertions.assertFalse(matchesAnvil, "Expected stairs to not match an anvil.");
+                    if(matchesAnvil)
+                        test.fail("Expected stairs to not match an anvil.");
                 });
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")

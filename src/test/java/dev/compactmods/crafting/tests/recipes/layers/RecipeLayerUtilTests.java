@@ -38,8 +38,6 @@ public class RecipeLayerUtilTests {
         // We set up a different block in the corner, so we can tell the blocks rotated
         test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
 
-        test.setBlock(BlockPos.ZERO.above(5), Blocks.GLOWSTONE.defaultBlockState());
-
         final IRecipeComponents components = getRecipeByName(test, "medium_glass_walls_obsidian_center")
                 .map(MiniaturizationRecipe::getComponents)
                 .orElse(null);

@@ -216,7 +216,7 @@ public class FilledLayerTests {
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
-        if (!matched)
+        if (matched)
             test.fail("Layer matched despite not having the required component defined.");
 
         test.succeed();

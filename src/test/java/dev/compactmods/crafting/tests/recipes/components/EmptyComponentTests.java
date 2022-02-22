@@ -96,8 +96,10 @@ public class EmptyComponentTests {
         EmptyBlockComponent component = new EmptyBlockComponent();
         final Block block = component.getBlock();
 
-        if (block instanceof AirBlock)
+        if (block instanceof AirBlock) {
             test.succeed();
+            return;
+        }
 
         test.fail("Empty block is not air.");
     }

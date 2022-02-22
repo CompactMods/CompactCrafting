@@ -6,6 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.server.ServerConfig;
+import io.netty.handler.codec.EncoderException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -47,12 +48,19 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<RecipeSe
             return null;
         }
 
-        final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
-        recipe.setId(recipeId);
+        try {
+            final MiniaturizationRecipe recipe = buffer.readWithCodec(MiniaturizationRecipe.CODEC);
+            recipe.setId(recipeId);
 
-        if(debugReg) CompactCrafting.LOGGER.debug("Finished recipe read: {}", recipeId);
+            if (debugReg) CompactCrafting.LOGGER.debug("Finished recipe read: {}", recipeId);
 
-        return recipe;
+            return recipe;
+        }
+
+        catch(EncoderException ex) {
+            CompactCrafting.RECIPE_LOGGER.error("Error reading recipe information from network: " + ex.getMessage());
+            return null;
+        }
     }
 
     @Override

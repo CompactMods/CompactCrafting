@@ -210,10 +210,13 @@ public class MiniaturizationRecipeTests {
     @GameTest(template = "empty_medium")
     public static void UnregisteredBlockReturnsZeroCount(final GameTestHelper test) {
         final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
-        Assertions.assertNotNull(recipe);
+        Objects.requireNonNull(recipe);
 
-        final int required = Assertions.assertDoesNotThrow(() -> recipe.getComponentRequiredCount("?"));
-        Assertions.assertEquals(0, required);
+        final int required = recipe.getComponentRequiredCount("?");
+        if(required != 0)
+            test.fail("Unknown component returned a non-zero count.");
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -231,10 +234,9 @@ public class MiniaturizationRecipeTests {
 
     @GameTest(template = "recipes/ender_crystal")
     public static void MatchesExactStructure(final GameTestHelper test) {
-        final BlockPos zero = test.relativePos(BlockPos.ZERO);
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), enderCrystal.getComponents(), enderCrystal.getDimensions().move(zero))
+                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
         try {
@@ -255,7 +257,7 @@ public class MiniaturizationRecipeTests {
     @GameTest(template = "recipes/ender_crystal")
     public static void RecipeFailsIfUnidentifiedBlock(final GameTestHelper test) {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
-        Assertions.assertNotNull(enderCrystal);
+        Objects.requireNonNull(enderCrystal);
 
         // Force an unknown component in the exact center
         test.setBlock(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
@@ -264,10 +266,17 @@ public class MiniaturizationRecipeTests {
                 .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
-        Assertions.assertDoesNotThrow(() -> {
+        try {
             boolean matched = enderCrystal.matches(blocks);
-            Assertions.assertFalse(matched, "Recipe did not fail the matching process.");
-        });
+            if(matched)
+                test.fail("Recipe did not fail the matching process.");
+        }
+
+        catch(Exception e) {
+            test.fail(e.getMessage());
+        }
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -293,21 +302,24 @@ public class MiniaturizationRecipeTests {
     @GameTest(template = "recipes/ender_crystal")
     public static void RecipeFailsIfDifferentDimensions(final GameTestHelper test) {
         final MiniaturizationRecipe recipe = getRecipe(test, "compact_walls");
-        Assertions.assertNotNull(recipe);
+        Objects.requireNonNull(recipe);
 
         final IRecipeBlocks blocks = RecipeBlocks
                 .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
-        final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));
-        Assertions.assertFalse(matched, "Recipe matched even though dimensions are different.");
+        final boolean matched = recipe.matches(blocks);
+        if(matched)
+            test.fail("Recipe matched even though dimensions are different.");
+
+        test.succeed();
     }
 
 
     @GameTest(template = "recipes/empty_medium")
     public static void RecipeFailsIfNoRotationsMatched(final GameTestHelper test) {
         final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
-        Assertions.assertNotNull(recipe);
+        Objects.requireNonNull(recipe);
 
         // Set up the 8 corners to be glass, so block creation below matches field boundaries
         final BlockState glass = Blocks.GLASS.defaultBlockState();
@@ -317,7 +329,10 @@ public class MiniaturizationRecipeTests {
                 .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
-        final boolean matched = Assertions.assertDoesNotThrow(() -> recipe.matches(blocks));
-        Assertions.assertFalse(matched, "Recipe matched even though blocks are different. (Spatial dimensions equal.)");
+        final boolean matched = recipe.matches(blocks);
+        if(matched)
+            test.fail("Recipe matched even though blocks are different. (Spatial dimensions equal.)");
+
+        test.succeed();
     }
 }

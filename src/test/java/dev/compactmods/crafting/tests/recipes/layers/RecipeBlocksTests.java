@@ -77,7 +77,8 @@ public class RecipeBlocksTests {
             if (!totals.containsKey("G"))
                 helper.fail("Totals did not contain glass component.");
 
-            Assertions.assertEquals(25, totals.get("G"));
+            if(25 != totals.get("G"))
+                helper.fail("Expected 25 glass blocks. Got " + totals.get("G"));
         } catch (Exception e) {
             helper.fail("Caught exception: " + e.getMessage());
         }
@@ -102,7 +103,7 @@ public class RecipeBlocksTests {
         if (!c0.get().equals("G"))
             test.fail("Expected glass component key to be 'G'");
 
-        final Map<String, Integer> totals = Assertions.assertDoesNotThrow(slice::getKnownComponentTotals);
+        final Map<String, Integer> totals = slice.getKnownComponentTotals();
         if (2 != totals.size())
             test.fail("Expected 2 known components to be found.");
 

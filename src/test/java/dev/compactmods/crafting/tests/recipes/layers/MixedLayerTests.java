@@ -228,8 +228,8 @@ public class MixedLayerTests {
         components.registerBlock("-", new EmptyBlockComponent());
 
         // Swap center and a corner block so the components are right but positions are wrong
-        test.setBlock(new BlockPos(1, 0, 1), Blocks.OBSIDIAN.defaultBlockState());
-        test.setBlock(new BlockPos(2, 0, 2), Blocks.AIR.defaultBlockState());
+        test.setBlock(new BlockPos(1, 1, 1), Blocks.OBSIDIAN.defaultBlockState());
+        test.setBlock(new BlockPos(2, 1, 2), Blocks.AIR.defaultBlockState());
 
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
