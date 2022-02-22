@@ -41,11 +41,11 @@ public class MiniaturizationRecipeCodecTests {
                 .parse(JsonOps.INSTANCE, json)
                 .error();
 
-        if(loaded.isEmpty())
+        if (loaded.isEmpty())
             test.fail("Data did not load.");
 
         String error = loaded.get().message();
-        if(error == null)
+        if (error == null)
             test.fail("Expected an error message from codec.");
 
         test.succeed();
@@ -59,19 +59,19 @@ public class MiniaturizationRecipeCodecTests {
                 .parse(JsonOps.INSTANCE, json)
                 .get();
 
-        if(loaded.right().isPresent())
+        if (loaded.right().isPresent())
             test.fail("err - loaded.right");
 
         loaded.ifLeft(result -> {
             final IRecipeComponents components = result.getComponents();
-            if(components == null)
+            if (components == null)
                 test.fail("Components were null.");
 
             // Even though the recipe loaded, it should have remapped the missing component as an empty block
-            if(!components.hasBlock("I"))
+            if (!components.hasBlock("I"))
                 test.fail("Expected components to have added an empty I block.");
 
-            if(!components.isEmptyBlock("I"))
+            if (!components.isEmptyBlock("I"))
                 test.fail("Expected components to have an empty I block.");
 
             test.succeed();
@@ -86,12 +86,12 @@ public class MiniaturizationRecipeCodecTests {
                 .parse(JsonOps.INSTANCE, json)
                 .get();
 
-        if(loaded.right().isEmpty())
+        if (loaded.right().isEmpty())
             test.fail("Expected partial result but got none.");
 
         loaded.ifRight(partial -> {
             final String message = partial.message();
-            if(!message.contains("outputs"))
+            if (!message.contains("outputs"))
                 test.fail("Partial result has no outputs.");
 
             test.succeed();
@@ -106,15 +106,15 @@ public class MiniaturizationRecipeCodecTests {
                 .parse(JsonOps.INSTANCE, json)
                 .get();
 
-        if(loaded.left().isPresent())
+        if (loaded.left().isPresent())
             test.fail("Full result exists; expected only partial results.");
 
-        if(loaded.right().isEmpty())
+        if (loaded.right().isEmpty())
             test.fail("Expected partial result.");
 
         loaded.ifRight(partial -> {
             final String message = partial.message();
-            if(message.contains("No outputs"))
+            if (!message.contains("No outputs"))
                 test.fail("Error did not mention no outputs.");
 
             test.succeed();
@@ -126,7 +126,7 @@ public class MiniaturizationRecipeCodecTests {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
 
         // There should only be two layers loaded from the file
-        if(2 != recipe.getNumberLayers())
+        if (2 != recipe.getNumberLayers())
             test.fail("Expected exactly 2 layers in recipe");
 
         Optional<IRecipeLayer> topLayer = recipe.getLayer(1);
@@ -139,10 +139,10 @@ public class MiniaturizationRecipeCodecTests {
 
         // Top Layer should be a redstone dust, so one 'R' component
         Map<String, Integer> componentTotals = lay.getComponentTotals();
-        if(!componentTotals.containsKey("R"))
+        if (!componentTotals.containsKey("R"))
             test.fail("Expected redstone component in top layer; it does not exist.");
 
-        if(1 != componentTotals.get("R"))
+        if (1 != componentTotals.get("R"))
             test.fail("Expected one redstone required in top layer.");
 
         test.succeed();
@@ -154,13 +154,13 @@ public class MiniaturizationRecipeCodecTests {
         Objects.requireNonNull(recipe);
 
         var cat = recipe.getCatalyst();
-        if(cat == null)
+        if (cat == null)
             test.fail("Expected recipe catalyst to exist.");
 
         MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("recipe_tests/warn_no_catalyst.json");
         Objects.requireNonNull(noComponents);
         var cat2 = noComponents.getCatalyst();
-        if(cat2 == null)
+        if (cat2 == null)
             test.fail("Expected recipe with no catalyst to be EMPTY, not null");
 
         test.succeed();
@@ -178,7 +178,7 @@ public class MiniaturizationRecipeCodecTests {
                 .getOrThrow(false, test::fail);
 
         // There should only be two layers loaded from the file
-        if(2 != rFromNbt.getNumberLayers())
+        if (2 != rFromNbt.getNumberLayers())
             test.fail("Expected 2 layers in recipe.");
 
         Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
@@ -190,10 +190,10 @@ public class MiniaturizationRecipeCodecTests {
 
         // Top Layer should be a redstone dust, so one 'R' component
         Map<String, Integer> componentTotals = lay.getComponentTotals();
-        if(!componentTotals.containsKey("R"))
+        if (!componentTotals.containsKey("R"))
             test.fail("Expected redstone component in top layer; it does not exist.");
 
-        if(1 != componentTotals.get("R"))
+        if (1 != componentTotals.get("R"))
             test.fail("Expected one redstone required in top layer.");
 
         test.succeed();

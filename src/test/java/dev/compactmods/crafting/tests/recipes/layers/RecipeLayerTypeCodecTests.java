@@ -26,10 +26,10 @@ public class RecipeLayerTypeCodecTests {
     @PrefixGameTestTemplate(false)
     @GameTest(template = "empty_medium")
     public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
-        final DataResult<RecipeLayerType<?>> result =
-                RecipeLayerTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
+        final DataResult<RecipeLayerType<?>> result = RecipeLayerTypeCodec.INSTANCE
+                .parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
 
-        if(result.error().isEmpty())
+        if (result.error().isEmpty())
             test.fail("Expected a deserialization error.");
 
         test.succeed();

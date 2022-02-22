@@ -22,15 +22,13 @@ public class RecipeSetupTests {
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
 
         final String typeString = type.toString();
-        if(typeString == null)
+        if (typeString == null)
             test.fail("BaseRecipeType#toString returned null value");
 
         try {
             type.register();
             test.succeed();
-        }
-
-        catch(Exception ex) {
+        } catch (Exception ex) {
             test.fail("Failed to complete registration call.");
         }
     }
@@ -48,11 +46,11 @@ public class RecipeSetupTests {
 
         try {
             ItemStack i1 = inv.removeItem(0, 1);
-            if(!i1.isEmpty())
+            if (!i1.isEmpty())
                 test.fail("Expected inventory to be empty.");
 
             ItemStack i2 = inv.removeItemNoUpdate(0);
-            if(!i2.isEmpty())
+            if (!i2.isEmpty())
                 test.fail("Expected inventory to be empty.");
         } catch (Exception ex) {
             test.fail(ex.getMessage());
@@ -61,21 +59,17 @@ public class RecipeSetupTests {
         try {
             inv.setItem(0, ItemStack.EMPTY);
             inv.setChanged();
-        }
-
-        catch(Exception ex) {
+        } catch (Exception ex) {
             test.fail("Marking a fake inventory changed or setting an item should not throw.");
         }
 
         final var level = test.getLevel();
-        if(inv.stillValid(FakePlayerFactory.getMinecraft(level)))
+        if (inv.stillValid(FakePlayerFactory.getMinecraft(level)))
             test.fail("Players should not be able to use FakeInventory");
 
         try {
             inv.clearContent();
-        }
-
-        catch (Exception ex) {
+        } catch (Exception ex) {
             test.fail("Clearing fake inventory should not throw.");
         }
 

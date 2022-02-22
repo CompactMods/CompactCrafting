@@ -9,6 +9,8 @@ import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
@@ -20,12 +22,12 @@ public class ComponentTypeCodecTests {
 
         DataResult<RecipeComponentType<?>> result = RecipeComponentTypeCodec.INSTANCE.parse(JsonOps.INSTANCE, string);
 
-        if(result == null) {
+        if (result == null) {
             test.fail("Expected a result, got null");
             return;
         }
 
-        if(result.error().isEmpty())
+        if (result.error().isEmpty())
             test.fail("Expected a parsing error to be present.");
 
         test.succeed();
@@ -37,12 +39,12 @@ public class ComponentTypeCodecTests {
 
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, badComponentType);
 
-        if(result == null) {
+        if (result == null) {
             test.fail("Expected a result, got null");
             return;
         }
 
-        if(result.error().isEmpty())
+        if (result.error().isEmpty())
             test.fail("Expected an error during encode");
 
         test.succeed();
@@ -52,12 +54,12 @@ public class ComponentTypeCodecTests {
     public static void testEncode(final GameTestHelper test) {
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, ComponentRegistration.EMPTY_BLOCK_COMPONENT.get());
 
-        if(result == null) {
+        if (result == null) {
             test.fail("Expected an encoding result");
             return;
         }
 
-        if(result.error().isPresent()) {
+        if (result.error().isPresent()) {
             test.fail("Expected no errors during encode");
         }
 

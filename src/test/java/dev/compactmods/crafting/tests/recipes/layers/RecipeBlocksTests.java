@@ -30,7 +30,7 @@ public class RecipeBlocksTests {
 
         final int compCount = blocks.getNumberKnownComponents();
 
-        if(0 == compCount)
+        if (0 == compCount)
             test.fail("No components registered.");
 
         test.succeed();
@@ -46,9 +46,7 @@ public class RecipeBlocksTests {
         try {
             blocks.rebuildComponentTotals();
             test.succeed();
-        }
-
-        catch(Exception e) {
+        } catch (Exception e) {
             test.fail("Rebuilding component totals failed.");
         }
     }
@@ -68,21 +66,19 @@ public class RecipeBlocksTests {
         if (c0.isEmpty())
             helper.fail("Expected glass component to transfer to new blocks instance.");
 
-        if(!"G".equals(c0.get()))
+        if (!"G".equals(c0.get()))
             helper.fail("Expected glass component.");
 
         try {
             final Map<String, Integer> totals = slice.getKnownComponentTotals();
-            if(1 != totals.size())
+            if (1 != totals.size())
                 helper.fail("Expected exactly one component in totals list");
 
-            if(!totals.containsKey("G"))
+            if (!totals.containsKey("G"))
                 helper.fail("Totals did not contain glass component.");
 
             Assertions.assertEquals(25, totals.get("G"));
-        }
-
-        catch(Exception e) {
+        } catch (Exception e) {
             helper.fail("Caught exception: " + e.getMessage());
         }
 
@@ -100,20 +96,20 @@ public class RecipeBlocksTests {
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(fieldBounds, 2)).normalize();
 
         final Optional<String> c0 = slice.getComponentAtPosition(BlockPos.ZERO);
-        if(c0.isEmpty())
+        if (c0.isEmpty())
             test.fail("Expected glass component to transfer to new blocks instance.");
 
-        if(!c0.get().equals("G"))
+        if (!c0.get().equals("G"))
             test.fail("Expected glass component key to be 'G'");
 
         final Map<String, Integer> totals = Assertions.assertDoesNotThrow(slice::getKnownComponentTotals);
-        if(2 != totals.size())
+        if (2 != totals.size())
             test.fail("Expected 2 known components to be found.");
 
-        if(!totals.containsKey("G"))
+        if (!totals.containsKey("G"))
             test.fail("Expected glass block (G) to be in found components.");
 
-        if(16 != totals.get("G"))
+        if (16 != totals.get("G"))
             test.fail("Expected glass blocks (G) to have 16 found positions");
 
         test.succeed();
@@ -126,7 +122,7 @@ public class RecipeBlocksTests {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
 
         final Set<String> keys = components.getBlockComponents().keySet();
-        if(2 != keys.size())
+        if (2 != keys.size())
             test.fail("Expected exactly 2 registered block components.");
 
         final var bounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);

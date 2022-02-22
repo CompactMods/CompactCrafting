@@ -69,21 +69,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
-    public static void DoesNotSerializeBadRecipeOverNetwork(final GameTestHelper test) {
-        var buf = new FriendlyByteBuf(Unpooled.buffer());
-        try {
-            MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
-            s.toNetwork(buf, null);
-        } catch (EncoderException ex) {
-            test.succeed();
-        }
-
-        // Nothing should be written to the buffer, since the recipe failed to serialize
-        test.fail("Buffer write should have failed");
-    }
-
-    @GameTest(template = "empty_medium", templateNamespace = CompactCrafting.MOD_ID, prefixTemplateWithClassname = false)
+    @GameTest(template = "empty_medium")
     public static void SerializerCanDeserializeJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
 

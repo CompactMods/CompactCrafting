@@ -13,6 +13,8 @@ import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,10 +34,10 @@ public class EmptyComponentTests {
                     boolean matchesAir = comp.matches(Blocks.AIR.defaultBlockState());
                     boolean matchesCaveAir = comp.matches(Blocks.CAVE_AIR.defaultBlockState());
 
-                    if(!matchesAir)
+                    if (!matchesAir)
                         test.fail("Expected empty to match air.");
 
-                    if(!matchesCaveAir)
+                    if (!matchesCaveAir)
                         test.fail("Expected empty to match cave air.");
 
                     test.succeed();
@@ -61,10 +63,10 @@ public class EmptyComponentTests {
 
                     RecipeComponentType<?> type = comp.getType();
 
-                    if(type == null)
+                    if (type == null)
                         test.fail("Got null component type");
 
-                    if(!ComponentRegistration.EMPTY_BLOCK_COMPONENT.get().equals(type))
+                    if (!ComponentRegistration.EMPTY_BLOCK_COMPONENT.get().equals(type))
                         test.fail("Expected correct type");
 
                     test.succeed();
@@ -82,7 +84,7 @@ public class EmptyComponentTests {
 
                     BlockState renderState = comp.getRenderState();
 
-                    if(renderState == null)
+                    if (renderState == null)
                         test.fail("Got null render state back from component");
 
                     test.succeed();
@@ -94,7 +96,7 @@ public class EmptyComponentTests {
         EmptyBlockComponent component = new EmptyBlockComponent();
         final Block block = component.getBlock();
 
-        if(block instanceof AirBlock)
+        if (block instanceof AirBlock)
             test.succeed();
 
         test.fail("Empty block is not air.");

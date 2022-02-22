@@ -61,6 +61,8 @@ public class BlockComponentTests {
         } catch (Exception e) {
             test.fail(e.getMessage());
         }
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -70,8 +72,10 @@ public class BlockComponentTests {
         final var parseResult = BlockComponent.CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(test::fail);
 
-        if (parseResult.isEmpty())
+        if (parseResult.isEmpty()) {
             test.fail("Expected a result; got nothing");
+            return;
+        }
 
         final var matcher = parseResult.get();
 
@@ -99,6 +103,8 @@ public class BlockComponentTests {
             if (bs.getValue(StairBlock.SHAPE) != StairsShape.STRAIGHT)
                 test.fail("Found a state with a non-straight shape");
         }
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -125,7 +131,7 @@ public class BlockComponentTests {
                             matched.add(e.getKey());
                     }
 
-                    if(tests.length != matched.size())
+                    if (tests.length != matched.size())
                         test.fail("Matches does not equal number of states.");
 
                     test.succeed();
@@ -144,7 +150,7 @@ public class BlockComponentTests {
                             .resultOrPartial(test::fail)
                             .get();
 
-                    if(!sout.equals(json))
+                    if (!sout.equals(json))
                         test.fail("Output JSON did not match input");
 
                     test.succeed();
@@ -155,11 +161,15 @@ public class BlockComponentTests {
     public static void ThrowsErrorOnUnregisteredBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_not_registered.json");
 
-        BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .result()
-                .ifPresent(res -> {
-                    Assertions.fail("Successfully built a component for an unregistered block.");
-                });
+        var r = BlockComponent.CODEC
+                .decode(JsonOps.INSTANCE, json)
+                .result();
+
+        if(r.isPresent()) {
+            test.fail("Successfully built a component for an unregistered block.");
+        } else {
+            test.succeed();
+        }
     }
 
     @GameTest(template = "empty_medium")
@@ -167,11 +177,15 @@ public class BlockComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_bad_property.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     BlockComponent comp = res.getFirst();
 
-                    Assertions.assertFalse(comp.hasFilter("nonexistent"));
+                    if (comp.hasFilter("nonexistent")) {
+                        test.fail("Block component was built with an impossible property filter.");
+                    }
+
+                    test.succeed();
                 });
     }
 
@@ -196,14 +210,18 @@ public class BlockComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     BlockComponent comp = res.getFirst();
 
                     RecipeComponentType<?> type = comp.getType();
+                    if(type == null)
+                        test.fail("Got a null response from component getType call");
 
-                    Assertions.assertNotNull(type);
-                    Assertions.assertEquals(ComponentRegistration.BLOCK_COMPONENT.get(), type);
+                    if(ComponentRegistration.BLOCK_COMPONENT.get() != type)
+                        test.fail("Expected block component type.");
+
+                    test.succeed();
                 });
     }
 
@@ -213,25 +231,32 @@ public class BlockComponentTests {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
         BlockComponent.CODEC.decode(JsonOps.INSTANCE, json)
-                .resultOrPartial(Assertions::fail)
+                .resultOrPartial(test::fail)
                 .ifPresent(res -> {
                     BlockComponent comp = res.getFirst();
 
                     BlockState renderState = comp.getRenderState();
 
-                    Assertions.assertNotNull(renderState);
+                    if(renderState == null)
+                        test.fail("Expected a blockstate from the renderstate method, got null");
+
+                    test.succeed();
                 });
     }
 
     @GameTest(template = "empty_medium")
     public static void CanHandleErrorRenderingChanges(final GameTestHelper test) {
-
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
-        boolean freshDidNotError = component.didErrorRendering();
-        Assertions.assertFalse(freshDidNotError);
+        boolean error1 = component.didErrorRendering();
+        if(error1) {
+            test.fail("Expected the renderer to not error on first pass");
+        }
 
         component.markRenderingErrored();
-        Assertions.assertTrue(component.didErrorRendering(), "Component did not change after marked error rendering.");
+        if(!component.didErrorRendering())
+            test.fail("Component did not change after marked error rendering.");
+
+        test.succeed();
     }
 }
