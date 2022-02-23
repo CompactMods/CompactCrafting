@@ -24,7 +24,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class MiniaturizationRecipeCodecTests {
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void LoadsRecipeFromJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
 
@@ -33,7 +33,7 @@ public class MiniaturizationRecipeCodecTests {
                 .ifPresent(res -> test.succeed());
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void RequiresRecipeSizeOnAllDynamicLayers(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
@@ -51,7 +51,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void DoesNotFailIfNoComponentsDefined(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/warn_no_components.json");
 
@@ -78,7 +78,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void PartialResultIfNoOutputsEntryExists(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
 
@@ -98,7 +98,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void PartialResultIfNoOutputsExist(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs.json");
 
@@ -121,7 +121,7 @@ public class MiniaturizationRecipeCodecTests {
         });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void LoadsRecipeLayersCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
 
@@ -148,7 +148,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium", required = false)
+    @GameTest(template = "empty", required = false)
     public static void LoadsCatalystCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
         Objects.requireNonNull(recipe);
@@ -169,7 +169,7 @@ public class MiniaturizationRecipeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void MakesRoundTripThroughNbtCorrectly(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
         DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);

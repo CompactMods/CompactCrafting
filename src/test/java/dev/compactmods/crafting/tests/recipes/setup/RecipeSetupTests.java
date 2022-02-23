@@ -16,7 +16,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeSetupTests {
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void BaseRecipeType(final GameTestHelper test) {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
@@ -33,7 +33,7 @@ public class RecipeSetupTests {
         }
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void FakeInventory(final GameTestHelper test) {
         FakeInventory inv = new FakeInventory();
 

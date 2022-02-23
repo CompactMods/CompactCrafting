@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Assertions;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class BlockComponentTests {
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanCreateInstanceWithBlock(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
         if (!Blocks.GOLD_BLOCK.equals(component.getBlock()))
@@ -32,7 +32,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanFetchFirstMatch(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
@@ -50,7 +50,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void ToStringShowsBlockId(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
@@ -65,7 +65,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanMatchBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
@@ -107,7 +107,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanMatchBlockNoProperties(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
@@ -138,7 +138,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanReserializeComponentMatcher(final GameTestHelper test) throws RuntimeException {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
@@ -157,7 +157,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void ThrowsErrorOnUnregisteredBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_not_registered.json");
 
@@ -172,7 +172,7 @@ public class BlockComponentTests {
         }
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void DoesWarnOnBadProperty(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_bad_property.json");
 
@@ -189,7 +189,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void DoesNotMatchDifferentBlocks(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -207,7 +207,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void HasCorrectComponentType(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -228,7 +228,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void HasARenderBlockstate(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -247,7 +247,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanHandleErrorRenderingChanges(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 

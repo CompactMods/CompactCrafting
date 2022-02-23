@@ -16,7 +16,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class ComponentTypeCodecTests {
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void testFailedDecode(final GameTestHelper test) {
         JsonElement string = JsonOps.INSTANCE.createString("compactcrafting:bad_component_type");
 
@@ -33,7 +33,7 @@ public class ComponentTypeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void testBadEncode(final GameTestHelper test) {
         RecipeComponentType<?> badComponentType = new BadRecipeComponentType();
 
@@ -50,7 +50,7 @@ public class ComponentTypeCodecTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void testEncode(final GameTestHelper test) {
         DataResult<JsonElement> result = RecipeComponentTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, ComponentRegistration.EMPTY_BLOCK_COMPONENT.get());
 

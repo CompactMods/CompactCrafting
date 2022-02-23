@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeLayerTypeCodecTests {
 
+    @GameTest(template = "empty")
     @PrefixGameTestTemplate(false)
-    @GameTest(template = "empty_medium")
     public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
         final DataResult<RecipeLayerType<?>> result = RecipeLayerTypeCodec.INSTANCE
                 .parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));

@@ -43,7 +43,7 @@ public class CCRecipeComponentsTests {
         Assertions.assertTrue(allComponents.isEmpty());
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanRegisterAndFetchBlocks(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         final BlockComponent BLOCK_COMPONENT = new BlockComponent(Blocks.GOLD_BLOCK);
@@ -69,7 +69,7 @@ public class CCRecipeComponentsTests {
         });
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void EmptyBlocksAreActuallyEmpty(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GOLD_BLOCK));
@@ -108,7 +108,7 @@ public class CCRecipeComponentsTests {
         }, "Failed to register a component as 'other'.");
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanGetNumberOfComponents(final GameTestHelper test) {
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         if(0 != components.size())

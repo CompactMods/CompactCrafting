@@ -21,7 +21,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class MiniaturizationRecipeSerializerTests {
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanSerialize(final GameTestHelper test) {
 
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElse(null);
@@ -37,7 +37,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void CanRoundTripOverNetwork(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElseThrow();
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
@@ -69,7 +69,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void SerializerCanDeserializeJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
 
@@ -83,7 +83,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void SerializerHandlesJsonErrorsAppropriately(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
@@ -97,7 +97,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void SerializerHandlesDecodingEmptyBuffer(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
@@ -110,7 +110,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest(template = "empty")
     public static void SerializerHandlesDecodingEmptyCompound(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
