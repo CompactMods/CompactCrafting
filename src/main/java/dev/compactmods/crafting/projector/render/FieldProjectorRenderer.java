@@ -9,9 +9,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
-import dev.compactmods.crafting.client.render.CubeRenderHelper;
-import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
-import dev.compactmods.crafting.client.render.RotationSpeed;
+import dev.compactmods.crafting.client.render.*;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
@@ -191,7 +189,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             mx.popPose();
         }
 
-        VertexConsumer builder = buffers.getBuffer(RenderType.lines());
+        VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
         double expansion = 0.005;
         AABB slightlyBiggerBecauseFoxes = fieldBounds
@@ -227,7 +225,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
 
         try {
-            VertexConsumer builder = buffers.getBuffer(RenderType.lines());
+            VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
             Direction facing = tile.getProjectorSide();
 
