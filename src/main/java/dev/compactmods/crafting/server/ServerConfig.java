@@ -30,7 +30,7 @@ public class ServerConfig {
 
     private static ForgeConfigSpec.EnumValue<FieldDestabilizeHandling> FIELD_DESTABILIZE_HANDLING;
     public static FieldDestabilizeHandling DESTABILIZE_HANDLING = FieldDestabilizeHandling.RESTORE_ALL;
-
+    
     static {
         generateConfig();
     }

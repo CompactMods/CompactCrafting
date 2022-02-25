@@ -2,6 +2,7 @@ buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
+        mavenLocal()
     }
 
     dependencies {
@@ -60,24 +61,17 @@ sourceSets {
     }
 
     test {
-        java { srcDir "src/main/test" }
+        java { srcDir "src/test/java" }
+
+        resources {
+            srcDir "src/test/resources"
+        }
 
         runtimeClasspath += sourceSets.api.output
         compileClasspath += sourceSets.api.output
         runtimeClasspath += sourceSets.main.output
         compileClasspath += sourceSets.main.output
     }
-
-//    test {
-//        compileClasspath += sourceSets.api.output
-//        compileClasspath += sourceSets.main.output
-//        runtimeClasspath += sourceSets.api.output
-//        runtimeClasspath += sourceSets.main.output
-//
-//        resources {
-//            srcDir "src/test/resources"
-//        }
-//    }
 }
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
@@ -126,10 +120,16 @@ minecraft {
             // Recommended logging level for the console
             property 'forge.logging.console.level', 'debug'
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+
             mods {
                 compactcrafting {
                     source sourceSets.main
                     source sourceSets.api
+                    source sourceSets.test
                 }
             }
         }
@@ -156,71 +156,39 @@ minecraft {
             }
         }
 
-//        unitTests {
-//            parent runs.server
-//
-//            workingDirectory project.file('run/test')
-//            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
-//            // The main class which launches a customized server which then runs JUnit tests
-//            ideaModule "${project.name}.test"
-//            property 'forge.logging.console.level', 'unittest'
-//            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
-//            environment 'target', 'fmltestserver'
-//            environment 'targetModId', "${mod_id}"
-//            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
-//            arg '--keepAlive'
-//            forceExit = false
-//            mods {
-//                compactcrafting {
-//                    source sourceSets.main
-//                    source sourceSets.api
-//                    source sourceSets.test
-//                }
-//            }
-//        }
-//
-//        unitTestsCI {
-//            parent runs.server
-//
-//            workingDirectory project.file('run/test')
-//            main 'com.alcatrazescapee.mcjunitlib.DedicatedTestServerLauncher'
-//            // The main class which launches a customized server which then runs JUnit tests
-//            ideaModule "${project.name}.test"
-//            property 'forge.logging.console.level', 'unittest'
-//            environment 'MOD_MODULES', String.join(File.pathSeparator, "${mod_id}%%${project.name}.test")
-//            environment 'target', 'fmltestserver'
-//            environment 'targetModId', "${mod_id}"
-//            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
-//            arg '--crashOnFailedTests'
-//            forceExit = false
-//            mods {
-//                compactcrafting {
-//                    source sourceSets.main
-//                    source sourceSets.api
-//                    source sourceSets.test
-//                }
-//            }
-//        }
+        gameTestServer {
+            workingDirectory project.file('run/gametest')
+
+            // Recommended logging data for a userdev environment
+            // The markers can be added/remove as needed separated by commas.
+            // "SCAN": For mods scan.
+            // "REGISTRIES": For firing of registry events.
+            // "REGISTRYDUMP": For getting the contents of all registries.
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            // Recommended logging level for the console
+            // You can set various levels here.
+            // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
+            property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
+
+            environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+
+            mods {
+                compactcrafting {
+                    source sourceSets.api
+                    source sourceSets.main
+                    source sourceSets.test
+                }
+            }
+        }
     }
 }
-
-def format(String jar_name) {
-    def index = jar_name.lastIndexOf('-')
-    index = jar_name.substring(0, index).lastIndexOf('-')
-    def mod_version = jar_name.substring(index).replace(".jar", "")
-    if (mod_version.startsWith('-')) {
-        mod_version = mod_version.substring(1);
-    }
-    def mod_name = jar_name.substring(0, index)
-    return mod_name + ":" + mod_name + ":" + mod_version
-}
-
-def dev_mods_dir = "mods"
 
 repositories {
-    flatDir {
-        dirs dev_mods_dir
-    }
+    mavenLocal()
 
     maven {
         url "https://www.cursemaven.com"
@@ -255,40 +223,37 @@ repositories {
     }
 }
 
-def dev_mods = fileTree("mods").filter { it -> it.isFile() }.files.name.collect({ format(it) })
-
 dependencies {
     // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
     // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
-    // testImplementation fg.deobf("com.github.alcatrazEscapee:mcjunitlib:${mcunittest_version}")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
 
     library "io.reactivex.rxjava3:rxjava:3.1.1";
 
-    // Deobfuscate each dev mod for runtime
-    dev_mods.each { implementation fg.deobf(it) }
+    // Nicephore - Screenshots and Stuff
+    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3574658"))
 
-    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3542531"))
+    // Shut up Experimental Settings - so we don't have to deal with that CONSTANTLY
     runtimeOnly(fg.deobf("curse.maven:shutupexperimental-407174:3544525"))
 
     // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
 
     // The One Probe
-    // compileOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}:api")
-    // runtimeOnly fg.deobf("mcjty.theoneprobe:TheOneProbe-1.16:${top_version}")
+    implementation(fg.deobf("curse.maven:theoneprobe-245211:3550084"))
 }
 
 processResources {
-    duplicatesStrategy = DuplicatesStrategy.WARN
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
 processTestResources {
-    duplicatesStrategy = DuplicatesStrategy.WARN
+    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
 assemble {
@@ -397,5 +362,7 @@ publishing {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags "minecraft"
+    }
 }

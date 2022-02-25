@@ -82,23 +82,25 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         recipe.recalculateDimensions();
 
         final Optional<T> catalystNode = ops.get(input, "catalyst").result();
-        if(!catalystNode.isPresent()) {
-            if(debugOutput)
+        if (catalystNode.isEmpty()) {
+            if (debugOutput)
                 CompactCrafting.LOGGER.warn("No catalyst node defined in recipe; this is likely a bad file!");
         } else {
             final Optional<T> catalystType = ops.get(catalystNode.get(), "type").result();
-            if(!catalystType.isPresent()) {
-                if(debugOutput)
+            if (catalystType.isEmpty()) {
+                if (debugOutput)
                     CompactCrafting.LOGGER.warn("Error: no catalyst type defined; falling back to the itemstack handler.");
 
-                final ItemStack stackData = ItemStack.CODEC.fieldOf("catalyst").codec()
+                final ItemStack stackData = ItemStack.CODEC
+                        .fieldOf("catalyst").codec()
                         .parse(ops, input)
                         .resultOrPartial(errorBuilder::append)
                         .orElse(ItemStack.EMPTY);
 
                 recipe.setCatalyst(new ItemStackCatalystMatcher(stackData));
             } else {
-                ICatalystMatcher catalyst = CatalystMatcherCodec.MATCHER_CODEC.fieldOf("catalyst").codec()
+                ICatalystMatcher catalyst = CatalystMatcherCodec.MATCHER_CODEC
+                        .fieldOf("catalyst").codec()
                         .parse(ops, input)
                         .resultOrPartial(errorBuilder::append)
                         .orElse(new ItemStackCatalystMatcher(ItemStack.EMPTY));
@@ -108,7 +110,9 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
             }
         }
 
-        Optional<List<ItemStack>> outputs = ItemStack.CODEC.listOf().fieldOf("outputs").codec()
+        Optional<List<ItemStack>> outputs = ItemStack.CODEC.listOf()
+                .fieldOf("outputs")
+                .codec()
                 .parse(ops, input)
                 .resultOrPartial(errorBuilder::append);
 
@@ -117,7 +121,7 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
             return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
         }
 
-        if(recipe.getOutputs().length == 0) {
+        if (recipe.getOutputs().length == 0) {
             errorBuilder.append("No outputs were defined.");
             return DataResult.error(errorBuilder.toString(), Pair.of(recipe, input), Lifecycle.stable());
         }
@@ -153,7 +157,13 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
         ICatalystMatcher catalystItem = recipe.getCatalyst();
 
-        DataResult<T> catalyst = CatalystMatcherCodec.MATCHER_CODEC.encodeStart(ops, catalystItem);
+        DataResult<T> catalyst;
+        if (catalystItem != null) {
+            catalyst = CatalystMatcherCodec.MATCHER_CODEC.encodeStart(ops, catalystItem);
+        } else {
+            CompactCrafting.RECIPE_LOGGER.warn("Catalyst appears to be missing.");
+            catalyst = DataResult.success(null);
+        }
 
         DataResult<T> outputs = ItemStack.CODEC.listOf()
                 .encodeStart(ops, ImmutableList.copyOf(recipe.getOutputs()));
@@ -165,10 +175,13 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         if (recipe.hasSpecifiedSize())
             builder.add("recipeSize", Codec.INT.encodeStart(ops, recipe.getRecipeSize()));
 
-        return builder.add("layers", layers)
-                .add("components", components)
-                .add("catalyst", catalyst)
-                .add("outputs", outputs)
+        var b = builder.add("layers", layers)
+                .add("components", components);
+
+        if (catalystItem != null)
+            b.add("catalyst", catalyst);
+
+        return b.add("outputs", outputs)
                 .build(prefix);
     }
 }
