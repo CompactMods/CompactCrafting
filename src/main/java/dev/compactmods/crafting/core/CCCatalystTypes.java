@@ -43,7 +43,7 @@ public class CCCatalystTypes {
     public static void newRegistries(final NewRegistryEvent evt) {
         final var b = new RegistryBuilder<RecipeComponentType<?>>()
                 .setName(CATALYSTS_RL)
-                .setType(c(RecipeComponentType.class));
+                .setType(c(CatalystType.class));
 
         evt.create(b);
     }

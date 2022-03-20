@@ -26,12 +26,7 @@ public class RecipeSetupTests {
         if (typeString == null)
             test.fail("BaseRecipeType#toString returned null value");
 
-        try {
-            type.register();
-            test.succeed();
-        } catch (Exception ex) {
-            test.fail("Failed to complete registration call.");
-        }
+        test.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY)

@@ -6,6 +6,7 @@ import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.Tag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -26,23 +27,19 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
     ).apply(i, ItemTagCatalystMatcher::new));
 
     private final TagKey<Item> tag;
-    private final ITag<Item> tag2;
 
     public ItemTagCatalystMatcher() {
         this.tag = null;
-        this.tag2 = null;
     }
 
     public ItemTagCatalystMatcher(TagKey<Item> tag) {
         this.tag = tag;
-        final var it = ForgeRegistries.ITEMS.tags();
-        this.tag2 = it.getTag(tag);
     }
 
     @Override
     public boolean matches(ItemStack stack) {
         if (tag == null) return true;
-        return tag2.contains(stack.getItem());
+        return stack.is(tag);
     }
 
     @Override
@@ -55,6 +52,8 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
         if (tag == null)
             return Collections.emptySet();
 
+        final var it = ForgeRegistries.ITEMS.tags();
+        final var tag2 = it.getTag(tag);
         return tag2.stream()
                 .map(ItemStack::new)
                 .collect(Collectors.toSet());

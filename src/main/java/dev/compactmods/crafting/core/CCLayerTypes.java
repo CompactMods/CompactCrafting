@@ -49,7 +49,7 @@ public class CCLayerTypes {
     public static void newRegistries(final NewRegistryEvent evt) {
         final var b = new RegistryBuilder<RecipeComponentType<?>>()
                 .setName(REC_LAYERS)
-                .setType(c(RecipeComponentType.class));
+                .setType(c(RecipeLayerType.class));
 
         evt.create(b);
     }
