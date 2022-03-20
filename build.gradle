@@ -185,6 +185,8 @@ minecraft {
             args '--output', file('src/generated/resources/')
             args "--existing", file("src/main/resources")
 
+            forceExit(false)
+            
             mods {
                 compactcrafting {
                     source sourceSets.main
@@ -212,6 +214,8 @@ minecraft {
             property 'mixin.env.refMapRemappingFile', "${buildDir}/createSrgToMcp/output.srg"
 
             environment "CC_TEST_RESOURCES", sourceSets.test.resources.srcDirs[0]
+
+            forceExit(false)
 
             mods {
                 compactcrafting {
