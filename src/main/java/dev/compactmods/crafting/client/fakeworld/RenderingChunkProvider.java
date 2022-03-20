@@ -10,15 +10,20 @@ import java.util.stream.Collectors;
 import com.mojang.datafixers.util.Pair;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.EmptyLevelChunk;
 import net.minecraft.world.level.lighting.LevelLightEngine;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class RenderingChunkProvider extends ChunkSource {
+    private final Holder<Biome> VOID;
     private final MiniaturizationRecipe recipe;
 
     private final Map<ChunkPos, ChunkAccess> chunks;
@@ -26,6 +31,8 @@ public class RenderingChunkProvider extends ChunkSource {
     private final LevelLightEngine lightManager;
 
     public RenderingChunkProvider(RenderingWorld renderingLevel, MiniaturizationRecipe recipe) {
+        VOID = ForgeRegistries.BIOMES.getHolder(Biomes.THE_VOID).get();
+
         this.recipe = recipe;
 
         this.renderingLevel = renderingLevel;
@@ -46,11 +53,11 @@ public class RenderingChunkProvider extends ChunkSource {
     @Nullable
     @Override
     public ChunkAccess getChunk(int cx, int cz, ChunkStatus status, boolean load) {
-        return chunks.computeIfAbsent(new ChunkPos(cx, cz), p -> new EmptyLevelChunk(renderingLevel, p));
+        return chunks.computeIfAbsent(new ChunkPos(cx, cz), p -> new EmptyLevelChunk(renderingLevel, p, VOID));
     }
 
     @Override
-    public void tick(BooleanSupplier p_156184_) {
+    public void tick(BooleanSupplier bool, boolean bool2) {
 
     }
 

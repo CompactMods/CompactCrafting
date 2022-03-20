@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
-import javax.annotation.Nullable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.Codec;
@@ -12,19 +11,21 @@ import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
+import javax.annotation.Nullable;
+
+@PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeLayerTypeCodecTests {
 
-    @GameTest(template = "empty")
-    @PrefixGameTestTemplate(false)
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
         final DataResult<RecipeLayerType<?>> result = RecipeLayerTypeCodec.INSTANCE
                 .parse(JsonOps.INSTANCE, new JsonPrimitive("compactcrafting:unknown_123"));
@@ -35,16 +36,17 @@ public class RecipeLayerTypeCodecTests {
         test.succeed();
     }
 
-    @Test
-    void HandlesBadRecipeType() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void HandlesBadRecipeType(final GameTestHelper test) {
         final RecipeLayerType<IRecipeLayer> FAKE_TYPE = generateFakeRecipeLayerType();
 
         final DataResult<JsonElement> badResult = RecipeLayerTypeCodec.INSTANCE.encodeStart(JsonOps.INSTANCE, FAKE_TYPE);
 
-        Assertions.assertTrue(badResult.error().isPresent());
+        GameTestAssertions.assertTrue(badResult.error().isPresent());
+        test.succeed();
     }
 
-    private RecipeLayerType<IRecipeLayer> generateFakeRecipeLayerType() {
+    private static RecipeLayerType<IRecipeLayer> generateFakeRecipeLayerType() {
         return new RecipeLayerType<IRecipeLayer>() {
             @Override
             public RecipeLayerType<?> setRegistryName(ResourceLocation name) {

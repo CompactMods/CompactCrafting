@@ -1,41 +1,45 @@
 package dev.compactmods.crafting.recipes.catalyst;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.core.Registry;
-import net.minecraft.tags.SerializationTags;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraftforge.registries.tags.ITag;
+
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
         implements ICatalystMatcher, CatalystType<ItemTagCatalystMatcher> {
 
     private static final Codec<ItemTagCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Tag.codec(() -> SerializationTags.getInstance().getOrEmpty(Registry.ITEM_REGISTRY))
-                    .fieldOf("tag").forGetter((is) -> is.tag)
+            TagKey.codec(Registry.ITEM_REGISTRY).fieldOf("tag").forGetter((is) -> is.tag)
     ).apply(i, ItemTagCatalystMatcher::new));
 
-    private final Tag<Item> tag;
+    private final TagKey<Item> tag;
 
     public ItemTagCatalystMatcher() {
         this.tag = null;
     }
 
-    public ItemTagCatalystMatcher(Tag<Item> tag) {
+    public ItemTagCatalystMatcher(TagKey<Item> tag) {
         this.tag = tag;
     }
 
     @Override
     public boolean matches(ItemStack stack) {
-        return stack.getItem().getTags().contains(tag);
+        if (tag == null) return true;
+        return stack.is(tag);
     }
 
     @Override
@@ -45,10 +49,12 @@ public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
 
     @Override
     public Set<ItemStack> getPossible() {
-        if(tag == null)
+        if (tag == null)
             return Collections.emptySet();
 
-        return tag.getValues().stream()
+        final var it = ForgeRegistries.ITEMS.tags();
+        final var tag2 = it.getTag(tag);
+        return tag2.stream()
                 .map(ItemStack::new)
                 .collect(Collectors.toSet());
     }

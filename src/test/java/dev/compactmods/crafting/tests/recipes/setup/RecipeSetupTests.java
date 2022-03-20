@@ -4,6 +4,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
+import dev.compactmods.crafting.tests.GameTestTemplates;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class RecipeSetupTests {
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void BaseRecipeType(final GameTestHelper test) {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
         BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
@@ -25,15 +26,10 @@ public class RecipeSetupTests {
         if (typeString == null)
             test.fail("BaseRecipeType#toString returned null value");
 
-        try {
-            type.register();
-            test.succeed();
-        } catch (Exception ex) {
-            test.fail("Failed to complete registration call.");
-        }
+        test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void FakeInventory(final GameTestHelper test) {
         FakeInventory inv = new FakeInventory();
 

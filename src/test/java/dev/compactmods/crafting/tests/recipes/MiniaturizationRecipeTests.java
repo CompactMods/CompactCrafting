@@ -1,12 +1,5 @@
 package dev.compactmods.crafting.tests.recipes;
 
-import javax.annotation.Nullable;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -14,6 +7,8 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
@@ -25,8 +20,14 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+
+import javax.annotation.Nullable;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
@@ -39,28 +40,32 @@ public class MiniaturizationRecipeTests {
                 .orElse(null);
     }
 
-    @Test
-    void CanCreateRecipe() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanCreateRecipe(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        Assertions.assertNotNull(recipe);
+        GameTestAssertions.assertNotNull(recipe);
+        test.succeed();
     }
 
-    @Test
-    void CanSetId() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanSetId(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        Assertions.assertNotNull(recipe);
+        GameTestAssertions.assertNotNull(recipe);
 
-        Assertions.assertDoesNotThrow(() -> {
+        GameTestAssertions.assertDoesNotThrow(() -> {
             recipe.setId(new ResourceLocation(CompactCrafting.MOD_ID, "test"));
         });
+
+        test.succeed();
     }
 
-
-    @Test
-    void IsSpecialRecipe() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void is_special_recipe(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        Assertions.assertNotNull(recipe);
-        Assertions.assertTrue(recipe.isSpecial());
+        GameTestAssertions.assertNotNull(recipe);
+        GameTestAssertions.assertTrue(recipe.isSpecial());
+
+        test.succeed();
     }
 
     @GameTest(template = "recipes/ender_crystal")
@@ -93,15 +98,17 @@ public class MiniaturizationRecipeTests {
         test.succeed();
     }
 
-    @Test
-    void FakesCanCraftDimensions() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void FakesCanCraftDimensions(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        Assertions.assertNotNull(recipe);
+        GameTestAssertions.assertNotNull(recipe);
 
-        Assertions.assertDoesNotThrow(() -> {
+        GameTestAssertions.assertDoesNotThrow(() -> {
             boolean canCraft = recipe.canCraftInDimensions(0, 0);
-            Assertions.assertTrue(canCraft);
+            GameTestAssertions.assertTrue(canCraft);
         });
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -135,7 +142,6 @@ public class MiniaturizationRecipeTests {
 
         test.succeed();
     }
-
 
     @GameTest(template = "empty_medium")
     public static void RecipeReturnsEmptyIfLayerNotRegistered(final GameTestHelper test) {
@@ -231,7 +237,6 @@ public class MiniaturizationRecipeTests {
         test.succeed();
     }
 
-
     @GameTest(template = "recipes/ender_crystal")
     public static void MatchesExactStructure(final GameTestHelper test) {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
@@ -252,7 +257,6 @@ public class MiniaturizationRecipeTests {
             test.fail(e.getMessage());
         }
     }
-
 
     @GameTest(template = "recipes/ender_crystal")
     public static void RecipeFailsIfUnidentifiedBlock(final GameTestHelper test) {
@@ -314,7 +318,6 @@ public class MiniaturizationRecipeTests {
 
         test.succeed();
     }
-
 
     @GameTest(template = "recipes/empty_medium")
     public static void RecipeFailsIfNoRotationsMatched(final GameTestHelper test) {

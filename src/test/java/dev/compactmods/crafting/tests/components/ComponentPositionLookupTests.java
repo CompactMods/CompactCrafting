@@ -1,101 +1,114 @@
 package dev.compactmods.crafting.tests.components;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
+import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
-import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
-import net.minecraft.core.BlockPos;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class ComponentPositionLookupTests {
 
-    @Test
-    void CanCreatePosLookup() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanSerializeWithCodec(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
-        Assertions.assertNotNull(lookup);
-    }
 
-    @Test
-    void CanSerializeWithCodec() {
-        ComponentPositionLookup lookup = new ComponentPositionLookup();
-        Assertions.assertNotNull(lookup);
         lookup.add(BlockPos.ZERO, "A");
         lookup.add(new BlockPos(2, 0, 2), "B");
 
         final JsonElement serialized = ComponentPositionLookup.CODEC.encodeStart(JsonOps.INSTANCE, lookup)
-                .getOrThrow(false, Assertions::fail);
+                .getOrThrow(false, test::fail);
 
-        Assertions.assertNotNull(serialized);
+        if (null == serialized)
+            test.fail("Serialized value was null");
+
+        test.succeed();
     }
 
-    @Test
-    void CanAddSingleComponent() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanAddSingleComponent(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         lookup.add(BlockPos.ZERO, "G");
 
         // Full component list should contain the component key (G) and the position, at least
-        final Collection<String> componentList = Assertions.assertDoesNotThrow(lookup::getComponents);
-        Assertions.assertNotNull(componentList);
-        Assertions.assertTrue(componentList.contains("G"), "Expected 'G' to be in component list.");
-        Assertions.assertTrue(lookup.containsLocation(BlockPos.ZERO), "Expected BP.ZERO to be in component lookup.");
+        final Collection<String> componentList = GameTestAssertions.assertDoesNotThrow(lookup::getComponents);
+        if (null == componentList) ;
+        GameTestAssertions.assertTrue(componentList.contains("G"), "Expected 'G' to be in component list.");
+        GameTestAssertions.assertTrue(lookup.containsLocation(BlockPos.ZERO), "Expected BP.ZERO to be in component lookup.");
 
         // Reverse lookup by position should return "G" inside an optional
         final Optional<String> key = lookup.getRequiredComponentKeyForPosition(BlockPos.ZERO);
-        Assertions.assertTrue(key.isPresent(), "Expected to find a component 'G', did not find one.");
-        Assertions.assertEquals("G", key.get());
+        GameTestAssertions.assertTrue(key.isPresent(), "Expected to find a component 'G', did not find one.");
+        GameTestAssertions.assertEquals("G", key.get());
 
         // We only added one position referencing G, so make sure it's in the list and there's only one
         final Set<BlockPos> positions = lookup.getPositionsForComponent("G")
                 .map(BlockPos::immutable).collect(Collectors.toSet());
-        Assertions.assertEquals(1, positions.size());
-        Assertions.assertTrue(positions.contains(BlockPos.ZERO), "Expected BP.ZERO to be in component position list.");
+        GameTestAssertions.assertEquals(1, positions.size());
+        GameTestAssertions.assertTrue(positions.contains(BlockPos.ZERO), "Expected BP.ZERO to be in component position list.");
 
         // All positions - Only one should be registered
         final Set<BlockPos> allPositions = lookup.getAllPositions()
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        Assertions.assertEquals(1, allPositions.size());
-        Assertions.assertTrue(allPositions.contains(BlockPos.ZERO), "Expected lookup to have BP.ZERO in its position map.");
+        GameTestAssertions.assertEquals(1, allPositions.size());
+        GameTestAssertions.assertTrue(allPositions.contains(BlockPos.ZERO), "Expected lookup to have BP.ZERO in its position map.");
+
+        test.succeed();
     }
 
-    @Test
-    void UnknownPositionConsideredEmpty() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void UnknownPositionConsideredEmpty(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         final Optional<String> key = lookup.getRequiredComponentKeyForPosition(BlockPos.ZERO);
 
-        Assertions.assertFalse(key.isPresent());
+        GameTestAssertions.assertFalse(key.isPresent());
+        test.succeed();
     }
 
-    @Test
-    void NullStringLookupReturnsEmpty() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void null_position_lookup_finds_nothing(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         final Stream<BlockPos> positionsForComponent = lookup.getPositionsForComponent(null);
 
-        Assertions.assertEquals(0, positionsForComponent.count());
+        if(positionsForComponent.findAny().isPresent())
+            test.fail("Expected null component to return no positions found.");
+
+        test.succeed();
     }
 
-    @Test
-    void CanCreateAndCacheTotals() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanCreateAndCacheTotals(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         lookup.add(BlockPos.ZERO, "C");
 
         // First pass - should calculate successfully
-        final Map<String, Integer> totals = Assertions.assertDoesNotThrow(lookup::getComponentTotals);
-        Assertions.assertTrue(totals.containsKey("C"));
-        Assertions.assertEquals(1, totals.get("C"));
+        final Map<String, Integer> totals = GameTestAssertions.assertDoesNotThrow(lookup::getComponentTotals);
+        GameTestAssertions.assertTrue(totals.containsKey("C"));
+        GameTestAssertions.assertEquals(1, totals.get("C"));
 
         // Second pass - should return the already built totals object
-        final Map<String, Integer> secondPass = Assertions.assertDoesNotThrow(lookup::getComponentTotals);
-        Assertions.assertSame(totals, secondPass);
-        Assertions.assertTrue(secondPass.containsKey("C"));
-        Assertions.assertEquals(1, secondPass.get("C"));
-    }
+        final Map<String, Integer> secondPass = GameTestAssertions.assertDoesNotThrow(lookup::getComponentTotals);
+        if(totals != secondPass)
+            test.fail("Instances did not match.");
 
+        GameTestAssertions.assertTrue(secondPass.containsKey("C"));
+        GameTestAssertions.assertEquals(1, secondPass.get("C"));
+
+        test.succeed();
+    }
 }

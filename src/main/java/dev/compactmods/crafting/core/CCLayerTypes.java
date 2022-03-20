@@ -1,31 +1,30 @@
 package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.*;
+
+import java.util.function.Supplier;
+
+import static dev.compactmods.crafting.recipes.components.ComponentRegistration.c;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class CCLayerTypes {
 
-    @SuppressWarnings("unchecked")
-    public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create((Class) RecipeLayerType.class, CompactCrafting.MOD_ID);
+    public static final ResourceLocation REC_LAYERS = new ResourceLocation(CompactCrafting.MOD_ID, "recipe_layers");
+
+    public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create(REC_LAYERS, CompactCrafting.MOD_ID);
 
     public static IForgeRegistry<RecipeLayerType<?>> RECIPE_LAYER_TYPES;
-
-    static {
-        RECIPE_LAYERS.makeRegistry("recipe_layers", () -> new RegistryBuilder<RecipeLayerType<?>>()
-                .tagFolder("recipe_layers"));
-    }
 
     // ================================================================================================================
     // region  RECIPE LAYER SERIALIZERS
@@ -43,6 +42,16 @@ public class CCLayerTypes {
 
     public static void init(IEventBus eventBus) {
         RECIPE_LAYERS.register(eventBus);
+    }
+
+    @SubscribeEvent
+    @SuppressWarnings("unused")
+    public static void newRegistries(final NewRegistryEvent evt) {
+        final var b = new RegistryBuilder<RecipeComponentType<?>>()
+                .setName(REC_LAYERS)
+                .setType(c(RecipeLayerType.class));
+
+        evt.create(b);
     }
 
     @SubscribeEvent

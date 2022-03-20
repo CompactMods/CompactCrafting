@@ -32,7 +32,6 @@ public class RecipeLayerUtilTests {
                 .map(r -> (MiniaturizationRecipe) r);
     }
 
-
     @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void CanRotate(final GameTestHelper test) {
         // We set up a different block in the corner, so we can tell the blocks rotated

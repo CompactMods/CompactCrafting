@@ -1,7 +1,5 @@
 package dev.compactmods.crafting.tests.proxies;
 
-import javax.annotation.Nonnull;
-import java.util.stream.Collectors;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
@@ -20,7 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
+
+import javax.annotation.Nonnull;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
@@ -92,7 +91,6 @@ public class ProxyLinkingTests {
             test.succeed();
         });
     }
-
 
     @Nonnull
     private static MatchFieldProxyEntity setupProxyForMediumField(GameTestHelper test) {

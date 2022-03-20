@@ -1,15 +1,20 @@
 package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.block.Block;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.registries.*;
+
+import static dev.compactmods.crafting.recipes.components.ComponentRegistration.c;
 
 
 public class CCMiniaturizationRecipes {
@@ -28,8 +33,13 @@ public class CCMiniaturizationRecipes {
 
     public static void init(IEventBus eventBus) {
         RECIPES.register(eventBus);
+    }
 
+    @SubscribeEvent
+    @SuppressWarnings("unused")
+    public static void newRegistries(final RegistryEvent.Register<Block> evt) {
         // Recipe Types (Forge Registry setup does not call this yet)
         MINIATURIZATION_RECIPE_TYPE.register();
     }
+
 }

@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.tests.catalyst;
 
-import java.util.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.serialization.DataResult;
@@ -10,7 +9,7 @@ import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
 import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
-import dev.compactmods.crafting.server.ServerConfig;
+import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -18,15 +17,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+
+import java.util.Optional;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class CatalystJsonTests {
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void ChoosesCorrectCatalystCodec(final GameTestHelper test) {
         JsonElement node = new JsonPrimitive("compactcrafting:item");
 
@@ -44,7 +42,7 @@ public class CatalystJsonTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void FailsDecodeOnUnmatchedCatalystType(final GameTestHelper test) {
         JsonElement node = new JsonPrimitive("compactcrafting:nonexistent");
 
@@ -58,7 +56,7 @@ public class CatalystJsonTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void LoadsItemCatalystFromJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("catalysts/item_no_nbt.json");
 

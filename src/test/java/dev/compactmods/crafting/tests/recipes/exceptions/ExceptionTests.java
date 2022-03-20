@@ -1,16 +1,22 @@
 package dev.compactmods.crafting.tests.recipes.exceptions;
 
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.exceptions.MiniaturizationRecipeException;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
 
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class ExceptionTests {
 
-    @Test
-    void canCreateRecipeException() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void canCreateRecipeException(final GameTestHelper test) {
         MiniaturizationRecipeException ex = new MiniaturizationRecipeException("test");
-
-        Assertions.assertNotNull(ex);
-        Assertions.assertEquals("test", ex.getMessage());
+        GameTestAssertions.assertEquals("test", ex.getMessage());
+        test.succeed();
     }
 }

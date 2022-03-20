@@ -1,9 +1,5 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
@@ -16,7 +12,11 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
@@ -36,7 +36,6 @@ public class RecipeBlocksTests {
         test.succeed();
     }
 
-
     @GameTest(template = "recipes/ender_crystal")
     public static void CanRebuildTotals(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
@@ -50,7 +49,6 @@ public class RecipeBlocksTests {
             test.fail("Rebuilding component totals failed.");
         }
     }
-
 
     @GameTest(template = "recipes/ender_crystal")
     public static void CanSlice(final GameTestHelper helper) {
@@ -86,7 +84,6 @@ public class RecipeBlocksTests {
         helper.succeed();
     }
 
-
     @GameTest(template = "recipes/ender_crystal")
     public static void CanSliceAndOffset(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
@@ -115,7 +112,6 @@ public class RecipeBlocksTests {
 
         test.succeed();
     }
-
 
     @GameTest(template = "recipes/ender_crystal")
     public static void CanCreateWithUnknownComponents(final GameTestHelper test) {

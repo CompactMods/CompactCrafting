@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
+import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import io.netty.buffer.Unpooled;
@@ -21,7 +22,7 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class MiniaturizationRecipeSerializerTests {
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanSerialize(final GameTestHelper test) {
 
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElse(null);
@@ -37,7 +38,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanRoundTripOverNetwork(final GameTestHelper test) {
         MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "ender_crystal").orElseThrow();
         recipe.setId(new ResourceLocation("compactcrafting:ender_crystal"));
@@ -69,7 +70,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void SerializerCanDeserializeJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/ender_crystal.json");
 
@@ -83,7 +84,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void SerializerHandlesJsonErrorsAppropriately(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
 
@@ -97,7 +98,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void SerializerHandlesDecodingEmptyBuffer(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");
@@ -110,7 +111,7 @@ public class MiniaturizationRecipeSerializerTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void SerializerHandlesDecodingEmptyCompound(final GameTestHelper test) {
         MiniaturizationRecipeSerializer s = new MiniaturizationRecipeSerializer();
         final ResourceLocation id = new ResourceLocation(CompactCrafting.MOD_ID, "test");

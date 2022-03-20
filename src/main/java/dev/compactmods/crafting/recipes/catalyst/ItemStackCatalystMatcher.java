@@ -75,7 +75,8 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
             } else {
                 // all other key types are "primitives" - direct match time
                 Tag primitive = node.get(key);
-                if(primitive == null) return false;
+                if(primitive == null)
+                    return false;
 
                 return primitive.equals(filter.get(key));
             }
@@ -88,7 +89,7 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
     }
 
     public boolean matches(ItemStack stack) {
-        return stack.getItem() == item && this.nbtMatcher.test(stack);
+        return stack.getItem().equals(item) && this.nbtMatcher.test(stack);
     }
 
     @Override
