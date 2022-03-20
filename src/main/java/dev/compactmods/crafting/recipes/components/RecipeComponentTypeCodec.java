@@ -18,7 +18,7 @@ public final class RecipeComponentTypeCodec implements Codec<RecipeComponentType
 
     @Override
     public <T> DataResult<Pair<RecipeComponentType<?>, T>> decode(DynamicOps<T> ops, T input) {
-        IForgeRegistry<RecipeComponentType<?>> reg = ComponentRegistration.COMPONENTS;
+        IForgeRegistry<RecipeComponentType<?>> reg = ComponentRegistration.COMPONENTS.get();
         return ResourceLocation.CODEC.decode(ops, input).flatMap(rl -> {
             ResourceLocation resource = rl.getFirst();
             if (reg.containsKey(resource))

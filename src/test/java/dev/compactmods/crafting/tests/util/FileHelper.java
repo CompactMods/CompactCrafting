@@ -8,6 +8,7 @@ import java.net.URL;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import dev.compactmods.crafting.CompactCrafting;
+import net.minecraft.gametest.framework.GameTestHelper;
 
 public class FileHelper {
 

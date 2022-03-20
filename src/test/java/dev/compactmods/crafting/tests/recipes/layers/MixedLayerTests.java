@@ -1,8 +1,5 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
@@ -16,6 +13,8 @@ import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -25,19 +24,14 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class MixedLayerTests {
-
-    static MixedComponentRecipeLayer getLayerFromFile(String filename) {
-        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
-
-        DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
-        return parsed.getOrThrow(false, Assertions::fail);
-    }
 
     static MixedComponentRecipeLayer getLayerFromFile(GameTestHelper test, String filename) {
         JsonElement layerJson = FileHelper.getJsonFromFile(filename);
@@ -46,41 +40,48 @@ public class MixedLayerTests {
         return parsed.getOrThrow(false, test::fail);
     }
 
-    @Test
-    void CanCreateLayerInstanceManually() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void can_create_layer_instance_manually(final GameTestHelper test) {
         MixedComponentRecipeLayer layer = new MixedComponentRecipeLayer();
-        Assertions.assertNotNull(layer);
+        GameTestAssertions.assertNotNull(layer);
 
         // Dimensions - ensure zero on all dimensions
         final var dimensions = layer.getDimensions();
 
-        Assertions.assertNotNull(dimensions);
-        Assertions.assertEquals(0, dimensions.getXsize());
-        Assertions.assertEquals(0, dimensions.getYsize());
-        Assertions.assertEquals(0, dimensions.getZsize());
+        GameTestAssertions.assertNotNull(dimensions);
+        if(dimensions.getXsize() != 0) test.fail("X Dimensions were not correct.");
+        if(dimensions.getYsize() != 0) test.fail("Y Dimensions were not correct.");
+        if(dimensions.getZsize() != 0) test.fail("Z Dimensions were not correct.");
 
         // Components - must be created and empty
-        final ComponentPositionLookup lookup = Assertions.assertDoesNotThrow(layer::getComponentLookup);
-        Assertions.assertNotNull(lookup);
-        final Collection<String> componentKeys = Assertions.assertDoesNotThrow(lookup::getComponents);
-        Assertions.assertTrue(componentKeys.isEmpty());
-        final Stream<BlockPos> positions = Assertions.assertDoesNotThrow(lookup::getAllPositions);
-        Assertions.assertNotNull(positions);
-        Assertions.assertEquals(0, positions.count());
+        final ComponentPositionLookup lookup = GameTestAssertions.assertDoesNotThrow(layer::getComponentLookup);
+        GameTestAssertions.assertNotNull(lookup);
+
+        final Collection<String> componentKeys = GameTestAssertions.assertDoesNotThrow(lookup::getComponents);
+        GameTestAssertions.assertTrue(componentKeys.isEmpty());
+
+        final Stream<BlockPos> positions = GameTestAssertions.assertDoesNotThrow(lookup::getAllPositions);
+        GameTestAssertions.assertNotNull(positions);
+        if(positions.findAny().isPresent())
+            test.fail("Expected no positions on fresh instance.");
+
+        test.succeed();
     }
 
-    @Test
-    void CanCreateLayerInstance() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void can_create_mixed_layer(final GameTestHelper test) {
         JsonElement layerJson = FileHelper.getJsonFromFile("layers/mixed/basic.json");
 
         DataResult<MixedComponentRecipeLayer> parsed = MixedComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson);
-        parsed.resultOrPartial(Assertions::fail)
+        parsed.resultOrPartial(test::fail)
                 .ifPresent(layer -> {
-                    Assertions.assertNotNull(layer);
+                    GameTestAssertions.assertNotNull(layer);
                     int filled = layer.getNumberFilledPositions();
 
-                    Assertions.assertEquals(25, filled);
+                    GameTestAssertions.assertEquals(25, filled);
                 });
+
+        test.succeed();
     }
 
     @GameTest(template = "empty_medium")
@@ -104,7 +105,6 @@ public class MixedLayerTests {
         test.succeed();
     }
 
-
     @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerMatchesWorldInExactMatchScenario(final GameTestHelper test) {
 
@@ -125,29 +125,32 @@ public class MixedLayerTests {
         test.succeed();
     }
 
-    @Test
-    void MixedCanFetchAKnownGoodPosition() {
-        MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
-        Assertions.assertNotNull(layer);
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void MixedCanFetchAKnownGoodPosition(final GameTestHelper test) {
+        MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/basic.json");
+        GameTestAssertions.assertNotNull(layer);
 
         Optional<String> spot = layer.getComponentForPosition(BlockPos.ZERO);
-        Assertions.assertTrue(spot.isPresent());
-        Assertions.assertEquals("I", spot.get());
+        GameTestAssertions.assertTrue(spot.isPresent());
+        GameTestAssertions.assertEquals("I", spot.get());
+
+        test.succeed();
     }
 
-    @Test
-    void MixedCanFetchAListOfComponentPositions() {
-        MixedComponentRecipeLayer layer = getLayerFromFile("layers/mixed/basic.json");
-        Assertions.assertNotNull(layer);
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void mixed_component_positions(final GameTestHelper test) {
+        MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/basic.json");
+        GameTestAssertions.assertNotNull(layer);
 
         final Stream<BlockPos> g = layer.getPositionsForComponent("G");
-        Assertions.assertNotNull(g);
+        GameTestAssertions.assertNotNull(g);
 
         final Set<BlockPos> positions = g.map(BlockPos::immutable).collect(Collectors.toSet());
-        Assertions.assertFalse(positions.isEmpty());
-        Assertions.assertEquals(15, positions.size());
-    }
+        GameTestAssertions.assertFalse(positions.isEmpty());
+        GameTestAssertions.assertEquals(15, positions.size());
 
+        test.succeed();
+    }
 
     @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfAllComponentsNotIdentified(final GameTestHelper test) {
@@ -174,7 +177,6 @@ public class MixedLayerTests {
         test.succeed();
     }
 
-
     @GameTest(template = "medium_glass_filled")
     public static void MixedLayerDeniesMatchIfComponentCountDiffers(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
@@ -200,7 +202,6 @@ public class MixedLayerTests {
         test.succeed();
     }
 
-
     @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfRequiredComponentsMissing(final GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
@@ -218,7 +219,6 @@ public class MixedLayerTests {
 
         test.succeed();
     }
-
 
     @GameTest(template = "medium_glass_walls_obsidian_center")
     public static void MixedLayerDeniesMatchIfComponentsInWrongPositions(final GameTestHelper test) {

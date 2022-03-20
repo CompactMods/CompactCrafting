@@ -6,6 +6,8 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -15,14 +17,12 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class EmptyComponentTests {
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanCreateEmptyComponent(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -44,15 +44,16 @@ public class EmptyComponentTests {
                 });
     }
 
-    @Test
-    void DoesNotErrorRendering() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void DoesNotErrorRendering(final GameTestHelper test) {
         EmptyBlockComponent c = new EmptyBlockComponent();
         boolean errored = c.didErrorRendering();
 
-        Assertions.assertFalse(errored);
+        GameTestAssertions.assertFalse(errored);
+        test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void HasComponentType(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -73,7 +74,7 @@ public class EmptyComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void HasRenderState(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/empty/empty_component.json");
 
@@ -91,7 +92,7 @@ public class EmptyComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanGetBlock(final GameTestHelper test) {
         EmptyBlockComponent component = new EmptyBlockComponent();
         final Block block = component.getBlock();

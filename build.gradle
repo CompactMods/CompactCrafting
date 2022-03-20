@@ -19,10 +19,47 @@ plugins {
 
 apply plugin: "net.minecraftforge.gradle"
 
-def gitCommitHash = 'git rev-parse --verify --short HEAD'.execute().text.trim()
+def semver = { ->
+    try {
+        def code = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--tags', '--match', 'v*'
+            standardOutput = code
+        }
+
+        return code.toString().trim().substring(1).split('-')[0]
+    }
+    catch (ignored) {
+        return "2.0.0";
+    }
+}
+
+def buildNumber = { ->
+    try {
+        def code = new ByteArrayOutputStream()
+        exec {
+            commandLine 'git', 'describe', '--tags', '--match', 'v*'
+            standardOutput = code
+        }
+
+        return Integer.parseInt(code.toString().trim().split('-')[1])
+    }
+    catch (ignored) {
+        return 0;
+    }
+}
+
+def nightlyVersion = "${semver}.${buildNumber}"
 def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
 
-version = isRelease ? mod_version : "${mod_version}+${gitCommitHash}"
+task getBuildInfo() {
+    println("Mod ID: ${mod_id}")
+    println("Version: ${isRelease ? semver : nightlyVersion}")
+    println("Semver Version: ${semver}")
+    println("Nightly Build: ${nightlyVersion}")
+}
+
+version = isRelease ? "${semver}" : nightlyVersion
 group = isRelease ? "dev.compactmods" : "dev.compactmods.nightly"
 archivesBaseName = mod_id
 
@@ -229,9 +266,6 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
-
     library "io.reactivex.rxjava3:rxjava:3.1.1";
 
     // Nicephore - Screenshots and Stuff
@@ -291,11 +325,11 @@ jar {
 
     manifest {
         attributes([
-                "Specification-Title"     : "compactcrafting",
-                "Specification-Vendor"    : "robotgryphon",
+                "Specification-Title"     : "Compact Crafting",
+                "Specification-Vendor"    : "compactmods",
                 "Specification-Version"   : "1", // We are version 1 of ourselves
                 "Implementation-Title"    : project.name,
-                "Implementation-Version"  : isRelease ? archiveVersion : "${mod_version}+${gitCommitHash}",
+                "Implementation-Version"  : archiveVersion,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
@@ -358,11 +392,5 @@ publishing {
                 password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
             }
         }
-    }
-}
-
-test {
-    useJUnitPlatform {
-        excludeTags "minecraft"
     }
 }

@@ -1,17 +1,10 @@
 package dev.compactmods.crafting.client.fakeworld;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
-import java.util.List;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.*;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.TagContainer;
 import net.minecraft.util.profiling.InactiveProfiler;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -31,6 +24,10 @@ import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.ticks.BlackholeTickAccess;
 import net.minecraft.world.ticks.LevelTickAccess;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
+
 public class RenderingWorld extends Level {
 
     private final MiniaturizationRecipe recipe;
@@ -40,7 +37,7 @@ public class RenderingWorld extends Level {
     private final RenderingChunkProvider chunkProvider;
 
     public RenderingWorld(MiniaturizationRecipe recipe) {
-        super(new RenderingSpawnInfo(), Level.OVERWORLD, DimensionType.DEFAULT_OVERWORLD,
+        super(new RenderingSpawnInfo(), Level.OVERWORLD, Holder.direct(DimensionType.DEFAULT_OVERWORLD),
                 () -> InactiveProfiler.INSTANCE, true, false, 0);
         this.recipe = recipe;
         this.chunkProvider = new RenderingChunkProvider(this, recipe);
@@ -104,11 +101,6 @@ public class RenderingWorld extends Level {
     }
 
     @Override
-    public TagContainer getTagManager() {
-        return TagContainer.EMPTY;
-    }
-
-    @Override
     protected LevelEntityGetter<Entity> getEntities() {
         return null;
     }
@@ -154,7 +146,7 @@ public class RenderingWorld extends Level {
     }
 
     @Override
-    public Biome getUncachedNoiseBiome(int p_225604_1_, int p_225604_2_, int p_225604_3_) {
-        return registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getOrThrow(Biomes.THE_VOID);
+    public Holder<Biome> getUncachedNoiseBiome(int p_225604_1_, int p_225604_2_, int p_225604_3_) {
+        return registryAccess().registryOrThrow(Registry.BIOME_REGISTRY).getHolderOrThrow(Biomes.THE_VOID);
     }
 }

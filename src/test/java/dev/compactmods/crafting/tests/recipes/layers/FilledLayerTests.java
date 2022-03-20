@@ -1,8 +1,5 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
@@ -13,6 +10,8 @@ import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -23,19 +22,15 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class FilledLayerTests {
-
-    private static FilledComponentRecipeLayer getLayerFromFile(String filename) {
-        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
-
-        return FilledComponentRecipeLayer.CODEC.parse(JsonOps.INSTANCE, layerJson)
-                .getOrThrow(false, Assertions::fail);
-    }
 
     private static FilledComponentRecipeLayer getLayerFromFile(GameTestHelper test, String filename) {
         JsonElement layerJson = FileHelper.getJsonFromFile(filename);
@@ -44,41 +39,47 @@ public class FilledLayerTests {
                 .getOrThrow(false, test::fail);
     }
 
-    @Test
-    void CanCreateLayerInstance() {
-        getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanCreateLayerInstance(final GameTestHelper test) {
+        getLayerFromFile(test, "layers/filled/basic.json");
+        test.succeed();
     }
 
-    @Test
-    void ReturnsNoFilledIfDimensionsNull() {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void null_dimensions_have_zero_blocks_filled(final GameTestHelper test) {
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test,"layers/filled/basic.json");
 
         // We force the dimensions null here
         layer.setRecipeDimensions((AABB) null);
 
-        int filled = Assertions.assertDoesNotThrow(layer::getNumberFilledPositions);
-        Assertions.assertEquals(0, filled);
+        int filled = GameTestAssertions.assertDoesNotThrow(layer::getNumberFilledPositions);
+        GameTestAssertions.assertEquals(0, filled);
+
+        test.succeed();
     }
 
-    @Test
-    void CanUpdateDimensions() {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanUpdateDimensions(final GameTestHelper test) {
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
 
         int filledBefore = layer.getNumberFilledPositions();
 
-        Assertions.assertDoesNotThrow(() -> layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM));
+        GameTestAssertions.assertDoesNotThrow(() -> layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM));
 
         int filledAfter = layer.getNumberFilledPositions();
 
-        Assertions.assertNotEquals(filledBefore, filledAfter, "Expected component count to change after growing layer dimensions.");
+        if(Objects.equals(filledBefore, filledAfter))
+            test.fail("Expected component count to change after growing layer dimensions.");
+
+        test.succeed();
     }
 
-    @Test
-    void ComponentPositionsAreCorrect() {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void ComponentPositionsAreCorrect(final GameTestHelper test) {
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
-        Assertions.assertEquals(25, layer.getNumberFilledPositions());
+        GameTestAssertions.assertEquals(25, layer.getNumberFilledPositions());
 
         final Set<BlockPos> expected = BlockSpaceUtil.getBlocksIn(MiniaturizationFieldSize.MEDIUM, 0)
                 .map(BlockPos::immutable)
@@ -88,29 +89,34 @@ public class FilledLayerTests {
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        Assertions.assertEquals(expected, actual);
+        GameTestAssertions.assertEquals(expected, actual);
+        test.succeed();
     }
 
-    @Test
-    void CanFetchComponentByPosition() {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanFetchComponentByPosition(final GameTestHelper test) {
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         final Optional<String> componentForPosition = layer.getComponentForPosition(BlockPos.ZERO);
-        Assertions.assertTrue(componentForPosition.isPresent());
+        GameTestAssertions.assertTrue(componentForPosition.isPresent());
         componentForPosition.ifPresent(comp -> {
-            Assertions.assertEquals("G", comp);
+            GameTestAssertions.assertEquals("G", comp);
         });
+
+        test.succeed();
     }
 
-    @Test
-    void ReturnsEmptyWhenFetchingOOBPosition() {
-        final FilledComponentRecipeLayer layer = getLayerFromFile("layers/filled/basic.json");
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void oob_position_returns_empty(final GameTestHelper test) {
+        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         // Y = 1 should never happen, in any layer, ever
         final Optional<String> componentForPosition = layer.getComponentForPosition(BlockPos.ZERO.above());
-        Assertions.assertFalse(componentForPosition.isPresent());
+        GameTestAssertions.assertFalse(componentForPosition.isPresent());
+
+        test.succeed();
     }
 
     // note - we use the empty medium here just to let the gametest system run our test

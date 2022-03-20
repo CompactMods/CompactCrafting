@@ -1,12 +1,12 @@
 package dev.compactmods.crafting.tests.recipes.components;
 
-import java.util.*;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
+import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -17,13 +17,14 @@ import net.minecraft.world.level.block.state.properties.Half;
 import net.minecraft.world.level.block.state.properties.StairsShape;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
-import org.junit.jupiter.api.Assertions;
+
+import java.util.*;
 
 @PrefixGameTestTemplate(false)
 @GameTestHolder(CompactCrafting.MOD_ID)
 public class BlockComponentTests {
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanCreateInstanceWithBlock(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
         if (!Blocks.GOLD_BLOCK.equals(component.getBlock()))
@@ -32,7 +33,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanFetchFirstMatch(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
@@ -50,7 +51,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void ToStringShowsBlockId(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 
@@ -65,7 +66,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanMatchBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
@@ -107,7 +108,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanMatchBlockNoProperties(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
 
@@ -138,8 +139,8 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
-    public static void CanReserializeComponentMatcher(final GameTestHelper test) throws RuntimeException {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanReserializeComponentMatcher(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_properties.json");
 
         BlockComponent.CODEC.parse(JsonOps.INSTANCE, json)
@@ -157,7 +158,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void ThrowsErrorOnUnregisteredBlock(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_not_registered.json");
 
@@ -172,7 +173,7 @@ public class BlockComponentTests {
         }
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void DoesWarnOnBadProperty(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_bad_property.json");
 
@@ -189,7 +190,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void DoesNotMatchDifferentBlocks(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -207,7 +208,7 @@ public class BlockComponentTests {
         test.succeed();
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void HasCorrectComponentType(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -228,7 +229,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void HasARenderBlockstate(final GameTestHelper test) {
         // Loads a cobblestone stairs definition
         JsonElement json = FileHelper.getJsonFromFile("components/block/block_no_properties.json");
@@ -247,7 +248,7 @@ public class BlockComponentTests {
                 });
     }
 
-    @GameTest(template = "empty")
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanHandleErrorRenderingChanges(final GameTestHelper test) {
         BlockComponent component = new BlockComponent(Blocks.GOLD_BLOCK);
 

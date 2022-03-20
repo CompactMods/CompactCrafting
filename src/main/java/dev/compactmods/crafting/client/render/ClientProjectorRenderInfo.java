@@ -64,6 +64,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
         if(mc.options.graphicsMode == GraphicsStatus.FABULOUS) {
             // Fabulous mode is borked, don't bother yet   - TODO
+            render(matrixStack, buffers, mainCamera, level);
         } else {
             render(matrixStack, buffers, mainCamera, level);
         }
@@ -106,7 +107,9 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
         }
 
         matrixStack.popPose();
-        buffers.endBatch();
+
+        RenderSystem.disableDepthTest();
+        buffers.endBatch(CCRenderTypes.PHANTOM);
     }
 
     @Override

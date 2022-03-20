@@ -1,45 +1,60 @@
 package dev.compactmods.crafting.tests.catalyst;
 
-import java.util.Set;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.catalyst.ItemTagCatalystMatcher;
-import dev.compactmods.crafting.server.ServerConfig;
+import dev.compactmods.crafting.tests.GameTestTemplates;
+import net.minecraft.gametest.framework.GameTest;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import net.minecraftforge.gametest.GameTestHolder;
+import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.registries.ForgeRegistries;
 
-// TODO - GameTests
+import java.util.Set;
+
+@PrefixGameTestTemplate(false)
+@GameTestHolder(CompactCrafting.MOD_ID)
 public class TaggedCatalystTests {
 
-    void CanCreate() {
-        ItemTagCatalystMatcher matcher = new ItemTagCatalystMatcher(ItemTags.PLANKS);
-        Assertions.assertNotNull(matcher);
-
-        Assertions.assertDoesNotThrow(matcher::getCodec);
-        Assertions.assertDoesNotThrow(matcher::getType);
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanCreate(final GameTestHelper test) {
+        new ItemTagCatalystMatcher(ItemTags.PLANKS);
+        test.succeed();
     }
 
-    void NullTagGivesEmptyPossible() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void NullTagGivesEmptyPossible(final GameTestHelper test) {
         ItemTagCatalystMatcher matcher = new ItemTagCatalystMatcher(null);
-        final Set<ItemStack> possible = Assertions.assertDoesNotThrow(matcher::getPossible);
-        Assertions.assertTrue(possible.isEmpty());
+        final Set<ItemStack> possible = matcher.getPossible();
+        if(!possible.isEmpty())
+            test.fail("Null tag should give no results.");
+
+        test.succeed();
     }
 
-    void CanMatchPlanks() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void matches_planks(final GameTestHelper test) {
         ItemTagCatalystMatcher matcher = new ItemTagCatalystMatcher(ItemTags.PLANKS);
 
-        Assertions.assertTrue(matcher.matches(new ItemStack(Items.OAK_PLANKS)));
-        Assertions.assertTrue(matcher.matches(new ItemStack(Items.SPRUCE_PLANKS)));
-        Assertions.assertTrue(matcher.matches(new ItemStack(Items.ACACIA_PLANKS)));
+        if(!matcher.matches(new ItemStack(Items.OAK_PLANKS))) test.fail("Matcher failed on a plank type.");
+        if(!matcher.matches(new ItemStack(Items.SPRUCE_PLANKS))) test.fail("Matcher failed on a plank type.");
+        if(!matcher.matches(new ItemStack(Items.ACACIA_PLANKS))) test.fail("Matcher failed on a plank type.");
+
+        test.succeed();
     }
 
-    void CanFetchPossible() {
+    @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanFetchPossible(final GameTestHelper test) {
         ItemTagCatalystMatcher matcher = new ItemTagCatalystMatcher(ItemTags.PLANKS);
 
-        final Set<ItemStack> possible = Assertions.assertDoesNotThrow(matcher::getPossible);
+        final Set<ItemStack> possible = matcher.getPossible();
 
-        Assertions.assertEquals(ItemTags.PLANKS.getValues().size(), possible.size());
+        final var it = ForgeRegistries.ITEMS.tags();
+        if(it.getTag(ItemTags.PLANKS).size() != possible.size())
+            test.fail("Planks size versus possible size did not match.");
+
+        test.succeed();
     }
 }

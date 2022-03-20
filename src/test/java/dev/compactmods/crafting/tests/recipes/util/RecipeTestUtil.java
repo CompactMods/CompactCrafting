@@ -1,7 +1,5 @@
 package dev.compactmods.crafting.tests.recipes.util;
 
-import javax.annotation.Nonnull;
-import java.util.Optional;
 import com.google.common.io.Files;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
@@ -9,6 +7,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
@@ -17,17 +16,20 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.phys.AABB;
-import org.junit.jupiter.api.Assertions;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class RecipeTestUtil {
+    @Nullable
     public static MiniaturizationRecipe getRecipeFromFile(String filename) {
         JsonElement json = FileHelper.getJsonFromFile(filename);
 
         Optional<MiniaturizationRecipe> loaded = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
                 .resultOrPartial(CompactCrafting.LOGGER::info);
 
-        if (!loaded.isPresent()) {
-            Assertions.fail("Recipe did not load from file.");
+        if (loaded.isEmpty()) {
             return null;
         } else {
             final MiniaturizationRecipe rec = loaded.get();
