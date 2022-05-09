@@ -4,15 +4,16 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+
+import dev.compactmods.crafting.api.field.*;
 import dev.compactmods.crafting.core.CCCapabilities;
-import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.ServerMiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +36,7 @@ import net.minecraftforge.network.PacketDistributor;
 public class FieldProjectorBlock extends Block implements EntityBlock {
 
     public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    public static final EnumProperty<MiniaturizationFieldSize> SIZE = EnumProperty.create("field", MiniaturizationFieldSize.class);
+    public static final EnumProperty<FieldSize> SIZE = EnumProperty.create("field", FieldSize.class);
 
     private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
@@ -58,7 +59,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
         registerDefaultState(getStateDefinition().any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(SIZE, MiniaturizationFieldSize.INACTIVE));
+                .setValue(SIZE, FieldSize.INACTIVE));
     }
 
     public static Optional<Direction> getDirection(BlockGetter world, BlockPos position) {
@@ -123,19 +124,19 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
         BlockState state = defaultBlockState().setValue(FACING, looking);
         if (!hasMissing) {
-            MiniaturizationFieldSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
-                    .orElse(MiniaturizationFieldSize.INACTIVE);
+            FieldSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
+                    .orElse(FieldSize.INACTIVE);
 
             state = state.setValue(SIZE, size);
         } else {
-            state = state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
+            state = state.setValue(SIZE, FieldSize.INACTIVE);
         }
 
         return state;
     }
 
     public static boolean isActive(BlockState state) {
-        return state.getValue(SIZE) != MiniaturizationFieldSize.INACTIVE;
+        return state.getValue(SIZE) != FieldSize.INACTIVE;
     }
 
     @Override
@@ -143,7 +144,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
         if (world.isClientSide) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
-            if(hasMissing) {
+            if (hasMissing) {
                 player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
                         .ifPresent(rend -> {
                             rend.resetRenderTime();
@@ -175,12 +176,12 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     public static void deactivateProjector(Level level, BlockPos pos) {
         BlockState currentState = level.getBlockState(pos);
         if (currentState.getBlock() instanceof FieldProjectorBlock) {
-            BlockState newState = currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
+            BlockState newState = currentState.setValue(SIZE, FieldSize.INACTIVE);
             level.setBlock(pos, newState, Block.UPDATE_ALL);
         }
     }
 
-    public static void activateProjector(Level level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
+    public static void activateProjector(Level level, BlockPos pos, FieldSize fieldSize) {
         if (level.isLoaded(pos)) {
             BlockState currentState = level.getBlockState(pos);
             if (!(currentState.getBlock() instanceof FieldProjectorBlock)) {
@@ -200,7 +201,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (!isActive(state))
             return;
 
-        MiniaturizationFieldSize fieldSize = state.getValue(SIZE);
+        FieldSize fieldSize = state.getValue(SIZE);
         BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
 
         boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING))
@@ -208,7 +209,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
         // If there are missing projectors but the projector is supposed to be active, deactivate
         if (hasMissing) {
-            level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Block.UPDATE_ALL);
+            level.setBlock(pos, state.setValue(SIZE, FieldSize.INACTIVE), Block.UPDATE_ALL);
         } else {
             final MinecraftServer server = level.getServer();
             if (server == null)
@@ -220,8 +221,10 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                 final BlockPos center = getFieldCenter(state, pos);
                 level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
                     if (!fields.hasActiveField(center)) {
-                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
-                        field.checkLoaded();
+                        final MiniaturizationField field = fields.registerField(new ServerMiniaturizationField((ServerLevel) level, fieldSize, center));
+                        if(field instanceof UnloadableField uf)
+                            uf.checkLoaded();
+
                         field.fieldContentsChanged();
 
 //                            field.getProjectorPositions()
@@ -244,7 +247,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     @Override
     public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean p_196243_5_) {
         final BlockPos fieldCenter = getFieldCenter(oldState, pos);
-        final MiniaturizationFieldSize fieldSize = oldState.getValue(SIZE);
+        final FieldSize fieldSize = oldState.getValue(SIZE);
 
         if (isActive(oldState)) {
             fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
@@ -252,14 +255,12 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             // Remove field registration - this will also update clients
             level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
                 if (fields.hasActiveField(fieldCenter)) {
-                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
+                    final MiniaturizationField field = fields.get(fieldCenter).orElse(null);
                     if (field == null) return;
 
-                    if (field.enabled()) {
-                        fields.unregisterField(fieldCenter);
-                        field.handleDestabilize();
-                        field.dispose();
-                    }
+                    fields.unregisterField(fieldCenter);
+                    field.handleDestabilize();
+                    field.dispose();
                 }
             });
         }
@@ -277,10 +278,16 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                 FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
                 if (level.getBestNeighborSignal(pos) > 0) {
                     // receiving power from some side, turn off rendering
-                    fpt.getField().ifPresent(IMiniaturizationField::disable);
+                    fpt.getField().ifPresent(f -> {
+                        if(f instanceof ProjectorRenderStyle df)
+                            df.disable();
+                    });
                 } else {
                     // check other projectors, if there's a redstone signal anywhere, we disable the field
-                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
+                    fpt.getField().ifPresent(f -> {
+                        if(f instanceof RedstoneField rf)
+                            rf.checkRedstone();
+                    });
                 }
             }
         } else {
@@ -288,7 +295,10 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
                 final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
                 level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
+                    fields.get(center).ifPresent(f -> {
+                        if(f instanceof RedstoneField rf)
+                            rf.checkRedstone();
+                    });
                 });
             });
         }

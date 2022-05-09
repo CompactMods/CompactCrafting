@@ -10,7 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.AABB;
 
-public enum MiniaturizationFieldSize implements StringRepresentable {
+public enum FieldSize implements StringRepresentable {
     /**
      * Inactive field. Does not have dimensions.
      */
@@ -45,21 +45,21 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
 
     private final String name;
 
-    public static final Codec<MiniaturizationFieldSize> CODEC =
-            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::name);
+    public static final Codec<FieldSize> CODEC =
+            Codec.STRING.xmap(FieldSize::valueOf, FieldSize::name);
 
-    public static final MiniaturizationFieldSize[] VALID_SIZES = new MiniaturizationFieldSize[] {
+    public static final FieldSize[] VALID_SIZES = new FieldSize[] {
             SMALL, MEDIUM, LARGE, ABSURD
     };
 
-    MiniaturizationFieldSize(String name, int size, int distance) {
+    FieldSize(String name, int size, int distance) {
         this.size = size;
         this.projectorDistance = distance;
         this.name = name;
     }
 
     @Nonnull
-    public static Optional<MiniaturizationFieldSize> fromDimensions(double size) {
+    public static Optional<FieldSize> fromDimensions(double size) {
         // smaller than small, larger than max size, or not an odd size
         if(size < SMALL.getDimensions() || size > maximum().getDimensions() || size % 2 == 0)
             return Optional.empty();
@@ -94,7 +94,7 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
         return this.name;
     }
 
-    public static MiniaturizationFieldSize maximum() {
+    public static FieldSize maximum() {
         return ABSURD;
     }
 

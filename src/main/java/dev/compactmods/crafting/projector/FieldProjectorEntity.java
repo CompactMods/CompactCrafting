@@ -3,7 +3,7 @@ package dev.compactmods.crafting.projector;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import net.minecraft.core.BlockPos;
@@ -19,7 +19,7 @@ import net.minecraftforge.common.util.LazyOptional;
 
 public class FieldProjectorEntity extends BlockEntity {
 
-    protected LazyOptional<IMiniaturizationField> fieldCap = LazyOptional.empty();
+    protected LazyOptional<MiniaturizationField> fieldCap = LazyOptional.empty();
     protected LazyOptional<IActiveWorldFields> levelFields = LazyOptional.empty();
 
     public FieldProjectorEntity(BlockPos pos, BlockState state) {
@@ -79,11 +79,11 @@ public class FieldProjectorEntity extends BlockEntity {
                 .orElse(new AABB(worldPosition).inflate(20));
     }
 
-    public LazyOptional<IMiniaturizationField> getField() {
+    public LazyOptional<MiniaturizationField> getField() {
         return this.fieldCap.cast();
     }
 
-    public void setFieldRef(LazyOptional<IMiniaturizationField> fieldRef) {
+    public void setFieldRef(LazyOptional<MiniaturizationField> fieldRef) {
         this.fieldCap = fieldRef;
         setChanged();
     }

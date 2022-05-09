@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.tests.util;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -45,7 +45,7 @@ public class BlockSpaceUtilTests {
 
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void calculates_center_bounds_odd(final GameTestHelper test) {
-        AABB fullBounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0);
+        AABB fullBounds = BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0);
         AABB centerBounds = BlockSpaceUtil.getCenterBounds(fullBounds);
 
         if(centerBounds.getXsize() != 1) test.fail("X dimensions were not correct.");
@@ -271,7 +271,7 @@ public class BlockSpaceUtilTests {
     public static void doesNormalizeSingleBlockPos(final GameTestHelper test) {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
+        int largeSize = FieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         var field = new AABB(min, max);
@@ -286,7 +286,7 @@ public class BlockSpaceUtilTests {
     public static void denormalizes_multiple_positions(final GameTestHelper test) {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
+        int largeSize = FieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         AABB field = new AABB(min, max);
@@ -320,7 +320,7 @@ public class BlockSpaceUtilTests {
     public static void denormalizes_single_position(final GameTestHelper test) {
         // 7x7x7 field, similar to a large field
         BlockPos min = new BlockPos(100, 0, 100);
-        int largeSize = MiniaturizationFieldSize.LARGE.getSize();
+        int largeSize = FieldSize.LARGE.getSize();
         BlockPos max = min.offset(largeSize, largeSize, largeSize);
 
         AABB field = new AABB(min, max);

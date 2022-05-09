@@ -4,6 +4,8 @@ import java.nio.FloatBuffer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
+
+import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -11,21 +13,23 @@ import com.mojang.math.Matrix4f;
 import com.mojang.math.Quaternion;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.client.fakeworld.RenderingWorld;
 import dev.compactmods.crafting.client.ui.ScreenArea;
 import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.network.BindToPlatePacket;
+import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.gui.IRecipeLayout;
+import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
-import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.ingredients.IIngredients;
+import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -40,6 +44,7 @@ import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -71,9 +76,12 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     private boolean debugMode = false;
 
     private ScreenArea explodeToggle = new ScreenArea(30, 75, 10, 10);
-    private ScreenArea layerUp = new ScreenArea(55, 75, 10, 10);
-    private ScreenArea layerSwap = new ScreenArea(70, 75, 10, 10);
-    private ScreenArea layerDown = new ScreenArea(85, 75, 10, 10);
+
+    private ScreenArea layerUp = new ScreenArea(45, 75, 10, 10);
+    private ScreenArea layerSwap = new ScreenArea(57, 75, 10, 10);
+    private ScreenArea layerDown = new ScreenArea(69, 75, 10, 10);
+
+    private ScreenArea bindPlate = new ScreenArea(85, 75, 10, 10);
 
     /**
      * Whether or not the preview is exploded (expanded) or not.
@@ -84,6 +92,14 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
      * Explode multiplier; specifies how far apart blocks are rendered.
      */
     private double explodeMulti = 1.0d;
+
+    private final MutableComponent MATERIAL_COMPONENT = new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
+            .withStyle(ChatFormatting.GRAY)
+            .withStyle(ChatFormatting.ITALIC);
+
+    private final MutableComponent CATALYST = new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
+            .withStyle(ChatFormatting.YELLOW)
+            .withStyle(ChatFormatting.ITALIC);
 
     public JeiMiniaturizationCraftingCategory(IGuiHelper guiHelper) {
         int width = (9 * 18) + 10;
@@ -126,103 +142,44 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     }
     //endregion
 
-    //region Recipe Slots and Items
-    @Override
-    public void setIngredients(MiniaturizationRecipe recipe, IIngredients ing) {
-        List<List<ItemStack>> inputs = new ArrayList<>(1 + recipe.getComponents().size());
-
-        if (recipe.getCatalyst() != null && !recipe.getCatalyst().matches(ItemStack.EMPTY))
-            inputs.add(0, new ArrayList<>(recipe.getCatalyst().getPossible()));
-        else
-            inputs.add(0, Collections.singletonList(new ItemStack(Items.REDSTONE)));
-
-        IRecipeComponents components = recipe.getComponents();
-        int index = 1;
-        for (String compKey : components.getBlockComponents().keySet()) {
-            Optional<IRecipeBlockComponent> requiredBlock = components.getBlock(compKey);
-            int finalIndex = index;
-            requiredBlock.ifPresent(bs -> {
-                // TODO - Abstract this better, need to be more flexible for other component types in the future
-                if (bs instanceof BlockComponent) {
-                    BlockComponent bsc = (BlockComponent) bs;
-                    Item bi = bsc.getBlock().asItem();
-                    if (bi != Items.AIR)
-                        inputs.add(finalIndex, Collections.singletonList(new ItemStack(bi)));
-                }
-            });
-
-            index++;
-        }
-
-        ing.setInputLists(VanillaTypes.ITEM, inputs);
-        ing.setOutputs(VanillaTypes.ITEM, Arrays.asList(recipe.getOutputs()));
-    }
 
     @Override
-    public void setRecipe(IRecipeLayout recipeLayout, MiniaturizationRecipe recipe, IIngredients iIngredients) {
+    public void setRecipe(IRecipeLayoutBuilder layout, MiniaturizationRecipe recipe, IFocusGroup focuses) {
         previewLevel = new RenderingWorld(recipe);
 
         singleLayer = false;
         singleLayerOffset = 0;
 
-        int GUTTER_X = 5;
-        int OFFSET_Y = 65;
-
-        IGuiItemStackGroup guiItemStacks = recipeLayout.getItemStacks();
-        int numComponentSlots = 18;
-        int catalystSlot = -1;
         try {
-            addMaterialSlots(recipe, GUTTER_X, OFFSET_Y, guiItemStacks, numComponentSlots);
+            addMaterialSlots(recipe, layout);
+            addCatalystSlots(recipe, layout);
 
-            catalystSlot = addCatalystSlots(recipe, guiItemStacks, numComponentSlots);
-            int fromRightEdge = this.background.getWidth() - (18 * 2) - GUTTER_X;
-            addOutputSlots(recipe, fromRightEdge, 8, guiItemStacks, numComponentSlots);
+            int fromRightEdge = this.background.getWidth() - (18 * 2) - 5;
+            addOutputSlots(recipe, layout, fromRightEdge);
         } catch (Exception ex) {
             CompactCrafting.LOGGER.error(recipe.getRecipeIdentifier());
             CompactCrafting.LOGGER.error("Error displaying recipe", ex);
         }
-
-        int finalCatalystSlot = catalystSlot;
-        guiItemStacks.addTooltipCallback((slot, b, itemStack, tooltip) -> {
-            if (slot >= 0 && slot < recipe.getComponents().size()) {
-                MutableComponent text =
-                        new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.component")
-                                .withStyle(ChatFormatting.GRAY)
-                                .withStyle(ChatFormatting.ITALIC);
-
-                tooltip.add(text);
-            }
-
-            if (slot == finalCatalystSlot) {
-                MutableComponent text = new TranslatableComponent(CompactCrafting.MOD_ID + ".jei.miniaturization.catalyst")
-                        .withStyle(ChatFormatting.YELLOW)
-                        .withStyle(ChatFormatting.ITALIC);
-
-                tooltip.add(text);
-            }
-        });
     }
 
-    private int addCatalystSlots(MiniaturizationRecipe recipe, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
-        int catalystSlot = numComponentSlots + 5 + 1;
-        guiItemStacks.init(catalystSlot, true, 0, 0);
-        if(!recipe.getCatalyst().matches(ItemStack.EMPTY))
-            guiItemStacks.set(catalystSlot, new ArrayList<>(recipe.getCatalyst().getPossible()));
+    private IRecipeSlotBuilder addCatalystSlots(MiniaturizationRecipe recipe, IRecipeLayoutBuilder layout) {
+        final var catalystSlot = layout.addSlot(RecipeIngredientRole.CATALYST, 1, 1)
+                .setBackground(slotDrawable, -1, -1);
 
-        guiItemStacks.setBackground(catalystSlot, slotDrawable);
+        if (!recipe.getCatalyst().matches(ItemStack.EMPTY)) {
+            catalystSlot.addItemStacks(new ArrayList<>(recipe.getCatalyst().getPossible()))
+                    .addTooltipCallback((slots, c) -> c.add(CATALYST));
+        }
+
         return catalystSlot;
     }
 
-    private void addMaterialSlots(MiniaturizationRecipe recipe, int GUTTER_X, int OFFSET_Y, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
-        for (int slot = 0; slot < numComponentSlots; slot++) {
-            int slotX = GUTTER_X + (slot % 9) * 18;
-            int slotY = (OFFSET_Y + 24) + ((slot / 9) * 18);
-
-            guiItemStacks.init(slot, true, slotX, slotY);
-            guiItemStacks.setBackground(slot, this.slotDrawable);
-        }
-
+    private void addMaterialSlots(MiniaturizationRecipe recipe, IRecipeLayoutBuilder layout) {
         AtomicInteger inputOffset = new AtomicInteger();
+
+        final int GUTTER_X = 5;
+        final int OFFSET_Y = 64;
+
         recipe.getComponentTotals()
                 .entrySet()
                 .stream()
@@ -234,67 +191,117 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     int finalInputOffset = inputOffset.get();
 
                     IRecipeBlockComponent bs = recipe.getComponents().getBlock(component).get();
-                    if (bs instanceof BlockComponent) {
-                        BlockComponent bsc = (BlockComponent) bs;
+                    if (bs instanceof BlockComponent bsc) {
                         Item bi = bsc.getBlock().asItem();
+
+                        int slotX = GUTTER_X + (finalInputOffset % 9) * 18;
+                        int slotY = (OFFSET_Y + 24) + ((finalInputOffset / 9) * 18);
+
+                        final var slot = layout.addSlot(RecipeIngredientRole.INPUT, slotX, slotY)
+                                .setBackground(slotDrawable, -1, -1);
+
                         if (bi != Items.AIR) {
-                            guiItemStacks.set(finalInputOffset, new ItemStack(bi, required));
+                            slot.addItemStack(new ItemStack(bi, required));
+                            slot.addTooltipCallback((slots, c) -> c.add(MATERIAL_COMPONENT));
                             inputOffset.getAndIncrement();
                         }
                     }
                 });
+
+        for (int i = inputOffset.get(); i < 18; i++) {
+            int slotX = GUTTER_X + (i % 9) * 18;
+            int slotY = (OFFSET_Y + 24) + ((i / 9) * 18);
+
+            layout.addSlot(RecipeIngredientRole.INPUT, slotX, slotY).setBackground(slotDrawable, -1, -1);
+        }
     }
 
-    private void addOutputSlots(MiniaturizationRecipe recipe, int GUTTER_X, int OFFSET_Y, IGuiItemStackGroup guiItemStacks, int numComponentSlots) {
-        int outputOffset = numComponentSlots;
+    private void addOutputSlots(MiniaturizationRecipe recipe, IRecipeLayoutBuilder layout, int GUTTER_X) {
+        final var out = recipe.getOutputs();
         for (int outputNum = 0; outputNum < 6; outputNum++) {
-            int x = (18 * (outputNum % 2)) + GUTTER_X;
-            int y = (18 * (outputNum / 2)) + OFFSET_Y;
-            guiItemStacks.init(outputOffset + outputNum, false, x, y);
-            guiItemStacks.setBackground(outputOffset + outputNum, this.slotDrawable);
-        }
+            int x = (18 * (outputNum % 2)) + GUTTER_X + 1;
+            int y = (18 * (outputNum / 2)) + 8 + 1;
 
-        for (ItemStack output : recipe.getOutputs()) {
-            guiItemStacks.set(outputOffset, output);
+            final var slot = layout.addSlot(RecipeIngredientRole.OUTPUT, x, y)
+                    .setBackground(slotDrawable, -1, -1);
+
+            if (outputNum < out.length)
+                slot.addItemStack(out[outputNum]);
         }
     }
     //endregion
 
+
     @Override
-    public boolean handleClick(MiniaturizationRecipe recipe, double mouseX, double mouseY, int mouseButton) {
-
-        SoundManager handler = Minecraft.getInstance().getSoundManager();
-
-
+    public List<Component> getTooltipStrings(MiniaturizationRecipe recipe, IRecipeSlotsView slots, double mouseX, double mouseY) {
         if (explodeToggle.contains(mouseX, mouseY)) {
-            explodeMulti = exploded ? 1.0d : 1.6d;
-            exploded = !exploded;
-            handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            return true;
+            if (!exploded) return List.of(new TranslatableComponent("compactcrafting.jei.toggle_exploded_view"));
+            else return List.of(new TranslatableComponent("compactcrafting.jei.toggle_condensed_view"));
         }
 
         if (layerSwap.contains(mouseX, mouseY)) {
-            singleLayer = !singleLayer;
-            handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-            return true;
+            if (singleLayer) return List.of(new TranslatableComponent("compactcrafting.jei.all_layers_mode"));
+            else return List.of(new TranslatableComponent("compactcrafting.jei.single_layer_mode"));
         }
 
         if (layerUp.contains(mouseX, mouseY) && singleLayer) {
-            if (singleLayerOffset < recipe.getDimensions().getYsize() - 1) {
-                handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                singleLayerOffset++;
-            }
-
-            return true;
+            if (singleLayerOffset < recipe.getDimensions().getYsize() - 1)
+                return List.of(new TranslatableComponent("compactcrafting.jei.layer_up"));
         }
 
         if (layerDown.contains(mouseX, mouseY) && singleLayer) {
-            if (singleLayerOffset > 0) {
+            if (singleLayerOffset > 0)
+                return List.of(new TranslatableComponent("compactcrafting.jei.layer_down"));
+        }
+
+        if(bindPlate.contains(mouseX, mouseY)) {
+            return List.of(new TranslatableComponent("compactcrafting.jei.bind_plate"));
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean handleInput(MiniaturizationRecipe recipe, double mouseX, double mouseY, InputConstants.Key input) {
+        if (input.getType() == InputConstants.Type.MOUSE && input.getValue() == 0) {
+            SoundManager handler = Minecraft.getInstance().getSoundManager();
+
+            if (explodeToggle.contains(mouseX, mouseY)) {
+                explodeMulti = exploded ? 1.0d : 1.6d;
+                exploded = !exploded;
                 handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                singleLayerOffset--;
+                return true;
             }
 
-            return true;
+            if (layerSwap.contains(mouseX, mouseY)) {
+                singleLayer = !singleLayer;
+                handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+
+            if (layerUp.contains(mouseX, mouseY) && singleLayer) {
+                if (singleLayerOffset < recipe.getDimensions().getYsize() - 1) {
+                    handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    singleLayerOffset++;
+                }
+                return true;
+            }
+
+            if (layerDown.contains(mouseX, mouseY) && singleLayer) {
+                if (singleLayerOffset > 0) {
+                    handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    singleLayerOffset--;
+                }
+
+                return true;
+            }
+
+            if(bindPlate.contains(mouseX, mouseY)) {
+                BindToPlatePacket pkt = new BindToPlatePacket(recipe.getId());
+                NetworkHandler.MAIN_CHANNEL.sendToServer(pkt);
+                handler.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
         }
 
         return false;
@@ -320,17 +327,17 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     //endregion
 
     @Override
-    public void draw(MiniaturizationRecipe recipe, PoseStack mx, double mouseX, double mouseY) {
+    public void draw(MiniaturizationRecipe recipe, IRecipeSlotsView slots, PoseStack pose, double mouseX, double mouseY) {
         AABB dims = recipe.getDimensions();
 
         Window mainWindow = Minecraft.getInstance().getWindow();
 
-        drawScaledTexture(mx,
+        drawScaledTexture(pose,
                 new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-field.png"),
                 new ScreenArea(7, 20, 17, 22),
                 0, 0, 17, 22, 17, 22);
 
-        drawScaledTexture(mx,
+        drawScaledTexture(pose,
                 new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"),
                 new ScreenArea(100, 25, 24, 19),
                 0, 0, 24, 19, 24, 19);
@@ -345,9 +352,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                 70
         );
 
-        renderPreviewControls(mx, dims);
+        renderPreviewControls(pose, dims);
 
-        if (previewLevel != null) renderRecipe(recipe, mx, dims, guiScaleFactor, scissorBounds);
+        if (previewLevel != null) renderRecipe(recipe, pose, dims, guiScaleFactor, scissorBounds);
     }
 
     private void renderRecipe(MiniaturizationRecipe recipe, PoseStack mx, AABB dims, double guiScaleFactor, ScreenArea scissorBounds) {
@@ -390,14 +397,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
                     scissorBounds.y + (35),
                     100);
 
-            // 13 = 1
-            // 11 = 3
-            // 09 = 5
-            // 07 = 7
-            // 05 = 9
-            // 03 = 11
-            // 01 = 13
-
             Vec3 dimsVec = new Vec3(dims.getXsize(), dims.getYsize(), dims.getZsize());
             float recipeAvgDim = (float) dimsVec.length();
             float previewScale = (float) ((3 + Math.exp(3 - (recipeAvgDim / 5))) / explodeMulti);
@@ -428,7 +427,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         // Variable explode based on mouse position (clamped)
         // double explodeMulti = MathHelper.clamp(mouseX, 0, this.background.getWidth())/this.background.getWidth()*2+1;
 
-
         int[] renderLayers;
         if (!singleLayer) {
             renderLayers = IntStream.range(0, (int) ySize).toArray();
@@ -454,26 +452,28 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         ResourceLocation sprites = new ResourceLocation(CompactCrafting.MOD_ID, "textures/gui/jei-sprites.png");
 
         if (exploded) {
-            drawScaledTexture(mx, sprites, explodeToggle, 20, 0, 20, 20, 120, 20);
+            drawScaledTexture(mx, sprites, explodeToggle, 20, 0, 20, 20, 140, 20);
         } else {
-            drawScaledTexture(mx, sprites, explodeToggle, 0, 0, 20, 20, 120, 20);
+            drawScaledTexture(mx, sprites, explodeToggle, 0, 0, 20, 20, 140, 20);
         }
 
         // Layer change buttons
         if (singleLayer) {
-            drawScaledTexture(mx, sprites, layerSwap, 60, 0, 20, 20, 120, 20);
+            drawScaledTexture(mx, sprites, layerSwap, 60, 0, 20, 20, 140, 20);
         } else {
-            drawScaledTexture(mx, sprites, layerSwap, 40, 0, 20, 20, 120, 20);
+            drawScaledTexture(mx, sprites, layerSwap, 40, 0, 20, 20, 140, 20);
         }
 
         if (singleLayer) {
             if (singleLayerOffset < dims.getYsize() - 1)
-                drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 120, 20);
+                drawScaledTexture(mx, sprites, layerUp, 80, 0, 20, 20, 140, 20);
 
             if (singleLayerOffset > 0) {
-                drawScaledTexture(mx, sprites, layerDown, 100, 0, 20, 20, 120, 20);
+                drawScaledTexture(mx, sprites, layerDown, 100, 0, 20, 20, 140, 20);
             }
         }
+
+        drawScaledTexture(mx, sprites, bindPlate, 120, 0, 20, 20, 140, 20);
 
         mx.popPose();
     }
@@ -522,12 +522,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         }
 
         try {
-//            final RenderBuffers buffs = Minecraft.getInstance().renderBuffers();
-//            final BufferBuilder builder = buffs.fixedBufferPack().builder(RenderType.solid());
-//            builder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.BLOCK);
-//            blocks.renderBatched(state1, BlockPos.ZERO, this.previewLevel, mx, builder, false, this.previewLevel.random, data);
-//            builder.end();
-
             blocks.renderSingleBlock(state1,
                     mx,
                     buffers,

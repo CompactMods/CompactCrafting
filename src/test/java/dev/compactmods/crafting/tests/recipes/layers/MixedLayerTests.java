@@ -5,7 +5,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
@@ -112,7 +112,7 @@ public class MixedLayerTests {
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/medium_glass_walls_obsidian_center.json");
@@ -166,7 +166,7 @@ public class MixedLayerTests {
         // did not match.
         components.unregisterBlock("-");
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0));
 
         final var layer = getLayerFromFile(test, "layers/mixed/basic.json");
 
@@ -184,7 +184,7 @@ public class MixedLayerTests {
 
         final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/basic.json");
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0));
 
         final Map<String, IRecipeComponent> allComponents = components.getAllComponents();
         final int worldCompCount = allComponents.keySet().size();
@@ -208,7 +208,7 @@ public class MixedLayerTests {
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("Ob", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         final var layer = getLayerFromFile(test, "layers/mixed/medium_glass_walls_obsidian_center.json");
@@ -231,7 +231,7 @@ public class MixedLayerTests {
         test.setBlock(new BlockPos(1, 1, 1), Blocks.OBSIDIAN.defaultBlockState());
         test.setBlock(new BlockPos(2, 1, 2), Blocks.AIR.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/medium_glass_walls_obsidian_center.json");

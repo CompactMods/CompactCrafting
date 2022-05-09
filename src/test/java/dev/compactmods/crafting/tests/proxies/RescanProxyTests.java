@@ -2,7 +2,7 @@ package dev.compactmods.crafting.tests.proxies;
 
 import javax.annotation.Nonnull;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
@@ -68,7 +68,7 @@ public class RescanProxyTests {
 
         test.pulseRedstone(proxy.getBlockPos().below().north(), 15);
 
-        final LazyOptional<IMiniaturizationField> f = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
+        final LazyOptional<MiniaturizationField> f = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
 
         test.fail("wip");
 

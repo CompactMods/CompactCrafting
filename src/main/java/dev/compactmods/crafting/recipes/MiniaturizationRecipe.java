@@ -9,7 +9,7 @@ import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
@@ -136,7 +136,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      * @param fieldSize
      * @return
      */
-    public boolean fitsInFieldSize(MiniaturizationFieldSize fieldSize) {
+    public boolean fitsInFieldSize(FieldSize fieldSize) {
         int dim = fieldSize.getDimensions();
         return (dimensions.getXsize() <= dim) &&
                 (dimensions.getYsize() <= dim) &&
@@ -307,7 +307,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public boolean hasSpecifiedSize() {
-        return MiniaturizationFieldSize.canFitDimensions(this.recipeSize);
+        return FieldSize.canFitDimensions(this.recipeSize);
     }
 
     public int getRecipeSize() {
@@ -315,7 +315,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public void setRecipeSize(int size) {
-        if (!MiniaturizationFieldSize.canFitDimensions(size))
+        if (!FieldSize.canFitDimensions(size))
             return;
 
         this.recipeSize = size;

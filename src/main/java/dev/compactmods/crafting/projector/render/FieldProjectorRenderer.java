@@ -6,8 +6,8 @@ import com.mojang.math.Matrix3f;
 import com.mojang.math.Matrix4f;
 import com.mojang.math.Vector3f;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.*;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
@@ -41,7 +41,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
     private BakedModel bakedModelCached;
 
-    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
+    private LazyOptional<MiniaturizationField> field = LazyOptional.empty();
 
     public FieldProjectorRenderer(BlockEntityRendererProvider.Context ctx) {
 
@@ -58,7 +58,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             return field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
         }).orElseGet(() -> {
             BlockState state = tile.getBlockState();
-            final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+            final FieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
             final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
             return fieldSize.getBoundsAtPosition(center);
         });

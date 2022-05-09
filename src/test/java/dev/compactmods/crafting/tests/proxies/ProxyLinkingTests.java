@@ -1,8 +1,8 @@
 package dev.compactmods.crafting.tests.proxies;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
@@ -63,7 +63,7 @@ public class ProxyLinkingTests {
                 new BlockPos(4, 1, 4));
 
         proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
-                .ifPresent(IMiniaturizationField::fieldContentsChanged);
+                .ifPresent(MiniaturizationField::fieldContentsChanged);
     }
 
     @GameTest(template = "medium_field")
@@ -72,17 +72,17 @@ public class ProxyLinkingTests {
 
         MatchFieldProxyEntity proxy = setupProxyForMediumField(test);
 
-        final LazyOptional<IMiniaturizationField> fieldRef = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
+        final LazyOptional<MiniaturizationField> fieldRef = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
 
         // Ensure proxy is connected to field
         if (!fieldRef.isPresent())
             test.fail("Expected a field reference to be present.");
 
-        BlockPos relNorthProjector = MiniaturizationFieldSize.MEDIUM.getProjectorLocationForDirection(relFieldCenter, Direction.NORTH);
+        BlockPos relNorthProjector = FieldSize.MEDIUM.getProjectorLocationForDirection(relFieldCenter, Direction.NORTH);
         test.destroyBlock(relNorthProjector);
 
         test.runAfterDelay(5, () -> {
-            final LazyOptional<IMiniaturizationField> fieldPostBreak = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
+            final LazyOptional<MiniaturizationField> fieldPostBreak = proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD);
             if (fieldPostBreak.isPresent())
                 test.fail("Field capability instance is still available after the field destabilized.");
 
@@ -94,7 +94,7 @@ public class ProxyLinkingTests {
 
     @Nonnull
     private static MatchFieldProxyEntity setupProxyForMediumField(GameTestHelper test) {
-        var size = MiniaturizationFieldSize.MEDIUM;
+        var size = FieldSize.MEDIUM;
         var offset = size.getProjectorDistance();
 
         final BlockPos proxyLocation = new BlockPos(0, 3, 0);

@@ -22,5 +22,13 @@
   "tooltip.compactcrafting.proxy_unbind_hint": "Shift-use in the air to unbind from field.",
 
   "messages.compactcrafting.no_field_cap": "The block at %s does not have a field reference.",
-  "messages.compactcrafting.no_field_found": "The miniaturization field info could not be found."
+  "messages.compactcrafting.no_field_found": "The miniaturization field info could not be found.",
+
+  "compactcrafting.jei.toggle_exploded_view": "Exploded View",
+  "compactcrafting.jei.toggle_condensed_view": "Condensed View",
+  "compactcrafting.jei.all_layers_mode": "View All Layers",
+  "compactcrafting.jei.single_layer_mode": "Single Layer Mode",
+  "compactcrafting.jei.layer_up": "Layer Up",
+  "compactcrafting.jei.layer_down": "Layer Down",
+  "compactcrafting.jei.bind_plate": "Bind to Plate"
 }

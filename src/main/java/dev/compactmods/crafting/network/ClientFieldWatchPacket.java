@@ -1,34 +1,33 @@
 package dev.compactmods.crafting.network;
 
 import java.util.function.Supplier;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
-import dev.compactmods.crafting.field.MiniaturizationField;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
-public class ClientFieldWatchPacket {
+public record ClientFieldWatchPacket(FieldSize size, BlockPos center, CompoundTag clientData) {
 
-    private final IMiniaturizationField field;
-    private final CompoundTag clientData;
+    static final Codec<ClientFieldWatchPacket> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.STRING.xmap(FieldSize::valueOf, Enum::name)
+                    .fieldOf("size").forGetter(x -> x.size),
 
-    public ClientFieldWatchPacket(IMiniaturizationField field) {
-        this.field = field;
-        this.clientData = field.clientData();
-    }
+            BlockPos.CODEC.fieldOf("center").forGetter(x -> x.center),
 
-    public ClientFieldWatchPacket(FriendlyByteBuf buf) {
-        this.field = new MiniaturizationField();
-        this.clientData = buf.readAnySizeNbt();
-    }
+            CompoundTag.CODEC.fieldOf("clientData").forGetter(x -> x.clientData)
+    ).apply(i, ClientFieldWatchPacket::new));
 
     public static void encode(ClientFieldWatchPacket pkt, FriendlyByteBuf buf) {
-        buf.writeNbt(pkt.field.clientData());
+        buf.writeNbt(pkt.clientData());
     }
 
     public static boolean handle(ClientFieldWatchPacket pkt, Supplier<NetworkEvent.Context> context) {
-        ClientPacketHandler.handleFieldData(pkt.clientData);
+        ClientPacketHandler.fieldBeganWatching(pkt.size, pkt.center, pkt.clientData);
         return true;
     }
 }

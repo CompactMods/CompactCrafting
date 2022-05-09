@@ -8,7 +8,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.UnloadableField;
 import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
@@ -19,6 +20,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -34,8 +36,8 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
     /**
      * Holds a set of miniaturization fields that are active, referenced by their center point.
      */
-    private final HashMap<BlockPos, IMiniaturizationField> fields;
-    private final HashMap<BlockPos, LazyOptional<IMiniaturizationField>> laziness;
+    private final HashMap<BlockPos, MiniaturizationField> fields;
+    private final HashMap<BlockPos, LazyOptional<MiniaturizationField>> laziness;
 
     public ActiveWorldFields() {
         this.fields = new HashMap<>();
@@ -47,37 +49,34 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
         this.level = level;
     }
 
-
     @Override
     public void setLevel(Level level) {
         this.level = level;
     }
 
     @Override
-    public Stream<IMiniaturizationField> getFields() {
+    public Stream<MiniaturizationField> getFields() {
         return fields.values().stream();
     }
 
     public void tickFields() {
-        Set<IMiniaturizationField> loaded = fields.values().stream()
-                .filter(IMiniaturizationField::isLoaded)
+        Set<MiniaturizationField> loaded = fields.values().stream()
+                .filter(f -> (!(f instanceof UnloadableField uf) || uf.isLoaded()))
                 .collect(Collectors.toSet());
 
         if (loaded.isEmpty())
             return;
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
-        loaded.forEach(IMiniaturizationField::tick);
+        loaded.forEach(MiniaturizationField::tick);
     }
 
     @Override
-    public void addFieldInstance(IMiniaturizationField field) {
-        field.setLevel(level);
-
+    public void addFieldInstance(MiniaturizationField field) {
         BlockPos center = field.getCenter();
         fields.put(center, field);
 
-        LazyOptional<IMiniaturizationField> lazy = LazyOptional.of(() -> field);
+        LazyOptional<MiniaturizationField> lazy = LazyOptional.of(() -> field);
         laziness.put(center, lazy);
         field.setRef(lazy);
 
@@ -86,7 +85,7 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
         });
     }
 
-    public IMiniaturizationField registerField(IMiniaturizationField field) {
+    public MiniaturizationField registerField(MiniaturizationField field) {
         final Optional<BlockPos> anyMissing = ProjectorHelper
                 .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
                 .findFirst();
@@ -115,8 +114,8 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
 
     public void unregisterField(BlockPos center) {
         if (fields.containsKey(center)) {
-            IMiniaturizationField removedField = fields.remove(center);
-            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
+            MiniaturizationField removedField = fields.remove(center);
+            final LazyOptional<MiniaturizationField> removed = laziness.remove(center);
             removed.invalidate();
 
             if (!level.isClientSide && removedField != null) {
@@ -128,17 +127,17 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
         }
     }
 
-    public void unregisterField(IMiniaturizationField field) {
+    public void unregisterField(MiniaturizationField field) {
         BlockPos center = field.getCenter();
         unregisterField(center);
     }
 
-    public LazyOptional<IMiniaturizationField> getLazy(BlockPos center) {
+    public LazyOptional<MiniaturizationField> getLazy(BlockPos center) {
         return laziness.getOrDefault(center, LazyOptional.empty());
     }
 
     @Override
-    public Optional<IMiniaturizationField> get(BlockPos center) {
+    public Optional<MiniaturizationField> get(BlockPos center) {
         return Optional.ofNullable(fields.getOrDefault(center, null));
     }
 
@@ -148,7 +147,7 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
     }
 
     @Override
-    public Stream<IMiniaturizationField> getFields(ChunkPos chunk) {
+    public Stream<MiniaturizationField> getFields(ChunkPos chunk) {
         return fields.entrySet()
                 .stream()
                 .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
@@ -162,18 +161,24 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
 
     @Override
     public ListTag serializeNBT() {
-        return getFields()
-                .map(IMiniaturizationField::serverData)
-                .collect(NbtListCollector.toNbtList());
+        if(level instanceof ServerLevel) {
+            return getFields()
+                    .map(MiniaturizationField::serverData)
+                    .collect(NbtListCollector.toNbtList());
+        } else {
+            return new ListTag();
+        }
     }
 
     @Override
     public void deserializeNBT(ListTag nbt) {
-        nbt.forEach(item -> {
-            if (item instanceof CompoundTag ct) {
-                MiniaturizationField field = new MiniaturizationField(ct);
-                addFieldInstance(field);
-            }
-        });
+        if(level instanceof ServerLevel sl) {
+            nbt.forEach(item -> {
+                if (item instanceof CompoundTag ct) {
+                    ServerMiniaturizationField field = new ServerMiniaturizationField(sl, ct);
+                    addFieldInstance(field);
+                }
+            });
+        }
     }
 }

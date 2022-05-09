@@ -6,7 +6,7 @@ import mcjty.theoneprobe.api.ITheOneProbe;
 
 import java.util.function.Function;
 
-class TOPMain implements Function<Object, Void> {
+public class TOPMain implements Function<Object, Void> {
     static ITheOneProbe PROBE;
 
     @Override

@@ -1,13 +1,13 @@
 package dev.compactmods.crafting.network;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
-import dev.compactmods.crafting.field.MiniaturizationField;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -17,35 +17,37 @@ import net.minecraftforge.network.NetworkEvent;
 
 public class FieldActivatedPacket {
 
-    private IMiniaturizationField field;
+    private final BlockPos center;
+    private final FieldSize size;
 
     @Nullable
     protected CompoundTag clientData;
 
     protected static final Codec<FieldActivatedPacket> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, Enum::name)
-                    .fieldOf("size").forGetter(x -> x.field.getFieldSize()),
+            Codec.STRING.xmap(FieldSize::valueOf, Enum::name)
+                    .fieldOf("size").forGetter(x -> x.size),
 
-            BlockPos.CODEC.fieldOf("center").forGetter(x -> x.field.getCenter()),
+            BlockPos.CODEC.fieldOf("center").forGetter(x -> x.center),
 
             CompoundTag.CODEC.fieldOf("clientData").forGetter(x -> x.clientData)
     ).apply(i, FieldActivatedPacket::new));
 
-    public FieldActivatedPacket(IMiniaturizationField field) {
-        this.field = field;
+    public FieldActivatedPacket(MiniaturizationField field) {
+        this.size = field.getFieldSize();
+        this.center = field.getCenter();
         this.clientData = field.clientData();
     }
 
-    private FieldActivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos center, CompoundTag clientData) {
-        this.field = new MiniaturizationField();
-        field.setSize(fieldSize);
-        field.setCenter(center);
+    private FieldActivatedPacket(FieldSize fieldSize, BlockPos center, @Nonnull CompoundTag clientData) {
+        this.size = fieldSize;
+        this.center = center;
         this.clientData = clientData;
     }
 
     public FieldActivatedPacket(FriendlyByteBuf buf) {
         FieldActivatedPacket base = buf.readWithCodec(CODEC);
-        this.field = base.field;
+        this.center = base.center;
+        this.size = base.size;
         this.clientData = base.clientData;
     }
 
@@ -53,7 +55,7 @@ public class FieldActivatedPacket {
         NetworkEvent.Context ctx = context.get();
 
         ctx.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-            ClientPacketHandler.handleFieldActivation(message.field, message.clientData);
+            ClientPacketHandler.fieldActivatedNearby(message.size, message.center, message.clientData);
         }));
 
         ctx.setPacketHandled(true);

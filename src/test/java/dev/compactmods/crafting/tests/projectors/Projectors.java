@@ -4,8 +4,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
@@ -22,10 +22,10 @@ public class Projectors {
 
     @GameTest(template = "small_field")
     public static void CanPlaceProjector(final GameTestHelper test) {
-        final BlockPos fieldCenter = MiniaturizationFieldSize.SMALL.getOriginCenterFromCorner()
+        final BlockPos fieldCenter = FieldSize.SMALL.getOriginCenterFromCorner()
                 .above();
 
-        final Set<BlockState> locatedStates = MiniaturizationFieldSize.SMALL.getProjectorLocations(fieldCenter)
+        final Set<BlockState> locatedStates = FieldSize.SMALL.getProjectorLocations(fieldCenter)
                 .map(test::getBlockState)
                 .collect(Collectors.toSet());
 
@@ -51,7 +51,7 @@ public class Projectors {
         }
 
         final var anyProjectorOff = locatedStates.stream()
-                .filter(state -> state.getValue(FieldProjectorBlock.SIZE) != MiniaturizationFieldSize.SMALL)
+                .filter(state -> state.getValue(FieldProjectorBlock.SIZE) != FieldSize.SMALL)
                 .findAny();
 
         if (anyProjectorOff.isPresent()) {
@@ -64,7 +64,7 @@ public class Projectors {
 
     @GameTest(template = "small_field")
     public static void GeneratesFieldCapabilityInstance(final GameTestHelper test) {
-        final BlockPos center = test.absolutePos(MiniaturizationFieldSize.SMALL.getOriginCenterFromCorner().above());
+        final BlockPos center = test.absolutePos(FieldSize.SMALL.getOriginCenterFromCorner().above());
 
         final ServerLevel level = test.getLevel();
 
@@ -73,11 +73,11 @@ public class Projectors {
                 test.fail("Expected field instance to exist.");
 
             try {
-                final Optional<IMiniaturizationField> field = fields.get(center);
+                final Optional<MiniaturizationField> field = fields.get(center);
                 if (field.isEmpty())
                     test.fail("Expected a field instance.");
 
-                final IMiniaturizationField fieldInst = field.get();
+                final MiniaturizationField fieldInst = field.get();
                 if(!fieldInst.getCenter().equals(center))
                     test.fail("Field centers do not match.");
 
@@ -93,7 +93,7 @@ public class Projectors {
     public static void PlacingSingleActiveProjectorDeactivatesIt(final GameTestHelper test) {
         final BlockState stateSmall = CCBlocks.FIELD_PROJECTOR_BLOCK.get()
                 .defaultBlockState()
-                .setValue(FieldProjectorBlock.SIZE, MiniaturizationFieldSize.SMALL);
+                .setValue(FieldProjectorBlock.SIZE, FieldSize.SMALL);
 
         test.setBlock(new BlockPos(1, 1, 1), stateSmall.setValue(FieldProjectorBlock.FACING, Direction.NORTH));
         test.setBlock(new BlockPos(2, 1, 1), stateSmall.setValue(FieldProjectorBlock.FACING, Direction.SOUTH));

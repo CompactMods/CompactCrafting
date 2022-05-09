@@ -4,13 +4,12 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.*;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import dev.compactmods.crafting.api.field.IFieldListener;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.crafting.CraftingHelper;
 import dev.compactmods.crafting.events.WorldEventHandler;
@@ -51,9 +50,10 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.network.PacketDistributor;
 
-public class MiniaturizationField implements IMiniaturizationField {
+public class ServerMiniaturizationField implements MiniaturizationField, MiniaturizationRecipeHolder,
+        RedstoneField, UnloadableField {
 
-    private MiniaturizationFieldSize size;
+    private FieldSize size;
     private BlockPos center;
     private boolean loaded;
 
@@ -68,31 +68,28 @@ public class MiniaturizationField implements IMiniaturizationField {
     private EnumCraftingState craftingState;
     private long rescanTime;
 
-    private Level level;
+    private final ServerLevel level;
     private int craftingProgress = 0;
 
     private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
-    private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
+    private LazyOptional<dev.compactmods.crafting.api.field.MiniaturizationField> lazyReference = LazyOptional.empty();
     private boolean disabled = false;
 
     private static Disposable CHUNK_LISTENER;
 
-    public MiniaturizationField() {
-    }
-
-    private MiniaturizationField(MiniaturizationFieldSize size, BlockPos center) {
+    public ServerMiniaturizationField(ServerLevel level, FieldSize size, BlockPos center) {
+        this.level = level;
         this.center = center;
         this.size = size;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
-
         setupChunkListener();
     }
 
-    public MiniaturizationField(CompoundTag nbt) {
+    public ServerMiniaturizationField(ServerLevel level, CompoundTag nbt) {
+        this.level = level;
         this.craftingState = EnumCraftingState.valueOf(nbt.getString("state"));
-
         this.center = NbtUtils.readBlockPos(nbt.getCompound("center"));
-        this.size = MiniaturizationFieldSize.valueOf(nbt.getString("size"));
+        this.size = FieldSize.valueOf(nbt.getString("size"));
 
         setupChunkListener();
 
@@ -100,6 +97,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (nbt.contains("recipe")) {
             this.recipeId = new ResourceLocation(nbt.getString("recipe"));
             this.craftingProgress = nbt.getInt("progress");
+            this.getRecipeFromId();
         }
 
         if (nbt.contains("matchedBlocks")) {
@@ -131,11 +129,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             CHUNK_LISTENER.dispose();
     }
 
-    public static MiniaturizationField fromSizeAndCenter(MiniaturizationFieldSize fieldSize, BlockPos center) {
-        return new MiniaturizationField(fieldSize, center);
-    }
-
-    public MiniaturizationFieldSize getFieldSize() {
+    public FieldSize getFieldSize() {
         return this.size;
     }
 
@@ -144,28 +138,11 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setCenter(BlockPos center) {
-        this.center = center;
-    }
-
-    @Override
-    public void setSize(MiniaturizationFieldSize size) {
-        this.size = size;
-    }
-
-    @Override
     public int getProgress() {
         if (craftingState != EnumCraftingState.CRAFTING)
             return 0;
 
         return craftingProgress;
-    }
-
-    @Override
-    public void setLevel(Level level) {
-        this.level = level;
-
-        getRecipeFromId();
     }
 
     private void getRecipeFromId() {
@@ -229,6 +206,22 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     public Optional<IMiniaturizationRecipe> getCurrentRecipe() {
         return Optional.ofNullable(this.currentRecipe);
+    }
+
+    @Override
+    public CompoundTag clientData() {
+        var data = dev.compactmods.crafting.api.field.MiniaturizationField.super.clientData();
+
+        Optional<IMiniaturizationRecipe> currentRecipe = getCurrentRecipe();
+        currentRecipe.ifPresent(r -> {
+            CompoundTag recipe = new CompoundTag();
+            recipe.putString("id", r.getRecipeIdentifier().toString());
+            recipe.putInt("progress", getProgress());
+
+            data.put("recipe", recipe);
+        });
+
+        return data;
     }
 
     @Override
@@ -407,7 +400,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         }));
     }
 
-    @Override
     public void setCraftingState(EnumCraftingState state) {
         this.craftingState = state;
     }
@@ -424,6 +416,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         return loaded || level.isClientSide;
     }
 
+    @Override
     public void checkLoaded() {
         CompactCrafting.LOGGER.debug("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
@@ -541,15 +534,14 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public LazyOptional<IMiniaturizationField> getRef() {
+    public LazyOptional<dev.compactmods.crafting.api.field.MiniaturizationField> getRef() {
         return lazyReference;
     }
 
-    public void setRef(LazyOptional<IMiniaturizationField> lazyReference) {
+    public void setRef(LazyOptional<dev.compactmods.crafting.api.field.MiniaturizationField> lazyReference) {
         this.lazyReference = lazyReference;
     }
 
-    @Override
     public void disable() {
         this.disabled = true;
         if (this.craftingState != EnumCraftingState.NOT_MATCHED)
@@ -564,7 +556,6 @@ public class MiniaturizationField implements IMiniaturizationField {
                 PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(center)), update);
     }
 
-    @Override
     public void enable() {
         this.disabled = false;
         fieldContentsChanged();
@@ -591,12 +582,6 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public boolean enabled() {
-        return !this.disabled;
-    }
-
-
-    @Override
     public Tag serializeNBT() {
         CompoundTag fieldInfo = new CompoundTag();
         fieldInfo.put("center", NbtUtils.writeBlockPos(center));
@@ -614,7 +599,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void deserializeNBT(Tag nbt) {
         if (nbt instanceof CompoundTag fieldInfo) {
             this.center = NbtUtils.readBlockPos(fieldInfo.getCompound("center"));
-            this.size = MiniaturizationFieldSize.valueOf(fieldInfo.getString("size"));
+            this.size = FieldSize.valueOf(fieldInfo.getString("size"));
 
             if (fieldInfo.contains("craftingState")) {
                 this.craftingState = EnumCraftingState.valueOf(fieldInfo.getString("craftingState"));

@@ -2,7 +2,7 @@ package dev.compactmods.crafting.proxies.data;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.core.CCCapabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,7 +19,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
     @Nullable
     protected BlockPos fieldCenter;
 
-    protected LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
+    protected LazyOptional<MiniaturizationField> field = LazyOptional.empty();
 
     public BaseFieldProxyEntity(BlockEntityType<? extends BaseFieldProxyEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -55,7 +55,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
                 });
     }
 
-    protected void fieldChanged(LazyOptional<IMiniaturizationField> f) {
+    protected void fieldChanged(LazyOptional<MiniaturizationField> f) {
         this.field = f;
 
         // field invalidated somewhere

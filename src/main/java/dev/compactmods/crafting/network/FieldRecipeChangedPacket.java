@@ -2,7 +2,7 @@ package dev.compactmods.crafting.network;
 
 import javax.annotation.Nullable;
 import java.util.function.Supplier;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
@@ -17,7 +17,7 @@ public class FieldRecipeChangedPacket {
     @Nullable
     private final ResourceLocation recipe;
 
-    public FieldRecipeChangedPacket(IMiniaturizationField field) {
+    public FieldRecipeChangedPacket(MiniaturizationField field) {
         this.fieldCenter = field.getCenter();
         this.recipe = field.getCurrentRecipe().map(IMiniaturizationRecipe::getRecipeIdentifier).orElse(null);
     }

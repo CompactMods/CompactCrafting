@@ -3,7 +3,7 @@ package dev.compactmods.crafting.network;
 import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -14,16 +14,16 @@ import net.minecraftforge.network.NetworkEvent;
 public class FieldDeactivatedPacket {
 
     protected static final Codec<FieldDeactivatedPacket> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, Enum::name)
+            Codec.STRING.xmap(FieldSize::valueOf, Enum::name)
                     .fieldOf("size").forGetter(x -> x.fieldSize),
             BlockPos.CODEC.fieldOf("center").forGetter(x -> x.fieldCenter)
     ).apply(i, FieldDeactivatedPacket::new));
 
-    private final MiniaturizationFieldSize fieldSize;
+    private final FieldSize fieldSize;
     private final BlockPos fieldCenter;
     private final BlockPos[] projectors;
 
-    public FieldDeactivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos fieldCenter) {
+    public FieldDeactivatedPacket(FieldSize fieldSize, BlockPos fieldCenter) {
         this.fieldSize = fieldSize;
         this.fieldCenter = fieldCenter;
 

@@ -3,7 +3,7 @@ package dev.compactmods.crafting.proxies.data;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.api.field.IFieldListener;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.listener.MatchModeProxyFieldListener;
@@ -21,7 +21,7 @@ public class MatchFieldProxyEntity extends BaseFieldProxyEntity {
     }
 
     @Override
-    protected void fieldChanged(LazyOptional<IMiniaturizationField> f) {
+    protected void fieldChanged(LazyOptional<MiniaturizationField> f) {
         super.fieldChanged(f);
 
         MatchModeProxyFieldListener listener = new MatchModeProxyFieldListener(level, worldPosition);

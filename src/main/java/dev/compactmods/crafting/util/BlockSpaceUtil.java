@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
@@ -13,7 +13,7 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class BlockSpaceUtil {
 
-    public static AABB getLayerBounds(MiniaturizationFieldSize fieldSize, int layerOffset) {
+    public static AABB getLayerBounds(FieldSize fieldSize, int layerOffset) {
         AABB fieldBounds = fieldSize.getBoundsAtOrigin();
         return getLayerBounds(fieldBounds, layerOffset);
     }
@@ -66,7 +66,7 @@ public abstract class BlockSpaceUtil {
         return true;
     }
 
-    public static Stream<BlockPos> getBlocksIn(MiniaturizationFieldSize fieldSize, int layerOffset) {
+    public static Stream<BlockPos> getBlocksIn(FieldSize fieldSize, int layerOffset) {
         AABB layerBounds = getLayerBounds(fieldSize, layerOffset);
         return getBlocksIn(layerBounds);
     }
@@ -207,7 +207,7 @@ public abstract class BlockSpaceUtil {
         return positions.stream();
     }
 
-    public static Stream<BlockPos> getCornersOfBounds(MiniaturizationFieldSize fieldSize) {
+    public static Stream<BlockPos> getCornersOfBounds(FieldSize fieldSize) {
         return getCornersOfBounds(fieldSize.getBoundsAtOrigin());
     }
 }

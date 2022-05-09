@@ -2,7 +2,7 @@ package dev.compactmods.crafting.proxies.listener;
 
 import javax.annotation.Nullable;
 import dev.compactmods.crafting.api.field.IFieldListener;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.proxies.block.FieldProxyBlock;
 import net.minecraft.core.BlockPos;
@@ -21,7 +21,7 @@ public class MatchModeProxyFieldListener implements IFieldListener {
     }
 
     @Override
-    public void onRecipeChanged(IMiniaturizationField field, @Nullable IMiniaturizationRecipe recipe) {
+    public void onRecipeChanged(MiniaturizationField field, @Nullable IMiniaturizationRecipe recipe) {
         if (level != null) {
             BlockState currentState = level.getBlockState(location);
             if (currentState.getBlock() instanceof FieldProxyBlock) {

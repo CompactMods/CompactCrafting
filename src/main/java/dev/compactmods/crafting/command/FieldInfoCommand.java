@@ -4,7 +4,7 @@ import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.core.CCCapabilities;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -68,7 +68,7 @@ public class FieldInfoCommand {
         return 0;
     }
 
-    private static void outputStdFieldInfo(CommandSourceStack src, IMiniaturizationField field) {
+    private static void outputStdFieldInfo(CommandSourceStack src, MiniaturizationField field) {
         src.sendSuccess(new TextComponent("Center: " + field.getCenter().toString()), false);
         src.sendSuccess(new TextComponent("Size: " + field.getFieldSize().getName()), false);
         field.getCurrentRecipe().ifPresent(rec -> {

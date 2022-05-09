@@ -4,9 +4,11 @@ import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationRecipeHolder;
 import dev.compactmods.crafting.core.CCCapabilities;
-import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.client.ClientMiniaturizationField;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import net.minecraft.client.Minecraft;
@@ -14,20 +16,17 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class ClientPacketHandler {
 
-    public static void handleFieldActivation(IMiniaturizationField field, CompoundTag fieldClientData) {
+    public static void fieldActivatedNearby(FieldSize size, BlockPos center, CompoundTag fieldClientData) {
         Minecraft mc = Minecraft.getInstance();
         mc.submitAsync(() -> {
             ClientLevel cw = mc.level;
             if (cw == null)
                 return;
 
-            field.setLevel(cw);
-            field.loadClientData(fieldClientData);
-
+            ClientMiniaturizationField field = new ClientMiniaturizationField(cw, size, center, fieldClientData);
             mc.level.getCapability(CCCapabilities.FIELDS)
                     .ifPresent(fields -> fields.registerField(field));
         });
@@ -38,7 +37,7 @@ public abstract class ClientPacketHandler {
         mc.submitAsync(() -> {
             ClientLevel cw = mc.level;
             cw.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-                fields.get(center).map(IMiniaturizationField::getProjectorPositions)
+                fields.get(center).map(MiniaturizationField::getProjectorPositions)
                         .orElse(Stream.empty())
                         .forEach(proj -> FieldProjectorBlock.deactivateProjector(cw, proj));
 
@@ -47,29 +46,25 @@ public abstract class ClientPacketHandler {
         });
     }
 
-    public static void handleFieldData(CompoundTag fieldData) {
+    public static void fieldBeganWatching(FieldSize size, BlockPos center, CompoundTag fieldData) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null)
             return;
-
-        MiniaturizationField field = new MiniaturizationField();
-        field.setLevel(mc.level);
-        field.loadClientData(fieldData);
+        ClientMiniaturizationField field = new ClientMiniaturizationField(mc.level, size, center, fieldData);
 
         mc.level.getCapability(CCCapabilities.FIELDS)
                 .ifPresent(fields -> {
                     fields.setLevel(mc.level);
+
                     CompactCrafting.LOGGER.debug("Registering field on client");
-                    final IMiniaturizationField fieldRegistered = fields.registerField(field);
+                    final MiniaturizationField fieldRegistered = fields.registerField(field);
 
                     CompactCrafting.LOGGER.debug("Setting field references");
-
                     field.getProjectorPositions()
                             .map(mc.level::getBlockEntity)
                             .map(tile -> (FieldProjectorEntity) tile)
                             .filter(Objects::nonNull)
                             .forEach(tile -> {
-                                final BlockState state = tile.getBlockState();
                                 tile.setFieldRef(fieldRegistered.getRef());
                             });
                 });
@@ -91,6 +86,9 @@ public abstract class ClientPacketHandler {
 
         mc.level.getCapability(CCCapabilities.FIELDS)
                 .lazyMap(af -> af.get(center))
-                .ifPresent(field -> field.ifPresent(f -> f.setRecipe(recipe)));
+                .ifPresent(field -> field.ifPresent(f -> {
+                    if(f instanceof MiniaturizationRecipeHolder mf)
+                        mf.setRecipe(recipe);
+                }));
     }
 }

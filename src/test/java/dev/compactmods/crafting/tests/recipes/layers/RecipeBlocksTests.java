@@ -2,7 +2,7 @@ package dev.compactmods.crafting.tests.recipes.layers;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
@@ -26,7 +26,7 @@ public class RecipeBlocksTests {
     public static void CanCreateBlocksInstance(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test));
 
         final int compCount = blocks.getNumberKnownComponents();
 
@@ -40,7 +40,7 @@ public class RecipeBlocksTests {
     public static void CanRebuildTotals(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test));
 
         try {
             blocks.rebuildComponentTotals();
@@ -54,10 +54,10 @@ public class RecipeBlocksTests {
     public static void CanSlice(final GameTestHelper helper) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(helper, "ender_crystal").orElse(null);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, helper))
                 .normalize();
 
-        final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0))
+        final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0))
                 .normalize();
 
         final Optional<String> c0 = slice.getComponentAtPosition(BlockPos.ZERO);
@@ -88,7 +88,7 @@ public class RecipeBlocksTests {
     public static void CanSliceAndOffset(final GameTestHelper test) {
         IRecipeComponents components = RecipeTestUtil.getComponentsFromRecipe(test, "ender_crystal").orElseThrow();
 
-        final var fieldBounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var fieldBounds = RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test);
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, fieldBounds);
 
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(fieldBounds, 2)).normalize();
@@ -122,11 +122,11 @@ public class RecipeBlocksTests {
         if (2 != keys.size())
             test.fail("Expected exactly 2 registered block components.");
 
-        final var bounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var bounds = RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test);
         final var blocks1 = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         final IRecipeBlocks blocks = blocks1.normalize()
-                .slice(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 2))
+                .slice(BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 2))
                 .normalize();
 
         final Set<BlockPos> unknownSet = blocks.getUnmappedPositions()

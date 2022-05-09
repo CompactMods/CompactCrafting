@@ -14,7 +14,7 @@ public interface IActiveWorldFields extends INBTSerializable<ListTag> {
 
     void setLevel(Level level);
 
-    Stream<IMiniaturizationField> getFields();
+    Stream<MiniaturizationField> getFields();
 
     void tickFields();
 
@@ -22,19 +22,19 @@ public interface IActiveWorldFields extends INBTSerializable<ListTag> {
      * Adds a field instance. This is typically called during world load; use this safely.
      * @param field The field to register.
      */
-    default void addFieldInstance(IMiniaturizationField field) {}
-    IMiniaturizationField registerField(IMiniaturizationField field);
+    default void addFieldInstance(MiniaturizationField field) {}
+    MiniaturizationField registerField(MiniaturizationField field);
 
     void unregisterField(BlockPos center);
-    void unregisterField(IMiniaturizationField field);
+    void unregisterField(MiniaturizationField field);
 
-    Optional<IMiniaturizationField> get(BlockPos center);
+    Optional<MiniaturizationField> get(BlockPos center);
 
-    LazyOptional<IMiniaturizationField> getLazy(BlockPos center);
+    LazyOptional<MiniaturizationField> getLazy(BlockPos center);
 
     boolean hasActiveField(BlockPos center);
 
-    Stream<IMiniaturizationField> getFields(ChunkPos chunk);
+    Stream<MiniaturizationField> getFields(ChunkPos chunk);
 
     ResourceKey<Level> getLevel();
 }

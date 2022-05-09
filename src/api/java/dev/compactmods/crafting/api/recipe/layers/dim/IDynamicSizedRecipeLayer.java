@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.api.recipe.layers.dim;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import net.minecraft.world.phys.AABB;
 
 public interface IDynamicSizedRecipeLayer {
@@ -10,7 +10,7 @@ public interface IDynamicSizedRecipeLayer {
      */
     void setRecipeDimensions(AABB dimensions);
 
-    default void setRecipeDimensions(MiniaturizationFieldSize fieldSize) {
+    default void setRecipeDimensions(FieldSize fieldSize) {
         int dim = fieldSize.getDimensions();
         AABB aabb = new AABB(0, 0, 0, dim, 1, dim);
         setRecipeDimensions(aabb);

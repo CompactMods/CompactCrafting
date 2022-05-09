@@ -5,9 +5,7 @@ import java.util.Optional;
 import java.util.Set;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
@@ -18,9 +16,6 @@ import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -28,7 +23,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.EmptyModelData;
 
 public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
@@ -128,7 +122,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
         remainingProjectors.clear();
 
         final Direction initialFacing = FieldProjectorBlock.getDirection(level, initial).orElse(Direction.UP);
-        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestSize(level, initial, initialFacing);
+        Optional<FieldSize> fieldSize = ProjectorHelper.getClosestSize(level, initial, initialFacing);
 
         if (fieldSize.isPresent()) {
             final BlockPos center = fieldSize.get().getCenterFromProjector(initial, initialFacing);

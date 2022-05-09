@@ -4,7 +4,7 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
@@ -64,7 +64,7 @@ public class FilledLayerTests {
 
         int filledBefore = layer.getNumberFilledPositions();
 
-        GameTestAssertions.assertDoesNotThrow(() -> layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM));
+        GameTestAssertions.assertDoesNotThrow(() -> layer.setRecipeDimensions(FieldSize.MEDIUM));
 
         int filledAfter = layer.getNumberFilledPositions();
 
@@ -77,11 +77,11 @@ public class FilledLayerTests {
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void ComponentPositionsAreCorrect(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         GameTestAssertions.assertEquals(25, layer.getNumberFilledPositions());
 
-        final Set<BlockPos> expected = BlockSpaceUtil.getBlocksIn(MiniaturizationFieldSize.MEDIUM, 0)
+        final Set<BlockPos> expected = BlockSpaceUtil.getBlocksIn(FieldSize.MEDIUM, 0)
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
@@ -96,7 +96,7 @@ public class FilledLayerTests {
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanFetchComponentByPosition(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         final Optional<String> componentForPosition = layer.getComponentForPosition(BlockPos.ZERO);
         GameTestAssertions.assertTrue(componentForPosition.isPresent());
@@ -110,7 +110,7 @@ public class FilledLayerTests {
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void oob_position_returns_empty(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         // Y = 1 should never happen, in any layer, ever
         final Optional<String> componentForPosition = layer.getComponentForPosition(BlockPos.ZERO.above());
@@ -124,7 +124,7 @@ public class FilledLayerTests {
     @GameTest(template = "empty_medium")
     public static void FilledFailsMatchWithEmptyBlockList(final GameTestHelper test) {
         final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
@@ -142,12 +142,12 @@ public class FilledLayerTests {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test);
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         try {
             boolean matched = layer.matches(components, blocks);
@@ -170,11 +170,11 @@ public class FilledLayerTests {
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
         components.registerBlock("I", new BlockComponent(Blocks.IRON_BLOCK));
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
         if(matched)
@@ -190,11 +190,11 @@ public class FilledLayerTests {
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0));
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
         if(matched)
@@ -214,12 +214,12 @@ public class FilledLayerTests {
         */
         components.registerBlock("Gl", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test);
         final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
         if (matched)

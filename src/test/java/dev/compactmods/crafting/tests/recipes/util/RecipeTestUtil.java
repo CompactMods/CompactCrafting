@@ -5,9 +5,8 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
@@ -50,13 +49,13 @@ public class RecipeTestUtil {
         return getRecipeByName(helper, name).map(MiniaturizationRecipe::getComponents);
     }
 
-    public static AABB getFieldBounds(MiniaturizationFieldSize fieldSize, GameTestHelper helper) {
+    public static AABB getFieldBounds(FieldSize fieldSize, GameTestHelper helper) {
         var testOrigin = helper.absolutePos(BlockPos.ZERO).above();
         var bounds = fieldSize.getBoundsAtOrigin(testOrigin.getY());
         return bounds.move(testOrigin.getX(), 0, testOrigin.getZ());
     }
 
-    public static AABB getFloorLayerBounds(MiniaturizationFieldSize fieldSize, GameTestHelper helper) {
+    public static AABB getFloorLayerBounds(FieldSize fieldSize, GameTestHelper helper) {
         return BlockSpaceUtil.getLayerBounds(getFieldBounds(fieldSize, helper), 0);
     }
 

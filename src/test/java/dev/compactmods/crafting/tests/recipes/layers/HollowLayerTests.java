@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.tests.recipes.layers;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
@@ -40,8 +40,8 @@ public class HollowLayerTests {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
         GameTestAssertions.assertNotNull(layer);
 
-        HashMap<MiniaturizationFieldSize, Integer> counts = new HashMap<>();
-        for (MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
+        HashMap<FieldSize, Integer> counts = new HashMap<>();
+        for (FieldSize size : FieldSize.VALID_SIZES) {
             int all = (int) Math.pow(size.getDimensions(), 2);
             int inner = (int) Math.pow(size.getDimensions() - 2, 2);
 
@@ -67,7 +67,7 @@ public class HollowLayerTests {
         GameTestAssertions.assertNotNull(layer);
 
         // Make sure we can set a layer size for the initialization check below
-        layer.setRecipeDimensions(MiniaturizationFieldSize.SMALL);
+        layer.setRecipeDimensions(FieldSize.SMALL);
 
         // A wall position should match the layer's component key
         final Optional<String> comp = layer.getComponentForPosition(BlockPos.ZERO);
@@ -95,7 +95,7 @@ public class HollowLayerTests {
         GameTestAssertions.assertNotNull(layer);
 
         // Make sure we can set a layer size for the initialization check below
-        layer.setRecipeDimensions(MiniaturizationFieldSize.SMALL);
+        layer.setRecipeDimensions(FieldSize.SMALL);
 
         final Stream<BlockPos> list = layer.getPositionsForComponent("A");
         GameTestAssertions.assertNotNull(list);
@@ -104,7 +104,7 @@ public class HollowLayerTests {
 
         GameTestAssertions.assertEquals(8, positionSet.size());
 
-        final Set<BlockPos> wallPositions = BlockSpaceUtil.getWallPositions(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.SMALL, 0))
+        final Set<BlockPos> wallPositions = BlockSpaceUtil.getWallPositions(BlockSpaceUtil.getLayerBounds(FieldSize.SMALL, 0))
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
@@ -122,12 +122,12 @@ public class HollowLayerTests {
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("-", new EmptyBlockComponent());
 
-        final AABB bounds = BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0).move(zeroPoint);
+        final AABB bounds = BlockSpaceUtil.getLayerBounds(FieldSize.MEDIUM, 0).move(zeroPoint);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("G");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         final var result = layer.matches(components, blocks);
 
@@ -142,12 +142,12 @@ public class HollowLayerTests {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, helper);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
 
@@ -162,12 +162,12 @@ public class HollowLayerTests {
     public static void HollowFailsIfAnyComponentsUnidentified(final GameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, helper);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         boolean matched = layer.matches(components, blocks);
 
@@ -187,11 +187,11 @@ public class HollowLayerTests {
 
         test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         final boolean matches = layer.matches(components, blocks);
 
@@ -210,11 +210,11 @@ public class HollowLayerTests {
         // since otherwise, the center block will be unmatched
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("W");
-        layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
+        layer.setRecipeDimensions(FieldSize.MEDIUM);
 
         final boolean matches = layer.matches(components, blocks);
 

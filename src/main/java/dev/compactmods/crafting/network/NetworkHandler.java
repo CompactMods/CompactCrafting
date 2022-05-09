@@ -7,7 +7,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public class NetworkHandler {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
     public static final SimpleChannel MAIN_CHANNEL = NetworkRegistry.newSimpleChannel(
             new ResourceLocation(CompactCrafting.MOD_ID, "main"),
             () -> PROTOCOL_VERSION,
@@ -30,7 +30,7 @@ public class NetworkHandler {
 
         MAIN_CHANNEL.messageBuilder(ClientFieldWatchPacket.class, 3, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientFieldWatchPacket::encode)
-                .decoder(ClientFieldWatchPacket::new)
+                .decoder(b -> b.readWithCodec(ClientFieldWatchPacket.CODEC))
                 .consumer(ClientFieldWatchPacket::handle)
                 .add();
 
@@ -44,6 +44,12 @@ public class NetworkHandler {
                 .encoder(FieldRecipeChangedPacket::encode)
                 .decoder(FieldRecipeChangedPacket::new)
                 .consumer(FieldRecipeChangedPacket::handle)
+                .add();
+
+        MAIN_CHANNEL.messageBuilder(BindToPlatePacket.class, 6, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(BindToPlatePacket::encode)
+                .decoder(BindToPlatePacket::decode)
+                .consumer(BindToPlatePacket::handle)
                 .add();
     }
 }

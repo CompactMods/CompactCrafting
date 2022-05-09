@@ -2,6 +2,8 @@ package dev.compactmods.crafting.events;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.UnloadableField;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.network.ClientFieldUnwatchPacket;
 import dev.compactmods.crafting.network.ClientFieldWatchPacket;
@@ -37,10 +39,10 @@ public class WorldEventHandler {
                     .resolve()
                     .ifPresent(fields -> {
                         fields.setLevel(level);
-                        fields.getFields().forEach(f -> {
-                            f.setLevel(level);
-                            f.checkLoaded();
-                        });
+                        fields.getFields()
+                                .filter(UnloadableField.class::isInstance)
+                                .map(UnloadableField.class::cast)
+                                .forEach(UnloadableField::checkLoaded);
                     });
         }
     }
@@ -63,7 +65,7 @@ public class WorldEventHandler {
                 .map(f -> f.getFields(pos))
                 .ifPresent(activeFields -> {
                     activeFields.forEach(field -> {
-                        ClientFieldWatchPacket pkt = new ClientFieldWatchPacket(field);
+                        ClientFieldWatchPacket pkt = new ClientFieldWatchPacket(field.getFieldSize(), field.getCenter(), field.clientData());
 
                         NetworkHandler.MAIN_CHANNEL.send(
                                 PacketDistributor.PLAYER.with(() -> player),

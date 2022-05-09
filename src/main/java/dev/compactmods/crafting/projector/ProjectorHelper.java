@@ -3,7 +3,7 @@ package dev.compactmods.crafting.projector;
 import javax.annotation.Nonnull;
 import java.util.Optional;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.util.DirectionUtil;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.Direction;
@@ -14,15 +14,15 @@ import net.minecraft.world.level.BlockGetter;
  * Contains utility methods for working with a set of projectors in a given space.
  */
 public abstract class ProjectorHelper {
-    public static Optional<MiniaturizationFieldSize> getClosestSize(BlockGetter level, BlockPos initial, Direction facing) {
-        final Optional<MiniaturizationFieldSize> opposing = getClosestOppositeSize(level, initial, facing);
+    public static Optional<FieldSize> getClosestSize(BlockGetter level, BlockPos initial, Direction facing) {
+        final Optional<FieldSize> opposing = getClosestOppositeSize(level, initial, facing);
         if(opposing.isPresent()) return opposing;
 
         return getSmallestCrossAxisSize(level, initial, facing);
     }
 
-    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(BlockGetter level, BlockPos initial, Direction facing) {
-        return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
+    public static Optional<FieldSize> getClosestOppositeSize(BlockGetter level, BlockPos initial, Direction facing) {
+        return Stream.of(FieldSize.VALID_SIZES)
                 .filter(size -> {
                     BlockPos oppPos = size.getOppositeProjectorPosition(initial, facing);
                     BlockState oppState = level.getBlockState(oppPos);
@@ -36,8 +36,8 @@ public abstract class ProjectorHelper {
                 .findFirst();
     }
 
-    public static Optional<MiniaturizationFieldSize> getClosestOppositeSize(BlockGetter world, BlockPos initial) {
-        for (MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
+    public static Optional<FieldSize> getClosestOppositeSize(BlockGetter world, BlockPos initial) {
+        for (FieldSize size : FieldSize.VALID_SIZES) {
             if (hasProjectorOpposite(world, initial, size)) {
                 return Optional.of(size);
             }
@@ -57,7 +57,7 @@ public abstract class ProjectorHelper {
      *
      * @return True if there is an opposing projector facing the same center as the initial position.
      */
-    public static boolean hasProjectorOpposite(BlockGetter world, BlockPos initial, MiniaturizationFieldSize size) {
+    public static boolean hasProjectorOpposite(BlockGetter world, BlockPos initial, FieldSize size) {
         Optional<Direction> initialFacing = FieldProjectorBlock.getDirection(world, initial);
 
         // Initial wasn't a valid field projector, can't get direction to look in
@@ -79,11 +79,11 @@ public abstract class ProjectorHelper {
     }
 
     public static Stream<BlockPos> getValidOppositePositions(BlockPos initial, Direction facing) {
-        return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
+        return Stream.of(FieldSize.VALID_SIZES)
                 .map(s -> s.getOppositeProjectorPosition(initial, facing));
     }
 
-    public static boolean hasValidCrossProjector(BlockGetter world, BlockPos initialProjector, Direction projectorFacing, MiniaturizationFieldSize size) {
+    public static boolean hasValidCrossProjector(BlockGetter world, BlockPos initialProjector, Direction projectorFacing, FieldSize size) {
         Direction.Axis crossAxis = DirectionUtil.getCrossDirectionAxis(projectorFacing.getAxis());
 
         // Filter by at least one valid cross-axis projector
@@ -108,23 +108,23 @@ public abstract class ProjectorHelper {
     }
 
     public static Stream<BlockPos> getMissingProjectors(BlockGetter level, BlockPos initialProjector, Direction projectorFacing) {
-        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestOppositeSize(level, initialProjector);
+        Optional<FieldSize> fieldSize = ProjectorHelper.getClosestOppositeSize(level, initialProjector);
 
         // If we have a field size, an opposing projector was found
         // Just show particles where to place the two projectors on the cross axis
         if (fieldSize.isPresent()) {
-            MiniaturizationFieldSize size = fieldSize.get();
+            FieldSize size = fieldSize.get();
             BlockPos center = size.getCenterFromProjector(initialProjector, projectorFacing);
 
             return getMissingProjectors(level, size, center);
         } else {
             // No opposing projector to limit field size.
             // Scan for a cross-axis projector to try to limit.
-            Optional<MiniaturizationFieldSize> firstMatchedSize = getSmallestCrossAxisSize(level, initialProjector, projectorFacing);
+            Optional<FieldSize> firstMatchedSize = getSmallestCrossAxisSize(level, initialProjector, projectorFacing);
 
             if (firstMatchedSize.isPresent()) {
                 // One of the projectors on the cross axis were valid
-                MiniaturizationFieldSize matchedSize = firstMatchedSize.get();
+                FieldSize matchedSize = firstMatchedSize.get();
 
                 BlockPos matchedCenter = matchedSize.getCenterFromProjector(initialProjector, projectorFacing);
                 return ProjectorHelper.getMissingProjectors(level, matchedSize, matchedCenter);
@@ -136,20 +136,20 @@ public abstract class ProjectorHelper {
     }
 
     @Nonnull
-    private static Optional<MiniaturizationFieldSize> getSmallestCrossAxisSize(BlockGetter level, BlockPos initial, Direction facing) {
-        return Stream.of(MiniaturizationFieldSize.VALID_SIZES)
+    private static Optional<FieldSize> getSmallestCrossAxisSize(BlockGetter level, BlockPos initial, Direction facing) {
+        return Stream.of(FieldSize.VALID_SIZES)
                 .filter(size -> hasValidCrossProjector(level, initial, facing, size))
                 .findFirst();
     }
 
     @Nonnull
-    public static Stream<BlockPos> getMissingProjectors(BlockGetter level, MiniaturizationFieldSize size, BlockPos center) {
+    public static Stream<BlockPos> getMissingProjectors(BlockGetter level, FieldSize size, BlockPos center) {
         return size.getProjectorLocations(center)
                 // inverted filter - if the projector doesn't point to the center or isn't a projector, add to list
                 .filter(proj -> !projectorFacesCenter(level, proj, center, size));
     }
 
-    public static boolean projectorFacesCenter(BlockGetter world, BlockPos proj, BlockPos actualCenter, MiniaturizationFieldSize size) {
+    public static boolean projectorFacesCenter(BlockGetter world, BlockPos proj, BlockPos actualCenter, FieldSize size) {
         return FieldProjectorBlock.getDirection(world, proj)
                 .map(projFacing -> size.getCenterFromProjector(proj, projFacing).equals(actualCenter))
                 .orElse(false);

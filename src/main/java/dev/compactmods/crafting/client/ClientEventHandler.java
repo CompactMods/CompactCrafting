@@ -1,11 +1,12 @@
 package dev.compactmods.crafting.client;
 
 import javax.annotation.Nonnull;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.field.ProjectorRenderStyle;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.core.CCCapabilities;
@@ -34,7 +35,7 @@ public class ClientEventHandler {
         if (evt.phase != TickEvent.Phase.START) return;
 
         final LocalPlayer player = Minecraft.getInstance().player;
-        if(player != null) {
+        if (player != null) {
             player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
                     .ifPresent(IProjectorRenderInfo::tick);
         }
@@ -70,7 +71,7 @@ public class ClientEventHandler {
                             .filter(field -> Vec3.atCenterOf(field.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))
                             .filter(field -> field.getCraftingState() == EnumCraftingState.CRAFTING)
                             .filter(field -> field.getCurrentRecipe().isPresent())
-                            .filter(IMiniaturizationField::enabled)
+                            .filter(field -> !(field instanceof ProjectorRenderStyle rcf) || rcf.enabled())
                             .forEach(field -> {
                                 BlockPos center = field.getCenter();
 
@@ -79,17 +80,13 @@ public class ClientEventHandler {
                                 Vec3 projectedView = mainCamera.getPosition();
                                 stack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
 
-                                stack.translate(
-                                        (double) center.getX(),
-                                        (double) center.getY(),
-                                        (double) center.getZ()
-                                );
+                                stack.translate(center.getX(), center.getY(), center.getZ());
 
                                 final IMiniaturizationRecipe rec = field.getCurrentRecipe().get();
-                                final int prog = field.getProgress();
+                                final int craftingProgress = field.getProgress();
 
                                 CraftingPreviewRenderer.render(
-                                        rec, prog, stack,
+                                        rec, craftingProgress, stack,
                                         buffers, LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY
                                 );
 

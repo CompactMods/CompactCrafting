@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
@@ -41,7 +41,7 @@ public class RecipeLayerUtilTests {
                 .map(MiniaturizationRecipe::getComponents)
                 .orElse(null);
 
-        final var floorBounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var floorBounds = RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test);
         final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, floorBounds);
 
         final IRecipeBlocks rotatedClockwise = RecipeLayerUtil.rotate(blocks, Rotation.CLOCKWISE_90);
@@ -66,7 +66,7 @@ public class RecipeLayerUtilTests {
                 .map(MiniaturizationRecipe::getComponents)
                 .orElse(null);
 
-        final var blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test));
+        final var blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(FieldSize.MEDIUM, test));
 
         final var rotatedHarness = RecipeLayerUtil.rotate(blocks, Rotation.NONE);
 

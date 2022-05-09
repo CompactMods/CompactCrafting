@@ -1,24 +1,26 @@
 package dev.compactmods.crafting.compat.theoneprobe.providers;
 
-import java.util.Set;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.field.capability.CapabilityMiniaturizationField;
-import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorTile;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.crafting.core.CCCapabilities;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import mcjty.theoneprobe.api.*;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+
+import java.util.Set;
 
 public class FieldProjectorProvider implements IProbeInfoProvider {
+
     @Override
-    public String getID() {
-        return CompactCrafting.MOD_ID + "_projector";
+    public ResourceLocation getID() {
+        return new ResourceLocation(CompactCrafting.MOD_ID, "field_projector");
     }
 
     @Override
@@ -28,11 +30,11 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
 
         // add info from server
         if (FieldProjectorBlock.isActive(state)) {
-            FieldProjectorTile tile = (FieldProjectorTile) level.getBlockEntity(hitData.getPos());
+            FieldProjectorEntity tile = (FieldProjectorEntity) level.getBlockEntity(hitData.getPos());
             if (tile == null)
                 return;
 
-            tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
+            tile.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
                     .ifPresent(field -> {
                         IMiniaturizationRecipe recipe = field.getCurrentRecipe().orElse(null);
 
@@ -46,7 +48,7 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
 
                         // group.text(new TranslationTextComponent(CompactCrafting.MOD_ID + ".top.current_recipe"));
 
-                        if(recipe != null) {
+                        if (recipe != null) {
                             int progress = field.getProgress();
 
                             final Set<ItemStack> possible = recipe.getCatalyst().getPossible();
@@ -84,7 +86,7 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
                                         .text(new TranslatableComponent(CompactCrafting.MOD_ID + ".top.awaiting_catalyst"));
 
                             } else {
-                                if(mode == ProbeMode.EXTENDED) {
+                                if (mode == ProbeMode.EXTENDED) {
                                     recipeProgress
                                             .text(new TranslatableComponent(CompactCrafting.MOD_ID + ".top.progress", progress, recipe.getCraftingTime()));
                                 }

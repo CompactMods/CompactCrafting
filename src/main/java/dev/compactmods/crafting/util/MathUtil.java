@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.util;
 
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 
 public class MathUtil {
-    public static double calculateFieldScale(IMiniaturizationField field) {
+    public static double calculateFieldScale(MiniaturizationField field) {
         double requiredTime = field.getCurrentRecipe().map(IMiniaturizationRecipe::getCraftingTime).orElse(1);
         return calculateFieldScale(field.getProgress(), requiredTime);
     }

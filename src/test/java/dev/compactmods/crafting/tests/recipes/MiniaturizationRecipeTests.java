@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.tests.recipes;
 
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
@@ -160,20 +160,20 @@ public class MiniaturizationRecipeTests {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Objects.requireNonNull(enderCrystal);
 
-        MiniaturizationFieldSize[] badSizes = new MiniaturizationFieldSize[]{
-                MiniaturizationFieldSize.INACTIVE, MiniaturizationFieldSize.SMALL
+        FieldSize[] badSizes = new FieldSize[]{
+                FieldSize.INACTIVE, FieldSize.SMALL
         };
 
-        MiniaturizationFieldSize[] goodSizes = new MiniaturizationFieldSize[]{
-                MiniaturizationFieldSize.MEDIUM, MiniaturizationFieldSize.LARGE, MiniaturizationFieldSize.ABSURD
+        FieldSize[] goodSizes = new FieldSize[]{
+                FieldSize.MEDIUM, FieldSize.LARGE, FieldSize.ABSURD
         };
 
         // TODO: GameTestGenerator?
-        for (MiniaturizationFieldSize bs : badSizes)
+        for (FieldSize bs : badSizes)
             if (enderCrystal.fitsInFieldSize(bs))
                 test.fail("Fit in bad field size: " + bs);
 
-        for (MiniaturizationFieldSize gs : goodSizes)
+        for (FieldSize gs : goodSizes)
             if (!enderCrystal.fitsInFieldSize(gs))
                 test.fail("Did not fit in field size: " + gs);
 
@@ -241,7 +241,7 @@ public class MiniaturizationRecipeTests {
     public static void MatchesExactStructure(final GameTestHelper test) {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         try {
@@ -267,7 +267,7 @@ public class MiniaturizationRecipeTests {
         test.setBlock(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         try {
@@ -309,7 +309,7 @@ public class MiniaturizationRecipeTests {
         Objects.requireNonNull(recipe);
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         final boolean matched = recipe.matches(blocks);
@@ -326,10 +326,10 @@ public class MiniaturizationRecipeTests {
 
         // Set up the 8 corners to be glass, so block creation below matches field boundaries
         final BlockState glass = Blocks.GLASS.defaultBlockState();
-        BlockSpaceUtil.getCornersOfBounds(MiniaturizationFieldSize.MEDIUM).forEach(p -> test.setBlock(p, glass));
+        BlockSpaceUtil.getCornersOfBounds(FieldSize.MEDIUM).forEach(p -> test.setBlock(p, glass));
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(FieldSize.MEDIUM, test))
                 .normalize();
 
         final boolean matched = recipe.matches(blocks);

@@ -4,8 +4,8 @@ import java.util.Optional;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.MiniaturizationField;
+import dev.compactmods.crafting.api.field.FieldSize;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
  */
 public abstract class FieldHelper {
     public static boolean checkBlockPlacement(Level level, BlockPos pos) throws MissingFieldsException {
-        int maxDimensions = MiniaturizationFieldSize.maximum().getDimensions();
+        int maxDimensions = FieldSize.maximum().getDimensions();
         AABB searchArea = new AABB(pos, pos).inflate(maxDimensions);
 
         BlockPos[] nearbyProjectors = BlockPos.betweenClosedStream(searchArea)
@@ -36,7 +36,7 @@ public abstract class FieldHelper {
             final IActiveWorldFields fields = level.getCapability(CCCapabilities.FIELDS)
                     .orElseThrow(() -> new MissingFieldsException("Could not fetch fields off level: " + level.dimension()));
 
-            final Optional<IMiniaturizationField> affectedField = fields.getFields()
+            final Optional<MiniaturizationField> affectedField = fields.getFields()
                     .filter(field -> field.getBounds().contains(centerBlockChanged))
                     .findFirst();
 
