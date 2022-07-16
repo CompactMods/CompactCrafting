@@ -346,8 +346,8 @@ public class MiniaturizationField implements IMiniaturizationField {
          * filled space.
          */
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
-                .getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE)
-                .stream().map(r -> (MiniaturizationRecipe) r)
+                .getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
+                .stream()
                 .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), filledBounds))
                 .collect(Collectors.toSet());
 

@@ -19,31 +19,31 @@ public class NetworkHandler {
         MAIN_CHANNEL.messageBuilder(FieldActivatedPacket.class, 1, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FieldActivatedPacket::encode)
                 .decoder(FieldActivatedPacket::new)
-                .consumer(FieldActivatedPacket::handle)
+                .consumerMainThread(FieldActivatedPacket::handle)
                 .add();
 
         MAIN_CHANNEL.messageBuilder(FieldDeactivatedPacket.class, 2, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FieldDeactivatedPacket::encode)
                 .decoder(FieldDeactivatedPacket::new)
-                .consumer(FieldDeactivatedPacket::handle)
+                .consumerMainThread(FieldDeactivatedPacket::handle)
                 .add();
 
         MAIN_CHANNEL.messageBuilder(ClientFieldWatchPacket.class, 3, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientFieldWatchPacket::encode)
                 .decoder(ClientFieldWatchPacket::new)
-                .consumer(ClientFieldWatchPacket::handle)
+                .consumerMainThread(ClientFieldWatchPacket::handle)
                 .add();
 
         MAIN_CHANNEL.messageBuilder(ClientFieldUnwatchPacket.class, 4, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(ClientFieldUnwatchPacket::encode)
                 .decoder(ClientFieldUnwatchPacket::new)
-                .consumer(ClientFieldUnwatchPacket::handle)
+                .consumerMainThread(ClientFieldUnwatchPacket::handle)
                 .add();
 
         MAIN_CHANNEL.messageBuilder(FieldRecipeChangedPacket.class, 5, NetworkDirection.PLAY_TO_CLIENT)
                 .encoder(FieldRecipeChangedPacket::encode)
                 .decoder(FieldRecipeChangedPacket::new)
-                .consumer(FieldRecipeChangedPacket::handle)
+                .consumerMainThread(FieldRecipeChangedPacket::handle)
                 .add();
     }
 }

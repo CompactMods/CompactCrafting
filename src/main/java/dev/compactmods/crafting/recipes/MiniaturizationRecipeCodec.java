@@ -35,11 +35,6 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
     @Override
     public <T> DataResult<Pair<MiniaturizationRecipe, T>> decode(DynamicOps<T> ops, T input) {
-        boolean debugOutput = ServerConfig.RECIPE_REGISTRATION.get();
-        if (debugOutput) {
-            CompactCrafting.RECIPE_LOGGER.debug("Starting recipe decode: {}", input.toString());
-        }
-
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         StringBuilder errorBuilder = new StringBuilder();
 
@@ -68,10 +63,6 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         recipe.applyLayers(layerList);
 
         boolean hasFixedLayers = layerList.stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
-        if (debugOutput) {
-            CompactCrafting.RECIPE_LOGGER.debug("Number of layers defined: {}", layerList.size());
-            CompactCrafting.RECIPE_LOGGER.debug("Is fixed size: {}", hasFixedLayers);
-        }
 
         // if we don't have a fixed size layer to base dimensions off of, and the recipe size won't fit in a field
         if (!hasFixedLayers && !MiniaturizationFieldSize.canFitDimensions(recipeSize)) {
@@ -83,13 +74,11 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
 
         final Optional<T> catalystNode = ops.get(input, "catalyst").result();
         if (catalystNode.isEmpty()) {
-            if (debugOutput)
-                CompactCrafting.LOGGER.warn("No catalyst node defined in recipe; this is likely a bad file!");
+            CompactCrafting.LOGGER.warn("No catalyst node defined in recipe; this is likely a bad file!");
         } else {
             final Optional<T> catalystType = ops.get(catalystNode.get(), "type").result();
             if (catalystType.isEmpty()) {
-                if (debugOutput)
-                    CompactCrafting.LOGGER.warn("Error: no catalyst type defined; falling back to the itemstack handler.");
+                CompactCrafting.LOGGER.warn("Error: no catalyst type defined; falling back to the itemstack handler.");
 
                 final ItemStack stackData = ItemStack.CODEC
                         .fieldOf("catalyst").codec()
@@ -137,8 +126,7 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
             recipe.applyComponents(compNode);
         });
 
-        if (debugOutput)
-            CompactCrafting.RECIPE_LOGGER.debug("Finishing recipe decode.");
+        CompactCrafting.RECIPE_LOGGER.debug("Finishing recipe decode.");
 
         return DataResult.success(Pair.of(recipe, input), Lifecycle.stable());
     }

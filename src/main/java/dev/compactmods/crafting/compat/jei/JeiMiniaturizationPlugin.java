@@ -37,7 +37,7 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(
                 new ItemStack(CCItems.FIELD_PROJECTOR_ITEM.get(), 4),
-                JeiMiniaturizationCraftingCategory.UID);
+                JeiMiniaturizationCraftingCategory.RECIPE_TYPE);
 
     }
 
@@ -46,8 +46,8 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
         ClientLevel w = Minecraft.getInstance().level;
         RecipeManager rm = w == null ? null : w.getRecipeManager();
         if(rm != null) {
-            List<RecipeBase> miniRecipes = rm.getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE);
-            registration.addRecipes(miniRecipes, JeiMiniaturizationCraftingCategory.UID);
+            final var miniRecipes = rm.getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get());
+            registration.addRecipes(JeiMiniaturizationCraftingCategory.RECIPE_TYPE, miniRecipes);
         }
     }
 }

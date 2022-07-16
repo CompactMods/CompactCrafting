@@ -13,8 +13,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.event.world.ChunkWatchEvent;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.level.ChunkWatchEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.PacketDistributor;
@@ -46,10 +46,10 @@ public class WorldEventHandler {
     }
 
     @SubscribeEvent
-    public static void onWorldTick(final TickEvent.WorldTickEvent evt) {
+    public static void onWorldTick(final TickEvent.LevelTickEvent evt) {
         if (evt.phase != TickEvent.Phase.START) return;
 
-        evt.world.getCapability(CCCapabilities.FIELDS)
+        evt.level.getCapability(CCCapabilities.FIELDS)
                 .ifPresent(IActiveWorldFields::tickFields);
     }
 
@@ -57,7 +57,7 @@ public class WorldEventHandler {
     public static void onStartChunkTracking(final ChunkWatchEvent.Watch event) {
         final ServerPlayer player = event.getPlayer();
         final ChunkPos pos = event.getPos();
-        final ServerLevel level = event.getWorld();
+        final ServerLevel level = event.getLevel();
 
         level.getCapability(CCCapabilities.FIELDS)
                 .map(f -> f.getFields(pos))
@@ -77,7 +77,7 @@ public class WorldEventHandler {
     public static void onStopChunkTracking(final ChunkWatchEvent.UnWatch event) {
         final ServerPlayer player = event.getPlayer();
         final ChunkPos pos = event.getPos();
-        final ServerLevel level = event.getWorld();
+        final ServerLevel level = event.getLevel();
 
         level.getCapability(CCCapabilities.FIELDS)
                 .map(f -> f.getFields(pos))

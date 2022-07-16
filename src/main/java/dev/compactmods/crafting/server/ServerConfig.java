@@ -68,7 +68,7 @@ public class ServerConfig {
     }
 
     @SubscribeEvent
-    public static void onConfigEvent(final ModConfigEvent configEvent) {
+    public static void onConfigEvent(final ModConfigEvent.Reloading configEvent) {
         ServerConfig.DESTABILIZE_HANDLING = ServerConfig.FIELD_DESTABILIZE_HANDLING.get();
     }
 }

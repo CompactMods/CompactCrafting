@@ -9,7 +9,10 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
-import dev.compactmods.crafting.client.render.*;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
+import dev.compactmods.crafting.client.render.CubeRenderHelper;
+import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
+import dev.compactmods.crafting.client.render.RotationSpeed;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
@@ -32,7 +35,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.EmptyModelData;
+import net.minecraftforge.client.model.data.ModelData;
 import net.minecraftforge.common.util.LazyOptional;
 
 public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity> {
@@ -121,13 +124,14 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         float green = FastColor.ARGB32.green(faceColor) / 255f;
         float blue = FastColor.ARGB32.blue(faceColor) / 255f;
 
+        // TODO - Revisit render types
         blockRenderer.getModelRenderer()
                 .renderModel(mx.last(), cutoutBlocks, state,
                         baked,
                         red,
                         green,
                         blue,
-                        combinedLight, combinedOverlay, EmptyModelData.INSTANCE);
+                        combinedLight, combinedOverlay, ModelData.EMPTY, null);
 
         mx.popPose();
     }

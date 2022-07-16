@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.client;
 
 import javax.annotation.Nonnull;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
@@ -22,6 +23,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RenderLevelLastEvent;
+import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -34,7 +36,7 @@ public class ClientEventHandler {
         if (evt.phase != TickEvent.Phase.START) return;
 
         final LocalPlayer player = Minecraft.getInstance().player;
-        if(player != null) {
+        if (player != null) {
             player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
                     .ifPresent(IProjectorRenderInfo::tick);
         }
@@ -47,18 +49,19 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onWorldRender(final RenderLevelLastEvent event) {
+    public static void onWorldRender(final RenderLevelStageEvent event) {
         final Minecraft mc = Minecraft.getInstance();
-
         if (mc.level == null)
             return;
 
-        doProjectorRender(event, mc);
-        doFieldPreviewRender(event, mc);
+        if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_PARTICLES)) {
+            doProjectorRender(event, mc);
+            doFieldPreviewRender(event, mc);
+        }
     }
 
     @Nonnull
-    private static void doFieldPreviewRender(RenderLevelLastEvent event, Minecraft mc) {
+    private static void doFieldPreviewRender(RenderLevelStageEvent event, Minecraft mc) {
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final HitResult hitResult = mc.hitResult;
 
@@ -99,7 +102,7 @@ public class ClientEventHandler {
         buffers.endBatch();
     }
 
-    private static void doProjectorRender(RenderLevelLastEvent event, Minecraft mc) {
+    private static void doProjectorRender(RenderLevelStageEvent event, Minecraft mc) {
         mc.player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
                 .ifPresent(render -> render.render(event.getPoseStack()));
     }

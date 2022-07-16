@@ -13,7 +13,6 @@ import dev.compactmods.crafting.client.ui.widget.tab.GuiTab;
 import dev.compactmods.crafting.client.ui.widget.tab.TabsWidget;
 import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -47,7 +46,7 @@ public class TestScreen extends ContainerWidgetScreen<TestContainer> implements 
 
         new GuiTab(tabsTop, new ItemStack(CCBlocks.FIELD_PROJECTOR_BLOCK.get()))
                 .onClicked((t) -> {
-                    player.displayClientMessage(new TextComponent("hi!"), true);
+                    player.displayClientMessage(Component.literal("hi!"), true);
                 });
 
         new GuiTab(tabsTop, new ItemStack(Items.REDSTONE));

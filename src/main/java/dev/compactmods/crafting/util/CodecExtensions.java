@@ -12,6 +12,6 @@ public class CodecExtensions {
              .flatXmap(rl -> ForgeRegistries.BLOCKS.containsKey(rl) ?
                              DataResult.success(ForgeRegistries.BLOCKS.getValue(rl)) :
                              DataResult.error(String.format("Block %s is not registered.", rl)),
-                bl -> DataResult.success(bl.getRegistryName()))
+                bl -> DataResult.success(ForgeRegistries.BLOCKS.getKey(bl)))
              .stable();
 }

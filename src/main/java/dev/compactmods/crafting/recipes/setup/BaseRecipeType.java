@@ -1,10 +1,11 @@
 package dev.compactmods.crafting.recipes.setup;
 
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
 
-public class BaseRecipeType<T extends RecipeBase> implements RecipeType<RecipeBase> {
+public class BaseRecipeType<T extends RecipeBase> implements RecipeType<T> {
     private final ResourceLocation registryName;
 
     public BaseRecipeType(ResourceLocation location) {

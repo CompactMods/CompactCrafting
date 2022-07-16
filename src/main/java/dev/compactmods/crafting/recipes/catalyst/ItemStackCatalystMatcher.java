@@ -15,13 +15,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
-        implements ICatalystMatcher, CatalystType<ItemStackCatalystMatcher> {
+public class ItemStackCatalystMatcher implements ICatalystMatcher, CatalystType<ItemStackCatalystMatcher> {
 
     public static final Codec<ItemStackCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.fieldOf("item").forGetter(ItemStackCatalystMatcher::getItemId),
+            ResourceLocation.CODEC.fieldOf("item").forGetter((x) -> ForgeRegistries.ITEMS.getKey(x.item)),
             CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(ItemStackCatalystMatcher::getNbtTag)
     ).apply(i, ItemStackCatalystMatcher::new));
 
@@ -81,11 +79,6 @@ public class ItemStackCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>
                 return primitive.equals(filter.get(key));
             }
         });
-    }
-
-
-    public ResourceLocation getItemId() {
-        return item.getRegistryName();
     }
 
     public boolean matches(ItemStack stack) {

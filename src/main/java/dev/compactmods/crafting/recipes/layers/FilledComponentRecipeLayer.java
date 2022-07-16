@@ -19,10 +19,8 @@ import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class FilledComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
-        implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer,
+public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer,
         RecipeLayerType<FilledComponentRecipeLayer> {
 
     private final String componentKey;

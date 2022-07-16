@@ -46,7 +46,7 @@ public class ServerEventListener {
 
     @SubscribeEvent
     static void onPlayerJoined(final PlayerEvent.PlayerLoggedInEvent evt) {
-        final var player = evt.getPlayer();
+        final var player = evt.getEntity();
         final var server = player.getServer();
         final var players = server.getPlayerList();
         final boolean op = players.isOp(player.getGameProfile());

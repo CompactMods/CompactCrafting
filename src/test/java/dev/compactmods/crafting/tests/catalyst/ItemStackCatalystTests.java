@@ -3,11 +3,12 @@ package dev.compactmods.crafting.tests.catalyst;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
+import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -43,7 +44,7 @@ public class ItemStackCatalystTests {
         ItemStack testStack = new ItemStack(Items.REDSTONE);
 
         // what an anvil does to rename - see AnvilScreen
-        testStack.setHoverName(new TextComponent("Renamed Item"));
+        testStack.setHoverName(Component.literal("Renamed Item"));
 
         final boolean matched = matcher.matches(testStack);
         if (!matched)

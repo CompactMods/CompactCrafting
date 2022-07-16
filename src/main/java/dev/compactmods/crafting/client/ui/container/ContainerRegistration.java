@@ -12,7 +12,7 @@ import net.minecraftforge.registries.RegistryObject;
 public class ContainerRegistration {
 
     public static final DeferredRegister<MenuType<?>> CONTAINERS =
-            DeferredRegister.create(ForgeRegistries.CONTAINERS, CompactCrafting.MOD_ID);
+            DeferredRegister.create(ForgeRegistries.MENU_TYPES, CompactCrafting.MOD_ID);
 
     public static final RegistryObject<MenuType<TestContainer>> TEST_CONTAINER = CONTAINERS.register("test",
             () -> IForgeMenuType.create((windowId, inv, data) -> {

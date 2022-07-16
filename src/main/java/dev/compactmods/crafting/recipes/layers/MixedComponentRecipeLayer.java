@@ -23,11 +23,10 @@ import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 
-public class MixedComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
-        implements IRecipeLayer, IFixedSizedRecipeLayer,
+public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecipeLayer,
 RecipeLayerType<MixedComponentRecipeLayer> {
+
     private final AABB dimensions;
     private final ComponentPositionLookup componentLookup;
 
@@ -70,11 +69,10 @@ RecipeLayerType<MixedComponentRecipeLayer> {
                 .filter(layerComp -> !definedKeys.contains(layerComp))
                 .collect(Collectors.toSet());
 
-        if(ServerConfig.RECIPE_REGISTRATION.get())
-            CompactCrafting.RECIPE_LOGGER.debug(
-                    "Removing {} from required component list; it was not defined in the recipe.",
-                    String.join(",", toRemove)
-            );
+        CompactCrafting.RECIPE_LOGGER.debug(
+                "Removing {} from required component list; it was not defined in the recipe.",
+                String.join(",", toRemove)
+        );
 
         toRemove.forEach(componentLookup::remove);
     }

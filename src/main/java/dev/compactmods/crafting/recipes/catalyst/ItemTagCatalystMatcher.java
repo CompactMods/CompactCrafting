@@ -6,21 +6,16 @@ import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.Tag;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.ForgeRegistryEntry;
-import net.minecraftforge.registries.tags.ITag;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ItemTagCatalystMatcher extends ForgeRegistryEntry<CatalystType<?>>
-        implements ICatalystMatcher, CatalystType<ItemTagCatalystMatcher> {
+public class ItemTagCatalystMatcher implements ICatalystMatcher, CatalystType<ItemTagCatalystMatcher> {
 
     private static final Codec<ItemTagCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
             TagKey.codec(Registry.ITEM_REGISTRY).fieldOf("tag").forGetter((is) -> is.tag)

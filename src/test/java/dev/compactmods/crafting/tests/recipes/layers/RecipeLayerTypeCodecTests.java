@@ -47,27 +47,6 @@ public class RecipeLayerTypeCodecTests {
     }
 
     private static RecipeLayerType<IRecipeLayer> generateFakeRecipeLayerType() {
-        return new RecipeLayerType<IRecipeLayer>() {
-            @Override
-            public RecipeLayerType<?> setRegistryName(ResourceLocation name) {
-                return this;
-            }
-
-            @Nullable
-            @Override
-            public ResourceLocation getRegistryName() {
-                return null;
-            }
-
-            @Override
-            public Class<RecipeLayerType<?>> getRegistryType() {
-                return CCLayerTypes.RECIPE_LAYER_TYPES.getRegistrySuperType();
-            }
-
-            @Override
-            public Codec<IRecipeLayer> getCodec() {
-                return Codec.unit(new FilledComponentRecipeLayer("?"));
-            }
-        };
+        return () -> Codec.unit(new FilledComponentRecipeLayer("?"));
     }
 }

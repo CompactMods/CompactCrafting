@@ -15,7 +15,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiComponent;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.renderer.entity.ItemRenderer;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
@@ -142,7 +142,7 @@ public class TabsWidget extends WidgetBase implements
         }
 
         font.draw(matrixStack,
-                new TextComponent(page),
+                Component.literal(page),
                 xOffset, yOffset, 0xFFFFFFFF);
 
         Minecraft.getInstance().getTextureManager().bindForSetup(TEXTURE);

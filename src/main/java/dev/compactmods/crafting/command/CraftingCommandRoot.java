@@ -10,7 +10,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,39 +34,4 @@ public class CraftingCommandRoot {
         dispatcher.register(root);
     }
 
-    private static int test(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        final ServerPlayer player = ctx.getSource().getPlayerOrException();
-
-        if(PREV != null && !PREV.isDisposed()) {
-            PREV.dispose();
-            PREV = null;
-        }
-        ctx.getSource().getServer().submitAsync(() -> {
-
-            PublishSubject<Integer> l = PublishSubject.create();
-            PREV = l.buffer(500, TimeUnit.MILLISECONDS)
-                    .subscribe(times -> {
-                        if (!times.isEmpty())
-                            player.sendMessage(new TextComponent(String.join(",", times.stream()
-                                    .map(Object::toString).toArray(String[]::new))), ChatType.CHAT, player.getUUID());
-                    }, err -> {
-                        CompactCrafting.LOGGER.debug("error");
-                    }, () -> {
-                        player.sendMessage(new TextComponent("done"), ChatType.CHAT, player.getUUID());
-                    });
-
-            player.server.submitAsync(() -> {
-                for (int i = 1; i <= 100; i++) {
-                    l.onNext(i);
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        });
-
-        return 0;
-    }
 }

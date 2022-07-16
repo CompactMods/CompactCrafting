@@ -3,6 +3,8 @@ package dev.compactmods.crafting.client.fakeworld;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.*;
+import net.minecraft.data.BuiltinRegistries;
+import net.minecraft.data.worldgen.DimensionTypes;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.profiling.InactiveProfiler;
@@ -15,16 +17,20 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.dimension.BuiltinDimensionTypes;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.entity.LevelEntityGetter;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.ticks.BlackholeTickAccess;
 import net.minecraft.world.ticks.LevelTickAccess;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,14 +43,24 @@ public class RenderingWorld extends Level {
     private final RenderingChunkProvider chunkProvider;
 
     public RenderingWorld(MiniaturizationRecipe recipe) {
-        super(new RenderingSpawnInfo(), Level.OVERWORLD, Holder.direct(DimensionType.DEFAULT_OVERWORLD),
-                () -> InactiveProfiler.INSTANCE, true, false, 0);
+        super(new RenderingSpawnInfo(), Level.OVERWORLD, BuiltinRegistries.DIMENSION_TYPE.getHolderOrThrow(BuiltinDimensionTypes.OVERWORLD),
+                () -> InactiveProfiler.INSTANCE, true, false, 0, 1000000);
         this.recipe = recipe;
         this.chunkProvider = new RenderingChunkProvider(this, recipe);
     }
 
     @Override
     public void sendBlockUpdated(BlockPos p_184138_1_, BlockState p_184138_2_, BlockState p_184138_3_, int p_184138_4_) {
+
+    }
+
+    @Override
+    public void playSeededSound(@org.jetbrains.annotations.Nullable Player p_220363_, double p_220364_, double p_220365_, double p_220366_, SoundEvent p_220367_, SoundSource p_220368_, float p_220369_, float p_220370_, long p_220371_) {
+
+    }
+
+    @Override
+    public void playSeededSound(@org.jetbrains.annotations.Nullable Player p_220372_, Entity p_220373_, SoundEvent p_220374_, SoundSource p_220375_, float p_220376_, float p_220377_, long p_220378_) {
 
     }
 
@@ -122,6 +138,11 @@ public class RenderingWorld extends Level {
 
     @Override
     public void levelEvent(@Nullable Player p_217378_1_, int p_217378_2_, BlockPos p_217378_3_, int p_217378_4_) {
+
+    }
+
+    @Override
+    public void gameEvent(GameEvent p_220404_, Vec3 p_220405_, GameEvent.Context p_220406_) {
 
     }
 

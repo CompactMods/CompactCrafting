@@ -1,12 +1,7 @@
 package dev.compactmods.crafting.client.render;
 
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Set;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.ClientConfig;
@@ -18,9 +13,6 @@ import net.minecraft.client.GraphicsStatus;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.Sheets;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
@@ -28,7 +20,10 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.EmptyModelData;
+
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
 
 public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
 
@@ -62,12 +57,7 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final ClientLevel level = mc.level;
 
-        if(mc.options.graphicsMode == GraphicsStatus.FABULOUS) {
-            // Fabulous mode is borked, don't bother yet   - TODO
-            render(matrixStack, buffers, mainCamera, level);
-        } else {
-            render(matrixStack, buffers, mainCamera, level);
-        }
+        render(matrixStack, buffers, mainCamera, level);
     }
 
     private void render(PoseStack matrixStack, MultiBufferSource.BufferSource buffers, Camera mainCamera, ClientLevel level) {

@@ -20,7 +20,7 @@ public class RecipeSetupTests {
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void BaseRecipeType(final GameTestHelper test) {
         final ResourceLocation testId = new ResourceLocation("compactcrafting", "test");
-        BaseRecipeType<RecipeBase> type = new BaseRecipeType<>(testId);
+        final var type = new BaseRecipeType<>(testId);
 
         final String typeString = type.toString();
         if (typeString == null)

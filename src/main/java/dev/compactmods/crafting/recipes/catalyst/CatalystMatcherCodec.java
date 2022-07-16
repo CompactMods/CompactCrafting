@@ -19,7 +19,8 @@ public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
 
     @Override
     public <T> DataResult<T> encode(CatalystType<?> input, DynamicOps<T> ops, T prefix) {
-        ResourceLocation key = input.getRegistryName();
+        final var reg = CCCatalystTypes.CATALYST_TYPES.get();
+        ResourceLocation key = reg.getKey(input);
         T toMerge = ops.createString(key.toString());
         return ops.mergeToPrimitive(prefix, toMerge);
     }
@@ -31,9 +32,10 @@ public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
 
     private static <CatalystMatcher> DataResult<Pair<CatalystType<?>, CatalystMatcher>> handleDecodeResult(Pair<ResourceLocation, CatalystMatcher> pair) {
         ResourceLocation id = pair.getFirst();
-        if(!CCCatalystTypes.CATALYST_TYPES.containsKey(id))
+        final var reg = CCCatalystTypes.CATALYST_TYPES.get();
+        if(!reg.containsKey(id))
             return DataResult.error("Unknown registry key: " + id);
 
-        return DataResult.success(pair.mapFirst(CCCatalystTypes.CATALYST_TYPES::getValue));
+        return DataResult.success(pair.mapFirst(reg::getValue));
     }
 }

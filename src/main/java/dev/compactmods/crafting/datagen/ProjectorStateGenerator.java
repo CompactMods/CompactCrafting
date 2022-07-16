@@ -3,8 +3,10 @@ package dev.compactmods.crafting.datagen;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.core.Direction;
 import net.minecraft.data.DataGenerator;
+import net.minecraftforge.client.ForgeRenderTypes;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -42,7 +44,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
         itemModels()
                 .withExistingParent("projector_dish", modLoc("block/field_projector_dish"))
                 .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
+                .transform(ItemTransforms.TransformType.GUI)
                 .rotation(33.75f, 45f, 0)
                 .translation(2, -2, 0)
                 .scale(1f, 1f, 1f)
@@ -51,7 +53,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
         itemModels()
                 .withExistingParent("field_projector", modLoc("block/field_projector_static"))
                 .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
+                .transform(ItemTransforms.TransformType.GUI)
                 .rotation(33.75f, 45f, 0)
                 .translation(0, 1, 0)
                 .scale(0.6f, 0.6f, 0.6f)
@@ -61,6 +63,7 @@ public class ProjectorStateGenerator extends BlockStateProvider {
     private void projectorStaticModel() {
         BlockModelBuilder builder = models().getBuilder("block/field_projector_static")
                 .texture("particle", modLoc("block/projector_base_bottom"));
+                //.renderType(ForgeRenderTypes.getEntityCutoutMipped());
 
         SharedStateGenerator.addProjectorBase(builder);
         addDishModel(builder);

@@ -20,7 +20,7 @@ import net.minecraftforge.registries.RegistryObject;
 public class CCBlocks {
 
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, CompactCrafting.MOD_ID);
-    private static final DeferredRegister<BlockEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, CompactCrafting.MOD_ID);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, CompactCrafting.MOD_ID);
 
     public static final RegistryObject<Block> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
             new FieldProjectorBlock(BlockBehaviour.Properties.of(Material.METAL)
@@ -39,23 +39,23 @@ public class CCBlocks {
     public static final RegistryObject<Block> MATCH_FIELD_PROXY_BLOCK = BLOCKS.register("match_proxy", () ->
             new MatchFieldProxyBlock(PROXY_PROPS.get()));
 
-    public static final RegistryObject<BlockEntityType<FieldProjectorEntity>> FIELD_PROJECTOR_TILE = TILE_ENTITIES.register("field_projector", () ->
+    public static final RegistryObject<BlockEntityType<FieldProjectorEntity>> FIELD_PROJECTOR_TILE = BLOCK_ENTITIES.register("field_projector", () ->
             BlockEntityType.Builder
                     .of(FieldProjectorEntity::new, FIELD_PROJECTOR_BLOCK.get())
                     .build(null));
 
-    public static final RegistryObject<BlockEntityType<RescanFieldProxyEntity>> RESCAN_PROXY_ENTITY = TILE_ENTITIES.register("rescan_proxy", () ->
+    public static final RegistryObject<BlockEntityType<RescanFieldProxyEntity>> RESCAN_PROXY_ENTITY = BLOCK_ENTITIES.register("rescan_proxy", () ->
             BlockEntityType.Builder
                     .of(RescanFieldProxyEntity::new, RESCAN_FIELD_PROXY_BLOCK.get())
                     .build(null));
 
-    public static final RegistryObject<BlockEntityType<MatchFieldProxyEntity>> MATCH_PROXY_ENTITY = TILE_ENTITIES.register("match_proxy", () ->
+    public static final RegistryObject<BlockEntityType<MatchFieldProxyEntity>> MATCH_PROXY_ENTITY = BLOCK_ENTITIES.register("match_proxy", () ->
             BlockEntityType.Builder
                     .of(MatchFieldProxyEntity::new, MATCH_FIELD_PROXY_BLOCK.get())
                     .build(null));
 
     public static void init(IEventBus bus) {
         BLOCKS.register(bus);
-        TILE_ENTITIES.register(bus);
+        BLOCK_ENTITIES.register(bus);
     }
 }

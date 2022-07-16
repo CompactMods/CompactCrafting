@@ -1,7 +1,5 @@
 package dev.compactmods.crafting.client.render;
 
-import javax.annotation.Nullable;
-import java.util.Random;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
@@ -17,7 +15,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.EmptyModelData;
+import net.minecraftforge.client.model.data.ModelData;
+
+import javax.annotation.Nullable;
+import java.util.Random;
 
 public class GhostRenderer {
     public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer) {
@@ -36,10 +37,10 @@ public class GhostRenderer {
         BakedModel model = dispatcher.getBlockModel(state);
         if (model != mc.getModelManager().getMissingModel()) {
             for(Direction dir : Direction.values())
-                model.getQuads(state, dir, new Random(42L), EmptyModelData.INSTANCE)
+                model.getQuads(state, dir, mc.level.random, ModelData.EMPTY, null)
                         .forEach(quad -> addQuad(state, pos, matrix, mc, colors, builder, quad, alpha));
 
-            model.getQuads(state, null, new Random(42L), EmptyModelData.INSTANCE)
+            model.getQuads(state, null, mc.level.random, ModelData.EMPTY, null)
                     .forEach(quad -> addQuad(state, pos, matrix, mc, colors, builder, quad, alpha));
         }
     }
@@ -58,6 +59,6 @@ public class GhostRenderer {
                 green,
                 blue,
                 trueAlpha,
-                LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY);
+                LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, false);
     }
 }

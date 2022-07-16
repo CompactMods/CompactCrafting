@@ -10,7 +10,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.level.BlockEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -22,10 +22,10 @@ public class BlockEventHandler {
 
     @SubscribeEvent
     static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
-        final LivingEntity entity = event.getEntityLiving();
+        final LivingEntity entity = event.getEntity();
         final BlockHitResult hitVec = event.getHitVec();
 
-        Level w = event.getWorld();
+        Level w = event.getLevel();
 
         if(w.isClientSide) {
             final BlockPos placedAt = hitVec.getBlockPos().relative(hitVec.getDirection());
@@ -53,7 +53,7 @@ public class BlockEventHandler {
 
     private static void blockHandler(final BlockEvent event) {
         // Check if block is in or around a projector field
-        LevelAccessor world = event.getWorld();
+        LevelAccessor world = event.getLevel();
         BlockPos pos = event.getPos();
 
         // Send the event position over to the field helper, so any nearby projectors can be notified

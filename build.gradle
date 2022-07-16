@@ -273,17 +273,18 @@ dependencies {
     library "io.reactivex.rxjava3:rxjava:3.1.1";
 
     // Nicephore - Screenshots and Stuff
-    runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3574658"))
-
-    // Shut up Experimental Settings - so we don't have to deal with that CONSTANTLY
-    runtimeOnly(fg.deobf("curse.maven:shutupexperimental-407174:3544525"))
+    // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
 
     // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}-common-api:${jei_version}")
+    compileOnly fg.deobf("mezz.jei:jei-${jei_mc_version}-forge-api:${jei_version}")
+    runtimeOnly fg.deobf("mezz.jei:jei-${jei_mc_version}-forge:${jei_version}")
 
     // The One Probe
-    implementation(fg.deobf("curse.maven:theoneprobe-245211:3550084"))
+    implementation(fg.deobf("curse.maven:theoneprobe-245211:3871444"))
+
+    // Spark
+    runtimeOnly(fg.deobf("curse.maven:spark-361579:3875647"))
 }
 
 processResources {

@@ -3,6 +3,7 @@ package dev.compactmods.crafting.client.ui.container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
@@ -16,6 +17,11 @@ public class TestContainer extends AbstractContainerMenu {
         this.playerInventory = new InvWrapper(inv);
 
         layoutPlayerInventorySlots(8, 98);
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int slot) {
+        return ItemStack.EMPTY;
     }
 
     @Override

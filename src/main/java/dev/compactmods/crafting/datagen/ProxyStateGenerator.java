@@ -2,6 +2,7 @@ package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.core.CCBlocks;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ConfiguredModel;
@@ -32,7 +33,7 @@ public class ProxyStateGenerator extends BlockStateProvider {
         itemModels()
                 .withExistingParent("match_proxy", modLoc("block/match_proxy"))
                 .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
+                .transform(ItemTransforms.TransformType.GUI)
                 .rotation(33.75f, 45f, 0)
                 .translation(0, 1, 0)
                 .scale(0.6f, 0.6f, 0.6f)
@@ -41,7 +42,7 @@ public class ProxyStateGenerator extends BlockStateProvider {
         itemModels()
                 .withExistingParent("rescan_proxy", modLoc("block/rescan_proxy"))
                 .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
+                .transform(ItemTransforms.TransformType.GUI)
                 .rotation(33.75f, 45f, 0)
                 .translation(0, 1, 0)
                 .scale(0.6f, 0.6f, 0.6f)

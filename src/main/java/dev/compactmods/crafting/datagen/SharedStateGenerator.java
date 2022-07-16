@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.client.model.generators.BlockModelBuilder;
@@ -21,7 +22,7 @@ public class SharedStateGenerator extends BlockStateProvider {
         itemModels()
                 .withExistingParent("base", modLoc("block/base"))
                 .transforms()
-                .transform(ModelBuilder.Perspective.GUI)
+                .transform(ItemTransforms.TransformType.GUI)
                 .rotation(33.75f, 45f, 0)
                 .translation(0, 1, 0)
                 .scale(0.6f, 0.6f, 0.6f)

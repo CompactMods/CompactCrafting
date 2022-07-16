@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -30,7 +31,7 @@ public final class RecipeComponentTypeCodec implements Codec<RecipeComponentType
 
     @Override
     public <T> DataResult<T> encode(RecipeComponentType<?> input, DynamicOps<T> ops, T prefix) {
-        ResourceLocation key = input.getRegistryName();
+        ResourceLocation key = ComponentRegistration.COMPONENTS.get().getKey(input);
         if (key == null)
             return DataResult.error("Unknown registry element " + input);
 

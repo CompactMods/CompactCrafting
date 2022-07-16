@@ -19,6 +19,7 @@ import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
+import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -280,30 +281,9 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return 200;
     }
 
-
-    @Override
-    public ResourceLocation getId() {
-        return this.id;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
-        return CCMiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
-    }
-
-    @Override
-    public RecipeType<?> getType() {
-        return CCMiniaturizationRecipes.MINIATURIZATION_RECIPE_TYPE;
-    }
-
     @Override
     public ResourceLocation getRecipeIdentifier() {
         return this.id;
-    }
-
-    @Override
-    public void setId(ResourceLocation recipeId) {
-        this.id = recipeId;
     }
 
     public boolean hasSpecifiedSize() {
@@ -324,5 +304,25 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
     public void setCatalyst(ICatalystMatcher catalyst) {
         this.catalyst = catalyst;
+    }
+
+    @Override
+    public void setId(ResourceLocation recipeId) {
+        this.id = recipeId;
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return id;
+    }
+
+    @Override
+    public RecipeSerializer<MiniaturizationRecipe> getSerializer() {
+        return CCMiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
+    }
+
+    @Override
+    public RecipeType<MiniaturizationRecipe> getType() {
+        return CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get();
     }
 }

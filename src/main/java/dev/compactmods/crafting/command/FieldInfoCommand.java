@@ -10,8 +10,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -38,7 +37,7 @@ public class FieldInfoCommand {
 
         level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
             if (!fields.hasActiveField(pos)) {
-                src.sendFailure(new TranslatableComponent("messages." + CompactCrafting.MOD_ID + ".no_field_found", pos));
+                src.sendFailure(Component.translatable("messages." + CompactCrafting.MOD_ID + ".no_field_found", pos));
                 return;
             }
 
@@ -56,23 +55,23 @@ public class FieldInfoCommand {
         if (level.getBlockState(pos).hasBlockEntity()) {
             final BlockEntity ent = level.getBlockEntity(pos);
             if (ent == null) {
-                src.sendFailure(new TranslatableComponent("messages." + CompactCrafting.MOD_ID + ".no_field_cap", pos));
+                src.sendFailure(Component.translatable("messages." + CompactCrafting.MOD_ID + ".no_field_cap", pos));
                 return 0;
             }
 
             ent.getCapability(CCCapabilities.MINIATURIZATION_FIELD).ifPresent(field -> outputStdFieldInfo(src, field));
         } else {
-            src.sendFailure(new TranslatableComponent("messages." + CompactCrafting.MOD_ID + ".no_field_cap", pos));
+            src.sendFailure(Component.translatable("messages." + CompactCrafting.MOD_ID + ".no_field_cap", pos));
         }
 
         return 0;
     }
 
     private static void outputStdFieldInfo(CommandSourceStack src, IMiniaturizationField field) {
-        src.sendSuccess(new TextComponent("Center: " + field.getCenter().toString()), false);
-        src.sendSuccess(new TextComponent("Size: " + field.getFieldSize().getName()), false);
+        src.sendSuccess(Component.literal("Center: " + field.getCenter().toString()), false);
+        src.sendSuccess(Component.literal("Size: " + field.getFieldSize().getName()), false);
         field.getCurrentRecipe().ifPresent(rec -> {
-            src.sendSuccess(new TextComponent("Recipe: " + rec.getRecipeIdentifier()), false);
+            src.sendSuccess(Component.literal("Recipe: " + rec.getRecipeIdentifier()), false);
         });
     }
 }

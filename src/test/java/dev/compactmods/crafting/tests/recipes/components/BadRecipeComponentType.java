@@ -12,20 +12,4 @@ public class BadRecipeComponentType implements RecipeComponentType<IRecipeCompon
     public Codec<IRecipeComponent> getCodec() {
         return null;
     }
-
-    @Override
-    public RecipeComponentType<?> setRegistryName(ResourceLocation name) {
-        return this;
-    }
-
-    @Nullable
-    @Override
-    public ResourceLocation getRegistryName() {
-        return null;
-    }
-
-    @Override
-    public Class<RecipeComponentType<?>> getRegistryType() {
-        return null;
-    }
 }

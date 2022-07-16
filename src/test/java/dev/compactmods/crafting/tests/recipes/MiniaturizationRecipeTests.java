@@ -4,6 +4,7 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
@@ -44,102 +45,6 @@ public class MiniaturizationRecipeTests {
     public static void CanCreateRecipe(final GameTestHelper test) {
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         GameTestAssertions.assertNotNull(recipe);
-        test.succeed();
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void CanSetId(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        GameTestAssertions.assertNotNull(recipe);
-
-        GameTestAssertions.assertDoesNotThrow(() -> {
-            recipe.setId(new ResourceLocation(CompactCrafting.MOD_ID, "test"));
-        });
-
-        test.succeed();
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void is_special_recipe(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        GameTestAssertions.assertNotNull(recipe);
-        GameTestAssertions.assertTrue(recipe.isSpecial());
-
-        test.succeed();
-    }
-
-    @GameTest(template = "recipes/ender_crystal")
-    public static void FakesFakeInventories(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-
-        try {
-            boolean matched = recipe.matches(new FakeInventory(), test.getLevel());
-            if (!matched)
-                test.fail("Expected fake inventory to always match.");
-        } catch (Exception e) {
-            test.fail(e.getMessage());
-        }
-
-        test.succeed();
-    }
-
-    @GameTest(template = "empty_medium")
-    public static void FakesAssemble(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-
-        try {
-            ItemStack result = recipe.assemble(new FakeInventory());
-            if (!result.isEmpty())
-                test.fail("Expected an empty result");
-        } catch (Exception e) {
-            test.fail(e.getMessage());
-        }
-
-        test.succeed();
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void FakesCanCraftDimensions(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-        GameTestAssertions.assertNotNull(recipe);
-
-        GameTestAssertions.assertDoesNotThrow(() -> {
-            boolean canCraft = recipe.canCraftInDimensions(0, 0);
-            GameTestAssertions.assertTrue(canCraft);
-        });
-
-        test.succeed();
-    }
-
-    @GameTest(template = "empty_medium")
-    public static void FakesResultItem(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = new MiniaturizationRecipe();
-
-        try {
-            final ItemStack result = recipe.getResultItem();
-            if (!result.isEmpty())
-                test.fail("Expected recipe result to be empty.");
-        } catch (Exception e) {
-            test.fail(e.getMessage());
-        }
-
-        test.succeed();
-    }
-
-    @GameTest(template = "empty_medium")
-    public static void RecipeSuppliesBasicMinecraftRegistrationInfo(final GameTestHelper test) {
-        final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
-        if (enderCrystal == null)
-            return;
-
-        final var serializer = enderCrystal.getSerializer();
-        if (serializer == null)
-            test.fail("Did not get a recipe serializer from the recipe class.");
-
-        final var type = enderCrystal.getType();
-        if (type == null)
-            test.fail("Did not get a recipe type from the recipe class.");
-
         test.succeed();
     }
 
