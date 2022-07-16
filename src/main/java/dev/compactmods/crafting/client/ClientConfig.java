@@ -62,7 +62,7 @@ public class ClientConfig {
     }
 
     @SubscribeEvent
-    public static void onLoad(final ModConfigEvent configEvent) {
+    public static void onLoad(final ModConfigEvent.Reloading configEvent) {
         projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
         projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
         placementTime = PLACEMENT_TIME.get();
