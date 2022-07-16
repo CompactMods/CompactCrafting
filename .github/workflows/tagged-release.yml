@@ -2,12 +2,6 @@
 name: Latest Tag
 
 on:
-  push:
-    tags:
-      - v*
-    paths-ignore:
-      - 'README.md'
-      - LICENSE
   workflow_dispatch:
 
 jobs:
