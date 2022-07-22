@@ -1,21 +1,25 @@
 # Creates releases on Curseforge and Github Releases based on v* tags
-name: Latest Tag
+name: Tagged Commit Release
 
 on:
   workflow_dispatch:
 
 jobs:
   vars:
-    name: Get Variables
+    name: Gather Variables
     runs-on: ubuntu-20.04
     outputs:
       release_type: ${{steps.cf_release_type.outputs.value }}
       cf_project: ${{steps.cf_project.outputs.value }}
-      mod_version: ${{steps.mod_version.outputs.value }}
       mod_id: ${{steps.mod_id.outputs.value }}
+      version: ${{steps.version.outputs.version }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Unshallow
+        run: git fetch --prune --unshallow
 
       - name: Release Type
         id: cf_release_type
@@ -31,19 +35,27 @@ jobs:
           path: './gradle.properties'
           property: 'cf_project'
 
-      - name: Mod Version
-        id: mod_version
-        uses: christian-draeger/read-properties@1.0.1
-        with:
-          path: './gradle.properties'
-          property: 'mod_version'
-
       - name: Mod ID
         id: mod_id
         uses: christian-draeger/read-properties@1.0.1
         with:
           path: './gradle.properties'
           property: 'mod_id'
+
+      - name: Find Current Tag
+        id: current
+        uses: jimschubert/query-tag-action@v1
+        with:
+          include: 'v*'
+          exclude: '*-rc*'
+          commit-ish: '@'
+          skip-unshallow: 'true'
+
+      - name: Semver Version
+        id: version
+        run: |
+          version=$(echo "${{steps.current.outputs.tag}}" | cut -dv -f2)
+          echo "::set-output name=version::$version"
 
   changelog:
     name: Generate Changelog (tags)
@@ -114,22 +126,40 @@ jobs:
           distribution: 'temurin'
           java-version: "17"
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-      
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build JAR with Gradle
-        run: ./gradlew build -x test
+      - name: Create datagen assets
+        run: ./gradlew runData
+        timeout-minutes: 15
         env:
-          CM_RELEASE: true
+          CC_RELEASE: true
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: "0"
+
+      - name: Test JAR with GameTest Server
+        run: ./gradlew runGameTestServer
+        timeout-minutes: 20
+        env:
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: "0"
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload build failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-data
+          path: run/gametest
+
+      - name: Build JAR
+        run: ./gradlew build
+        timeout-minutes: 10
+        env:
+          CC_RELEASE: true
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: "0"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -138,8 +168,8 @@ jobs:
         with:
           name: libs
           path: |
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}-api.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}-api.jar
 
   view:
     name: View Changelog Output
@@ -153,8 +183,8 @@ jobs:
           path: changelog
       - run: cat changelog/CHANGELOG.md
 
-  release:
-    name: Make Releases
+  release-gh:
+    name: Make Github Release
     runs-on: ubuntu-20.04
     needs: [changelog, vars, jar]
     steps:
@@ -176,18 +206,38 @@ jobs:
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          title: "Release ${{ github.event.release.tag_name }}"
-          automatic_release_tag: "latest"
+          title: "Release ${{ needs.vars.outputs.version }}"
+          automatic_release_tag: "${{ needs.vars.outputs.version }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
             changelog/CHANGELOG.md
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}-api.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}-api.jar
+
+  release-cf:
+    name: Make Curseforge Release
+    runs-on: ubuntu-20.04
+    needs: [changelog, vars, jar]
+    steps:
+      - name: Download Build Results
+        uses: actions/download-artifact@v2
+        with:
+          name: libs
+          path: build-out
+      - name: Download Changelog Results
+        uses: actions/download-artifact@v2
+        with:
+          name: out
+          path: changelog
+
+      - name: Load Changelog File
+        id: changelog
+        run: echo ::set-output name=changelog::$(cat changelog/CHANGELOG.md)
 
       - name: Full File
         id: filename
-        run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar"
+        run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar"
 
       - name: Create CurseForge Release
         uses: itsmeow/curseforge-upload@master
@@ -198,7 +248,7 @@ jobs:
           file_path: ${{ steps.filename.outputs.fullpath }}
           changelog: ${{ steps.changelog.outputs.changelog }}
           changelog_type: markdown
-          game_versions: java:Java 8,Forge
+          game_versions: java:Java 17,Forge
           release_type: ${{ needs.vars.outputs.release_type }}
 
   publishMaven:
@@ -206,12 +256,6 @@ jobs:
     runs-on: ubuntu-20.04
     needs: [changelog, vars, jar]
     steps:
-      - name: Download Changelog Results
-        uses: actions/download-artifact@v2
-        with:
-          name: out
-          path: changelog
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -221,21 +265,17 @@ jobs:
           distribution: 'temurin'
           java-version: "17"
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Publish package
-        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository -x test
+      - name: Generate Resources
+        run: ./gradlew runData
+
+      - name: Publish gradle nightly jar
+        run: ./gradlew publishReleasePublicationToGitHubPackagesRepository
         env:
-          CM_RELEASE: "true"
+          CC_RELEASE: true
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: "0"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

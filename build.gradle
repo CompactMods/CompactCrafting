@@ -19,38 +19,11 @@ plugins {
 
 apply plugin: "net.minecraftforge.gradle"
 
-def semver = { ->
-    try {
-        def code = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'describe', '--tags', '--match', 'v*'
-            standardOutput = code
-        }
-
-        return code.toString().trim().substring(1).split('-')[0]
-    }
-    catch (ignored) {
-        return "2.0.0";
-    }
-}
-
-def buildNumber = { ->
-    try {
-        def code = new ByteArrayOutputStream()
-        exec {
-            commandLine 'git', 'describe', '--tags', '--match', 'v*'
-            standardOutput = code
-        }
-
-        return Integer.parseInt(code.toString().trim().split('-')[1])
-    }
-    catch (ignored) {
-        return 0;
-    }
-}
+def semver = System.getenv("CC_SEMVER_VERSION")
+def buildNumber = System.getenv("CC_BUILD_NUM")
 
 def nightlyVersion = "${semver}.${buildNumber}"
-def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
+def isRelease = (System.getenv("CC_RELEASE") ?: "false").equalsIgnoreCase("true")
 
 task getBuildInfo() {
     println("Mod ID: ${mod_id}")
