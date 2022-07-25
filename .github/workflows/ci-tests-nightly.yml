@@ -106,10 +106,16 @@ jobs:
 
       - name: Generate Resources
         run: ./gradlew runData
+        env:
+          CM_RELEASE: false
+          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CM_BUILD_NUM: "0"
 
       - name: Publish gradle nightly jar
         run: ./gradlew publishNightlyPublicationToGitHubPackagesRepository
         env:
           CM_RELEASE: false
+          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CM_BUILD_NUM: "0"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

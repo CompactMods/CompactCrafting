@@ -2,12 +2,6 @@
 name: Latest Tag
 
 on:
-  push:
-    tags:
-      - v*
-    paths-ignore:
-      - 'README.md'
-      - LICENSE
   workflow_dispatch:
 
 jobs:
@@ -19,6 +13,8 @@ jobs:
       cf_project: ${{steps.cf_project.outputs.value }}
       mod_version: ${{steps.mod_version.outputs.value }}
       mod_id: ${{steps.mod_id.outputs.value }}
+      version: ${{steps.version.outputs.version }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -50,6 +46,12 @@ jobs:
         with:
           path: './gradle.properties'
           property: 'mod_id'
+
+      - name: Semver Version
+        id: version
+        run: |
+          version=$(echo "${{steps.current.outputs.tag}}" | cut -dv -f2)
+          echo "::set-output name=version::$version"
 
   changelog:
     name: Generate Changelog (tags)
@@ -136,6 +138,8 @@ jobs:
         run: ./gradlew build -x test
         env:
           CM_RELEASE: true
+          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CM_BUILD_NUM: "0"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -159,7 +163,7 @@ jobs:
           path: changelog
       - run: cat changelog/CHANGELOG.md
 
-  release:
+  release-github:
     name: Make Releases
     runs-on: ubuntu-20.04
     needs: [changelog, vars, jar]
@@ -191,6 +195,25 @@ jobs:
             build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
             build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}-api.jar
 
+  release-cf:
+    name: Make Releases
+    runs-on: ubuntu-20.04
+    needs: [changelog, vars, jar]
+    steps:
+      - name: Download Build Results
+        uses: actions/download-artifact@v2
+        with:
+          name: libs
+          path: build-out
+      - name: Download Changelog Results
+        uses: actions/download-artifact@v2
+        with:
+          name: out
+          path: changelog
+
+      - name: Load Changelog File
+        id: changelog
+        run: echo ::set-output name=changelog::$(cat changelog/CHANGELOG.md)
       - name: Full File
         id: filename
         run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar"
@@ -204,10 +227,10 @@ jobs:
           file_path: ${{ steps.filename.outputs.fullpath }}
           changelog: ${{ steps.changelog.outputs.changelog }}
           changelog_type: markdown
-          game_versions: java:Java 8,Forge
+          game_versions: java:Java 17,Forge
           release_type: ${{ needs.vars.outputs.release_type }}
 
-  publishMaven:
+  release-gh-packages:
     name: Maven Release (GH Packages)
     runs-on: ubuntu-20.04
     needs: [changelog, vars, jar]
@@ -243,5 +266,7 @@ jobs:
         run: ./gradlew publishMavenPublicationToGitHubPackagesRepository -x test
         env:
           CM_RELEASE: "true"
+          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CM_BUILD_NUM: "0"
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
