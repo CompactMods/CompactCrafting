@@ -160,8 +160,8 @@ jobs:
         with:
           name: libs
           path: |
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}-api.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}-api.jar
 
   view:
     name: View Changelog Output
