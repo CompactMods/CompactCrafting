@@ -21,7 +21,7 @@ jobs:
 
       - name: Unshallow
         run: git fetch --prune --unshallow
-        
+
       - name: Release Type
         id: cf_release_type
         uses: christian-draeger/read-properties@1.0.1
@@ -176,7 +176,7 @@ jobs:
       - run: cat changelog/CHANGELOG.md
 
   release-github:
-    name: Make Releases
+    name: Make Github Release
     runs-on: ubuntu-20.04
     needs: [changelog, vars, jar]
     steps:
@@ -198,14 +198,14 @@ jobs:
       - name: Create GitHub Release
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          title: "Release ${{ github.event.release.tag_name }}"
-          automatic_release_tag: "latest"
+          title: "Release ${{ needs.vars.outputs.version }}"
+          automatic_release_tag: "${{ needs.vars.outputs.version }}"
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
             changelog/CHANGELOG.md
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar
-            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}-api.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar
+            build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}-api.jar
 
   release-cf:
     name: Make Releases
@@ -226,9 +226,10 @@ jobs:
       - name: Load Changelog File
         id: changelog
         run: echo ::set-output name=changelog::$(cat changelog/CHANGELOG.md)
+
       - name: Full File
         id: filename
-        run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.mod_version }}.jar"
+        run: echo "::set-output name=fullpath::build-out/${{ needs.vars.outputs.mod_id }}-${{ needs.vars.outputs.version }}.jar"
 
       - name: Create CurseForge Release
         uses: itsmeow/curseforge-upload@master
