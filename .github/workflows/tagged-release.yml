@@ -47,6 +47,15 @@ jobs:
           path: './gradle.properties'
           property: 'mod_id'
 
+      - name: Find Current Tag
+        id: current
+        uses: jimschubert/query-tag-action@v1
+        with:
+          include: 'v*'
+          exclude: '*-rc*'
+          commit-ish: '@'
+          skip-unshallow: 'true'
+      
       - name: Semver Version
         id: version
         run: |
