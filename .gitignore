@@ -41,3 +41,5 @@ usernamecache.json
 build-out/
 
 *.lnk
+
+src/generated/

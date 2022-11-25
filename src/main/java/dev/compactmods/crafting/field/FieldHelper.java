@@ -20,7 +20,7 @@ import net.minecraft.world.phys.Vec3;
 public abstract class FieldHelper {
     public static boolean checkBlockPlacement(Level level, BlockPos pos) throws MissingFieldsException {
         int maxDimensions = MiniaturizationFieldSize.maximum().getDimensions();
-        AABB searchArea = new AABB(pos, pos).inflate(maxDimensions);
+        AABB searchArea = new AABB(pos, pos).inflate(maxDimensions + 3);
 
         BlockPos[] nearbyProjectors = BlockPos.betweenClosedStream(searchArea)
                 .filter(possProjector -> level.getBlockState(possProjector).getBlock() instanceof FieldProjectorBlock)

@@ -115,7 +115,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void setupChunkListener() {
         // add projector and central chunks
-        final Set<ChunkPos> insideChunks = getProjectorPositions().map(ChunkPos::new).distinct().collect(Collectors.toSet());
+        final Set<ChunkPos> insideChunks = getProjectorPositions().map(ChunkPos::new).collect(Collectors.toSet());
         insideChunks.add(new ChunkPos(center));
 
         CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {

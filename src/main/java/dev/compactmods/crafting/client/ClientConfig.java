@@ -2,9 +2,12 @@ package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.CompactCrafting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.FastColor;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -18,9 +21,9 @@ public class ClientConfig {
 
     public static ForgeConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
 
-    public static int projectorColor = 0xFFFFFFFF;
+    public static int projectorColor = FastColor.ARGB32.color(255, 106, 0, 255);
     public static int projectorOffColor = 0xFFFFFFFF;
-    public static int placementTime = 60;
+    public static int placementTime = 160;
 
     static {
         generateConfig();
@@ -63,9 +66,12 @@ public class ClientConfig {
 
     @SubscribeEvent
     public static void onLoad(final ModConfigEvent.Reloading configEvent) {
-        projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
-        projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
-        placementTime = PLACEMENT_TIME.get();
+        final var c = configEvent.getConfig();
+        if(c.getModId().equals(CompactCrafting.MOD_ID) && c.getType().equals(ModConfig.Type.CLIENT)) {
+            projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
+            projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
+            placementTime = PLACEMENT_TIME.get();
+        }
     }
 
     private static int extractHexColor(String hex, int def) {
