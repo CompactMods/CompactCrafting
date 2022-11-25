@@ -32,11 +32,11 @@ tasks.create("getBuildInfo") {
 base {
     archivesName.set(mod_id)
     group = "dev.compactmods"
-    version = if (isRelease) semver else nightlyVersion
+    version = modVersion
 }
 
-println("Mod ID: ${mod_id}");
-println("Version: ${version}");
+println("Mod ID: $mod_id");
+println("Version: $modVersion");
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
