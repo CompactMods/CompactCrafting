@@ -163,7 +163,7 @@ dependencies {
     minecraft("net.minecraftforge", "forge", "${minecraft_version}-${forge_version}")
 
     minecraftLibrary("io.reactivex.rxjava3", "rxjava", "3.1.5")
-    jarJar("io.reactivex.rxjava3", "rxjava", "3.1.5")
+    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,4)")
 
     // Nicephore - Screenshots and Stuff
     // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
@@ -186,10 +186,8 @@ tasks.withType<ProcessResources> {
 
 
 reobf {
-    jarJar {}
+    this.create("jarJar")
 }
-
-
 
 tasks.withType<Jar> {
     manifest {
