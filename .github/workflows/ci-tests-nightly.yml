@@ -59,14 +59,14 @@ jobs:
 
       - name: Create datagen assets
         continue-on-error: true
-        run: ./gradlew runData
+        run: ./gradlew runData --debug
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Test JAR with GameTest Server
-        run: ./gradlew runGameTestServer
+        run: ./gradlew runGameTestServer --debug
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
