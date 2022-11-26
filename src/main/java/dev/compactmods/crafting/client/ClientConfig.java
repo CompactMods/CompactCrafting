@@ -21,8 +21,8 @@ public class ClientConfig {
 
     public static ForgeConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
 
-    public static int projectorColor = FastColor.ARGB32.color(255, 106, 0, 255);
-    public static int projectorOffColor = 0xFFFFFFFF;
+    public static int projectorColor = FastColor.ARGB32.color(255, 255, 106, 0);
+    public static int projectorOffColor = FastColor.ARGB32.color(255, 137, 137, 137);
     public static int placementTime = 160;
 
     static {

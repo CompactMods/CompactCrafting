@@ -17,7 +17,6 @@ jobs:
     name: Get Variables
     runs-on: ubuntu-20.04
     outputs:
-      release_type: ${{steps.cf_release_type.outputs.value }}
       version: ${{steps.version.outputs.version }}
       build: ${{steps.build.outputs.buildver}}
 
@@ -31,13 +30,6 @@ jobs:
       - name: Find Current Tag
         id: version
         run: echo "version=$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-rc*' '@')" >> $GITHUB_OUTPUT
-
-      - name: Release Type
-        id: cf_release_type
-        uses: christian-draeger/read-properties@1.1.1
-        with:
-          path: './gradle.properties'
-          property: 'cf_release_type'
 
       - name: Build Version
         id: build
@@ -60,7 +52,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: "17.0.3"
+          java-version: "17"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -104,7 +96,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: "17.0.3"
+          java-version: "17"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
