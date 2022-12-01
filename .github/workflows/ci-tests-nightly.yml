@@ -15,7 +15,7 @@ on:
 jobs:
   vars:
     name: Get Variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       version: ${{steps.version.outputs.version }}
       build: ${{steps.build.outputs.buildver}}
@@ -39,7 +39,7 @@ jobs:
           echo "buildver=$buildver" >> $GITHUB_OUTPUT
   tests:
     name: Gradle Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [ vars ]
     steps:
       - name: Checkout
@@ -51,28 +51,26 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: "17"
+          distribution: microsoft
+          java-version: 17
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Create datagen assets
-        continue-on-error: true
-        run: ./gradlew runData --debug
+      - name: Generate Datagen Assets
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Test JAR with GameTest Server
-        run: ./gradlew runGameTestServer --debug
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: runGameTestServer
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
-          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload build failure
         if: failure()
@@ -83,7 +81,7 @@ jobs:
 
   nightly:
     name: Publish Nightly
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [ vars, tests ]
     steps:
       - name: Checkout
@@ -95,21 +93,22 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: "17"
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+          distribution: temurin
+          java-version: 17
 
       - name: Generate Resources
-        run: ./gradlew runData
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: publishMainPublicationToGitHubPackagesRepository
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
