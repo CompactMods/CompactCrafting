@@ -239,6 +239,7 @@ artifacts {
     archives(tasks.named("apiJar").get())
 }
 
+val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
 publishing {
     publications.register<MavenPublication>("main") {
         artifactId = mod_id
@@ -253,7 +254,7 @@ publishing {
 
     repositories {
         // GitHub Packages
-        maven("https://maven.pkg.github.com/CompactMods/CompactCrafting") {
+        maven(PACKAGES_URL) {
             name = "GitHubPackages"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
