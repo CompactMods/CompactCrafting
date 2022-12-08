@@ -61,7 +61,7 @@ jobs:
       - name: Generate Datagen Assets
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: runData --debug --scan
+          arguments: runData --debug
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
