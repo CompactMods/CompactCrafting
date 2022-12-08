@@ -163,7 +163,8 @@ dependencies {
     minecraft("net.minecraftforge", "forge", "${minecraft_version}-${forge_version}")
 
     minecraftLibrary("io.reactivex.rxjava3", "rxjava", "3.1.5")
-    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,4)")
+    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
+    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
 
     // Nicephore - Screenshots and Stuff
     // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
