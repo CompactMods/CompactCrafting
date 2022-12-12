@@ -35,7 +35,7 @@ tasks.create("getBuildInfo") {
 }
 
 version = modVersion
-group = isRelease ? "dev.compactmods" : "dev.compactmods.nightly"
+group = "dev.compactmods"
 archivesBaseName = mod_id
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)

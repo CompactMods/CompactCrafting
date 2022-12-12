@@ -2,6 +2,7 @@ name: Gradle Tests and Nightly (CI)
 
 env:
   GH_PKG_URL: "https://maven.pkg.github.com/${{ github.repository }}"
+  CC_RELEASE: false
 
 on:
   workflow_dispatch:
@@ -67,9 +68,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Unshallow and Get Tags
-        run: git fetch --prune --unshallow --tags
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -114,10 +112,6 @@ jobs:
 
       - name: Test JAR with GameTest Server
         run: ./gradlew runGameTestServer
-        env:
-          CC_RELEASE: false
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Upload build failure
         if: failure()
@@ -126,16 +120,13 @@ jobs:
           name: test-data
           path: run/gametest
 
-  nightly:
-    name: Publish Nightly
+  packages:
+    name: Publish Github Package
     runs-on: ubuntu-22.04
     needs: [ vars, tests ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Unshallow and Get Tags
-        run: git fetch --prune --unshallow --tags
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -153,9 +144,8 @@ jobs:
           path: src/generated/resources
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
+        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
         env:
-          CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
