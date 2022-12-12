@@ -1,7 +1,7 @@
 name: Gradle Tests and Nightly (CI)
 
 env:
-  GH_PKG_URL: "https://maven.pkg.github.com/$GITHUB_REPOSITORY"
+  GH_PKG_URL: "https://maven.pkg.github.com/${{ GITHUB_REPOSITORY }}"
 
 on:
   workflow_dispatch:
@@ -62,7 +62,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Generate Datagen Assets
-        run: ./gradlew runData
+        run: ./gradlew runData --scan
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
@@ -103,14 +103,14 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Generate Resources
-        run: ./gradlew runData
+        run: ./gradlew runData --scan
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
+        run: ./gradlew publishMainPublicationToGitHubPackagesRepository --scan
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
