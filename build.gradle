@@ -19,24 +19,24 @@ plugins {
 
 apply plugin: "net.minecraftforge.gradle"
 
-def semver = System.getenv("CM_SEMVER_VERSION")
-def buildNumber = System.getenv("CM_BUILD_NUM")
+def semver = System.getenv("CC_SEMVER_VERSION")
+def buildNumber = System.getenv("CC_BUILD_NUM")
 def nightlyVersion = "${semver}.${buildNumber}"
-def isRelease = (System.getenv("CM_RELEASE") ?: "false").equalsIgnoreCase("true")
+def isRelease = (System.getenv("CC_RELEASE") ?: "false").equalsIgnoreCase("true")
+def modVersion = isRelease ? semver : nightlyVersion
 
-task getBuildInfo() {
-    println("Mod ID: ${mod_id}")
-    println("Version: ${isRelease ? semver : nightlyVersion}")
-    println("Semver Version: ${semver}")
-    println("Nightly Build: ${nightlyVersion}")
+tasks.create("getBuildInfo") {
+    doFirst {
+        this.logger.info("Mod ID: ${mod_id}")
+        this.logger.info("Version: ${modVersion}")
+        this.logger.info("Semver Version: ${semver}")
+        this.logger.info("Nightly Build: ${nightlyVersion}")
+    }
 }
 
-version = isRelease ? "${semver}" : nightlyVersion
+version = modVersion
 group = isRelease ? "dev.compactmods" : "dev.compactmods.nightly"
 archivesBaseName = mod_id
-
-println("Mod ID: ${mod_id}");
-println("Version: ${version}");
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
@@ -144,7 +144,7 @@ minecraft {
         }
 
         data {
-            workingDirectory project.file('run')
+            workingDirectory project.file('run/data')
 
             // Recommended logging data for a userdev environment
             property 'forge.logging.markers', '' // 'SCAN,REGISTRIES,REGISTRYDUMP'
@@ -168,7 +168,7 @@ minecraft {
         }
 
         gameTestServer {
-            workingDirectory project.file('run/gametest')
+            workingDirectory project.file('run/test')
 
             // Recommended logging data for a userdev environment
             // The markers can be added/remove as needed separated by commas.
@@ -335,19 +335,10 @@ artifacts {
     archives jar, shadowJar, apiJar //, testJar
 }
 
+def PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
 publishing {
     publications {
         maven(MavenPublication) {
-            artifactId = mod_id
-            artifacts {
-                artifact(jar)
-                artifact(shadowJar)
-                artifact(apiJar)
-                //artifact(testJar)
-            }
-        }
-
-        nightlyMaven(MavenPublication) {
             artifactId = mod_id
             artifacts {
                 artifact(jar)
@@ -362,7 +353,7 @@ publishing {
         // GitHub Packages
         maven {
             name = "GitHubPackages"
-            url = "https://maven.pkg.github.com/CompactMods/CompactCrafting"
+            url = PACKAGES_URL
             credentials {
                 username = project.findProperty("gpr.actor") ?: System.getenv("GITHUB_ACTOR")
                 password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
