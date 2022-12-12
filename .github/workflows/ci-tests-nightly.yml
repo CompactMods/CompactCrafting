@@ -98,11 +98,18 @@ jobs:
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
+      - name: Store Built Assets
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-data
+          path: src/generated/resources
+
       - name: Upload Failure
         if: failure()
         uses: actions/upload-artifact@v3
         with:
-          name: gen-data-failure
+          name: generated-data-failure
           path: .
 
       - name: Test JAR with GameTest Server
@@ -139,12 +146,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Generate Resources
-        run: ./gradlew runData
-        env:
-          CC_RELEASE: false
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+      - name: Pull Built Data
+        uses: actions/download-artifact@v2
+        with:
+          name: generated-data
+          path: src/generated/resources
 
       - name: Publish gradle nightly jar
         run: ./gradlew publishMainPublicationToGitHubPackagesRepository
