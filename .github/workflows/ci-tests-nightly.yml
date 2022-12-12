@@ -85,6 +85,12 @@ jobs:
           echo "Java Home: ${{env.JAVA_HOME}}"
           ./gradlew -q dependencies         
 
+      - name: Make Directories
+        run: |
+          mkdir run
+          mkdir run/data
+          mkdir run/test
+
       - name: Generate Datagen Assets
         run: ./gradlew runData --stacktrace --info
         env:
