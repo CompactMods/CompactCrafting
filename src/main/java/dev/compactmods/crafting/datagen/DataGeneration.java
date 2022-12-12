@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.datagen.tags.BlockTagGenerator;
 import net.minecraft.data.DataGenerator;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -19,8 +20,13 @@ public class DataGeneration {
     }
 
     private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
+        final var files = event.getExistingFileHelper();
+
         generator.addProvider(new LootTableGenerator(generator));
         generator.addProvider(new RecipeGenerator(generator));
+
+        var blockTags = new BlockTagGenerator(generator, files);
+        generator.addProvider(blockTags);
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {

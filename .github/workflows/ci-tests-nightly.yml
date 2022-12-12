@@ -1,72 +1,123 @@
 name: Gradle Tests and Nightly (CI)
 
+env:
+  GH_PKG_URL: "https://maven.pkg.github.com/${{ github.repository }}"
+
 on:
   workflow_dispatch:
+    inputs:
+      diagnostic_mode:
+        description: Diagnostic Mode
+        type: boolean
+        default: false
+        required: true
+
   push:
     branches:
       - '**'
-      - '!indev-*'
     tags-ignore:
       - v*
     paths-ignore:
-      - 'README.md'
-      - LICENSE
+      - "README.md"
+      - "LICENSE"
+      - ".github/**/*"
 
 jobs:
   vars:
     name: Get Variables
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
-      release_type: ${{steps.cf_release_type.outputs.value }}
+      version: ${{steps.version.outputs.version }}
+      build: ${{steps.build.outputs.buildver}}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.4.0
-        
-      - name: Release Type
-        id: cf_release_type
-        uses: christian-draeger/read-properties@1.0.1
-        with:
-          path: './gradle.properties'
-          property: 'cf_release_type'
+        uses: actions/checkout@v3
+
+      - name: Unshallow
+        run: git fetch --prune --unshallow
+
+      - name: Find Current Tag
+        id: version
+        run: echo "version=$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-rc*' '@')" >> $GITHUB_OUTPUT
+
+      - name: Build Version
+        id: build
+        run: |
+          buildver=$(git describe --tags --match v* | cut -d- -f2)
+          echo "build = $buildver"
+          echo "buildver=$buildver" >> $GITHUB_OUTPUT
+
+  build-info:
+    name: Build Info
+    runs-on: ubuntu-22.04
+    needs: [ vars ]
+    steps:
+      - name: Output
+        run: |
+          echo "Version: ${{ needs.vars.outputs.version }}"
+          echo "Build Number: ${{ needs.vars.outputs.build }}"
+          echo "Packages URL: ${{ env.GH_PKG_URL }}"
 
   tests:
     name: Gradle Tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [ vars ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
 
       - name: Unshallow and Get Tags
         run: git fetch --prune --unshallow --tags
-        
+
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
+      - name: Prepare Gradle
+        uses: gradle/gradle-build-action@v2
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Diagnostic Output
+        if: inputs.diagnostic_mode
+        run: |
+          echo "Java Home: ${{env.JAVA_HOME}}"
+          ./gradlew -q dependencies         
 
-      - name: Create datagen assets
-        continue-on-error: true
+      - name: Make Directories
+        run: |
+          mkdir run
+          mkdir run/data
+          mkdir run/test
+
+      - name: Generate Datagen Assets
         run: ./gradlew runData
+        env:
+          CC_RELEASE: false
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+
+      - name: Store Built Assets
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-data
+          path: src/generated/resources
+
+      - name: Upload Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-data-failure
+          path: .
 
       - name: Test JAR with GameTest Server
         run: ./gradlew runGameTestServer
         env:
-          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CC_RELEASE: false
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Upload build failure
         if: failure()
@@ -77,45 +128,35 @@ jobs:
 
   nightly:
     name: Publish Nightly
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [ vars, tests ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Unshallow and Get Tags
         run: git fetch --prune --unshallow --tags
-        
+
       - name: Set up JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: "17"
+          distribution: temurin
+          java-version: 17
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v2
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Pull Built Data
+        uses: actions/download-artifact@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: ${{ runner.os }}-gradle-
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Generate Resources
-        run: ./gradlew runData
-        env:
-          CM_RELEASE: false
-          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CM_BUILD_NUM: "0"
+          name: generated-data
+          path: src/generated/resources
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishNightlyPublicationToGitHubPackagesRepository
+        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
         env:
-          CM_RELEASE: false
-          CM_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CM_BUILD_NUM: "0"
+          CC_RELEASE: false
+          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
+          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
