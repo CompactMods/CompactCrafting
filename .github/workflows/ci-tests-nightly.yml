@@ -84,7 +84,7 @@ jobs:
         run: ./gradlew -q dependencies
 
       - name: Generate Datagen Assets
-        run: ./gradlew runData
+        run: ./gradlew runData --stacktrace --info
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
