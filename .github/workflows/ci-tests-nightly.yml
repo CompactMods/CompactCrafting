@@ -79,9 +79,11 @@ jobs:
       - name: Prepare Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Show Dependencies
+      - name: Diagnostic Output
         if: inputs.diagnostic_mode
-        run: ./gradlew -q dependencies
+        run: |
+          echo "Java Home: ${{env.JAVA_HOME}}"
+          ./gradlew -q dependencies         
 
       - name: Generate Datagen Assets
         run: ./gradlew runData --stacktrace --info
