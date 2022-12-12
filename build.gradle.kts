@@ -163,7 +163,8 @@ dependencies {
     minecraft("net.minecraftforge", "forge", "${minecraft_version}-${forge_version}")
 
     minecraftLibrary("io.reactivex.rxjava3", "rxjava", "3.1.5")
-    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,4)")
+    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
+    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
 
     // Nicephore - Screenshots and Stuff
     // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
@@ -238,6 +239,7 @@ artifacts {
     archives(tasks.named("apiJar").get())
 }
 
+val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
 publishing {
     publications.register<MavenPublication>("main") {
         artifactId = mod_id
@@ -252,7 +254,7 @@ publishing {
 
     repositories {
         // GitHub Packages
-        maven("https://maven.pkg.github.com/CompactMods/CompactCrafting") {
+        maven(PACKAGES_URL) {
             name = "GitHubPackages"
             credentials {
                 username = System.getenv("GITHUB_ACTOR")

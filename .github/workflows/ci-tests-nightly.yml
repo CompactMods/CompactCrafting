@@ -1,7 +1,17 @@
 name: Gradle Tests and Nightly (CI)
 
+env:
+  GH_PKG_URL: "https://maven.pkg.github.com/${{ github.repository }}"
+
 on:
   workflow_dispatch:
+    inputs:
+      diagnostic_mode:
+        description: Diagnostic Mode
+        type: boolean
+        default: false
+        required: true
+
   push:
     branches:
       - '**'
@@ -15,7 +25,7 @@ on:
 jobs:
   vars:
     name: Get Variables
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       version: ${{steps.version.outputs.version }}
       build: ${{steps.build.outputs.buildver}}
@@ -37,9 +47,21 @@ jobs:
           buildver=$(git describe --tags --match v* | cut -d- -f2)
           echo "build = $buildver"
           echo "buildver=$buildver" >> $GITHUB_OUTPUT
+
+  build-info:
+      name: Build Info
+      runs-on: ubuntu-22.04
+      needs: [ vars ]
+      steps:
+        - name: Output
+          run: |
+            echo "Version: ${{ needs.vars.outputs.version }}"
+            echo "Build Number: ${{ needs.vars.outputs.build }}"
+            echo "Packages URL: ${{ env.GH_PKG_URL }}"
+
   tests:
     name: Gradle Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ vars ]
     steps:
       - name: Checkout
@@ -51,22 +73,47 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          distribution: microsoft
+          distribution: temurin
           java-version: 17
 
-      - name: Generate Datagen Assets
+      - name: Prepare Gradle
         uses: gradle/gradle-build-action@v2
-        with:
-          arguments: runData
+
+      - name: Diagnostic Output
+        if: inputs.diagnostic_mode
+        run: |
+          echo "Java Home: ${{env.JAVA_HOME}}"
+          ./gradlew -q dependencies         
+
+      - name: Make Directories
+        run: |
+          mkdir run
+          mkdir run/data
+          mkdir run/test
+
+      - name: Generate Datagen Assets
+        run: ./gradlew runData --stacktrace --info
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
-      - name: Test JAR with GameTest Server
-        uses: gradle/gradle-build-action@v2
+      - name: Store Built Assets
+        if: success()
+        uses: actions/upload-artifact@v3
         with:
-          arguments: runGameTestServer
+          name: generated-data
+          path: src/generated/resources
+
+      - name: Upload Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-data-failure
+          path: .
+
+      - name: Test JAR with GameTest Server
+        run: ./gradlew runGameTestServer
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
@@ -81,7 +128,7 @@ jobs:
 
   nightly:
     name: Publish Nightly
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ vars, tests ]
     steps:
       - name: Checkout
@@ -96,19 +143,17 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Generate Resources
+      - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      - name: Pull Built Data
+        uses: actions/download-artifact@v2
         with:
-          arguments: runData
-        env:
-          CC_RELEASE: false
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+          name: generated-data
+          path: src/generated/resources
 
       - name: Publish gradle nightly jar
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: publishMainPublicationToGitHubPackagesRepository
+        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
