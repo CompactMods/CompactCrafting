@@ -58,19 +58,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Generate Datagen Assets
+      - name: Prepare Gradle
         uses: gradle/gradle-build-action@v2
-        with:
-          arguments: runData --debug
+
+      - name: Generate Datagen Assets
+        run: ./gradlew runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Test JAR with GameTest Server
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: runGameTestServer
+        run: ./gradlew runGameTestServer
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
@@ -100,19 +99,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Generate Resources
+      - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-        with:
-          arguments: runData
+
+      - name: Generate Resources
+        run: ./gradlew runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Publish gradle nightly jar
-        uses: gradle/gradle-build-action@v2
-        with:
-          arguments: publishMainPublicationToGitHubPackagesRepository
+        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
