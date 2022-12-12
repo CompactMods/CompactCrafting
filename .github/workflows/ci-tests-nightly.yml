@@ -84,7 +84,7 @@ jobs:
         run: ./gradlew -q dependencies
 
       - name: Generate Datagen Assets
-        run: ./gradlew runData --scan
+        run: ./gradlew runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
@@ -125,14 +125,14 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Generate Resources
-        run: ./gradlew runData --scan
+        run: ./gradlew runData
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishMainPublicationToGitHubPackagesRepository --scan
+        run: ./gradlew publishMainPublicationToGitHubPackagesRepository
         env:
           CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
