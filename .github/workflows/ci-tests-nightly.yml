@@ -3,15 +3,15 @@ name: Gradle Tests and Nightly (CI)
 env:
   GH_PKG_URL: "https://maven.pkg.github.com/${{ github.repository }}"
 
-inputs:
-  diagnostic_mode:
-    description: Diagnostic Mode
-    type: boolean
-    default: false
-    required: true
-
 on:
   workflow_dispatch:
+    inputs:
+      diagnostic_mode:
+        description: Diagnostic Mode
+        type: boolean
+        default: false
+        required: true
+
   push:
     branches:
       - '**'
