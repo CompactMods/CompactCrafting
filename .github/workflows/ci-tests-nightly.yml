@@ -92,6 +92,13 @@ jobs:
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
 
+      - name: Upload Failure
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: gen-data-failure
+          path: .
+
       - name: Test JAR with GameTest Server
         run: ./gradlew runGameTestServer
         env:
