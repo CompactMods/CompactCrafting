@@ -42,4 +42,6 @@ build-out/
 
 *.lnk
 
-src/generated/
+forge-main/generated/
+
+forge-main/src/generated/
