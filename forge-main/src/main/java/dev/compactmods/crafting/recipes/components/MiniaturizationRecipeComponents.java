@@ -107,4 +107,9 @@ public class MiniaturizationRecipeComponents implements IRecipeComponents {
                 .stream()
                 .filter(bck -> blockComponents.get(bck) instanceof EmptyBlockComponent);
     }
+
+    @Override
+    public boolean isKnownKey(String key) {
+        return blockComponents.containsKey(key) || otherComponents.containsKey(key);
+    }
 }

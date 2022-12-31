@@ -29,4 +29,8 @@ public interface IRecipeComponents {
     Optional<String> getKey(BlockState state);
 
     Stream<String> getEmptyComponents();
+
+    default boolean isKnownKey(String key) {
+        return getAllComponents().containsKey(key);
+    }
 }

@@ -116,11 +116,14 @@ RecipeLayerType<MixedComponentRecipeLayer> {
             if (anyNonAir) return false;
         }
 
-        final Collection<String> requiredKeys = this.componentLookup.getComponents();
+        final Collection<String> layerComponentKeys = this.componentLookup.getComponents();
         final Map<String, Integer> componentTotals = blocks.getKnownComponentTotals();
 
         // Dry run that all the components required are in the component list
-        Set<String> missingRequired = requiredKeys.stream().filter(rk -> !componentTotals.containsKey(rk)).collect(Collectors.toSet());
+        Set<String> missingRequired = layerComponentKeys.stream()
+                .filter(rk -> !componentTotals.containsKey(rk))
+                .collect(Collectors.toSet());
+
         if(!missingRequired.isEmpty()) {
             if(ServerConfig.RECIPE_MATCHING.get())
                 CompactCrafting.RECIPE_LOGGER.debug("Failed to match: required components ({}) are missing.", String.join(",", missingRequired));
@@ -128,9 +131,11 @@ RecipeLayerType<MixedComponentRecipeLayer> {
             return false;
         }
 
-        for(String required : requiredKeys) {
-            final IRecipeBlockComponent block = components.getBlock(required).orElse(null);
+        final var knownComponentKeys = layerComponentKeys.stream()
+                .filter(components::isKnownKey)
+                .collect(Collectors.toSet());
 
+        for(String required : knownComponentKeys) {
             final Set<BlockPos> actual = blocks.getPositionsForComponent(required)
                     .map(BlockPos::immutable).collect(Collectors.toSet());
 

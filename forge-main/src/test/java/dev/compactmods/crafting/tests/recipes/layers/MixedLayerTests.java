@@ -211,6 +211,7 @@ public class MixedLayerTests {
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
                 .normalize();
 
+        // Layer has "G" and "O" components
         final var layer = getLayerFromFile(test, "layers/mixed/medium_glass_walls_obsidian_center.json");
 
         final var matched = layer.matches(components, blocks);
@@ -238,6 +239,24 @@ public class MixedLayerTests {
         final var matched = layer.matches(components, blocks);
         if(matched)
             test.fail("Expected layer not to match due to incorrect positions; layer matched anyway.");
+
+        test.succeed();
+    }
+
+    @GameTest(template = "empty_medium")
+    public static void MixedLayerMatchesIfCompletelyEmpty(final GameTestHelper test) {
+        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .normalize();
+
+        final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/empty.json");
+        layer.dropNonRequiredComponents(components);
+
+        final var matched = layer.matches(components, blocks);
+
+        if(!matched)
+            test.fail("Empty area did not match correctly.");
 
         test.succeed();
     }
