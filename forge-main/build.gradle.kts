@@ -96,7 +96,7 @@ dependencies {
     }
 
     // The One Probe
-    // implementation(fg.deobf("curse.maven:theoneprobe-245211:$top_version"))
+    implementation(fg.deobf("curse.maven:theoneprobe-245211:$top_version"))
 
 //    if(!System.getenv().containsKey("CI")) {
 //        // Nicephore - Screenshots and Stuff

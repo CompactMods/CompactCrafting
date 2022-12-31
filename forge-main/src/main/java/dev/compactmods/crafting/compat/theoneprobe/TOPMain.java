@@ -11,9 +11,11 @@ class TOPMain implements Function<Object, Void> {
 
     @Override
     public Void apply(Object o) {
-        PROBE = (ITheOneProbe) o;
-        PROBE.registerProvider(new FieldProjectorProvider());
-        PROBE.registerProvider(new FieldProxyProvider());
+        if (o instanceof ITheOneProbe probe) {
+            PROBE = probe;
+            probe.registerProvider(new FieldProjectorProvider());
+            probe.registerProvider(new FieldProxyProvider());
+        }
 
         return null;
     }
