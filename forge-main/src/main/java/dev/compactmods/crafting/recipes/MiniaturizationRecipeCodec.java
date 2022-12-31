@@ -43,6 +43,14 @@ public class MiniaturizationRecipeCodec implements Codec<MiniaturizationRecipe> 
         MiniaturizationRecipe recipe = new MiniaturizationRecipe();
         StringBuilder errorBuilder = new StringBuilder();
 
+        int requiredTime = Codec.INT.optionalFieldOf("craftingTime", 200)
+                .codec()
+                .parse(ops, input)
+                .resultOrPartial(errorBuilder::append)
+                .orElse(200);
+
+        recipe.setRequiredTime(requiredTime);
+
         int recipeSize = Codec.INT.optionalFieldOf("recipeSize", -1)
                 .codec()
                 .parse(ops, input)

@@ -42,10 +42,10 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     private ICatalystMatcher catalyst;
     private ItemStack[] outputs;
     private AABB dimensions;
+    private int requiredTime;
 
     private Map<String, Integer> cachedComponentTotals;
     private final IRecipeComponents components;
-
     public static final MiniaturizationRecipeCodec CODEC = new MiniaturizationRecipeCodec();
 
     public MiniaturizationRecipe() {
@@ -55,6 +55,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.outputs = new ItemStack[0];
         this.dimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
+        this.requiredTime = 200;
     }
 
     void applyComponents(Map<String, IRecipeComponent> compMap) {
@@ -277,7 +278,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public int getCraftingTime() {
-        return 200;
+        return this.requiredTime;
     }
 
 
@@ -324,5 +325,9 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
 
     public void setCatalyst(ICatalystMatcher catalyst) {
         this.catalyst = catalyst;
+    }
+
+    public void setRequiredTime(int requiredTime) {
+        this.requiredTime = requiredTime;
     }
 }
