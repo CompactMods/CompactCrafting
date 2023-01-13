@@ -38,6 +38,6 @@ public interface IRecipeLayer {
      * from layer implementations, and automatically remap at the recipe level.
      */
     @Deprecated
-    default void dropUnknownComponents(IRecipeComponents components) {
+    default void dropNonRequiredComponents(IRecipeComponents components) {
     }
 }

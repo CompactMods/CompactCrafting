@@ -244,8 +244,10 @@ public class MixedLayerTests {
 
         final MixedComponentRecipeLayer layer = getLayerFromFile(test, "layers/mixed/empty.json");
 
-        final var matched = layer.matches(components, blocks);
+        // Real recipe loader would do this at some point as well
+        layer.getComponentLookup().remove("-");
 
+        final var matched = layer.matches(components, blocks);
         if(!matched)
             test.fail("Empty area did not match correctly.");
 
