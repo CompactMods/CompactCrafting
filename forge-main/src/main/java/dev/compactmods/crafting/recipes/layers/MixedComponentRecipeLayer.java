@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -26,15 +27,15 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 
 public class MixedComponentRecipeLayer extends ForgeRegistryEntry<RecipeLayerType<?>>
-        implements IRecipeLayer, IFixedSizedRecipeLayer,
-RecipeLayerType<MixedComponentRecipeLayer> {
+        implements IRecipeLayer, IFixedSizedRecipeLayer, RecipeLayerType<MixedComponentRecipeLayer> {
+
     private final AABB dimensions;
     private final ComponentPositionLookup componentLookup;
 
     public static final Codec<MixedComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
             ComponentPositionLookup.CODEC
                     .fieldOf("pattern")
-                    .forGetter(MixedComponentRecipeLayer::getComponentLookup)
+                    .forGetter(x -> x.componentLookup)
     ).apply(i, MixedComponentRecipeLayer::new));
 
     public MixedComponentRecipeLayer() {
@@ -47,7 +48,8 @@ RecipeLayerType<MixedComponentRecipeLayer> {
         this.dimensions = BlockSpaceUtil.getBoundsForBlocks(componentLookup.getAllPositions());
     }
 
-    public ComponentPositionLookup getComponentLookup() {
+    @Override
+    public IPositionalComponentLookup getComponentLookup() {
         return this.componentLookup;
     }
 
@@ -58,25 +60,6 @@ RecipeLayerType<MixedComponentRecipeLayer> {
     @Override
     public Set<String> getComponents() {
         return ImmutableSet.copyOf(componentLookup.getComponents());
-    }
-
-    @Override
-    public void dropNonRequiredComponents(IRecipeComponents components) {
-        components.getEmptyComponents().forEach(componentLookup::remove);
-
-        final Collection<String> definedKeys = components.getBlockComponents().keySet();
-        final Set<String> toRemove = componentLookup.getComponents()
-                .stream()
-                .filter(layerComp -> !definedKeys.contains(layerComp))
-                .collect(Collectors.toSet());
-
-        if(ServerConfig.RECIPE_REGISTRATION.get())
-            CompactCrafting.RECIPE_LOGGER.debug(
-                    "Removing {} from required component list; it was not defined in the recipe.",
-                    String.join(",", toRemove)
-            );
-
-        toRemove.forEach(componentLookup::remove);
     }
 
     public Map<String, Integer> getComponentTotals() {

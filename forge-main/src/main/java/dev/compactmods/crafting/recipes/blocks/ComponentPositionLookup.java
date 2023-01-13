@@ -4,9 +4,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
+import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import net.minecraft.core.BlockPos;
 
-public class ComponentPositionLookup {
+public class ComponentPositionLookup implements IPositionalComponentLookup {
 
     protected final Map<BlockPos, String> components;
     protected final Map<String, Integer> componentTotals;

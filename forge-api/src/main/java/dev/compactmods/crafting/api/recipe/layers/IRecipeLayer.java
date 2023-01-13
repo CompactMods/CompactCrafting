@@ -34,12 +34,10 @@ public interface IRecipeLayer {
     RecipeLayerType<?> getType();
 
     /**
-     * Called post-creation by the recipe system to remove components that aren't defined
-     * at the recipe level. This is used to shake out empty (air) blocks and for helping
-     * match algorithms be more efficient.
-     *
-     * @param components
+     * @deprecated No longer called by the recipe loader. Recipes will pull required component keys
+     * from layer implementations, and automatically remap at the recipe level.
      */
-    default void dropNonRequiredComponents(IRecipeComponents components) {
+    @Deprecated
+    default void dropUnknownComponents(IRecipeComponents components) {
     }
 }

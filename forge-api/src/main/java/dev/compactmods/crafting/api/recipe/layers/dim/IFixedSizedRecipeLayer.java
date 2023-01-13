@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.api.recipe.layers.dim;
 
+import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import net.minecraft.world.phys.AABB;
 
 public interface IFixedSizedRecipeLayer {
@@ -10,5 +11,7 @@ public interface IFixedSizedRecipeLayer {
      * @return
      */
     AABB getDimensions();
+
+    IPositionalComponentLookup getComponentLookup();
 
 }

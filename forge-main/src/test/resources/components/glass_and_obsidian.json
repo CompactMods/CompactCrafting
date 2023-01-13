@@ -1,0 +1,10 @@
+{
+  "G": {
+    "type": "compactcrafting:block",
+    "block": "minecraft:glass"
+  },
+  "O": {
+    "type": "compactcrafting:block",
+    "block": "minecraft:obsidian"
+  }
+}

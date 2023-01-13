@@ -1,0 +1,34 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "A"
+    },
+    {
+      "type": "compactcrafting:mixed",
+      "pattern": [
+        ["-", "-", "A", "-", "-"],
+        ["-", "-", "-", "-", "-"],
+        ["A", "-", "-", "-", "A"],
+        ["-", "-", "-", "-", "-"],
+        ["-", "-", "A", "-", "-"]
+      ]
+    }
+  ],
+  "catalyst": {
+    "id": "minecraft:ender_pearl"
+  },
+  "components": {
+    "A": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:stone"
+    }
+  },
+  "outputs": [
+    {
+      "id": "minecraft:diamond_block",
+      "Count": 1
+    }
+  ]
+}

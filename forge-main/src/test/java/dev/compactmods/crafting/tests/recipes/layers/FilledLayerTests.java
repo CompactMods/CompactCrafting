@@ -5,14 +5,14 @@ import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.components.GameTestAssertions;
-import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
+import dev.compactmods.crafting.tests.testers.MultiLayerRecipeTestHelper;
+import dev.compactmods.crafting.tests.testers.TestHelper;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
@@ -139,11 +139,14 @@ public class FilledLayerTests {
 
     @GameTest(template = "medium_glass_filled")
     public static void FilledLayerMatchesWorldInExactMatchScenario(GameTestHelper test) {
-        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        final var testHelper = TestHelper.forTest(test)
+                .forComponents()
+                .forSingleLayer(MiniaturizationFieldSize.MEDIUM);
+
+        final var components = testHelper.components();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
+        final var blocks = testHelper.blocks();
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");
@@ -206,7 +209,11 @@ public class FilledLayerTests {
 
     @GameTest(template = "medium_glass_filled")
     public static void FailsMatchIfComponentKeyNotFound(final GameTestHelper test) {
-        final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
+        final var testHelper = TestHelper.forTest(test)
+                .forComponents()
+                .forSingleLayer(MiniaturizationFieldSize.MEDIUM);
+
+        final var components = testHelper.components();
 
         /*
          We actually expect 'G' not 'Gl', so this will match,
@@ -214,8 +221,7 @@ public class FilledLayerTests {
         */
         components.registerBlock("Gl", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds);
+        final var blocks = testHelper.blocks();
 
         // Set up a 5x5x1 filled layer, using "G" component
         final FilledComponentRecipeLayer layer = new FilledComponentRecipeLayer("G");

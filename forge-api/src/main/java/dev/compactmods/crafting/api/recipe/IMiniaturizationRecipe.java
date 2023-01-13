@@ -1,10 +1,12 @@
 package dev.compactmods.crafting.api.recipe;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
+import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -25,7 +27,11 @@ public interface IMiniaturizationRecipe {
 
     IRecipeComponents getComponents();
 
-    void setOutputs(Collection<ItemStack> outputs);
-
     Stream<IRecipeLayer> getLayers();
+
+    boolean matches(IRecipeBlocks blocks);
+
+    Map<String, Integer> getComponentTotals();
+
+    int getComponentRequiredCount(String component);
 }

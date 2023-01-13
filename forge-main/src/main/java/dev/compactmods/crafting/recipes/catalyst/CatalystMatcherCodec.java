@@ -3,37 +3,43 @@ package dev.compactmods.crafting.recipes.catalyst;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Decoder;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.Lifecycle;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
-import net.minecraft.resources.ResourceLocation;
+import dev.compactmods.crafting.util.CodecExtensions;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.ItemStack;
 
-public class CatalystMatcherCodec implements Codec<CatalystType<?>> {
+public class CatalystMatcherCodec {
 
-    /**
-     * You probably want {@link CatalystMatcherCodec#MATCHER_CODEC} instead.
-     */
-    public static final CatalystMatcherCodec INSTANCE = new CatalystMatcherCodec();
-    public static final Codec<ICatalystMatcher> MATCHER_CODEC = INSTANCE.dispatchStable(ICatalystMatcher::getType, CatalystType::getCodec);
+    private static final Codec<ICatalystMatcher> REGISTRY_TYPE_MATCHER_CODEC = ExtraCodecs.lazyInitializedCodec(() -> {
+        final var catalystRegCodec = CCCatalystTypes.CATALYST_TYPES.get().getCodec();
+        return catalystRegCodec.dispatchStable(ICatalystMatcher::getType, CatalystType::getCodec);
+    });
 
-    @Override
-    public <T> DataResult<T> encode(CatalystType<?> input, DynamicOps<T> ops, T prefix) {
-        ResourceLocation key = input.getRegistryName();
-        T toMerge = ops.createString(key.toString());
-        return ops.mergeToPrimitive(prefix, toMerge);
-    }
+    private final static Decoder<ICatalystMatcher> DECODER = new Decoder<>() {
+        @Override
+        public <T> DataResult<Pair<ICatalystMatcher, T>> decode(DynamicOps<T> ops, T input) {
+            final var catalystType = ops.get(input, "type").result();
+            if (catalystType.isEmpty()) {
+                // Error: no catalyst type defined; falling back to the itemstack handler.
+                return CodecExtensions.FRIENDLY_ITEMSTACK
+                        .parse(ops, input)
+                        .setLifecycle(Lifecycle.stable())
+                        .map(is -> Pair.of(new ItemStackCatalystMatcher(is), input));
 
-    @Override
-    public <T> DataResult<Pair<CatalystType<?>, T>> decode(DynamicOps<T> ops, T input) {
-        return ResourceLocation.CODEC.decode(ops, input).flatMap(CatalystMatcherCodec::handleDecodeResult);
-    }
+            } else {
+                // type found, use key dispatch codec
+                return REGISTRY_TYPE_MATCHER_CODEC
+                        .parse(ops, input)
+                        .setLifecycle(Lifecycle.stable())
+                        .map(matcher -> Pair.of(matcher, input));
+            }
+        }
+    };
 
-    private static <CatalystMatcher> DataResult<Pair<CatalystType<?>, CatalystMatcher>> handleDecodeResult(Pair<ResourceLocation, CatalystMatcher> pair) {
-        ResourceLocation id = pair.getFirst();
-        if(!CCCatalystTypes.CATALYST_TYPES.containsKey(id))
-            return DataResult.error("Unknown registry key: " + id);
-
-        return DataResult.success(pair.mapFirst(CCCatalystTypes.CATALYST_TYPES::getValue));
-    }
+    public static final Codec<ICatalystMatcher> MATCHER_CODEC = Codec.of(REGISTRY_TYPE_MATCHER_CODEC, DECODER);
 }

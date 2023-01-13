@@ -3,12 +3,14 @@ package dev.compactmods.crafting.recipes;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableList;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -16,12 +18,14 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
 import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
+import dev.compactmods.crafting.util.CodecExtensions;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -36,72 +40,97 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
      * Only used for recipe dimension calculation from loading phase.
      * Specifies the minimum field size required for fluid recipe layers.
      */
-    private int recipeSize;
+//    private int recipeSize;
     private ResourceLocation id;
-    private TreeMap<Integer, IRecipeLayer> layers;
-    private ICatalystMatcher catalyst;
-    private ItemStack[] outputs;
-    private AABB dimensions;
-    private int requiredTime;
-
+    private final TreeMap<Integer, IRecipeLayer> layers;
+    private final ICatalystMatcher catalyst;
+    private final ItemStack[] outputs;
+    private final AABB dimensions;
+    private final int requiredTime;
+    private final boolean hasFixedFootprint;
     private Map<String, Integer> cachedComponentTotals;
-    private final IRecipeComponents components;
-    public static final MiniaturizationRecipeCodec CODEC = new MiniaturizationRecipeCodec();
+    private final MiniaturizationRecipeComponents components;
+
+    public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
+            Codec.INT.optionalFieldOf("craftingTime", 200)
+                    .forGetter(MiniaturizationRecipe::getCraftingTime),
+
+            Codec.INT.optionalFieldOf("recipeSize", -1)
+                    .forGetter(MiniaturizationRecipe::codecRecipeSize),
+
+            MiniaturizationRecipeCodec.LAYER_CODEC.listOf().fieldOf("layers")
+                    .forGetter(MiniaturizationRecipe::getLayerListForCodecWrite),
+
+            MiniaturizationRecipeComponents.CODEC.optionalFieldOf("components", MiniaturizationRecipeComponents.EMPTY)
+                    .forGetter(MiniaturizationRecipe::getComponents),
+
+            CodecExtensions.FRIENDLY_ITEMSTACK.listOf().fieldOf("outputs")
+                    .forGetter(MiniaturizationRecipe::codecOutputs),
+
+            CatalystMatcherCodec.MATCHER_CODEC.fieldOf("catalyst")
+                    .forGetter(MiniaturizationRecipe::getCatalyst)
+
+    ).apply(i, MiniaturizationRecipe::new));
 
     public MiniaturizationRecipe() {
-        this.recipeSize = -1;
+        this.hasFixedFootprint = true;
         this.layers = new TreeMap<>();
-        this.catalyst = null;
         this.outputs = new ItemStack[0];
+        this.catalyst = null;
         this.dimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
         this.components = new MiniaturizationRecipeComponents();
         this.requiredTime = 200;
     }
 
-    void applyComponents(Map<String, IRecipeComponent> compMap) {
-        components.clear();
-        for (Map.Entry<String, IRecipeComponent> comp : compMap.entrySet()) {
-            // Map in block components
-            if (comp.getValue() instanceof IRecipeBlockComponent) {
-                components.registerBlock(comp.getKey(), (IRecipeBlockComponent) comp.getValue());
-            }
-        }
-
-        layers.forEach((i, l) -> {
-            // Allow the layer to drop components it deems non-required for matching (ie empty)
-            l.dropNonRequiredComponents(components);
-
-            // Remap any remaining required components as an empty component
-            final Set<String> missing = l.getComponents()
-                    .stream()
-                    .filter(key -> !components.hasBlock(key))
-                    .collect(Collectors.toSet());
-
-            missing.forEach(needed -> components.registerBlock(needed, new EmptyBlockComponent()));
-        });
-    }
-
-    public void applyLayers(List<IRecipeLayer> layers) {
+    public MiniaturizationRecipe(int craftTime, int recipeSize, List<IRecipeLayer> layers,
+                                 MiniaturizationRecipeComponents components, List<ItemStack> outputs,
+                                 ICatalystMatcher catalyst) {
         this.layers = new TreeMap<>();
+        this.outputs = outputs.toArray(new ItemStack[0]);
+        this.catalyst = catalyst;
+        this.components = components;
+        this.requiredTime = craftTime;
+
+        // region Layers
         ArrayList<IRecipeLayer> rev = new ArrayList<>(layers);
         Collections.reverse(rev);
         for (int y = 0; y < rev.size(); y++)
             this.layers.put(y, rev.get(y));
-    }
+        // endregion
 
-    List<IRecipeLayer> getLayerListForCodecWrite() {
-        return layers.descendingKeySet().stream()
-                .map(layers::get)
-                .collect(Collectors.toList());
-    }
+        // region Missing components
+        final var tempUnknownKeys = layers.stream()
+                .map(IRecipeLayer::getComponents)
+                .flatMap(Set::stream)
+                .filter(key -> !components.isKnownKey(key))
+                .collect(Collectors.toUnmodifiableSet());
 
-    void recalculateDimensions() {
+        for (String key : tempUnknownKeys) {
+            CompactCrafting.RECIPE_LOGGER.warn("Got layer-required component '{}' but it was not defined in the recipe; removing.", key);
+
+            // Only supports fixed-size layers (particular example is mixed layers, which need to specify gaps)
+            // Fluid dimension layers having unknown components is almost certainly a bug on the recipe author
+            for (IRecipeLayer layer : layers) {
+                if (layer instanceof IFixedSizedRecipeLayer fixedLayer) {
+                    IPositionalComponentLookup p = fixedLayer.getComponentLookup();
+                    p.remove(key);
+                }
+            }
+        }
+        // endregion
+
+        // region Recalculate Dimensions
         int height = this.layers.size();
         int x = 0;
         int z = 0;
 
-        boolean hasAnyRigidLayers = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
-        if (!hasAnyRigidLayers) {
+        this.hasFixedFootprint = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
+        if (!hasFixedFootprint) {
+            if (recipeSize < 1) {
+                CompactCrafting.RECIPE_LOGGER.warn("Warning: recipe dimensions are not strictly defined but recipeSize is not set. Forcing it to 1.");
+                recipeSize = 1;
+            }
+
             this.dimensions = new AABB(0, 0, 0, recipeSize, height, recipeSize);
         } else {
             for (IRecipeLayer l : this.layers.values()) {
@@ -119,7 +148,14 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
             this.dimensions = new AABB(Vec3.ZERO, new Vec3(x, height, z));
         }
 
-        updateFluidLayerDimensions();
+        this.updateFluidLayerDimensions();
+        // endregion
+    }
+
+    List<IRecipeLayer> getLayerListForCodecWrite() {
+        return layers.descendingKeySet().stream()
+                .map(layers::get)
+                .collect(Collectors.toList());
     }
 
     private void updateFluidLayerDimensions() {
@@ -264,13 +300,8 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return layers.values().stream();
     }
 
-    public IRecipeComponents getComponents() {
+    public MiniaturizationRecipeComponents getComponents() {
         return this.components;
-    }
-
-    @Override
-    public void setOutputs(Collection<ItemStack> outputs) {
-        this.outputs = outputs.toArray(new ItemStack[0]);
     }
 
     public ICatalystMatcher getCatalyst() {
@@ -307,27 +338,13 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         this.id = recipeId;
     }
 
-    public boolean hasSpecifiedSize() {
-        return MiniaturizationFieldSize.canFitDimensions(this.recipeSize);
+    private List<ItemStack> codecOutputs() {
+        return ImmutableList.copyOf(outputs);
     }
 
-    public int getRecipeSize() {
-        return this.recipeSize;
-    }
-
-    public void setRecipeSize(int size) {
-        if (!MiniaturizationFieldSize.canFitDimensions(size))
-            return;
-
-        this.recipeSize = size;
-        this.recalculateDimensions();
-    }
-
-    public void setCatalyst(ICatalystMatcher catalyst) {
-        this.catalyst = catalyst;
-    }
-
-    public void setRequiredTime(int requiredTime) {
-        this.requiredTime = requiredTime;
+    private int codecRecipeSize() {
+        if (this.hasFixedFootprint) return -1;
+        // TODO: Change recipeSize to take an X/Z
+        return (int) Math.max(dimensions.getXsize(), dimensions.getZsize());
     }
 }

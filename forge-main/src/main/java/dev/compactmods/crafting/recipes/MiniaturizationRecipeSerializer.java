@@ -58,7 +58,10 @@ public class MiniaturizationRecipeSerializer extends ForgeRegistryEntry<RecipeSe
         }
 
         catch(EncoderException ex) {
-            CompactCrafting.RECIPE_LOGGER.error("Error reading recipe information from network: " + ex.getMessage());
+            CompactCrafting.RECIPE_LOGGER.atError()
+                    .withThrowable(ex)
+                    .log("[{}] Error reading recipe information from network: " + ex.getMessage(), recipeId);
+
             return null;
         }
     }

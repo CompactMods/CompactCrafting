@@ -6,7 +6,7 @@ import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
-import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
+import dev.compactmods.crafting.tests.recipes.util.RecipeLevelHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
@@ -58,7 +58,8 @@ public class ProxyLinkingTests {
             }
         });
 
-        RecipeTestUtil.loadStructureIntoTestArea(test,
+        RecipeLevelHelper.loadStructureIntoTestArea(
+                test,
                 new ResourceLocation("compactcrafting", "recipes/ender_crystal"),
                 new BlockPos(4, 1, 4));
 

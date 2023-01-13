@@ -12,6 +12,9 @@
       ]
     }
   ],
+  "catalyst": {
+    "id": "minecraft:ender_pearl"
+  },
   "components": {
     "G": {
       "type": "compactcrafting:block",

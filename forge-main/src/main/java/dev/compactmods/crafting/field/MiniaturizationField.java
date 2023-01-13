@@ -434,7 +434,7 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public void checkLoaded() {
-        CompactCrafting.LOGGER.debug("Checking loaded state.");
+        // CompactCrafting.LOGGER.debug("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {

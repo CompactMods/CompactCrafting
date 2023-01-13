@@ -25,28 +25,10 @@ import java.util.Optional;
 public class CatalystJsonTests {
 
     @GameTest(template = GameTestTemplates.EMPTY)
-    public static void ChoosesCorrectCatalystCodec(final GameTestHelper test) {
-        JsonElement node = new JsonPrimitive("compactcrafting:item");
-
-        final Optional<CatalystType<?>> catalyst = CatalystMatcherCodec.INSTANCE.parse(JsonOps.INSTANCE, node)
-                .resultOrPartial(test::fail);
-
-        if(catalyst.isEmpty())
-            test.fail("Did not choose catalyst matcher correctly.");
-
-        final CatalystType<?> type = catalyst.get();
-        final var correctType = type instanceof ItemStackCatalystMatcher;
-        if(!correctType)
-            test.fail("Expected the matcher to create an IS matcher instance; got " + type.getClass().getName());
-
-        test.succeed();
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
     public static void FailsDecodeOnUnmatchedCatalystType(final GameTestHelper test) {
         JsonElement node = new JsonPrimitive("compactcrafting:nonexistent");
 
-        final Optional<DataResult.PartialResult<CatalystType<?>>> catalyst = CatalystMatcherCodec.INSTANCE
+        final var catalyst = CatalystMatcherCodec.MATCHER_CODEC
                 .parse(JsonOps.INSTANCE, node)
                 .error();
 

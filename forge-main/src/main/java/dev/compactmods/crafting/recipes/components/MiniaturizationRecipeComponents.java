@@ -6,12 +6,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.Lifecycle;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipeCodec;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class MiniaturizationRecipeComponents implements IRecipeComponents {
+
+    public static final Codec<MiniaturizationRecipeComponents> CODEC = new MiniaturizationRecipeComponentsCodec();
+
+    public static final MiniaturizationRecipeComponents EMPTY = new MiniaturizationRecipeComponents();
 
     /**
      * Contains a mapping of all known components in the recipe.
@@ -111,5 +124,31 @@ public class MiniaturizationRecipeComponents implements IRecipeComponents {
     @Override
     public boolean isKnownKey(String key) {
         return blockComponents.containsKey(key) || otherComponents.containsKey(key);
+    }
+
+    private static class MiniaturizationRecipeComponentsCodec implements Codec<MiniaturizationRecipeComponents> {
+        @Override
+        public <T> DataResult<Pair<MiniaturizationRecipeComponents, T>> decode(DynamicOps<T> ops, T input) {
+            final var components = Codec.unboundedMap(Codec.STRING, MiniaturizationRecipeCodec.COMPONENT_CODEC)
+                    .parse(ops, input)
+                    .getOrThrow(true, CompactCrafting.LOGGER::error);
+
+            final var inst = new MiniaturizationRecipeComponents();
+            components.forEach((key, comp) -> {
+                if(comp instanceof BlockComponent bc)
+                    inst.registerBlock(key, bc);
+                else
+                    inst.registerOther(key, comp);
+            });
+
+            return DataResult.success(Pair.of(inst, input), Lifecycle.stable());
+        }
+
+        @Override
+        public <T> DataResult<T> encode(MiniaturizationRecipeComponents input, DynamicOps<T> ops, T prefix) {
+            return Codec.unboundedMap(Codec.STRING, MiniaturizationRecipeCodec.COMPONENT_CODEC)
+                    .stable()
+                    .encodeStart(ops, input.getAllComponents());
+        }
     }
 }

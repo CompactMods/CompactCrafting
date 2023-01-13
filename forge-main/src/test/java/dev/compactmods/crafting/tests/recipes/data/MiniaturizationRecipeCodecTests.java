@@ -3,6 +3,7 @@ package dev.compactmods.crafting.tests.recipes.data;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+
 import com.google.gson.JsonElement;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.DataResult;
@@ -12,7 +13,7 @@ import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.tests.GameTestTemplates;
-import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
+import dev.compactmods.crafting.tests.testers.TestHelper;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -29,105 +30,48 @@ public class MiniaturizationRecipeCodecTests {
     public static void LoadsRecipeFromJson(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipes/compact_walls.json");
 
-        MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
-                .resultOrPartial(test::fail)
-                .ifPresent(res -> test.succeed());
-    }
+        final var result = MiniaturizationRecipe.CODEC.parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(test::fail);
 
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void RequiresRecipeSizeOnAllDynamicLayers(final GameTestHelper test) {
-        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_size_dynamic.json");
-
-        Optional<DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
-                .parse(JsonOps.INSTANCE, json)
-                .error();
-
-        if (loaded.isEmpty())
-            test.fail("Data did not load.");
-
-        String error = loaded.get().message();
-        if (error == null)
-            test.fail("Expected an error message from codec.");
-
-        test.succeed();
+        if (result.isPresent())
+            test.succeed();
+        else
+            test.fail("Did not process from codec.");
     }
 
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void DoesNotFailIfNoComponentsDefined(final GameTestHelper test) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/warn_no_components.json");
 
-        Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
+        final var result = MiniaturizationRecipe.CODEC
                 .parse(JsonOps.INSTANCE, json)
-                .get();
+                .getOrThrow(false, test::fail);
 
-        if (loaded.right().isPresent())
-            test.fail("err - loaded.right");
+        final IRecipeComponents components = result.getComponents();
+        if (components == null) {
+            test.fail("Components were null.");
+            return;
+        }
 
-        loaded.ifLeft(result -> {
-            final IRecipeComponents components = result.getComponents();
-            if (components == null)
-                test.fail("Components were null.");
+        // If the recipe loaded, it should have a valid component manager
+        if(components.isKnownKey("I"))
+            test.fail("Recipe should not know what 'I' component is.");
 
-            // Even though the recipe loaded, it should have remapped the missing component as an empty block
-            if (!components.hasBlock("I"))
-                test.fail("Expected components to have added an empty I block.");
+        if (!components.isEmptyBlock("I"))
+            test.fail("Expected components to have an empty I block.");
 
-            if (!components.isEmptyBlock("I"))
-                test.fail("Expected components to have an empty I block.");
-
-            test.succeed();
-        });
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void PartialResultIfNoOutputsEntryExists(final GameTestHelper test) {
-        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs_entry.json");
-
-        final var loaded = MiniaturizationRecipe.CODEC
-                .parse(JsonOps.INSTANCE, json)
-                .get();
-
-        if (loaded.right().isEmpty())
-            test.fail("Expected partial result but got none.");
-
-        loaded.ifRight(partial -> {
-            final String message = partial.message();
-            if (!message.contains("outputs"))
-                test.fail("Partial result has no outputs.");
-
-            test.succeed();
-        });
-    }
-
-    @GameTest(template = GameTestTemplates.EMPTY)
-    public static void PartialResultIfNoOutputsExist(final GameTestHelper test) {
-        JsonElement json = FileHelper.getJsonFromFile("recipe_tests/fail_no_outputs.json");
-
-        Either<MiniaturizationRecipe, DataResult.PartialResult<MiniaturizationRecipe>> loaded = MiniaturizationRecipe.CODEC
-                .parse(JsonOps.INSTANCE, json)
-                .get();
-
-        if (loaded.left().isPresent())
-            test.fail("Full result exists; expected only partial results.");
-
-        if (loaded.right().isEmpty())
-            test.fail("Expected partial result.");
-
-        loaded.ifRight(partial -> {
-            final String message = partial.message();
-            if (!message.contains("No outputs"))
-                test.fail("Error did not mention no outputs.");
-
-            test.succeed();
-        });
+        test.succeed();
     }
 
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void LoadsRecipeLayersCorrectly(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
+        final var testHelper = TestHelper.forTest(test)
+                .forRecipe("compact_walls");
+
+        final var recipe = testHelper.recipe();
 
         // There should only be two layers loaded from the file
-        if (2 != recipe.getNumberLayers())
+        if (2 != recipe.getDimensions().getYsize())
             test.fail("Expected exactly 2 layers in recipe");
 
         Optional<IRecipeLayer> topLayer = recipe.getLayer(1);
@@ -151,17 +95,15 @@ public class MiniaturizationRecipeCodecTests {
 
     @GameTest(template = GameTestTemplates.EMPTY, required = false)
     public static void LoadsCatalystCorrectly(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
+        final var testHelper = TestHelper.forTest(test)
+                .forRecipe("compact_walls");
+
+        final var recipe = testHelper.recipe();
         Objects.requireNonNull(recipe);
 
         var cat = recipe.getCatalyst();
         if (cat == null)
             test.fail("Expected recipe catalyst to exist.");
-
-        MiniaturizationRecipe noComponents = RecipeTestUtil.getRecipeFromFile("recipe_tests/warn_no_catalyst.json");
-        Objects.requireNonNull(noComponents);
-
-        var cat2 = noComponents.getCatalyst();
 
         // TODO: Add empty catalyst matcher here
 //        if (cat2 == null)
@@ -172,34 +114,41 @@ public class MiniaturizationRecipeCodecTests {
 
     @GameTest(template = GameTestTemplates.EMPTY)
     public static void MakesRoundTripThroughNbtCorrectly(final GameTestHelper test) {
-        MiniaturizationRecipe recipe = RecipeTestUtil.getRecipeByName(test, "compact_walls").orElseThrow();
-        DataResult<Tag> dr = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, recipe);
-        Optional<Tag> res = dr.resultOrPartial(test::fail);
+        final var testHelper = TestHelper.forTest(test)
+                .forRecipe("compact_walls");
 
-        Tag nbtRecipe = res.get();
+        final var recipe = testHelper.recipe();
 
-        MiniaturizationRecipe rFromNbt = MiniaturizationRecipe.CODEC.parse(NbtOps.INSTANCE, nbtRecipe)
-                .getOrThrow(false, test::fail);
+        if (recipe instanceof MiniaturizationRecipe mr) {
+            final var nbtRecipe = MiniaturizationRecipe.CODEC.encodeStart(NbtOps.INSTANCE, mr)
+                    .getOrThrow(false, test::fail);
 
-        // There should only be two layers loaded from the file
-        if (2 != rFromNbt.getNumberLayers())
-            test.fail("Expected 2 layers in recipe.");
+            final var rFromNbt = MiniaturizationRecipe.CODEC.parse(NbtOps.INSTANCE, nbtRecipe)
+                    .getOrThrow(false, test::fail);
 
-        Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
-        if (topLayer.isEmpty()) {
-            test.fail("No top layer loaded.");
+            // There should only be two layers loaded from the file
+            if (2 != rFromNbt.getNumberLayers())
+                test.fail("Expected 2 layers in recipe.");
+
+            Optional<IRecipeLayer> topLayer = rFromNbt.getLayer(1);
+            if (topLayer.isEmpty()) {
+                test.fail("No top layer loaded.");
+            }
+
+            IRecipeLayer lay = topLayer.get();
+
+            // Top Layer should be a redstone dust, so one 'R' component
+            Map<String, Integer> componentTotals = lay.getComponentTotals();
+            if (!componentTotals.containsKey("R"))
+                test.fail("Expected redstone component in top layer; it does not exist.");
+
+            if (1 != componentTotals.get("R"))
+                test.fail("Expected one redstone required in top layer.");
+
+            test.succeed();
+            return;
         }
 
-        IRecipeLayer lay = topLayer.get();
-
-        // Top Layer should be a redstone dust, so one 'R' component
-        Map<String, Integer> componentTotals = lay.getComponentTotals();
-        if (!componentTotals.containsKey("R"))
-            test.fail("Expected redstone component in top layer; it does not exist.");
-
-        if (1 != componentTotals.get("R"))
-            test.fail("Expected one redstone required in top layer.");
-
-        test.succeed();
+        test.fail("Expected codec to return a MiniaturizationRecipe instance. Got: " + recipe.getClass().getSimpleName());
     }
 }

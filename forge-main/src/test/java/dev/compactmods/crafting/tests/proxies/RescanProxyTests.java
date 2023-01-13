@@ -6,7 +6,7 @@ import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
-import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
+import dev.compactmods.crafting.tests.recipes.util.RecipeLevelHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -62,7 +62,8 @@ public class RescanProxyTests {
 //            });
 //        });
 //
-        RecipeTestUtil.loadStructureIntoTestArea(test,
+        RecipeLevelHelper.loadStructureIntoTestArea(
+                test,
                 new ResourceLocation("compactcrafting", "recipes/ender_crystal"),
                 new BlockPos(4, 2, 4));
 
