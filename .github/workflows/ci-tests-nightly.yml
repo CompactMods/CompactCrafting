@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: generated-data
-          path: src/generated/resources
+          path: forge-main/generated/resources
 
       - name: Upload Failure
         if: failure()
