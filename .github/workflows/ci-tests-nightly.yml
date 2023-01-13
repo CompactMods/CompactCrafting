@@ -144,7 +144,7 @@ jobs:
           path: forge-main/src/generated/resources
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishMavenPublicationToGitHubPackagesRepository
+        run: ./gradlew publishAllLibsPublicationToGitHubPackagesRepository
         env:
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
