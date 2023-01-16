@@ -1,5 +1,8 @@
+var semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
+if(semver.startsWith("v"))
+    semver = semver.trimStart('v');
+
 val mod_id: String by extra
-val semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
 val buildNumber: String = System.getenv("CC_BUILD_NUM") ?: "0"
 val nightlyVersion: String = "${semver}.${buildNumber}-nightly"
 val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
