@@ -3,6 +3,7 @@ package dev.compactmods.crafting.recipes.blocks;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
@@ -14,6 +15,7 @@ import dev.compactmods.crafting.recipes.RecipeHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPositionLookup> {
     @Override
@@ -37,6 +39,7 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
                 mappedToArray[z] = xValues;
             }
 
+            lookup.setFootprint(mappedToArray[0].length, zSize);
             lookup.components.putAll(RecipeHelper.convertMultiArrayToMap(mappedToArray));
             lookup.rebuildComponentTotals();
 
@@ -46,14 +49,19 @@ public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPos
 
     @Override
     public <T> T write(DynamicOps<T> ops, ComponentPositionLookup lookup) {
-        AABB boundsForBlocks = BlockSpaceUtil.getBoundsForBlocks(lookup.getAllPositions());
+        final var footprint = lookup.footprint();
+        AABB boundsForBlocks = AABB.of(footprint);
         final String[][] map = RecipeHelper.generateArrayFromBounds(boundsForBlocks);
 
         BlockSpaceUtil.getBlocksIn(boundsForBlocks)
                 .map(pos -> Pair.of(pos.immutable(), lookup.getRequiredComponentKeyForPosition(pos).orElse("-")))
                 .forEach(pair -> {
                     final BlockPos p = pair.getFirst();
-                    map[p.getX()][p.getZ()] = pair.getSecond();
+                    try {
+                        map[p.getX()][p.getZ()] = pair.getSecond();
+                    } catch (ArrayIndexOutOfBoundsException aio) {
+                        CompactCrafting.RECIPE_LOGGER.error(aio);
+                    }
                 });
 
         List<List<String>> fin = Arrays.stream(map).map(ImmutableList::copyOf).collect(Collectors.toList());

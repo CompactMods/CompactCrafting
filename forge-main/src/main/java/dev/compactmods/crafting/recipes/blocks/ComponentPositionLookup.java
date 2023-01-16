@@ -6,6 +6,8 @@ import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 public class ComponentPositionLookup implements IPositionalComponentLookup {
 
@@ -13,18 +15,22 @@ public class ComponentPositionLookup implements IPositionalComponentLookup {
     protected final Map<String, Integer> componentTotals;
 
     public static final Codec<ComponentPositionLookup> CODEC = new ComponentPositionLookupCodec();
+    private final BoundingBox footprint;
 
     public ComponentPositionLookup() {
         this.components = new HashMap<>();
         this.componentTotals = new HashMap<>();
+        this.footprint = new BoundingBox(BlockPos.ZERO);
     }
 
-    public void add(BlockPos location, String component) {
+    public IPositionalComponentLookup add(BlockPos location, String component) {
         components.putIfAbsent(location, component);
         componentTotals.putIfAbsent(component, 0);
 
         // Increment totals to keep in sync
         componentTotals.put(component, componentTotals.get(component) + 1);
+        footprint.encapsulate(location);
+        return this;
     }
 
     public Collection<String> getComponents() {
@@ -37,6 +43,17 @@ public class ComponentPositionLookup implements IPositionalComponentLookup {
 
     public boolean containsLocation(BlockPos location) {
         return components.containsKey(location);
+    }
+
+    @Override
+    public void setFootprint(int xSize, int zSize) {
+        // size - 1 is because block already takes up a unit
+        this.footprint.encapsulate(new BlockPos(xSize - 1, 0, zSize - 1));
+    }
+
+    @Override
+    public BoundingBox footprint() {
+        return this.footprint;
     }
 
     public Map<String, Integer> getComponentTotals() {

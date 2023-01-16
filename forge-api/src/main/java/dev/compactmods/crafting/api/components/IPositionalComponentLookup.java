@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.api.components;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -10,7 +11,7 @@ public interface IPositionalComponentLookup {
 
     Collection<String> getComponents();
 
-    void add(BlockPos location, String component);
+    IPositionalComponentLookup add(BlockPos location, String component);
     void remove(String component);
 
     Stream<BlockPos> getAllPositions();
@@ -18,4 +19,7 @@ public interface IPositionalComponentLookup {
     Optional<String> getRequiredComponentKeyForPosition(BlockPos pos);
 
     boolean containsLocation(BlockPos location);
+
+    void setFootprint(int xSize, int zSize);
+    BoundingBox footprint();
 }

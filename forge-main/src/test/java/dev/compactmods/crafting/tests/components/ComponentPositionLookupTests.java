@@ -39,6 +39,26 @@ public class ComponentPositionLookupTests {
     }
 
     @GameTest(template = GameTestTemplates.EMPTY)
+    public static void CanSerializeWithPadding(final GameTestHelper test) {
+        ComponentPositionLookup lookup = new ComponentPositionLookup();
+
+        lookup.setFootprint(3, 3);
+        lookup.add(new BlockPos(1, 0, 1), "A");
+
+        final JsonElement serialized = ComponentPositionLookup.CODEC.encodeStart(JsonOps.INSTANCE, lookup)
+                .getOrThrow(false, test::fail);
+
+        if (null == serialized)
+            test.fail("Serialized value was null");
+
+        final var array = serialized.getAsJsonArray();
+        if(array.size() != 3)
+            test.fail("Expected a 3x3 size, matching footprint.");
+
+        test.succeed();
+    }
+
+    @GameTest(template = GameTestTemplates.EMPTY)
     public static void CanAddSingleComponent(final GameTestHelper test) {
         ComponentPositionLookup lookup = new ComponentPositionLookup();
         lookup.add(BlockPos.ZERO, "G");
