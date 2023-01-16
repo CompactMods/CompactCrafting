@@ -30,6 +30,8 @@ jobs:
     outputs:
       version: ${{steps.version.outputs.version }}
       build: ${{steps.build.outputs.buildver}}
+      mcVersion: ${{steps.gradle_props.outputs.minecraft_version}}
+      forgeVersion: ${{steps.gradle_props.outputs.forge_version}}
 
     steps:
       - name: Checkout
@@ -41,6 +43,13 @@ jobs:
       - name: Find Current Tag
         id: version
         run: echo "version=$(git describe --tags --abbrev=0 --match 'v*' --exclude '*-rc*' '@')" >> $GITHUB_OUTPUT
+
+      - name: Read MC and Forge versions
+        id: gradle_props
+        uses: christian-draeger/read-properties@1.1.0
+        with:
+          path: "gradle.properties"
+          properties: "minecraft_version forge_version"
 
       - name: Build Version
         id: build
@@ -120,7 +129,7 @@ jobs:
           name: test-data
           path: run/gametest
 
-  packages:
+  publish-gh-package:
     name: Publish Github Package
     runs-on: ubuntu-22.04
     needs: [ vars, tests ]
@@ -150,3 +159,71 @@ jobs:
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  get-package-info:
+    name: Get Latest Package Info
+    runs-on: ubuntu-22.04
+    needs: [ publish-gh-package ]
+    outputs:
+      version: ${{ steps.download-info.outputs.version }}
+      steps:
+        - name: Download Package Info
+          id: download-info
+          uses: compactmods/dl-package-info@1.0.2
+          env:
+            GQL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            owner: compactmods
+            repo: compactcrafting
+            group: dev.compactmods.compactcrafting
+            filter: "^compactcrafting-(?:[\\d\\.]+)-nightly.jar$"
+            outputFile: compactcrafting-nightly.json
+
+        - name: Debug output
+          run: |
+            echo "Version: ${{ steps.download-info.outputs.version }}"
+            cat compactcrafting-nightly.json
+        - name: Read info into variable [latest]
+          id: info
+          run: echo "latestJson=$(cat compactcrafting-nightly.json)" >> $GITHUB_OUTPUT
+
+        - name: Download JAR and prepare artifacts
+          run: |
+            mkdir release
+            curl -L "${{ fromJson(steps.info.outputs.latestJson)[0].url }}" -o "release/${{ fromJson(steps.info.outputs.latestJson)[0].name}}"
+            mv compactcrafting-nightly.json release/compactcrafting-nightly.json
+
+        - name: Add Artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: release
+            path: release
+
+  announce:
+    name: Discord Announcement
+    needs: [ vars, get-package-info ]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Grab JAR and Info
+        uses: actions/download-artifact@v3
+        with:
+          name: release
+          path: .
+
+      - name: Read info into variable [latest]
+        id: info
+        run: echo "latestJson=$(cat compactcrafting-nightly.json)" >> $GITHUB_OUTPUT
+
+      - name: Announce Release
+        uses: compactmods/discord-releaser@0.1.5
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        with:
+          filename: ${{ fromJson(steps.info.outputs.latestJson)[0].name}}
+          channel: ${{ secrets.NIGHTLY_CHANNEL_ID }}
+          modName: Compact Crafting
+          modVersion: ${{ needs.get-package-info.outputs.version }}
+          thumbnail: https://media.forgecdn.net/avatars/thumbnails/324/502/64/64/637440523810696496.png
+
+          forgeVersion: ${{ needs.vars.outputs.forgeVersion }}
+          mcVersion: ${{ needs.vars.outputs.mvVersion }}
