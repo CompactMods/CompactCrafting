@@ -2,7 +2,10 @@ import net.minecraftforge.gradle.userdev.UserDevExtension
 import java.text.SimpleDateFormat
 import java.util.*
 
-val semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
+var semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
+if(semver.startsWith("v"))
+    semver = semver.trimStart('v');
+
 val buildNumber: String = System.getenv("CC_BUILD_NUM") ?: "0"
 val nightlyVersion: String = "${semver}.${buildNumber}-nightly"
 val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
