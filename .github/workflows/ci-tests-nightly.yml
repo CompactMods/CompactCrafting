@@ -166,38 +166,38 @@ jobs:
     needs: [ publish-gh-package ]
     outputs:
       version: ${{ steps.download-info.outputs.version }}
-      steps:
-        - name: Download Package Info
-          id: download-info
-          uses: compactmods/dl-package-info@1.0.2
-          env:
-            GQL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            owner: compactmods
-            repo: compactcrafting
-            group: dev.compactmods.compactcrafting
-            filter: "^compactcrafting-(?:[\\d\\.]+)-nightly.jar$"
-            outputFile: compactcrafting-nightly.json
+    steps:
+      - name: Download Package Info
+        id: download-info
+        uses: compactmods/dl-package-info@1.0.2
+        env:
+          GQL_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          owner: compactmods
+          repo: compactcrafting
+          group: dev.compactmods.compactcrafting
+          filter: "^compactcrafting-(?:[\\d\\.]+)-nightly.jar$"
+          outputFile: compactcrafting-nightly.json
 
-        - name: Debug output
-          run: |
-            echo "Version: ${{ steps.download-info.outputs.version }}"
-            cat compactcrafting-nightly.json
-        - name: Read info into variable [latest]
-          id: info
-          run: echo "latestJson=$(cat compactcrafting-nightly.json)" >> $GITHUB_OUTPUT
+      - name: Debug output
+        run: |
+          echo "Version: ${{ steps.download-info.outputs.version }}"
+          cat compactcrafting-nightly.json
+      - name: Read info into variable [latest]
+        id: info
+        run: echo "latestJson=$(cat compactcrafting-nightly.json)" >> $GITHUB_OUTPUT
 
-        - name: Download JAR and prepare artifacts
-          run: |
-            mkdir release
-            curl -L "${{ fromJson(steps.info.outputs.latestJson)[0].url }}" -o "release/${{ fromJson(steps.info.outputs.latestJson)[0].name}}"
-            mv compactcrafting-nightly.json release/compactcrafting-nightly.json
+      - name: Download JAR and prepare artifacts
+        run: |
+          mkdir release
+          curl -L "${{ fromJson(steps.info.outputs.latestJson)[0].url }}" -o "release/${{ fromJson(steps.info.outputs.latestJson)[0].name}}"
+          mv compactcrafting-nightly.json release/compactcrafting-nightly.json
 
-        - name: Add Artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: release
-            path: release
+      - name: Add Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: release
+          path: release
 
   announce:
     name: Discord Announcement
