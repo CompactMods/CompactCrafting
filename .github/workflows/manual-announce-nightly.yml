@@ -112,6 +112,5 @@ jobs:
           modName: Compact Crafting
           modVersion: ${{ needs.get-package-info.outputs.version }}
           thumbnail: https://media.forgecdn.net/avatars/thumbnails/324/502/64/64/637440523810696496.png
-
           forgeVersion: ${{ needs.vars.outputs.forgeVersion }}
-          mcVersion: ${{ needs.vars.outputs.mvVersion }}
+          mcVersion: ${{ needs.vars.outputs.mcVersion }}
