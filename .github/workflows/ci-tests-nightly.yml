@@ -43,7 +43,7 @@ jobs:
         uses: paulhatch/semantic-version@v5.0.2
         with:
           change_path: "forge-api/ forge-main/"
-          version_format: "${major}.${minor}.${patch}.${increment}"
+          version_format: "${major}.${minor}.${patch}.${increment}-nightly"
           search_commit_body: true
 
       - name: Read MC and Forge versions
@@ -91,9 +91,6 @@ jobs:
           mkdir run
           mkdir run/data
           mkdir run/test
-
-      - name: Generate Datagen Assets
-        uses: gradle/gradle-build-action@v2
 
       - name: Generate Datagen Assets
         run: ./gradlew runData
