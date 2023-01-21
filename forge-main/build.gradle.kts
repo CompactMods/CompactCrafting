@@ -89,7 +89,7 @@ minecraft {
 
         create("client") {
             taskName("runClient")
-            workingDirectory("run/client")
+            workingDirectory(file("run/client"))
 
             args("--username", "Nano")
             args("--width", 1920)
@@ -98,7 +98,7 @@ minecraft {
 
         create("server") {
             taskName("runServer")
-            workingDirectory("run/server")
+            workingDirectory(file("run/server"))
             environment("CC_TEST_RESOURCES", file("src/test/resources"))
 
             mods.named(mod_id) {
@@ -108,7 +108,7 @@ minecraft {
 
         create("data") {
             taskName("runData")
-            workingDirectory("run/data")
+            workingDirectory(file("run/data"))
 
             args("--mod", "compactcrafting")
             args("--all")
@@ -120,7 +120,7 @@ minecraft {
 
         create("gameTestServer") {
             taskName("runGameTestServer")
-            workingDirectory("run/gametest")
+            workingDirectory(file("run/gametest"))
             environment("CC_TEST_RESOURCES", file("src/test/resources"))
 
             forceExit(false)
