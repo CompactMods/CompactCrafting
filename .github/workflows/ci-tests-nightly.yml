@@ -86,11 +86,17 @@ jobs:
           echo "Java Home: ${{env.JAVA_HOME}}"
           ./gradlew -q dependencies         
 
+      - name: Directory Structure Diagnostic
+        if: inputs.diagnostic_mode
+        run: |
+          echo tree > filetree.txt
+
       - name: Make Directories
         run: |
           mkdir run
           mkdir run/data
           mkdir run/test
+          mkdir forge-main/src/generated
 
       - name: Generate Datagen Assets
         run: ./gradlew runData
