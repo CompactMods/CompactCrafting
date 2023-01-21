@@ -1,9 +1,21 @@
 pluginManagement {
+    plugins {
+        id("idea")
+        id("eclipse")
+        id("maven-publish")
+    }
+
     repositories {
         mavenCentral()
         mavenLocal()
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://maven.parchmentmc.org' }
+
+        maven("https://maven.parchmentmc.org") {
+            name = "ParchmentMC"
+        }
+
+        maven("https://maven.minecraftforge.net") {
+            name = "Forge"
+        }
     }
 
     resolutionStrategy {
