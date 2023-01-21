@@ -155,7 +155,7 @@ jobs:
           path: forge-main/src/generated/resources
 
       - name: Publish gradle nightly jar
-        run: ./gradlew publishAllPublicationToGitHubPackagesRepository
+        run: ./gradlew publishAllLibsPublicationToGitHubPackagesRepository
         env:
           CC_VERSION: ${{ needs.vars.outputs.version }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
