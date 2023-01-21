@@ -88,6 +88,7 @@ minecraft {
         }
 
         create("client") {
+            taskName("runClient")
             workingDirectory("run/client")
 
             args("--username", "Nano")
@@ -96,6 +97,7 @@ minecraft {
         }
 
         create("server") {
+            taskName("runServer")
             workingDirectory("run/server")
             environment("CC_TEST_RESOURCES", file("src/test/resources"))
 
@@ -105,6 +107,7 @@ minecraft {
         }
 
         create("data") {
+            taskName("runData")
             workingDirectory("run/data")
 
             args("--mod", "compactcrafting")
@@ -116,6 +119,7 @@ minecraft {
         }
 
         create("gameTestServer") {
+            taskName("runGameTestServer")
             workingDirectory("run/gametest")
             environment("CC_TEST_RESOURCES", file("src/test/resources"))
 
@@ -177,6 +181,9 @@ tasks.withType<ProcessResources> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+tasks.compileJava {
+    options.encoding = "UTF-8";
+}
 
 reobf {
     this.create("jarJar")
