@@ -28,7 +28,7 @@ jobs:
     name: Get Variables
     runs-on: ubuntu-22.04
     outputs:
-      version: ${{steps.version.outputs.version_format}}
+      version: ${{steps.version.outputs.version}}
       build: ${{steps.version.outputs.increment}}
       mcVersion: ${{steps.gradle_props.outputs.minecraft_version}}
       forgeVersion: ${{steps.gradle_props.outputs.forge_version}}
