@@ -10,15 +10,12 @@ plugins {
     id("org.parchmentmc.librarian.forgegradle") version ("1.+")
 }
 
-var semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
-if(semver.startsWith("v"))
-    semver = semver.trimStart('v');
+var envVersion: String = System.getenv("CC_VERSION") ?: "9.9.9"
+if(envVersion.startsWith("v"))
+    envVersion = envVersion.trimStart('v');
 
 val mod_id: String by extra
-val buildNumber: String = System.getenv("CC_BUILD_NUM") ?: "0"
-val nightlyVersion: String = "${semver}.${buildNumber}-nightly"
 val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
-val modVersion = if (isRelease) semver else nightlyVersion
 
 val minecraft_version: String by extra
 val forge_version: String by extra
@@ -27,11 +24,11 @@ val parchment_version: String by extra
 base {
     archivesName.set(mod_id)
     group = "dev.compactmods"
-    version = modVersion
+    version = envVersion
 }
 
 println("Mod ID: $mod_id");
-println("Version: $modVersion");
+println("Version: $envVersion");
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))

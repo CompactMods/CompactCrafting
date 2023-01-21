@@ -1,24 +1,12 @@
-var semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
-if(semver.startsWith("v"))
-    semver = semver.trimStart('v');
+var envVersion: String = System.getenv("CC_VERSION") ?: "9.9.9"
+if(envVersion.startsWith("v"))
+    envVersion = envVersion.trimStart('v');
 
 val mod_id: String by extra
-val buildNumber: String = System.getenv("CC_BUILD_NUM") ?: "0"
-val nightlyVersion: String = "${semver}.${buildNumber}-nightly"
 val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
-val modVersion = if (isRelease) semver else nightlyVersion
 
 plugins {
     id("maven-publish")
-}
-
-tasks.create("getBuildInfo") {
-    doFirst {
-        this.logger.info("Mod ID: ${mod_id}")
-        this.logger.info("Version: ${modVersion}")
-        this.logger.info("Semver Version: ${semver}")
-        this.logger.info("Nightly Build: ${nightlyVersion}")
-    }
 }
 
 val deps = listOf(
@@ -35,7 +23,7 @@ publishing {
     publications.register<MavenPublication>("allLibs") {
         artifactId = mod_id
         groupId = "dev.compactmods"
-        version = modVersion
+        version = envVersion
 
         this.artifact(project(":forge-api").tasks.named("jar").get())
         this.artifact(project(":forge-api").tasks.named("sourcesJar").get())

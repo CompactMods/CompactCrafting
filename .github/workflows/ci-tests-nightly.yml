@@ -29,7 +29,6 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       version: ${{steps.version.outputs.version}}
-      build: ${{steps.version.outputs.increment}}
       mcVersion: ${{steps.gradle_props.outputs.minecraft_version}}
       forgeVersion: ${{steps.gradle_props.outputs.forge_version}}
 
@@ -44,7 +43,7 @@ jobs:
         uses: paulhatch/semantic-version@v5.0.2
         with:
           change_path: "forge-api/ forge-main/"
-          version_format: "${major}.${minor}.${patch}"
+          version_format: "${major}.${minor}.${patch}.${increment}"
           search_commit_body: true
 
       - name: Read MC and Forge versions
@@ -62,7 +61,6 @@ jobs:
         - name: Output
           run: |
             echo "Version: ${{ needs.vars.outputs.version }}"
-            echo "Build Number: ${{ needs.vars.outputs.build }}"
             echo "Packages URL: ${{ env.GH_PKG_URL }}"
 
   tests:
@@ -100,8 +98,7 @@ jobs:
       - name: Generate Datagen Assets
         run: ./gradlew runData
         env:
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+          CC_VERSION: ${{ needs.vars.outputs.version }}
 
       - name: Store Built Assets
         if: success()
@@ -120,8 +117,7 @@ jobs:
       - name: Test JAR with GameTest Server
         run: ./gradlew runGameTestServer
         env:
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+          CC_VERSION: ${{ needs.vars.outputs.version }}
 
       - name: Upload build failure
         if: failure()
@@ -159,10 +155,10 @@ jobs:
       - name: Publish gradle nightly jar
         run: ./gradlew publishAllLibsPublicationToGitHubPackagesRepository
         env:
-          CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
-          CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+          CC_VERSION: ${{ needs.vars.outputs.version }}
           GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   get-package-info:
     name: Get Latest Package Info
     runs-on: ubuntu-22.04
@@ -186,6 +182,7 @@ jobs:
         run: |
           echo "Version: ${{ steps.download-info.outputs.version }}"
           cat compactcrafting-nightly.json
+
       - name: Read info into variable [latest]
         id: info
         run: echo "latestJson=$(cat compactcrafting-nightly.json)" >> $GITHUB_OUTPUT
