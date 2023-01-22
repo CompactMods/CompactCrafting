@@ -2,6 +2,7 @@ package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.crafting.recipes.layers.EmptyRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
@@ -35,6 +36,9 @@ public class CCLayerTypes {
 
     public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", SimpleLayerType.supplier(MixedComponentRecipeLayer.CODEC));
+
+    public static final RegistryObject<RecipeLayerType<EmptyRecipeLayer>> EMPTY_LAYER_TYPE =
+            RECIPE_LAYERS.register("empty", SimpleLayerType.supplier(EmptyRecipeLayer.CODEC));
 
     // endregion ======================================================================================================
 
