@@ -11,11 +11,10 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
+import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -24,15 +23,14 @@ import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
-import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
-import dev.compactmods.crafting.recipes.layers.RecipeLayerTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.CodecExtensions;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -53,8 +51,10 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     private Map<String, Integer> cachedComponentTotals;
     private final MiniaturizationRecipeComponents components;
 
-    public static final Codec<IRecipeLayer> LAYER_CODEC =
-            RecipeLayerTypeCodec.INSTANCE.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
+    public static final Codec<IRecipeLayer> LAYER_CODEC = ExtraCodecs.lazyInitializedCodec(() -> {
+        final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.get();
+        return reg.getCodec().dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
+    });
 
     public static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
