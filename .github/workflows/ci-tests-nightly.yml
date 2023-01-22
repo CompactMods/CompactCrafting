@@ -45,6 +45,7 @@ jobs:
           change_path: "forge-api/ forge-main/"
           version_format: "${major}.${minor}.${patch}.${increment}-nightly"
           search_commit_body: true
+          bump_each_commit: true
 
       - name: Read MC and Forge versions
         id: gradle_props

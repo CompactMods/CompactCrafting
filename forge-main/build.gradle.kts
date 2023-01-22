@@ -190,6 +190,10 @@ reobf {
 }
 
 tasks.withType<Jar> {
+    // TODO - Switch to API jar when JarInJar supports it better
+    val api = project(":forge-api").tasks.jar.get().archiveFile;
+    from(api.map { zipTree(it) })
+
     manifest {
         val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
         attributes(mapOf(
