@@ -58,6 +58,12 @@ repositories {
         }
     }
 
+    maven("https://modmaven.dev") {
+        content {
+            includeGroup("mcjty.theoneprobe")
+        }
+    }
+
     maven("https://www.cursemaven.com") {
         content {
             includeGroup("curse.maven")
@@ -83,14 +89,11 @@ repositories {
 
 val jei_version: String? by extra
 val jei_mc_version: String by extra
-val top_version = "3965688"
+val top_version: String by extra
 dependencies {
     minecraft("net.minecraftforge", "forge", version = "${minecraft_version}-${forge_version}")
 
-    implementation("dev.compactmods.compactcrafting", "forge-api", coreVersion) {
-        isTransitive = false
-    }
-
+    implementation(fg.deobf("dev.compactmods.compactcrafting:forge-api:$coreVersion"))
     jarJar("dev.compactmods.compactcrafting", "forge-api", "[2,3)") {
         isTransitive = false
     }
@@ -107,7 +110,8 @@ dependencies {
     }
 
     // The One Probe
-    implementation(fg.deobf("curse.maven:theoneprobe-245211:$top_version"))
+    compileOnly(fg.deobf("mcjty.theoneprobe:theoneprobe:$top_version:api"))
+    runtimeOnly(fg.deobf("mcjty.theoneprobe:theoneprobe:$top_version"))
 
 //    if(!System.getenv().containsKey("CI")) {
 //        // Nicephore - Screenshots and Stuff
