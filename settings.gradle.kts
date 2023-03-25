@@ -30,4 +30,4 @@ pluginManagement {
 }
 
 rootProject.name = "Compact Crafting"
-include("forge-api", "forge-main")
+include("forge-main")

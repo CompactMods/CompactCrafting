@@ -1,6 +1,8 @@
 import java.text.SimpleDateFormat
 import java.util.*
 
+val coreVersion: String = rootProject.property("core_version") as String
+
 var semver: String = System.getenv("CC_SEMVER_VERSION") ?: "9.9.9"
 if(semver.startsWith("v"))
     semver = semver.trimStart('v');
@@ -47,14 +49,6 @@ sourceSets.test {
 }
 
 jarJar.enable()
-val runDepends: List<Project> = listOf(
-        project(":forge-api")
-)
-
-runDepends.forEach {
-    project.evaluationDependsOn(it.path)
-}
-
 repositories {
     mavenLocal()
 
@@ -77,6 +71,14 @@ repositories {
             includeGroup("mezz.jei")
         }
     }
+
+    maven("https://maven.pkg.github.com/compactmods/compactcrafting-core") {
+        name = "Github PKG Core"
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GH_PKG_USER")
+            password = project.findProperty("gpr.token") as String? ?: System.getenv("GH_PKG_TOKEN")
+        }
+    }
 }
 
 val jei_version: String? by extra
@@ -85,11 +87,17 @@ val top_version = "3965688"
 dependencies {
     minecraft("net.minecraftforge", "forge", version = "${minecraft_version}-${forge_version}")
 
-    implementation(project(":forge-api"))
-    testImplementation(project(":forge-api"))
+    implementation("dev.compactmods.compactcrafting", "forge-api", coreVersion) {
+        isTransitive = false
+    }
+
+    jarJar("dev.compactmods.compactcrafting", "forge-api", "[2,3)") {
+        isTransitive = false
+    }
 
     minecraftLibrary("io.reactivex.rxjava3", "rxjava", "3.1.5")
     jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.5]")
+    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4]")
 
     // JEI
     if (project.extra.has("jei_version") && project.extra.has("jei_mc_version")) {
@@ -135,8 +143,6 @@ minecraft {
 
             mods.create(mod_id) {
                 source(sourceSets.main.get())
-                for (p in runDepends)
-                    source(p.sourceSets.main.get())
             }
         }
 
@@ -230,12 +236,8 @@ artifacts {
 
 val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
 publishing {
-    publications.register<MavenPublication>("releaseMain") {
-        artifactId = mod_id
-        artifacts {
-            artifact(tasks.jar.get())
-            artifact(tasks.jarJar.get())
-        }
+    publications.register<MavenPublication>("forge") {
+        from(components.findByName("java"))
     }
 
     repositories {
