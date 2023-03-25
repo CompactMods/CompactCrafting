@@ -101,9 +101,10 @@ jobs:
       - name: Generate Datagen Assets
         run: ./gradlew runData
         env:
-          CC_RELEASE: false
           CC_SEMVER_VERSION: ${{ needs.vars.outputs.version }}
           CC_BUILD_NUM: ${{ needs.vars.outputs.build }}
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Store Built Assets
         if: success()
