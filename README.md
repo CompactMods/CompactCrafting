@@ -2,7 +2,7 @@ Compact Crafting
 ================
 
 <p style="text-align: center;">
-  <a href="https://discord.gg/abca3pDPvu">
+  <a href="https://discord.gg/Y5QhUWxQdq">
     <img src="https://img.shields.io/discord/765363477186740234?label=Discord&amp;logo=discord&amp;logoColor=white&amp;style=for-the-badge" alt="Discord" />
   </a>
 </p>
