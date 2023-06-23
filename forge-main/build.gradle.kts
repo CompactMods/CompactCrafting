@@ -21,7 +21,7 @@ plugins {
     id("idea")
     id("eclipse")
     id("maven-publish")
-    id("net.minecraftforge.gradle") version ("5.1.+")
+    id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("org.parchmentmc.librarian.forgegradle") version ("1.+")
 }
 
@@ -64,15 +64,7 @@ repositories {
         }
     }
 
-    maven("https://www.cursemaven.com") {
-        content {
-            includeGroup("curse.maven")
-        }
-    }
-
-    // location of the maven that hosts JEI files
-    maven("https://dvs1.progwml6.com/files/maven") {
-        name = "Progwml Repo"
+    maven("https://maven.blamejared.com") {
         content {
             includeGroup("mezz.jei")
         }
@@ -112,16 +104,6 @@ dependencies {
     // The One Probe
     compileOnly(fg.deobf("mcjty.theoneprobe:theoneprobe:$top_version:api"))
     runtimeOnly(fg.deobf("mcjty.theoneprobe:theoneprobe:$top_version"))
-
-//    if(!System.getenv().containsKey("CI")) {
-//        // Nicephore - Screenshots and Stuff
-//        runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3574658"))
-//
-//        // Shut up Experimental Settings - so we don't have to deal with that CONSTANTLY
-//        runtimeOnly(fg.deobf("curse.maven:shutupexperimental-407174:3544525"))
-//
-//        runtimeOnly(fg.deobf("mezz.jei:jei-${jei_mc_version}:${jei_version}"))
-//    }
 }
 
 minecraft {
@@ -170,7 +152,6 @@ minecraft {
         create("data") {
             taskName("runData")
             workingDirectory(file("run/data"))
-            forceExit(false)
 
             args("--mod", mod_id)
             args("--existing", project.file("src/main/resources"))
@@ -182,7 +163,6 @@ minecraft {
             taskName("runGameTestServer")
             workingDirectory(project.file("run/test"))
             environment("CC_TEST_RESOURCES", file("src/test/resources"))
-            forceExit(false)
 
             mods.named(mod_id) {
                 source(sourceSets.test.get())
