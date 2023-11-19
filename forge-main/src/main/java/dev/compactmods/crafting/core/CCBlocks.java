@@ -26,12 +26,10 @@ public class CCBlocks {
             new FieldProjectorBlock(BlockBehaviour.Properties.of(Material.METAL)
                     .strength(8, 20)
                     .isRedstoneConductor((state, level, pos) -> true)
-                    .requiresCorrectToolForDrops()
             ));
 
     static final Supplier<BlockBehaviour.Properties> PROXY_PROPS = () -> BlockBehaviour.Properties.of(Material.HEAVY_METAL)
-            .strength(8, 20)
-            .requiresCorrectToolForDrops();
+            .strength(8, 20);
 
     public static final RegistryObject<Block> RESCAN_FIELD_PROXY_BLOCK = BLOCKS.register("rescan_proxy", () ->
             new RescanFieldProxyBlock(PROXY_PROPS.get()));

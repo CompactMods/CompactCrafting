@@ -21,6 +21,7 @@ public class DataGeneration {
     private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
         generator.addProvider(event.includeServer(), new LootTableGenerator(generator));
         generator.addProvider(event.includeServer(), new RecipeGenerator(generator));
+        generator.addProvider(event.includeServer(), new BlockTagGenerator(generator, event.getExistingFileHelper()));
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
