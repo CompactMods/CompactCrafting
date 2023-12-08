@@ -6,26 +6,23 @@ pluginManagement {
     }
 
     repositories {
-        mavenCentral()
         mavenLocal()
+        gradlePluginPortal()
 
         maven("https://maven.parchmentmc.org") {
             name = "ParchmentMC"
         }
 
-        maven("https://maven.minecraftforge.net") {
-            name = "Forge"
-        }
-    }
-
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "net.minecraftforge.gradle") {
-                useModule("${requested.id}:ForgeGradle:${requested.version}")
-            }
+        maven("https://maven.neoforged.net/releases") {
+            name = "NeoForged"
         }
     }
 }
 
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.5.0")
+}
+
+
 rootProject.name = "Compact Crafting"
-include("forge-api", "forge-main")
+include("neoforge-main")
