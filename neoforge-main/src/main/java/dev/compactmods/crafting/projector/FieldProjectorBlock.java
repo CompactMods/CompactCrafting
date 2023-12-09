@@ -1,9 +1,9 @@
 package dev.compactmods.crafting.projector;
 
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.core.CraftingCapabilities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -140,13 +140,11 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (world.isClientSide) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
             if(hasMissing) {
-                // FIXME - NO PROJECTOR GHOST RENDERING
-                player.sendSystemMessage(Component.literal("MISSING PROJECTORS RAAAUGH"));
-//                player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
-//                        .ifPresent(rend -> {
-//                            rend.resetRenderTime();
-//                            rend.setProjector(world, pos);
-//                        });
+                final var ghostRender = player.getCapability(CraftingCapabilities.GHOST_PROJECTOR_RENDER);
+                if(ghostRender != null) {
+                    ghostRender.resetRenderTime();
+                    ghostRender.setProjector(world, pos);
+                }
             }
 
             return InteractionResult.SUCCESS;
