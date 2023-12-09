@@ -35,6 +35,6 @@ public class CCItems {
     // ================================================================================================================
 
     public static void init(IEventBus bus) {
-//        ITEMS.register(bus);
+        ITEMS.register(bus);
     }
 }

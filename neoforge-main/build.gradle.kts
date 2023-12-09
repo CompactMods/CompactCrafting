@@ -17,6 +17,7 @@ val mod_id: String by extra
 val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
 
 val neoforge_version: String by extra
+val coreVersion: String = property("core_version") as String
 
 base {
     archivesName.set(mod_id)
@@ -32,6 +33,7 @@ jarJar.enable()
 
 configurations {
     create("mcLibrary") {}
+
     implementation {
         extendsFrom(configurations.findByName("mcLibrary"))
     }
@@ -64,7 +66,8 @@ runs {
         systemProperty("forge.logging.console.level", "debug")
 
         dependencies {
-            runtime(configuration(configurations.findByName("mcLibrary")))
+//            runtime("dev.compactmods.compactcrafting:core-api:$coreVersion")
+            runtime("io.reactivex.rxjava3:rxjava:3.1.5")
         }
 
         // ideaModule("Compact_Crafting.forge-main.main")
@@ -74,27 +77,30 @@ runs {
     create("client") {
         // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
         systemProperty("forge.enabledGameTestNamespaces", mod_id)
+
+        programArguments("--username", "Nano")
+        programArguments("--width", "1920")
+        programArguments("--height", "1080")
     }
 
-//    server {
-//        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-//        programArgument '--nogui'
-//    }
-//
-//    // This run config launches GameTestServer and runs all registered gametests, then exits.
-//    // By default, the server will crash when no gametests are provided.
-//    // The gametest system is also enabled by default for other run configs under the /test command.
-//    gameTestServer {
-//        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-//    }
-//
-//    data {
-//        // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
-//        // workingDirectory project.file('run-data')
-//
-//        // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-//        programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
-//    }
+    create("server") {
+        workingDirectory(file("run/server"))
+        environmentVariables("CC_TEST_RESOURCES", project.file("src/test/resources").path)
+    }
+
+    create("data") {
+        workingDirectory(file("run/data"))
+
+        programArguments("--mod", "compactcrafting")
+        programArguments("--all")
+        programArguments("--output", file("src/generated/resources/").path)
+        programArguments("--existing", file("src/main/resources").path)
+    }
+
+    create("gameTestServer") {
+        workingDirectory(file("run/gametest"))
+        environmentVariables("CC_TEST_RESOURCES", file("src/test/resources").path)
+    }
 }
 
 repositories {
@@ -109,89 +115,19 @@ repositories {
     }
 }
 
-val coreVersion: String = property("core_version") as String
 dependencies {
     implementation("net.neoforged:neoforge:${neoforge_version}")
 
-     implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
-    "mcLibrary" (jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
-        isTransitive = false
-    })
+//    implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
+//    jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
+//        isTransitive = false
+//    }
 
-    "mcLibrary" (implementation("io.reactivex.rxjava3", "rxjava", "3.1.5"))
+    implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
     jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
     jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
 }
 
-//
-//minecraft {
-//    mappings("parchment", parchment_version)
-//
-//    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
-//    accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
-//
-//    // Default run configurations.
-//    // These can be tweaked, removed, or duplicated as needed.
-//    runs {
-//        all {
-//            property("mixin.env.remapRefMap", "true")
-//            property("mixin.env.refMapRemappingFile", "${buildDir}/createSrgToMcp/output.srg")
-//
-//
-//
-//            ideaModule("Compact_Crafting.forge-main.main")
-//
-//            mods.create(mod_id) {
-//                source(sourceSets.main.get())
-//                for (p in runDepends)
-//                    source(p.sourceSets.main.get())
-//            }
-//        }
-//
-//        create("client") {
-//            taskName("runClient")
-//            workingDirectory(file("run/client"))
-//
-//            args("--username", "Nano")
-//            args("--width", 1920)
-//            args("--height", 1080)
-//        }
-//
-//        create("server") {
-//            taskName("runServer")
-//            workingDirectory(file("run/server"))
-//            environment("CC_TEST_RESOURCES", file("src/test/resources"))
-//
-//            mods.named(mod_id) {
-//                source(sourceSets.test.get())
-//            }
-//        }
-//
-//        create("data") {
-//            taskName("runData")
-//            workingDirectory(file("run/data"))
-//
-//            args("--mod", "compactcrafting")
-//            args("--all")
-//            args("--output", file("src/generated/resources/"))
-//            args("--existing", file("src/main/resources"))
-//
-//            forceExit(false)
-//        }
-//
-//        create("gameTestServer") {
-//            taskName("runGameTestServer")
-//            workingDirectory(file("run/gametest"))
-//            environment("CC_TEST_RESOURCES", file("src/test/resources"))
-//
-//            forceExit(false)
-//
-//            mods.named(mod_id) {
-//                source(sourceSets.test.get())
-//            }
-//        }
-//    }
-//}
 //
 //repositories {
 //    mavenLocal()
@@ -236,6 +172,7 @@ dependencies {
 //    runtimeOnly(fg.deobf("curse.maven:spark-361579:3875647"))
 //}
 //
+
 tasks.withType<ProcessResources> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

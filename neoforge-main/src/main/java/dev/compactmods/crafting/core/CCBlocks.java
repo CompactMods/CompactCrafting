@@ -34,6 +34,6 @@ public class CCBlocks {
 
     public static void init(IEventBus bus) {
         BLOCKS.register(bus);
-//        BLOCK_ENTITIES.register(bus);
+        BLOCK_ENTITIES.register(bus);
     }
 }

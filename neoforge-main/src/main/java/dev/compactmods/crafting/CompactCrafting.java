@@ -1,5 +1,6 @@
 package dev.compactmods.crafting;
 
+import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.core.CCCatalystTypes;
@@ -28,6 +29,8 @@ public class CompactCrafting {
 
     public CompactCrafting(IEventBus eventBus) {
         eventBus.addListener(this::setup);
+
+        var c = EnumCraftingState.CRAFTING.getClass().getClassLoader();
 
         final var mlCtx = ModLoadingContext.get();
         mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
