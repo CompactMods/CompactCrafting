@@ -1,15 +1,13 @@
 package dev.compactmods.crafting.network;
 
-import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 public class FieldDeactivatedPacket {
 
@@ -32,7 +30,7 @@ public class FieldDeactivatedPacket {
     }
 
     public FieldDeactivatedPacket(FriendlyByteBuf buf) {
-        FieldDeactivatedPacket pkt = buf.readWithCodec(CODEC);
+        FieldDeactivatedPacket pkt = buf.readJsonWithCodec(CODEC);
 
         this.fieldSize = pkt.fieldSize;
         this.fieldCenter = pkt.fieldCenter;
@@ -41,15 +39,16 @@ public class FieldDeactivatedPacket {
                 .map(BlockPos::immutable).toArray(BlockPos[]::new);
     }
 
-    public static boolean handle(FieldDeactivatedPacket message, Supplier<NetworkEvent.Context> context) {
-        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+    public static boolean handle(FieldDeactivatedPacket message, NetworkEvent.Context context) {
+
+        if(FMLEnvironment.dist.isClient()) {
             ClientPacketHandler.handleFieldDeactivation(message.fieldCenter);
-        });
+        }
 
         return true;
     }
 
     public static void encode(FieldDeactivatedPacket pkt, FriendlyByteBuf buf) {
-        buf.writeWithCodec(CODEC, pkt);
+        buf.writeJsonWithCodec(CODEC, pkt);
     }
 }

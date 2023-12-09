@@ -1,63 +1,128 @@
-//
-//import java.text.SimpleDateFormat
-//import java.util.*
-//
-//plugins {
-//    id("idea")
-//    id("eclipse")
-//    id("maven-publish")
-//    id("net.minecraftforge.gradle") version ("5.1.+")
-//    id("org.parchmentmc.librarian.forgegradle") version ("1.+")
-//}
-//
-//var envVersion: String = System.getenv("CC_VERSION") ?: "9.9.9"
-//if(envVersion.startsWith("v"))
-//    envVersion = envVersion.trimStart('v');
-//
-//val mod_id: String by extra
-//val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
-//
-//val minecraft_version: String by extra
-//val forge_version: String by extra
-//val parchment_version: String by extra
-//
-//base {
-//    archivesName.set(mod_id)
-//    group = "dev.compactmods"
-//    version = envVersion
-//}
-//
-//println("Mod ID: $mod_id");
-//println("Version: $envVersion");
-//
-//java {
-//    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-//}
-//
-//val runDepends: List<Project> = listOf(
-//        project(":forge-api")
-//)
-//
-//runDepends.forEach {
-//    project.evaluationDependsOn(it.path)
-//}
-//
-//jarJar.enable()
-//
-//sourceSets.named("main") {
-//    java.srcDir("src/main/java")
-//    resources {
-//        srcDir("src/main/resources")
-//        srcDir("src/generated/resources")
+import java.text.SimpleDateFormat
+import java.util.*
+
+plugins {
+    id("java-library")
+    id("eclipse")
+    id("idea")
+    id("maven-publish")
+    id("net.neoforged.gradle.userdev") version ("7.0.57")
+}
+
+var envVersion: String = System.getenv("CC_VERSION") ?: "9.9.9"
+if (envVersion.startsWith("v"))
+    envVersion = envVersion.trimStart('v');
+
+val mod_id: String by extra
+val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
+
+val neoforge_version: String by extra
+
+base {
+    archivesName.set(mod_id)
+    group = "dev.compactmods"
+    version = envVersion
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
+jarJar.enable()
+
+configurations {
+    create("mcLibrary") {}
+    implementation {
+        extendsFrom(configurations.findByName("mcLibrary"))
+    }
+}
+
+sourceSets.named("main") {
+    java.srcDir("src/main/java")
+    resources {
+        srcDir("src/main/resources")
+        srcDir("src/generated/resources")
+    }
+}
+
+sourceSets.named("test") {
+    java.srcDir("src/test/java")
+    resources {
+        srcDir("src/test/resources")
+    }
+}
+
+minecraft.accessTransformers.file(project.file("src/main/resources/META-INF/accesstransformer.cfg"))
+
+runs {
+    // applies to all the run configs below
+    configureEach {
+        // Recommended logging data for a userdev environment
+        systemProperty("forge.logging.markers", "") // 'SCAN,REGISTRIES,REGISTRYDUMP'
+
+        // Recommended logging level for the console
+        systemProperty("forge.logging.console.level", "debug")
+
+        dependencies {
+            runtime(configuration(configurations.findByName("mcLibrary")))
+        }
+
+        // ideaModule("Compact_Crafting.forge-main.main")
+        modSource(project.sourceSets.main.get())
+    }
+
+    create("client") {
+        // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
+        systemProperty("forge.enabledGameTestNamespaces", mod_id)
+    }
+
+//    server {
+//        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+//        programArgument '--nogui'
 //    }
-//}
 //
-//sourceSets.named("test") {
-//    java.srcDir("src/test/java")
-//    resources {
-//        srcDir("src/test/resources")
+//    // This run config launches GameTestServer and runs all registered gametests, then exits.
+//    // By default, the server will crash when no gametests are provided.
+//    // The gametest system is also enabled by default for other run configs under the /test command.
+//    gameTestServer {
+//        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
 //    }
-//}
+//
+//    data {
+//        // example of overriding the workingDirectory set in configureEach above, uncomment if you want to use it
+//        // workingDirectory project.file('run-data')
+//
+//        // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+//        programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+//    }
+}
+
+repositories {
+    mavenLocal()
+
+    maven("https://maven.pkg.github.com/compactmods/compactcrafting-core") {
+        name = "Github PKG Core"
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+val coreVersion: String = property("core_version") as String
+dependencies {
+    implementation("net.neoforged:neoforge:${neoforge_version}")
+
+     implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
+    "mcLibrary" (jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
+        isTransitive = false
+    })
+
+    "mcLibrary" (implementation("io.reactivex.rxjava3", "rxjava", "3.1.5"))
+    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
+    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
+}
+
 //
 //minecraft {
 //    mappings("parchment", parchment_version)
@@ -72,11 +137,7 @@
 //            property("mixin.env.remapRefMap", "true")
 //            property("mixin.env.refMapRemappingFile", "${buildDir}/createSrgToMcp/output.srg")
 //
-//            // Recommended logging data for a userdev environment
-//            property("forge.logging.markers", "") // 'SCAN,REGISTRIES,REGISTRYDUMP'
 //
-//            // Recommended logging level for the console
-//            property("forge.logging.console.level", "debug")
 //
 //            ideaModule("Compact_Crafting.forge-main.main")
 //
@@ -158,9 +219,7 @@
 //    implementation(project(":forge-api"))
 //    testImplementation(project(":forge-api"))
 //
-//    minecraftLibrary("io.reactivex.rxjava3", "rxjava", "3.1.5")
-//    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
-//    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
+
 //
 //    // Nicephore - Screenshots and Stuff
 //    // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
@@ -177,72 +236,59 @@
 //    runtimeOnly(fg.deobf("curse.maven:spark-361579:3875647"))
 //}
 //
-//tasks.withType<ProcessResources> {
-//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-//}
+tasks.withType<ProcessResources> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8";
+}
+
+tasks.withType<Jar> {
+    manifest {
+        val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
+        attributes(mapOf(
+                "Specification-Title" to "Compact Crafting",
+                "Specification-Vendor" to "",
+                "Specification-Version" to "1",
+                "Implementation-Title" to "Compact Crafting",
+                "Implementation-Version" to archiveVersion,
+                "Implementation-Vendor" to "",
+                "Implementation-Timestamp" to now
+        ))
+    }
+}
 //
-//tasks.compileJava {
-//    options.encoding = "UTF-8";
-//}
-//
-//reobf {
-//    this.create("jarJar")
-//}
-//
-//tasks.withType<Jar> {
-//    // TODO - Switch to API jar when JarInJar supports it better
-//    val api = project(":forge-api").tasks.jar.get().archiveFile;
-//    from(api.map { zipTree(it) })
-//
-//    manifest {
-//        val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
-//        attributes(mapOf(
-//                "Specification-Title" to "Compact Crafting",
-//                "Specification-Vendor" to "",
-//                "Specification-Version" to "1",
-//                "Implementation-Title" to "Compact Crafting",
-//                "Implementation-Version" to archiveVersion,
-//                "Implementation-Vendor" to "",
-//                "Implementation-Timestamp" to now
-//        ))
-//    }
-//}
-//
-//tasks.jar {
-//    archiveClassifier.set("slim")
-//    finalizedBy("reobfJar")
-//}
-//
-//tasks.jarJar {
-//    archiveClassifier.set("")
-//    finalizedBy("reobfJarJar")
-//}
-//
-//artifacts {
-//    archives(tasks.jar.get())
-//    archives(tasks.jarJar.get())
-//}
-//
-//val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
-//publishing {
-//    publications.register<MavenPublication>("main") {
-//        artifactId = mod_id
-//        groupId = "dev.compactmods"
-//
-//        artifacts {
-//            artifact(tasks.jar.get())
-//            artifact(tasks.jarJar.get())
-//        }
-//    }
-//
-//    repositories {
-//        // GitHub Packages
-//        maven(PACKAGES_URL) {
-//            name = "GitHubPackages"
-//            credentials {
-//                username = System.getenv("GITHUB_ACTOR")
-//                password = System.getenv("GITHUB_TOKEN")
-//            }
-//        }
-//    }
-//}
+tasks.jar {
+    archiveClassifier.set("slim")
+    finalizedBy("reobfJar")
+}
+
+tasks.jarJar {
+    archiveClassifier.set("")
+    finalizedBy("reobfJarJar")
+}
+
+val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
+publishing {
+    publications.register<MavenPublication>("main") {
+        artifactId = mod_id
+        groupId = "dev.compactmods"
+
+        artifacts {
+            artifact(tasks.jar.get())
+            artifact(tasks.jarJar.get())
+        }
+    }
+
+    repositories {
+        // GitHub Packages
+        maven(PACKAGES_URL) {
+            name = "GitHubPackages"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}

@@ -10,13 +10,12 @@ import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
 import dev.compactmods.crafting.util.CodecExtensions;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
 public class CatalystMatcherCodec {
 
     private static final Codec<ICatalystMatcher> REGISTRY_TYPE_MATCHER_CODEC = ExtraCodecs.lazyInitializedCodec(() -> {
-        final var catalystRegCodec = CCCatalystTypes.CATALYST_TYPES.get().getCodec();
+        final var catalystRegCodec = CCCatalystTypes.CATALYST_TYPES.byNameCodec();
         return catalystRegCodec.dispatchStable(ICatalystMatcher::getType, CatalystType::getCodec);
     });
 

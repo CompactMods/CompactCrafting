@@ -1,11 +1,5 @@
 package dev.compactmods.crafting.field;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
@@ -23,9 +17,15 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<ListTag> {
 
@@ -35,11 +35,8 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
      * Holds a set of miniaturization fields that are active, referenced by their center point.
      */
     private final HashMap<BlockPos, IMiniaturizationField> fields;
-    private final HashMap<BlockPos, LazyOptional<IMiniaturizationField>> laziness;
-
     public ActiveWorldFields() {
         this.fields = new HashMap<>();
-        this.laziness = new HashMap<>();
     }
 
     public ActiveWorldFields(Level level) {
@@ -77,13 +74,14 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
         BlockPos center = field.getCenter();
         fields.put(center, field);
 
-        LazyOptional<IMiniaturizationField> lazy = LazyOptional.of(() -> field);
-        laziness.put(center, lazy);
-        field.setRef(lazy);
-
-        lazy.addListener(lo -> {
-            lo.ifPresent(this::unregisterField);
-        });
+        // TODO: Attachment for field invalidation
+//        LazyOptional<IMiniaturizationField> lazy = LazyOptional.of(() -> field);
+//        laziness.put(center, lazy);
+//        field.setRef(lazy);
+//
+//        lazy.addListener(lo -> {
+//            lo.ifPresent(this::unregisterField);
+//        });
     }
 
     public IMiniaturizationField registerField(IMiniaturizationField field) {
@@ -105,7 +103,7 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
             if (stateAt.hasBlockEntity()) {
                 BlockEntity tileAt = level.getBlockEntity(pos);
                 if (tileAt instanceof FieldProjectorEntity) {
-                    ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
+                    // ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
                 }
             }
         });
@@ -116,8 +114,8 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
     public void unregisterField(BlockPos center) {
         if (fields.containsKey(center)) {
             IMiniaturizationField removedField = fields.remove(center);
-            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
-            removed.invalidate();
+//            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
+//            removed.invalidate();
 
             if (!level.isClientSide && removedField != null) {
                 // Send activation packet to clients
@@ -131,10 +129,6 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
     public void unregisterField(IMiniaturizationField field) {
         BlockPos center = field.getCenter();
         unregisterField(center);
-    }
-
-    public LazyOptional<IMiniaturizationField> getLazy(BlockPos center) {
-        return laziness.getOrDefault(center, LazyOptional.empty());
     }
 
     @Override

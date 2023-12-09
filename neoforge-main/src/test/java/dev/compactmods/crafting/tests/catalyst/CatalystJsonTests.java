@@ -2,7 +2,6 @@ package dev.compactmods.crafting.tests.catalyst;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.catalyst.CatalystType;

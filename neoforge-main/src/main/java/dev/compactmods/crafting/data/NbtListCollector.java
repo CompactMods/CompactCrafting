@@ -12,8 +12,6 @@ import com.google.common.collect.ImmutableSet;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.ListTag;
 
-import java.util.stream.Collector.Characteristics;
-
 public class NbtListCollector implements Collector<Tag, List<Tag>, ListTag> {
 
     public static List<Tag> combineLists(List<Tag> res1, List<Tag> res2) {

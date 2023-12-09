@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.tests.components;
 
-import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import net.minecraft.gametest.framework.GameTestAssertException;
 
 import java.util.Objects;

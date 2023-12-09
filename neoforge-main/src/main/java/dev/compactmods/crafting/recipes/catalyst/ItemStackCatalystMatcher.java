@@ -1,27 +1,26 @@
 package dev.compactmods.crafting.recipes.catalyst;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
+
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 public class ItemStackCatalystMatcher implements ICatalystMatcher, CatalystType<ItemStackCatalystMatcher> {
 
     public static final Codec<ItemStackCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            ResourceLocation.CODEC.fieldOf("item").forGetter((x) -> ForgeRegistries.ITEMS.getKey(x.item)),
+            ResourceLocation.CODEC.fieldOf("item").forGetter((x) -> BuiltInRegistries.ITEM.getKey(x.item)),
             CompoundTag.CODEC.optionalFieldOf("nbt").forGetter(ItemStackCatalystMatcher::getNbtTag)
     ).apply(i, ItemStackCatalystMatcher::new));
 
@@ -38,7 +37,7 @@ public class ItemStackCatalystMatcher implements ICatalystMatcher, CatalystType<
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public ItemStackCatalystMatcher(ResourceLocation item, Optional<CompoundTag> nbt) {
-        this.item = ForgeRegistries.ITEMS.getValue(item);
+        this.item = BuiltInRegistries.ITEM.get(item);
         this.nbtMatcher = buildMatcher(nbt.orElse(null));
         this.nbt = nbt.orElse(null);
     }

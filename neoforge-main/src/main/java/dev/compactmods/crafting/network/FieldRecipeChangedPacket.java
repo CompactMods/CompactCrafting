@@ -1,14 +1,13 @@
 package dev.compactmods.crafting.network;
 
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class FieldRecipeChangedPacket {
 
@@ -37,8 +36,8 @@ public class FieldRecipeChangedPacket {
             buf.writeUtf(pkt.recipe.toString());
     }
 
-    public static boolean handle(FieldRecipeChangedPacket pkt, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> ClientPacketHandler.handleRecipeChanged(pkt.fieldCenter, pkt.recipe));
+    public static boolean handle(FieldRecipeChangedPacket pkt, NetworkEvent.Context context) {
+        ClientPacketHandler.handleRecipeChanged(pkt.fieldCenter, pkt.recipe);
         return true;
     }
 }

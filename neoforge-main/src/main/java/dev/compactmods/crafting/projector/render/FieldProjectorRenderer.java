@@ -2,12 +2,8 @@ package dev.compactmods.crafting.projector.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Matrix3f;
-import com.mojang.math.Matrix4f;
-import com.mojang.math.Vector3f;
+import com.mojang.math.Axis;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.client.render.CubeRenderHelper;
@@ -16,7 +12,6 @@ import dev.compactmods.crafting.client.render.RotationSpeed;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
-import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -26,7 +21,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
@@ -35,16 +29,15 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
-import net.minecraftforge.common.util.LazyOptional;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 
 public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity> {
 
     public static final ResourceLocation FIELD_DISH_RL = new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector_dish");
 
     private BakedModel bakedModelCached;
-
-    private LazyOptional<IMiniaturizationField> field = LazyOptional.empty();
 
     public FieldProjectorRenderer(BlockEntityRendererProvider.Context ctx) {
 
@@ -56,21 +49,21 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-        AABB bounds = tile.getField().map(field -> {
-            double scale = MathUtil.calculateFieldScale(field);
-            return field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
-        }).orElseGet(() -> {
-            BlockState state = tile.getBlockState();
-            final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
-            final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
-            return fieldSize.getBoundsAtPosition(center);
-        });
+//        AABB bounds = tile.getField().map(field -> {
+//            double scale = MathUtil.calculateFieldScale(field);
+//            return field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
+//        }).orElseGet(() -> {
+//            BlockState state = tile.getBlockState();
+//            final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+//            final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
+//            return fieldSize.getBoundsAtPosition(center);
+//        });
 
         matrixStack.pushPose();
 
-        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
-        drawFieldFace(tile, matrixStack, buffers, bounds);
-        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+//        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
+//        drawFieldFace(tile, matrixStack, buffers, bounds);
+//        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
 
         matrixStack.popPose();
     }
@@ -109,12 +102,12 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
         if (facing != Direction.WEST) {
             float angle = facing.toYRot() - 90;
-            mx.mulPose(Vector3f.YN.rotationDegrees(angle));
+            mx.mulPose(Axis.YN.rotationDegrees(angle));
         }
 
         float yDiskOffset = -0.66f;
         mx.translate(0.0, -yDiskOffset, 0.0);
-        mx.mulPose(Vector3f.ZP.rotationDegrees((float) yaw));
+        mx.mulPose(Axis.ZP.rotationDegrees((float) yaw));
         mx.translate(0.0, yDiskOffset, 0.0);
 
         mx.translate(-.5, 0, -.5);

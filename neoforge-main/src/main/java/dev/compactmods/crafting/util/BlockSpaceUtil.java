@@ -1,15 +1,21 @@
 package dev.compactmods.crafting.util;
 
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import net.minecraft.world.level.block.Rotation;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.levelgen.structure.BoundingBox;
-import net.minecraft.world.phys.Vec3;
 
 public abstract class BlockSpaceUtil {
 
@@ -113,7 +119,7 @@ public abstract class BlockSpaceUtil {
      * @return
      */
     public static BlockPos normalizeLayerPosition(AABB fieldBounds, BlockPos pos) {
-        return new BlockPos(
+        return BlockPos.containing(
                 pos.getX() - fieldBounds.minX,
                 pos.getY() - fieldBounds.minY,
                 pos.getZ() - fieldBounds.minZ
@@ -137,7 +143,7 @@ public abstract class BlockSpaceUtil {
     }
 
     public static BlockPos denormalizeLayerPosition(AABB realBounds, BlockPos normPos) {
-        return new BlockPos(
+        return BlockPos.containing(
                 realBounds.minX + normPos.getX(),
                 realBounds.minY + normPos.getY(),
                 realBounds.minZ + normPos.getZ()
@@ -184,7 +190,7 @@ public abstract class BlockSpaceUtil {
     }
 
     public static BlockPos getOffset(AABB bounds) {
-        return new BlockPos(bounds.minX, bounds.minY, bounds.maxZ);
+        return BlockPos.containing(bounds.minX, bounds.minY, bounds.maxZ);
     }
 
     public static Stream<BlockPos> getCornersOfBounds(AABB bounds) {
@@ -192,16 +198,16 @@ public abstract class BlockSpaceUtil {
         Set<BlockPos> positions = new HashSet<>(upperRequired ? 8 : 4);
 
         // Lower corners
-        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.minZ));
-        positions.add(new BlockPos(bounds.minX, bounds.minY, bounds.maxZ - 1));
-        positions.add(new BlockPos(bounds.maxX - 1, bounds.minY, bounds.minZ));
-        positions.add(new BlockPos(bounds.maxX - 1, bounds.minY, bounds.maxZ - 1));
+        positions.add(BlockPos.containing(bounds.minX, bounds.minY, bounds.minZ));
+        positions.add(BlockPos.containing(bounds.minX, bounds.minY, bounds.maxZ - 1));
+        positions.add(BlockPos.containing(bounds.maxX - 1, bounds.minY, bounds.minZ));
+        positions.add(BlockPos.containing(bounds.maxX - 1, bounds.minY, bounds.maxZ - 1));
 
         if(upperRequired) {
-            positions.add(new BlockPos(bounds.minX, bounds.maxY - 1, bounds.minZ));
-            positions.add(new BlockPos(bounds.minX, bounds.maxY - 1, bounds.maxZ - 1));
-            positions.add(new BlockPos(bounds.maxX - 1, bounds.maxY - 1, bounds.minZ));
-            positions.add(new BlockPos(bounds.maxX - 1, bounds.maxY - 1, bounds.maxZ - 1));
+            positions.add(BlockPos.containing(bounds.minX, bounds.maxY - 1, bounds.minZ));
+            positions.add(BlockPos.containing(bounds.minX, bounds.maxY - 1, bounds.maxZ - 1));
+            positions.add(BlockPos.containing(bounds.maxX - 1, bounds.maxY - 1, bounds.minZ));
+            positions.add(BlockPos.containing(bounds.maxX - 1, bounds.maxY - 1, bounds.maxZ - 1));
         }
 
         return positions.stream();

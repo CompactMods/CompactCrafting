@@ -7,14 +7,11 @@ import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.SimpleLayerType;
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.RegistryBuilder;
-import net.minecraftforge.registries.RegistryObject;
-
-import java.util.function.Supplier;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CCLayerTypes {
 
@@ -22,22 +19,21 @@ public class CCLayerTypes {
 
     public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create(REC_LAYERS, CompactCrafting.MOD_ID);
 
-    public static Supplier<IForgeRegistry<RecipeLayerType<?>>> RECIPE_LAYER_TYPES = RECIPE_LAYERS.makeRegistry(() -> new RegistryBuilder<RecipeLayerType<?>>()
-            .setName(REC_LAYERS));
+    public static Registry<RecipeLayerType<?>> RECIPE_LAYER_TYPES = RECIPE_LAYERS.makeRegistry(b -> {});
 
     // ================================================================================================================
     // region  RECIPE LAYER SERIALIZERS
     // ================================================================================================================
-    public static final RegistryObject<RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
+    public static final DeferredHolder<RecipeLayerType<?>, RecipeLayerType<FilledComponentRecipeLayer>> FILLED_LAYER_SERIALIZER =
             RECIPE_LAYERS.register("filled", SimpleLayerType.supplier(FilledComponentRecipeLayer.CODEC));
 
-    public static final RegistryObject<RecipeLayerType<HollowComponentRecipeLayer>> HOLLOW_LAYER_TYPE =
+    public static final DeferredHolder<RecipeLayerType<?>, RecipeLayerType<HollowComponentRecipeLayer>> HOLLOW_LAYER_TYPE =
             RECIPE_LAYERS.register("hollow", SimpleLayerType.supplier(HollowComponentRecipeLayer.CODEC));
 
-    public static final RegistryObject<RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
+    public static final DeferredHolder<RecipeLayerType<?>, RecipeLayerType<MixedComponentRecipeLayer>> MIXED_LAYER_TYPE =
             RECIPE_LAYERS.register("mixed", SimpleLayerType.supplier(MixedComponentRecipeLayer.CODEC));
 
-    public static final RegistryObject<RecipeLayerType<EmptyRecipeLayer>> EMPTY_LAYER_TYPE =
+    public static final DeferredHolder<RecipeLayerType<?>, RecipeLayerType<EmptyRecipeLayer>> EMPTY_LAYER_TYPE =
             RECIPE_LAYERS.register("empty", SimpleLayerType.supplier(EmptyRecipeLayer.CODEC));
 
     // endregion ======================================================================================================

@@ -1,25 +1,23 @@
 package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.CompactCrafting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.FastColor;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 @Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientConfig {
 
-    public static ForgeConfigSpec CONFIG;
+    public static ModConfigSpec CONFIG;
 
-    private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
-    private static ForgeConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
-    private static ForgeConfigSpec.IntValue PLACEMENT_TIME;
+    private static ModConfigSpec.ConfigValue<String> PROJECTOR_COLOR;
+    private static ModConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
+    private static ModConfigSpec.IntValue PLACEMENT_TIME;
 
-    public static ForgeConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
+    public static ModConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
 
     public static int projectorColor = FastColor.ARGB32.color(255, 255, 106, 0);
     public static int projectorOffColor = FastColor.ARGB32.color(255, 137, 137, 137);
@@ -30,11 +28,11 @@ public class ClientConfig {
     }
 
     public static boolean doDebugRender() {
-        return Minecraft.getInstance().options.renderDebug && ENABLE_DEBUG_ON_F3.get();
+        return ClientUtilities.isDebugScreenOpen() && ENABLE_DEBUG_ON_F3.get();
     }
 
     private static void generateConfig() {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
         builder
                 .comment("Projector Settings")

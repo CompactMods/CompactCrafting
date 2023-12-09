@@ -6,7 +6,6 @@ import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 public class ComponentPositionLookup implements IPositionalComponentLookup {

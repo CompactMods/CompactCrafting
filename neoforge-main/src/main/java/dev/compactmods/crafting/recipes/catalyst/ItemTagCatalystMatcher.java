@@ -1,24 +1,26 @@
 package dev.compactmods.crafting.recipes.catalyst;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.catalyst.CatalystType;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.core.CCCatalystTypes;
-import net.minecraft.core.Registry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ItemTagCatalystMatcher implements ICatalystMatcher, CatalystType<ItemTagCatalystMatcher> {
 
     private static final Codec<ItemTagCatalystMatcher> CODEC = RecordCodecBuilder.create(i -> i.group(
-            TagKey.codec(Registry.ITEM_REGISTRY).fieldOf("tag").forGetter((is) -> is.tag)
+            TagKey.codec(Registries.ITEM).fieldOf("tag").forGetter((is) -> is.tag)
     ).apply(i, ItemTagCatalystMatcher::new));
 
     private final TagKey<Item> tag;
@@ -47,11 +49,11 @@ public class ItemTagCatalystMatcher implements ICatalystMatcher, CatalystType<It
         if (tag == null)
             return Collections.emptySet();
 
-        final var it = ForgeRegistries.ITEMS.tags();
-        final var tag2 = it.getTag(tag);
-        return tag2.stream()
-                .map(ItemStack::new)
-                .collect(Collectors.toSet());
+        var list = BuiltInRegistries.ITEM.getTag(tag)
+                .map(holders -> holders.stream().map(Holder::value).map(ItemStack::new).toList())
+                .orElseGet(ArrayList::new);
+
+        return ImmutableSet.copyOf(list);
     }
 
     @Override

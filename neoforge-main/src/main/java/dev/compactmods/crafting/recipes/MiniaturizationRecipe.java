@@ -1,27 +1,23 @@
 package dev.compactmods.crafting.recipes;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
-import dev.compactmods.crafting.api.components.RecipeComponentType;
-import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
-import dev.compactmods.crafting.core.CCLayerTypes;
-import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
+import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
+import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
+import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
+import dev.compactmods.crafting.core.CCLayerTypes;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
@@ -30,14 +26,26 @@ import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.CodecExtensions;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
 
@@ -52,8 +60,8 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     private final MiniaturizationRecipeComponents components;
 
     public static final Codec<IRecipeLayer> LAYER_CODEC = ExtraCodecs.lazyInitializedCodec(() -> {
-        final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.get();
-        return reg.getCodec().dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
+        final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.byNameCodec();
+        return reg.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
     });
 
     public static final Codec<IRecipeComponent> COMPONENT_CODEC =
@@ -317,11 +325,6 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     @Override
     public ResourceLocation getRecipeIdentifier() {
         return this.id;
-    }
-
-    @Override
-    public ResourceLocation getId() {
-        return id;
     }
 
     @Override

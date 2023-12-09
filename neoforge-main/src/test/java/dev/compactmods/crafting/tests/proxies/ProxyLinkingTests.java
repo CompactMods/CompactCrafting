@@ -4,7 +4,6 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.core.CCBlocks;
-import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import net.minecraft.core.BlockPos;

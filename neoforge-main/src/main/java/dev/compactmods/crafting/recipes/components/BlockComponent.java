@@ -1,8 +1,5 @@
 package dev.compactmods.crafting.recipes.components;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
@@ -10,11 +7,21 @@ import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.util.CodecExtensions;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.level.block.state.properties.Property;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
@@ -144,6 +151,6 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     @Override
     public String toString() {
-        return String.format("Block {%s}", ForgeRegistries.BLOCKS.getKey(block));
+        return String.format("Block {%s}", BuiltInRegistries.BLOCK.getKey(block));
     }
 }

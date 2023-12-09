@@ -1,17 +1,9 @@
 package dev.compactmods.crafting.projector;
 
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.core.CCCapabilities;
-import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.network.FieldActivatedPacket;
-import dev.compactmods.crafting.network.NetworkHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -30,7 +22,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class FieldProjectorBlock extends Block implements EntityBlock {
 
@@ -144,11 +140,13 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (world.isClientSide) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
             if(hasMissing) {
-                player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
-                        .ifPresent(rend -> {
-                            rend.resetRenderTime();
-                            rend.setProjector(world, pos);
-                        });
+                // FIXME - NO PROJECTOR GHOST RENDERING
+                player.sendSystemMessage(Component.literal("MISSING PROJECTORS RAAAUGH"));
+//                player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
+//                        .ifPresent(rend -> {
+//                            rend.resetRenderTime();
+//                            rend.setProjector(world, pos);
+//                        });
             }
 
             return InteractionResult.SUCCESS;
@@ -218,24 +216,25 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                 fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> activateProjector(level, proj, fieldSize));
 
                 final BlockPos center = getFieldCenter(state, pos);
-                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-                    if (!fields.hasActiveField(center)) {
-                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
-                        field.checkLoaded();
-                        field.fieldContentsChanged();
 
-//                            field.getProjectorPositions()
-//                                    .map(level::getBlockEntity)
-//                                    .filter(tile -> tile instanceof FieldProjectorTile)
-//                                    .map(tile -> (FieldProjectorTile) tile)
-//                                    .forEach(tile -> tile.setFieldRef(field.getRef()));
-
-                        // Send activation packet to clients
-                        NetworkHandler.MAIN_CHANNEL.send(
-                                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
-                                new FieldActivatedPacket(field));
-                    }
-                });
+//                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
+//                    if (!fields.hasActiveField(center)) {
+//                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+//                        field.checkLoaded();
+//                        field.fieldContentsChanged();
+//
+////                            field.getProjectorPositions()
+////                                    .map(level::getBlockEntity)
+////                                    .filter(tile -> tile instanceof FieldProjectorTile)
+////                                    .map(tile -> (FieldProjectorTile) tile)
+////                                    .forEach(tile -> tile.setFieldRef(field.getRef()));
+//
+//                        // Send activation packet to clients
+//                        NetworkHandler.MAIN_CHANNEL.send(
+//                                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
+//                                new FieldActivatedPacket(field));
+//                    }
+//                });
             }
         }
     }
@@ -250,18 +249,19 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
 
             // Remove field registration - this will also update clients
-            level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-                if (fields.hasActiveField(fieldCenter)) {
-                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
-                    if (field == null) return;
-
-                    if (field.enabled()) {
-                        fields.unregisterField(fieldCenter);
-                        field.handleDestabilize();
-                        field.dispose();
-                    }
-                }
-            });
+            // FIXME AAAAAAAAAAAAAAAAAAAA
+//            level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
+//                if (fields.hasActiveField(fieldCenter)) {
+//                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
+//                    if (field == null) return;
+//
+//                    if (field.enabled()) {
+//                        fields.unregisterField(fieldCenter);
+//                        field.handleDestabilize();
+//                        field.dispose();
+//                    }
+//                }
+//            });
         }
     }
 
@@ -271,27 +271,28 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (level.isClientSide)
             return;
 
-        if (isActive(state)) {
-            BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof FieldProjectorEntity) {
-                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
-                if (level.getBestNeighborSignal(pos) > 0) {
-                    // receiving power from some side, turn off rendering
-                    fpt.getField().ifPresent(IMiniaturizationField::disable);
-                } else {
-                    // check other projectors, if there's a redstone signal anywhere, we disable the field
-                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
-                }
-            }
-        } else {
-            // not active, but we may be re-enabling a disabled field
-            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
-                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
-                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
-                });
-            });
-        }
+        // FIXME REDSTONE HANDLING
+//        if (isActive(state)) {
+//            BlockEntity tile = level.getBlockEntity(pos);
+//            if (tile instanceof FieldProjectorEntity) {
+//                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
+//                if (level.getBestNeighborSignal(pos) > 0) {
+//                    // receiving power from some side, turn off rendering
+//                    fpt.getField().ifPresent(IMiniaturizationField::disable);
+//                } else {
+//                    // check other projectors, if there's a redstone signal anywhere, we disable the field
+//                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
+//                }
+//            }
+//        } else {
+//            // not active, but we may be re-enabling a disabled field
+//            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
+//                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
+//                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
+//                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
+//                });
+//            });
+//        }
     }
 
     @Nullable

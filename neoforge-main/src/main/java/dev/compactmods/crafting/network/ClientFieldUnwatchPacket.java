@@ -1,10 +1,9 @@
 package dev.compactmods.crafting.network;
 
-import java.util.function.Supplier;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.NetworkEvent;
 
 public class ClientFieldUnwatchPacket {
 
@@ -22,8 +21,8 @@ public class ClientFieldUnwatchPacket {
         buf.writeBlockPos(pkt.center);
     }
 
-    public static boolean handle(ClientFieldUnwatchPacket pkt, Supplier<NetworkEvent.Context> context) {
-        context.get().enqueueWork(() -> ClientPacketHandler.removeField(pkt.center));
+    public static boolean handle(ClientFieldUnwatchPacket pkt, NetworkEvent.Context context) {
+        ClientPacketHandler.removeField(pkt.center);
         return true;
     }
 }

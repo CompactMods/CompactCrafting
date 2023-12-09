@@ -1,17 +1,12 @@
 package dev.compactmods.crafting.field;
 
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
-import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.crafting.CraftingHelper;
 import dev.compactmods.crafting.events.WorldEventHandler;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
@@ -19,7 +14,6 @@ import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -29,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
@@ -37,7 +32,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -48,8 +43,15 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class MiniaturizationField implements IMiniaturizationField {
 
@@ -71,8 +73,6 @@ public class MiniaturizationField implements IMiniaturizationField {
     private Level level;
     private int craftingProgress = 0;
 
-    private final HashSet<LazyOptional<IFieldListener>> listeners = new HashSet<>();
-    private LazyOptional<IMiniaturizationField> lazyReference = LazyOptional.empty();
     private boolean disabled = false;
 
     private static Disposable CHUNK_LISTENER;
@@ -104,7 +104,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         if (nbt.contains("matchedBlocks")) {
             StructureTemplate t = new StructureTemplate();
-            t.load(nbt.getCompound("matchedBlocks"));
+            t.load(BuiltInRegistries.BLOCK.asLookup(), nbt.getCompound("matchedBlocks"));
             this.matchedBlocks = t;
         } else {
             this.matchedBlocks = null;
@@ -170,25 +170,21 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void getRecipeFromId() {
         // Load recipe information from temporary id variable
-        if (level != null && this.recipeId != null) {
-            final Optional<? extends Recipe<?>> r = level.getRecipeManager().byKey(recipeId);
-            if (!r.isPresent()) {
-                clearRecipe();
-                return;
-            }
-
-            r.ifPresent(rec -> {
-                this.currentRecipe = (MiniaturizationRecipe) rec;
+        if (level == null || this.recipeId == null) {
+            clearRecipe();
+        } else {
+            final var r = level.getRecipeManager().byKey(recipeId);
+            r.ifPresentOrElse(recipe -> {
+                this.currentRecipe = (MiniaturizationRecipe) recipe.value();
                 if (craftingState == EnumCraftingState.NOT_MATCHED)
                     setCraftingState(EnumCraftingState.MATCHED);
 
-                this.listeners.forEach(li -> li.ifPresent(l -> {
-                    l.onRecipeChanged(this, this.currentRecipe);
-                    l.onRecipeMatched(this, this.currentRecipe);
-                }));
-            });
-        } else {
-            clearRecipe();
+//                this.listeners.forEach(li -> li.ifPresent(l -> {
+//                    l.onRecipeChanged(this, this.currentRecipe);
+//                    l.onRecipeMatched(this, this.currentRecipe);
+//                }));
+
+            }, this::clearRecipe);
         }
     }
 
@@ -238,10 +234,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.craftingProgress = 0;
         setCraftingState(EnumCraftingState.NOT_MATCHED);
 
-        listeners.forEach(l -> l.ifPresent(listener -> {
-            listener.onRecipeChanged(this, this.currentRecipe);
-            listener.onRecipeCleared(this);
-        }));
+//        listeners.forEach(l -> l.ifPresent(listener -> {
+//            listener.onRecipeChanged(this, this.currentRecipe);
+//            listener.onRecipeCleared(this);
+//        }));
     }
 
     @Override
@@ -308,7 +304,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
                     clearRecipe();
 
-                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
+//                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
                 }
 
                 break;
@@ -348,7 +344,8 @@ public class MiniaturizationField implements IMiniaturizationField {
         Set<MiniaturizationRecipe> recipes = level.getRecipeManager()
                 .getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
                 .stream()
-                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.getDimensions(), filledBounds))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.value().getDimensions(), filledBounds))
+                .map(RecipeHolder::value)
                 .collect(Collectors.toSet());
 
         /*
@@ -377,7 +374,7 @@ public class MiniaturizationField implements IMiniaturizationField {
             this.matchedBlocks = new StructureTemplate();
 
             final AABB fieldBounds = size.getBoundsAtPosition(center);
-            BlockPos minPos = new BlockPos(fieldBounds.minX, fieldBounds.minY, fieldBounds.minZ);
+            BlockPos minPos = BlockPos.containing(fieldBounds.minX, fieldBounds.minY, fieldBounds.minZ);
 
             // boolean here is to capture entities - TODO maybe
             matchedBlocks.fillFromWorld(level, minPos, size.getBoundsAsBlockPos(), false, null);
@@ -399,12 +396,12 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         // Update all listeners as well
         final MiniaturizationRecipe finalMatchedRecipe = this.currentRecipe;
-        listeners.forEach(l -> l.ifPresent(fl -> {
-            fl.onRecipeChanged(this, finalMatchedRecipe);
-
-            if (craftingState == EnumCraftingState.MATCHED)
-                fl.onRecipeMatched(this, finalMatchedRecipe);
-        }));
+//        listeners.forEach(l -> l.ifPresent(fl -> {
+//            fl.onRecipeChanged(this, finalMatchedRecipe);
+//
+//            if (craftingState == EnumCraftingState.MATCHED)
+//                fl.onRecipeMatched(this, finalMatchedRecipe);
+//        }));
     }
 
     @Override
@@ -429,7 +426,7 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {
-            listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
+//            listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
         }
     }
 
@@ -442,14 +439,14 @@ public class MiniaturizationField implements IMiniaturizationField {
         this.rescanTime = level.getGameTime() + 30;
     }
 
-    @Override
-    public void registerListener(LazyOptional<IFieldListener> listener) {
-        this.listeners.add(listener);
-        listener.addListener(fl -> {
-            CompactCrafting.LOGGER.debug("Removing listener: {}", fl);
-            this.listeners.remove(fl);
-        });
-    }
+//    @Override
+//    public void registerListener(LazyOptional<IFieldListener> listener) {
+//        this.listeners.add(listener);
+//        listener.addListener(fl -> {
+//            CompactCrafting.LOGGER.debug("Removing listener: {}", fl);
+//            this.listeners.remove(fl);
+//        });
+//    }
 
     @Override
     public CompoundTag serverData() {
@@ -516,7 +513,7 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         if (restoreBlocks) {
             AABB bounds = getBounds();
-            BlockPos placeAt = new BlockPos(bounds.minX, bounds.minY, bounds.minZ);
+            BlockPos placeAt = BlockPos.containing(bounds.minX, bounds.minY, bounds.minZ);
             // TODO - Check the const here, 2 may be wrong
             matchedBlocks.placeInWorld((ServerLevelAccessor) level, placeAt, placeAt,
                     new StructurePlaceSettings(), level.random, 2);
@@ -541,15 +538,6 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public LazyOptional<IMiniaturizationField> getRef() {
-        return lazyReference;
-    }
-
-    public void setRef(LazyOptional<IMiniaturizationField> lazyReference) {
-        this.lazyReference = lazyReference;
-    }
-
-    @Override
     public void disable() {
         this.disabled = true;
         if (this.craftingState != EnumCraftingState.NOT_MATCHED)
@@ -571,9 +559,6 @@ public class MiniaturizationField implements IMiniaturizationField {
         getProjectorPositions().forEach(proj -> {
             FieldProjectorBlock.activateProjector(level, proj, this.size);
             BlockEntity projTile = level.getBlockEntity(proj);
-            if (projTile instanceof FieldProjectorEntity) {
-                ((FieldProjectorEntity) projTile).setFieldRef(lazyReference);
-            }
         });
 
         FieldActivatedPacket update = new FieldActivatedPacket(this);

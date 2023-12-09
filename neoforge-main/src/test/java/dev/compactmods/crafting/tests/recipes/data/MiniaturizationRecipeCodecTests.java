@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import com.google.gson.JsonElement;
-import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;

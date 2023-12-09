@@ -7,7 +7,6 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.core.CCBlocks;
-import dev.compactmods.crafting.core.CCCapabilities;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

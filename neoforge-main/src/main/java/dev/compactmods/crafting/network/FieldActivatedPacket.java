@@ -1,7 +1,5 @@
 package dev.compactmods.crafting.network;
 
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
@@ -11,9 +9,9 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.NetworkEvent;
+import org.jetbrains.annotations.Nullable;
 
 public class FieldActivatedPacket {
 
@@ -44,22 +42,21 @@ public class FieldActivatedPacket {
     }
 
     public FieldActivatedPacket(FriendlyByteBuf buf) {
-        FieldActivatedPacket base = buf.readWithCodec(CODEC);
+        FieldActivatedPacket base = buf.readJsonWithCodec(CODEC);
         this.field = base.field;
         this.clientData = base.clientData;
     }
 
-    public static void handle(FieldActivatedPacket message, Supplier<NetworkEvent.Context> context) {
-        NetworkEvent.Context ctx = context.get();
+    public static void handle(FieldActivatedPacket message, NetworkEvent.Context ctx) {
 
-        ctx.enqueueWork(() -> DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+        if(FMLEnvironment.dist.isClient()) {
             ClientPacketHandler.handleFieldActivation(message.field, message.clientData);
-        }));
+        }
 
         ctx.setPacketHandled(true);
     }
 
     public static void encode(FieldActivatedPacket pkt, FriendlyByteBuf buf) {
-        buf.writeWithCodec(CODEC, pkt);
+        buf.writeJsonWithCodec(CODEC, pkt);
     }
 }

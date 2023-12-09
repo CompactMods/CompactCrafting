@@ -1,26 +1,26 @@
 package dev.compactmods.crafting.events;
 
 import dev.compactmods.crafting.CompactCrafting;
-import static dev.compactmods.crafting.CompactCrafting.MOD_ID;
 import dev.compactmods.crafting.field.FieldHelper;
 import dev.compactmods.crafting.field.MissingFieldsException;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.bus.api.ICancellableEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import net.neoforged.neoforge.event.level.BlockEvent;
 
-import dev.compactmods.crafting.field.FieldHelper;
+import static dev.compactmods.crafting.CompactCrafting.MOD_ID;
 
 @SuppressWarnings("unused")
 @Mod.EventBusSubscriber(modid = MOD_ID)
 public class BlockEventHandler {
 
-    @SubscribeEvent
+//    @SubscribeEvent
     static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
         final LivingEntity entity = event.getEntity();
         final BlockHitResult hitVec = event.getHitVec();
@@ -60,9 +60,9 @@ public class BlockEventHandler {
         if (world instanceof Level) {
             try {
                 boolean allowPlace = FieldHelper.checkBlockPlacement((Level) world, pos);
-                if (!allowPlace) {
-                    event.setCanceled(true);
-                }
+                if (!allowPlace && event instanceof ICancellableEvent cancel)
+                    cancel.setCanceled(true);
+
             } catch (MissingFieldsException e) {
                 CompactCrafting.LOGGER.error("Missing the active miniaturization fields capability in the level. Report this!");
             }

@@ -3,7 +3,6 @@ package dev.compactmods.crafting.tests.recipes.setup;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.recipes.setup.FakeInventory;
-import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

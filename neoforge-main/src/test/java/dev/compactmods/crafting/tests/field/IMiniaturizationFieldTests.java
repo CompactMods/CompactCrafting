@@ -2,7 +2,6 @@ package dev.compactmods.crafting.tests.field;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.components.GameTestAssertions;
 import net.minecraft.core.BlockPos;

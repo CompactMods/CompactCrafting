@@ -15,10 +15,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
-
-import javax.annotation.Nullable;
-import java.util.Random;
+import net.neoforged.neoforge.client.model.data.ModelData;
+import org.jetbrains.annotations.Nullable;
 
 public class GhostRenderer {
     public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer) {

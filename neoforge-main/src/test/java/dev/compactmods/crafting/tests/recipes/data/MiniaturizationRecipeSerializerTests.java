@@ -9,7 +9,6 @@ import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.EncoderException;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -57,11 +56,11 @@ public class MiniaturizationRecipeSerializerTests {
         }
 
         try {
-            MiniaturizationRecipe r = s.fromNetwork(recipe.getId(), buf);
+            MiniaturizationRecipe r = s.fromNetwork(buf);
             if(0 != buf.readableBytes())
                 test.fail("Buffer was not empty after read.");
 
-            if(r == null || r.getId() == null)
+            if(r == null)
                 test.fail("Recipe did not load correctly, or did not have an identifier after network read.");
         } catch (Exception e) {
             test.fail(e.getMessage());

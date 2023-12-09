@@ -15,7 +15,6 @@ import dev.compactmods.crafting.recipes.RecipeHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.phys.Vec3;
 
 public class ComponentPositionLookupCodec implements PrimitiveCodec<ComponentPositionLookup> {
     @Override

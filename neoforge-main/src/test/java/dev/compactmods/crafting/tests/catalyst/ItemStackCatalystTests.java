@@ -3,7 +3,6 @@ package dev.compactmods.crafting.tests.catalyst;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.catalyst.ItemStackCatalystMatcher;
-import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.tests.GameTestTemplates;
 import dev.compactmods.crafting.tests.util.FileHelper;
 import net.minecraft.gametest.framework.GameTest;

@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.recipes.setup;
 
-import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
@@ -18,6 +18,6 @@ public class BaseRecipeType<T extends RecipeBase> implements RecipeType<T> {
     }
 
     public void register() {
-        Registry.register(Registry.RECIPE_TYPE, registryName, this);
+        Registry.register(BuiltInRegistries.RECIPE_TYPE, registryName, this);
     }
 }
