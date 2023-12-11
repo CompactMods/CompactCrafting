@@ -31,14 +31,6 @@ java {
 
 jarJar.enable()
 
-configurations {
-    create("mcLibrary") {}
-
-    implementation {
-        extendsFrom(configurations.findByName("mcLibrary"))
-    }
-}
-
 sourceSets.named("main") {
     java.srcDir("src/main/java")
     resources {
@@ -118,10 +110,10 @@ repositories {
 dependencies {
     implementation("net.neoforged:neoforge:${neoforge_version}")
 
-//    implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
-//    jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
-//        isTransitive = false
-//    }
+    implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
+    jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
+        isTransitive = false
+    }
 
     implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
     jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
