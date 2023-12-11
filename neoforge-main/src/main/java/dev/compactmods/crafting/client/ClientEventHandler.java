@@ -1,10 +1,10 @@
 package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
@@ -22,11 +22,7 @@ public class ClientEventHandler {
     public static void onTick(final TickEvent.ClientTickEvent evt) {
         if (evt.phase != TickEvent.Phase.START) return;
 
-        final LocalPlayer player = Minecraft.getInstance().player;
-        if (player != null) {
-//            player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
-//                    .ifPresent(IProjectorRenderInfo::tick);
-        }
+        GhostProjectorPlacementRenderer.tick();
 
         ClientLevel level = Minecraft.getInstance().level;
         if (level != null && !Minecraft.getInstance().isPaused()) {
@@ -42,7 +38,7 @@ public class ClientEventHandler {
             return;
 
         if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_PARTICLES)) {
-            doProjectorRender(event, mc);
+            GhostProjectorPlacementRenderer.render(event.getPoseStack());
             doFieldPreviewRender(event, mc);
         }
     }
@@ -87,10 +83,5 @@ public class ClientEventHandler {
 //                            });
 //                });
         buffers.endBatch();
-    }
-
-    private static void doProjectorRender(RenderLevelStageEvent event, Minecraft mc) {
-//        mc.player.getCapability(CCCapabilities.TEMP_PROJECTOR_RENDERING)
-//                .ifPresent(render -> render.render(event.getPoseStack()));
     }
 }

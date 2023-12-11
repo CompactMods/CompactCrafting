@@ -2,6 +2,7 @@ package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
@@ -14,6 +15,10 @@ public interface CreativeTabs {
 
     DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
             .icon(() -> new ItemStack(CCItems.FIELD_PROJECTOR_ITEM.get(), 1))
+            .title(Component.translatable("itemGroup.compactcrafting"))
+            .displayItems((params, out) -> {
+                out.accept(CCItems.FIELD_PROJECTOR_ITEM.get());
+            })
             .build());
 
     static void init(IEventBus eventBus) {

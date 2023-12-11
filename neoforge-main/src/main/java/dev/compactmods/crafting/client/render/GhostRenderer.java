@@ -19,6 +19,11 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 public class GhostRenderer {
+    public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix) {
+        final var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
+        renderTransparentBlock(state, pos, matrix, buffers, 100);
+    }
+
     public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer) {
         renderTransparentBlock(state, pos, matrix, buffer, 100);
     }

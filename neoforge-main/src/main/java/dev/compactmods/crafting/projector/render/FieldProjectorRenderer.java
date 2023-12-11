@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.client.render.CubeRenderHelper;
@@ -21,6 +22,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
@@ -49,21 +51,16 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
         renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
 
-//        AABB bounds = tile.getField().map(field -> {
-//            double scale = MathUtil.calculateFieldScale(field);
-//            return field.getBounds().deflate((1 - scale) * (field.getFieldSize().getSize() / 2.0));
-//        }).orElseGet(() -> {
-//            BlockState state = tile.getBlockState();
-//            final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
-//            final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
-//            return fieldSize.getBoundsAtPosition(center);
-//        });
+        BlockState state = tile.getBlockState();
+        final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
+        final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
+        final AABB bounds = fieldSize.getBoundsAtPosition(center);
 
         matrixStack.pushPose();
 
-//        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
-//        drawFieldFace(tile, matrixStack, buffers, bounds);
-//        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
+        drawFieldFace(tile, matrixStack, buffers, bounds);
+        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
 
         matrixStack.popPose();
     }
@@ -88,7 +85,6 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
 
         VertexConsumer cutoutBlocks = buffer.getBuffer(Sheets.cutoutBlockSheet());
-        // IModelData model = ModelDataManager.getModelData(te.getLevel(), te.getBlockPos());
 
         BakedModel baked = this.getModel();
 
@@ -97,7 +93,6 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         mx.translate(.5, 0, .5);
 
         double yaw = Math.sin(Math.toDegrees(gameTime) / RotationSpeed.MEDIUM.getSpeed()) * 10;
-        // double yaw = Math.random();
 
         Direction facing = state.getValue(FieldProjectorBlock.FACING);
         if (facing != Direction.WEST) {
@@ -222,7 +217,6 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
 
         try {
-            VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
             Direction facing = tile.getProjectorSide();
 
@@ -236,9 +230,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
             mx.translate(.5, .5, .5);
 
-            // mx.mulPose(rotation);
-
-            int colorProjectionArc = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
+            int colorProjectionArc = getProjectionColor(EnumProjectorColorType.FIELD);
 
             Vec3 scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime).subtract(tilePos);
             Vec3 scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
@@ -246,6 +238,8 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             // 0, 0, 0 is now the edge of the projector's space
             final Matrix4f p = mx.last().pose();
             final Matrix3f n = mx.last().normal();
+
+            VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
             builder.vertex(p, 0, 0.2f, 0)
                     .color(colorProjectionArc)
@@ -307,6 +301,12 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     @Override
     public boolean shouldRenderOffScreen(FieldProjectorEntity te) {
         return true;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(FieldProjectorEntity blockEntity) {
+        final var p = blockEntity.getBlockPos();
+        return AABB.encapsulatingFullBlocks(p, p).inflate(20);
     }
 
     public int getProjectionColor(EnumProjectorColorType type) {

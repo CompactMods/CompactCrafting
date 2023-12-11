@@ -3,7 +3,6 @@ package dev.compactmods.crafting.client.render;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.projector.IProjectorRenderInfo;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
@@ -22,44 +21,48 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Set;
 
-public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
+public class GhostProjectorPlacementRenderer {
 
-    private final BlockState baseState;
-    private final HashMap<BlockPos, Direction> remainingProjectors;
-    private int renderTime;
+    public static final HashMap<BlockPos, Direction> remainingProjectors= new HashMap<>(4);
 
+    public static int renderTime = 0;
 
-    public ClientProjectorRenderInfo() {
-        this.remainingProjectors = new HashMap<>(4);
-        this.baseState = CCBlocks.FIELD_PROJECTOR_BLOCK.get().defaultBlockState();
+    public static void calculateMissingProjectors(Level level, BlockPos initial) {
+        remainingProjectors.clear();
+
+        final Direction initialFacing = FieldProjectorBlock.getDirection(level, initial).orElse(Direction.UP);
+        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestSize(level, initial, initialFacing);
+
+        if (fieldSize.isPresent()) {
+            final BlockPos center = fieldSize.get().getCenterFromProjector(initial, initialFacing);
+            Direction.Plane.HORIZONTAL.stream()
+                    .forEach(dir -> {
+                        if (dir.getOpposite() == initialFacing) return;
+                        final BlockPos location = fieldSize.get().getProjectorLocationForDirection(center, dir);
+                        if (!(level.getBlockState(location).getBlock() instanceof FieldProjectorBlock))
+                            remainingProjectors.put(location, dir.getOpposite());
+                    });
+        } else {
+            ProjectorHelper.getValidOppositePositions(initial, initialFacing)
+                    .forEach(pos -> remainingProjectors.put(pos, initialFacing.getOpposite()));
+        }
     }
 
-    @Override
-    public Set<BlockPos> getMissingProjectors() {
-        return remainingProjectors.keySet();
+    public static void render(PoseStack matrixStack) {
+        final var baseState = CCBlocks.FIELD_PROJECTOR_BLOCK.get().defaultBlockState();
+        render(matrixStack, baseState);
     }
 
-    @Override
-    public int getRenderTimeLeft() {
-        return renderTime;
-    }
-
-    @Override
-    public void render(PoseStack matrixStack) {
-        if (this.renderTime == 0) return;
-        if (this.remainingProjectors.isEmpty()) return;
+    public static void render(PoseStack matrixStack, BlockState baseState) {
+        if (renderTime == 0) return;
+        if (remainingProjectors.isEmpty()) return;
 
         final Minecraft mc = Minecraft.getInstance();
         final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final ClientLevel level = mc.level;
 
-        render(matrixStack, buffers, mainCamera, level);
-    }
-
-    private void render(PoseStack matrixStack, MultiBufferSource.BufferSource buffers, Camera mainCamera, ClientLevel level) {
         matrixStack.pushPose();
         Vec3 projectedView = mainCamera.getPosition();
         matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
@@ -101,36 +104,16 @@ public class ClientProjectorRenderInfo implements IProjectorRenderInfo {
         buffers.endBatch(CCRenderTypes.PHANTOM);
     }
 
-    @Override
-    public void tick() {
-        if (renderTime > 0) this.renderTime--;
-        if (renderTime < 0) this.renderTime = 0;
+    public static void tick() {
+        if (renderTime > 0) renderTime--;
+        if (renderTime < 0) renderTime = 0;
     }
 
-    @Override
-    public void resetRenderTime() {
-        this.renderTime = ClientConfig.placementTime;
+    public static void resetRenderTime() {
+        renderTime = ClientConfig.placementTime;
     }
 
-    @Override
-    public void setProjector(Level level, BlockPos initial) {
-        remainingProjectors.clear();
-
-        final Direction initialFacing = FieldProjectorBlock.getDirection(level, initial).orElse(Direction.UP);
-        Optional<MiniaturizationFieldSize> fieldSize = ProjectorHelper.getClosestSize(level, initial, initialFacing);
-
-        if (fieldSize.isPresent()) {
-            final BlockPos center = fieldSize.get().getCenterFromProjector(initial, initialFacing);
-            Direction.Plane.HORIZONTAL.stream()
-                    .forEach(dir -> {
-                        if (dir.getOpposite() == initialFacing) return;
-                        final BlockPos location = fieldSize.get().getProjectorLocationForDirection(center, dir);
-                        if (!(level.getBlockState(location).getBlock() instanceof FieldProjectorBlock))
-                            remainingProjectors.put(location, dir.getOpposite());
-                    });
-        } else {
-            ProjectorHelper.getValidOppositePositions(initial, initialFacing)
-                    .forEach(pos -> this.remainingProjectors.put(pos, initialFacing.getOpposite()));
-        }
+    public static void setOriginProjector(Level level, BlockPos initial) {
+        calculateMissingProjectors(level, initial);
     }
 }
