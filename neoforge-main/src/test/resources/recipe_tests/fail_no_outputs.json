@@ -10,8 +10,8 @@
   ],
 
   "catalyst": {
-    "id": "minecraft:ender_pearl",
-    "Count": 1
+    "items": "minecraft:ender_pearl",
+    "count": 1
   },
 
   "components": {

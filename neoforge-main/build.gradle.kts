@@ -126,13 +126,23 @@ repositories {
 
 dependencies {
     compileOnly(coreApi)
+    testCompileOnly(coreApi)
     jarJar(coreApi)
 
     implementation(libs.rxjava)
     additionalRuntimeClasspath(libs.rxjava)
 
+    testImplementation(neoforged.testframework)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
     jarJar(libs.rxjava)
     jarJar(libs.reactivestreams)
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 }
 
 tasks.withType<ProcessResources>().configureEach {
@@ -153,10 +163,6 @@ tasks.withType<ProcessResources>().configureEach {
     filesMatching("META-INF/neoforge.mods.toml") {
         expand(replaceProperties)
     }
-}
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8";
 }
 
 tasks.withType<Jar> {

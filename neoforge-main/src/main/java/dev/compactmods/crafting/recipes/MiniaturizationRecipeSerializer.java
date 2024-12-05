@@ -12,8 +12,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class MiniaturizationRecipeSerializer implements RecipeSerializer<MiniaturizationRecipe> {
 
+
     @Override
     public MapCodec<MiniaturizationRecipe> codec() {
+        CompactCrafting.LOGGER.debug("Loading recipe codec.");
         return MiniaturizationRecipe.CODEC;
     }
 

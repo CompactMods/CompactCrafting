@@ -9,8 +9,8 @@
     }
   ],
   "catalyst": {
-    "id": "minecraft:redstone",
-    "Count": 1
+    "items": ["minecraft:redstone"],
+    "count": 1
   },
   "outputs": [
     {
