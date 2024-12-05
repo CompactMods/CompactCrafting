@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -25,7 +26,7 @@ public class FilledComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     private final String componentKey;
     private AABB recipeDimensions;
 
-    public static final Codec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.create(in -> in.group(
+    public static final MapCodec<FilledComponentRecipeLayer> CODEC = RecordCodecBuilder.mapCodec(in -> in.group(
             Codec.STRING.fieldOf("component").forGetter(FilledComponentRecipeLayer::getComponent)
         ).apply(in, FilledComponentRecipeLayer::new));
 

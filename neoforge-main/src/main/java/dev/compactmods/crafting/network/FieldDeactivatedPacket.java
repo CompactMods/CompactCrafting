@@ -1,54 +1,39 @@
 package dev.compactmods.crafting.network;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
-public class FieldDeactivatedPacket {
+import java.util.List;
 
-    protected static final Codec<FieldDeactivatedPacket> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, Enum::name)
-                    .fieldOf("size").forGetter(x -> x.fieldSize),
-            BlockPos.CODEC.fieldOf("center").forGetter(x -> x.fieldCenter)
-    ).apply(i, FieldDeactivatedPacket::new));
+public record FieldDeactivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos fieldCenter, List<BlockPos> projectors) implements CustomPacketPayload {
 
-    private final MiniaturizationFieldSize fieldSize;
-    private final BlockPos fieldCenter;
-    private final BlockPos[] projectors;
+    public static final Type<FieldDeactivatedPacket> TYPE = new Type<>(CompactCrafting.modRL("field_deactivated"));
 
-    public FieldDeactivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos fieldCenter) {
-        this.fieldSize = fieldSize;
-        this.fieldCenter = fieldCenter;
+    static final StreamCodec<FriendlyByteBuf, FieldDeactivatedPacket> STREAM_CODEC = StreamCodec.composite(
+            MiniaturizationFieldSize.STREAM_CODEC, FieldDeactivatedPacket::fieldSize,
+            BlockPos.STREAM_CODEC, FieldDeactivatedPacket::fieldCenter,
+            BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), FieldDeactivatedPacket::projectors,
+            FieldDeactivatedPacket::new
+    );
 
-        this.projectors = fieldSize.getProjectorLocations(fieldCenter)
-                .map(BlockPos::immutable).toArray(BlockPos[]::new);
-    }
+    public static final IPayloadHandler<FieldDeactivatedPacket> HANDLER = (pkt, ctx) -> {
+        ctx.enqueueWork(() -> {
+            if (FMLEnvironment.dist.isClient()) {
+                ClientPacketHandler.handleFieldDeactivation(pkt.fieldCenter);
+            }
+        });
+    };
 
-    public FieldDeactivatedPacket(FriendlyByteBuf buf) {
-        FieldDeactivatedPacket pkt = buf.readJsonWithCodec(CODEC);
-
-        this.fieldSize = pkt.fieldSize;
-        this.fieldCenter = pkt.fieldCenter;
-
-        this.projectors = fieldSize.getProjectorLocations(fieldCenter)
-                .map(BlockPos::immutable).toArray(BlockPos[]::new);
-    }
-
-    public static boolean handle(FieldDeactivatedPacket message, NetworkEvent.Context context) {
-
-        if(FMLEnvironment.dist.isClient()) {
-            ClientPacketHandler.handleFieldDeactivation(message.fieldCenter);
-        }
-
-        return true;
-    }
-
-    public static void encode(FieldDeactivatedPacket pkt, FriendlyByteBuf buf) {
-        buf.writeJsonWithCodec(CODEC, pkt);
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.ICancellableEvent;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -17,7 +18,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import static dev.compactmods.crafting.CompactCrafting.MOD_ID;
 
 @SuppressWarnings("unused")
-@Mod.EventBusSubscriber(modid = MOD_ID)
+@EventBusSubscriber(modid = MOD_ID)
 public class BlockEventHandler {
 
 //    @SubscribeEvent

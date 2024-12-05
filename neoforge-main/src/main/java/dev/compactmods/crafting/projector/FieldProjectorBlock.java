@@ -135,30 +135,18 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public InteractionResult use(BlockState state, Level world, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit) {
-        if (world.isClientSide) {
-            final boolean hasMissing = ProjectorHelper.getMissingProjectors(world, pos, state.getValue(FACING)).findAny().isPresent();
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (level.isClientSide) {
+            final boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING)).findAny().isPresent();
             if (hasMissing) {
                 GhostProjectorPlacementRenderer.resetRenderTime();
-                GhostProjectorPlacementRenderer.setOriginProjector(world, pos);
+                GhostProjectorPlacementRenderer.setOriginProjector(level, pos);
             }
 
             return InteractionResult.SUCCESS;
         }
 
-        // Uncomment for debug block placement
-//        Arrays.stream(FieldProjectionSize.values()).forEach(size -> {
-//            BlockPos center = size.getCenterFromProjector(pos, projectorFacing);
-//
-//            serverWorld.setBlock(center, Blocks.ORANGE_STAINED_GLASS.defaultBlockState(), 3);
-//
-//            size.getProjectorLocations(center).forEach(proj -> {
-//                serverWorld.setBlock(proj.above(), Blocks.CYAN_STAINED_GLASS.defaultBlockState(), 3);
-//            });
-//        });
-
-        return InteractionResult.SUCCESS;
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {

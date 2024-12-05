@@ -13,6 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -27,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<ListTag> {
+public class ActiveWorldFields implements IActiveWorldFields {
 
     private Level level;
 
@@ -117,11 +118,10 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
 //            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
 //            removed.invalidate();
 
-            if (!level.isClientSide && removedField != null) {
-                // Send activation packet to clients
-                NetworkHandler.MAIN_CHANNEL.send(
-                        PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(removedField.getCenter())),
-                        new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter()));
+            if (!level.isClientSide && removedField != null && level instanceof ServerLevel sl) {
+                // Send deactivation packet to clients
+                PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(removedField.getCenter()),
+                        new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter(), removedField.getProjectorPositions().toList()));
             }
         }
     }
@@ -154,20 +154,20 @@ public class ActiveWorldFields implements IActiveWorldFields, INBTSerializable<L
         return level.dimension();
     }
 
-    @Override
-    public ListTag serializeNBT() {
-        return getFields()
-                .map(IMiniaturizationField::serverData)
-                .collect(NbtListCollector.toNbtList());
-    }
-
-    @Override
-    public void deserializeNBT(ListTag nbt) {
-        nbt.forEach(item -> {
-            if (item instanceof CompoundTag ct) {
-                MiniaturizationField field = new MiniaturizationField(ct);
-                addFieldInstance(field);
-            }
-        });
-    }
+//    @Override
+//    public ListTag serializeNBT() {
+//        return getFields()
+//                .map(IMiniaturizationField::serverData)
+//                .collect(NbtListCollector.toNbtList());
+//    }
+//
+//    @Override
+//    public void deserializeNBT(ListTag nbt) {
+//        nbt.forEach(item -> {
+//            if (item instanceof CompoundTag ct) {
+//                MiniaturizationField field = new MiniaturizationField(ct);
+//                addFieldInstance(field);
+//            }
+//        });
+//    }
 }

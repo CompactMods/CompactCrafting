@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.recipes.components;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
@@ -10,13 +11,10 @@ import net.minecraft.world.level.block.Blocks;
 
 public class EmptyBlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
-    public static final Codec<EmptyBlockComponent> CODEC = Codec.unit(EmptyBlockComponent::new);
+    public static final MapCodec<EmptyBlockComponent> CODEC = MapCodec.unit(EmptyBlockComponent::new);
 
     @Override
-    @SuppressWarnings("deprecated")
     public boolean matches(BlockState state) {
-        // Update this when undeprecated; other modders -
-        // if you aren't overriding the state properties, shame on you
         return state.isAir();
     }
 

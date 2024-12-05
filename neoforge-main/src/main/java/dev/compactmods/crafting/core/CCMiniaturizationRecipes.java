@@ -22,7 +22,7 @@ public class CCMiniaturizationRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MiniaturizationRecipe>> MINIATURIZATION_SERIALIZER =
             RECIPES.register("miniaturization", MiniaturizationRecipeSerializer::new);
 
-    public static final ResourceLocation MINIATURIZATION_RECIPE_TYPE_ID = new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization_recipe");
+    public static final ResourceLocation MINIATURIZATION_RECIPE_TYPE_ID = CompactCrafting.modRL("miniaturization_recipe");
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<MiniaturizationRecipe>> MINIATURIZATION_RECIPE = RECIPE_TYPES.register(MINIATURIZATION_RECIPE_TYPE_ID.getPath(),
             () -> RecipeType.simple(MINIATURIZATION_RECIPE_TYPE_ID));

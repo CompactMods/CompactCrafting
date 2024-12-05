@@ -1,0 +1,51 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="MIT"
+
+[[accessTransformers]]
+file = "META-INF/accesstransformer.cfg"
+
+[[mods]] #mandatory
+modId="compactcrafting"
+version = "${mod_version}"
+displayName="Compact Crafting"
+authors="RobotGryphon and Zorn_Taov"
+description='''
+Compact Crafting adds a new crafting system, miniaturization crafting, to Minecraft.
+
+Based off of the Compact Machines mod pre-1.16.
+'''
+
+[[dependencies.compactcrafting]] #optional
+    modId="neoforge"
+    mandatory=true
+    versionRange="${neo_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.compactcrafting]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="BOTH"
+
+#[[dependencies.compactcrafting]]
+    #modId="jei"
+    #mandatory=false
+    #versionRange="[11.2.0.247,12)"
+    #ordering="BEFORE"
+    #side="BOTH"
+#
+#[[dependencies.compactcrafting]]
+#    modId="theoneprobe"
+#    mandatory=false
+#    versionRange="[1.16-3.1.4,)"
+#    ordering="BEFORE"
+#    side="BOTH"
+
+# Features are specific properties of the game environment, that you may want to declare you require. This example declares
+# that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
+# stop your mod loading on the server for example.
+#[features.${mod_id}]
+#openGLVersion="[3.2,)"

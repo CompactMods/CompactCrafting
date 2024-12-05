@@ -1,104 +1,121 @@
+@file:Suppress("SpellCheckingInspection")
+
 import java.text.SimpleDateFormat
 import java.util.*
 
+var envVersion: String = System.getenv("VERSION") ?: "9.9.9"
+if (envVersion.startsWith("v"))
+    envVersion = envVersion.trimStart('v')
+
+val modId: String = rootProject.property("mod_id") as String
+val isRelease: Boolean = (System.getenv("RELEASE") ?: "false").equals("true", true)
+
+val coreApi = project(":neoforge-api")
+
 plugins {
-    id("java-library")
-    id("eclipse")
+    java
     id("idea")
+    id("eclipse")
     id("maven-publish")
-    id("net.neoforged.gradle.userdev") version ("7.0.57")
+    alias(neoforged.plugins.moddev)
 }
 
-var envVersion: String = System.getenv("CC_VERSION") ?: "9.9.9"
-if (envVersion.startsWith("v"))
-    envVersion = envVersion.trimStart('v');
-
-val mod_id: String by extra
-val isRelease: Boolean = (System.getenv("CC_RELEASE") ?: "false").equals("true", true)
-
-val neoforge_version: String by extra
-val coreVersion: String = property("core_version") as String
+project.evaluationDependsOn(coreApi.path)
 
 base {
-    archivesName.set(mod_id)
-    group = "dev.compactmods"
+    archivesName.set(modId)
+    group = "dev.compactmods.compactcrafting"
     version = envVersion
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+    toolchain.vendor.set(JvmVendorSpec.JETBRAINS)
+    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
 
-jarJar.enable()
+sourceSets.main {
+    resources.srcDir("src/generated/resources")
+}
 
-sourceSets.named("main") {
-    java.srcDir("src/main/java")
-    resources {
-        srcDir("src/main/resources")
-        srcDir("src/generated/resources")
+neoForge {
+    version = neoforged.versions.neoforge
+
+    this.mods.create(modId) {
+        modSourceSets.add(coreApi.sourceSets.main)
+        modSourceSets.add(sourceSets.main)
+        modSourceSets.add(sourceSets.test)
     }
-}
 
-sourceSets.named("test") {
-    java.srcDir("src/test/java")
-    resources {
-        srcDir("src/test/resources")
+    unitTest {
+        enable()
+        testedMod = mods.named(modId)
     }
-}
 
-minecraft.accessTransformers.file(project.file("src/main/resources/META-INF/accesstransformer.cfg"))
+    parchment {
+        enabled = true
+        mappingsVersion = libs.versions.parchment
+        minecraftVersion = libs.versions.parchmentMC
+    }
 
-runs {
-    // applies to all the run configs below
-    configureEach {
-        // Recommended logging data for a userdev environment
-        systemProperty("forge.logging.markers", "") // 'SCAN,REGISTRIES,REGISTRYDUMP'
+    runs {
+        // applies to all the run configs below
+        configureEach {
+            logLevel.set(org.slf4j.event.Level.DEBUG)
+            sourceSet = project.sourceSets.main
 
-        // Recommended logging level for the console
-        systemProperty("forge.logging.console.level", "debug")
+            systemProperty("neoforge.enabledGameTestNamespaces", modId)
 
-        dependencies {
-//            runtime("dev.compactmods.compactcrafting:core-api:$coreVersion")
-            runtime("io.reactivex.rxjava3:rxjava:3.1.5")
+            // JetBrains Runtime Hotswap
+//            if (!System.getenv().containsKey("CI")) {
+//              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
+//            }
         }
 
-        // ideaModule("Compact_Crafting.forge-main.main")
-        modSource(project.sourceSets.main.get())
-    }
+        create("client") {
+            client()
+            gameDirectory.set(file("runs/client"))
 
-    create("client") {
-        // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-        systemProperty("forge.enabledGameTestNamespaces", mod_id)
+            programArguments.addAll("--username", "Nano")
+            programArguments.addAll("--width", "1920")
+            programArguments.addAll("--height", "1080")
+        }
 
-        programArguments("--username", "Nano")
-        programArguments("--width", "1920")
-        programArguments("--height", "1080")
-    }
+        create("client2") {
+            client()
+            gameDirectory.set(file("runs/client"))
 
-    create("server") {
-        workingDirectory(file("run/server"))
-        environmentVariables("CC_TEST_RESOURCES", project.file("src/test/resources").path)
-    }
+            programArguments.addAll("--username", "Nano2")
+            programArguments.addAll("--width", "1920")
+            programArguments.addAll("--height", "1080")
+        }
 
-    create("data") {
-        workingDirectory(file("run/data"))
+        create("server") {
+            server()
+            gameDirectory.set(file("runs/server"))
 
-        programArguments("--mod", "compactcrafting")
-        programArguments("--all")
-        programArguments("--output", file("src/generated/resources/").path)
-        programArguments("--existing", file("src/main/resources").path)
-    }
+            programArgument("nogui")
 
-    create("gameTestServer") {
-        workingDirectory(file("run/gametest"))
-        environmentVariables("CC_TEST_RESOURCES", file("src/test/resources").path)
+            environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
+
+            sourceSet = project.sourceSets.test
+        }
+
+        create("gameTestServer") {
+            type = "gameTestServer"
+            gameDirectory.set(file("runs/gametest"))
+
+            environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
+
+            sourceSet = project.sourceSets.test
+        }
     }
 }
 
 repositories {
     mavenLocal()
+    mavenCentral()
 
-    maven("https://maven.pkg.github.com/compactmods/compactcrafting-core") {
+    maven("https://maven.pkg.github.com/compactmods/compactcrafting") {
         name = "Github PKG Core"
         credentials {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
@@ -108,65 +125,34 @@ repositories {
 }
 
 dependencies {
-    implementation("net.neoforged:neoforge:${neoforge_version}")
+    compileOnly(coreApi)
+    jarJar(coreApi)
 
-    implementation("dev.compactmods.compactcrafting", "core-api", coreVersion)
-    jarJar("dev.compactmods.compactcrafting", "core-api", "[$coreVersion]") {
-        isTransitive = false
-    }
+    implementation(libs.rxjava)
+    additionalRuntimeClasspath(libs.rxjava)
 
-    implementation("io.reactivex.rxjava3", "rxjava", "3.1.5")
-    jarJar("io.reactivex.rxjava3", "rxjava", "[3.1.0,3.2)")
-    jarJar("org.reactivestreams", "reactive-streams", "[1.0.4,)")
+    jarJar(libs.rxjava)
+    jarJar(libs.reactivestreams)
 }
 
-//
-//repositories {
-//    mavenLocal()
-//
-//    maven("https://www.cursemaven.com") {
-//        content {
-//            includeGroup("curse.maven")
-//        }
-//    }
-//
-//    // location of the maven that hosts JEI files
-//    maven("https://dvs1.progwml6.com/files/maven") {
-//        name = "Progwml Repo"
-//    }
-//}
-//
-//val jei_version: String? by extra
-//val jei_mc_version: String by extra
-//dependencies {
-//    // Specify the version of Minecraft to use, If this is any group other then 'net.minecraft' it is assumed
-//    // that the dep is a ForgeGradle 'patcher' dependency. And it's patches will be applied.
-//    // The userdev artifact is a special name and will get all sorts of transformations applied to it.
-//    minecraft("net.minecraftforge", "forge", "${minecraft_version}-${forge_version}")
-//
-//    implementation(project(":forge-api"))
-//    testImplementation(project(":forge-api"))
-//
+tasks.withType<ProcessResources>().configureEach {
 
-//
-//    // Nicephore - Screenshots and Stuff
-//    // runtimeOnly(fg.deobf("curse.maven:nicephore-401014:3823401"))
-//
-//    // JEI
-//    compileOnly(fg.deobf("mezz.jei:jei-${jei_mc_version}-common-api:${jei_version}"))
-//    compileOnly(fg.deobf("mezz.jei:jei-${jei_mc_version}-forge-api:${jei_version}"))
-//    runtimeOnly(fg.deobf("mezz.jei:jei-${jei_mc_version}-forge:${jei_version}"))
-//
-//    // The One Probe
-//    implementation(fg.deobf("curse.maven:theoneprobe-245211:3871444"))
-//
-//    // Spark
-//    runtimeOnly(fg.deobf("curse.maven:spark-361579:3875647"))
-//}
-//
+    duplicatesStrategy = DuplicatesStrategy.WARN
 
-tasks.withType<ProcessResources> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    val replaceProperties: Map<String, Any> = mapOf(
+        "minecraft_version" to mojang.versions.minecraft.get(),
+        "neo_version" to neoforged.versions.neoforge.get(),
+        "minecraft_version_range" to mojang.versions.minecraftRange.get(),
+        "neo_version_range" to neoforged.versions.neoforgeRange.get(),
+        "loader_version_range" to "[1,)",
+        "mod_id" to modId,
+        "mod_version" to envVersion
+    )
+
+    inputs.properties(replaceProperties)
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand(replaceProperties)
+    }
 }
 
 tasks.withType<JavaCompile> {
@@ -187,27 +173,13 @@ tasks.withType<Jar> {
         ))
     }
 }
-//
-tasks.jar {
-    archiveClassifier.set("slim")
-    finalizedBy("reobfJar")
-}
-
-tasks.jarJar {
-    archiveClassifier.set("")
-    finalizedBy("reobfJarJar")
-}
 
 val PACKAGES_URL = System.getenv("GH_PKG_URL") ?: "https://maven.pkg.github.com/compactmods/compactcrafting"
 publishing {
     publications.register<MavenPublication>("main") {
-        artifactId = mod_id
+        artifactId = modId
         groupId = "dev.compactmods"
-
-        artifacts {
-            artifact(tasks.jar.get())
-            artifact(tasks.jarJar.get())
-        }
+        from(components.getByName("java"))
     }
 
     repositories {

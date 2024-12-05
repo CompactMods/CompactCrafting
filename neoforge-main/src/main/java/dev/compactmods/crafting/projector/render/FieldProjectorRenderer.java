@@ -22,9 +22,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -32,12 +32,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.data.ModelData;
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity> {
 
-    public static final ResourceLocation FIELD_DISH_RL = new ResourceLocation(CompactCrafting.MOD_ID, "block/field_projector_dish");
+    public static final ModelResourceLocation FIELD_DISH_RL = ModelResourceLocation.standalone(CompactCrafting.modRL("block/field_projector_dish"));
 
     private BakedModel bakedModelCached;
 
@@ -237,30 +236,25 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
             // 0, 0, 0 is now the edge of the projector's space
             final Matrix4f p = mx.last().pose();
-            final Matrix3f n = mx.last().normal();
+            final var n = mx.last();
 
             VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
 
-            builder.vertex(p, 0, 0.2f, 0)
-                    .color(colorProjectionArc)
-                    .normal(n, 0, 0, 0)
-                    .endVertex();
+            builder.addVertex(p, 0, 0.2f, 0)
+                    .setColor(colorProjectionArc)
+                    .setNormal(n, 0, 0, 0);
 
-            builder.vertex(p, (float) scanLeft.x, (float) scanLeft.y, (float) scanLeft.z)
-                    .color(colorProjectionArc)
-                    .normal(n, 0, 0, 0)
-                    .endVertex();
+            builder.addVertex(p, (float) scanLeft.x, (float) scanLeft.y, (float) scanLeft.z)
+                    .setColor(colorProjectionArc)
+                    .setNormal(n, 0, 0, 0);
 
-            builder.vertex(p, (float) scanRight.x, (float) scanRight.y, (float) scanRight.z)
-                    .color(colorProjectionArc)
-                    .normal(n, 0, 0, 0)
-                    .endVertex();
+            builder.addVertex(p, (float) scanRight.x, (float) scanRight.y, (float) scanRight.z)
+                    .setColor(colorProjectionArc)
+                    .setNormal(n, 0, 0, 0);
 
-            builder.vertex(p, 0, 0.2f, 0)
-                    .color(colorProjectionArc)
-                    .normal(n, 0, 0, 0)
-                    .endVertex();
-            ;
+            builder.addVertex(p, 0, 0.2f, 0)
+                    .setColor(colorProjectionArc)
+                    .setNormal(n, 0, 0, 0);
 
             mx.popPose();
         }

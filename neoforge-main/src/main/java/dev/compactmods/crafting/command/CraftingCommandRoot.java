@@ -6,10 +6,11 @@ import dev.compactmods.crafting.CompactCrafting;
 import io.reactivex.rxjava3.disposables.Disposable;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-@Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class CraftingCommandRoot {
 
     static Disposable PREV;

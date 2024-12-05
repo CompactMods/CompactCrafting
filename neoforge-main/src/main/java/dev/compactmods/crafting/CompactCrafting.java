@@ -1,9 +1,7 @@
 package dev.compactmods.crafting;
 
-import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
-import dev.compactmods.crafting.core.CCCatalystTypes;
 import dev.compactmods.crafting.core.CCItems;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
@@ -11,11 +9,11 @@ import dev.compactmods.crafting.core.CreativeTabs;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.server.ServerConfig;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,28 +25,22 @@ public class CompactCrafting {
 
     public static final String MOD_ID = "compactcrafting";
 
-    public CompactCrafting(IEventBus eventBus) {
-        eventBus.addListener(this::setup);
+    public CompactCrafting(IEventBus modBus, ModContainer modContainer) {
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
+        modContainer.registerConfig(ModConfig.Type.SERVER, ServerConfig.CONFIG);
 
-        var c = EnumCraftingState.CRAFTING.getClass().getClassLoader();
-
-        final var mlCtx = ModLoadingContext.get();
-        mlCtx.registerConfig(ModConfig.Type.CLIENT, ClientConfig.CONFIG);
-        mlCtx.registerConfig(ModConfig.Type.SERVER, ServerConfig.CONFIG);
-
-        CCBlocks.init(eventBus);
-        CCItems.init(eventBus);
-        CCCatalystTypes.init(eventBus);
-        CCLayerTypes.init(eventBus);
-        CCMiniaturizationRecipes.init(eventBus);
-        ComponentRegistration.init(eventBus);
+        CCBlocks.init(modBus);
+        CCItems.init(modBus);
+        CCLayerTypes.init(modBus);
+        CCMiniaturizationRecipes.init(modBus);
+        ComponentRegistration.init(modBus);
         // ContainerRegistration.init(eventBus);
-        CreativeTabs.init(eventBus);
+        CreativeTabs.init(modBus);
+
+        modBus.addListener(NetworkHandler::onPacketRegistration);
     }
 
-    private void setup(final FMLCommonSetupEvent event) {
-        NetworkHandler.initialize();
-
-        var block = CCBlocks.FIELD_PROJECTOR_BLOCK.get();
+    public static ResourceLocation modRL(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 }

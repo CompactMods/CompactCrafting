@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.recipes.components;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
@@ -31,7 +32,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     private final Map<String, Predicate<Comparable<?>>> filters;
     private final HashMap<String, List<String>> allowedValues;
 
-    public static final Codec<BlockComponent> CODEC = RecordCodecBuilder.create(i -> i.group(
+    public static final MapCodec<BlockComponent> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             CodecExtensions.BLOCK_ID_CODEC.fieldOf("block").forGetter(BlockComponent::getBlock),
             Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(BlockComponent::getProperties)
     ).apply(i, BlockComponent::new));

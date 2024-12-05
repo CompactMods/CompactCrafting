@@ -1,12 +1,11 @@
 package dev.compactmods.crafting.recipes.setup;
 
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 
-public abstract class RecipeBase implements Recipe<FakeInventory> {
+public interface RecipeBase extends Recipe<FakeInventory> {
 
     /**
      * Used to check if a recipe matches current crafting inventory
@@ -15,12 +14,12 @@ public abstract class RecipeBase implements Recipe<FakeInventory> {
      * @param worldIn
      */
     @Override
-    public boolean matches(FakeInventory inv, Level worldIn) {
+    default boolean matches(FakeInventory inv, Level worldIn) {
         return true;
     }
 
     @Override
-    public ItemStack assemble(FakeInventory inv, RegistryAccess regAccess) {
+    default ItemStack assemble(FakeInventory fakeInventory, HolderLookup.Provider provider) {
         return ItemStack.EMPTY;
     }
 
@@ -31,19 +30,17 @@ public abstract class RecipeBase implements Recipe<FakeInventory> {
      * @param height
      */
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
+    default boolean canCraftInDimensions(int width, int height) {
         return true;
     }
 
     @Override
-    public boolean isSpecial() {
+    default boolean isSpecial() {
         return true;
     }
 
-    public abstract void setId(ResourceLocation recipeId);
-
     @Override
-    public ItemStack getResultItem(RegistryAccess regAccess) {
+    default ItemStack getResultItem(HolderLookup.Provider provider) {
         return ItemStack.EMPTY;
     }
 }

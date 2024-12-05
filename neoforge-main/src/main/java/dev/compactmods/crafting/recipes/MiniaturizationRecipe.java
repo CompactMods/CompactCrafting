@@ -2,11 +2,12 @@ package dev.compactmods.crafting.recipes;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.catalyst.ICatalystMatcher;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
@@ -18,17 +19,18 @@ import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
-import dev.compactmods.crafting.recipes.catalyst.CatalystMatcherCodec;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.recipes.setup.RecipeBase;
-import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.CodecExtensions;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
+import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Rotation;
@@ -47,19 +49,18 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizationRecipe {
+public record MiniaturizationRecipe(
+        TreeMap<Integer, IRecipeLayer> layers,
+        ItemPredicate catalystMatcher,
+        ItemStack[] outputs,
+        AABB dimensions,
+        int requiredTime,
+        boolean hasFixedFootprint,
+        Map<String, Integer> cachedComponentTotals,
+        MiniaturizationRecipeComponents components
+) implements RecipeBase, IMiniaturizationRecipe {
 
-    private ResourceLocation id;
-    private final TreeMap<Integer, IRecipeLayer> layers;
-    private final ICatalystMatcher catalyst;
-    private final ItemStack[] outputs;
-    private final AABB dimensions;
-    private final int requiredTime;
-    private final boolean hasFixedFootprint;
-    private Map<String, Integer> cachedComponentTotals;
-    private final MiniaturizationRecipeComponents components;
-
-    public static final Codec<IRecipeLayer> LAYER_CODEC = ExtraCodecs.lazyInitializedCodec(() -> {
+    public static final Codec<IRecipeLayer> LAYER_CODEC = Codec.lazyInitialized(() -> {
         final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.byNameCodec();
         return reg.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
     });
@@ -67,7 +68,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     public static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
-    public static final Codec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.create(i -> i.group(
+    public static final MapCodec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.INT.optionalFieldOf("craftingTime", 200)
                     .forGetter(MiniaturizationRecipe::getCraftingTime),
 
@@ -80,41 +81,36 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
             MiniaturizationRecipeComponents.CODEC.optionalFieldOf("components", MiniaturizationRecipeComponents.EMPTY)
                     .forGetter(MiniaturizationRecipe::getComponents),
 
-            CodecExtensions.FRIENDLY_ITEMSTACK.listOf().fieldOf("outputs")
+            ItemStack.STRICT_CODEC.listOf().fieldOf("outputs")
                     .forGetter(MiniaturizationRecipe::codecOutputs),
 
-            CatalystMatcherCodec.MATCHER_CODEC.fieldOf("catalyst")
-                    .forGetter(MiniaturizationRecipe::getCatalyst)
+            ItemPredicate.CODEC.fieldOf("catalyst")
+                    .forGetter(MiniaturizationRecipe::catalystTest)
 
-    ).apply(i, MiniaturizationRecipe::new));
+    ).apply(i, MiniaturizationRecipe::fromCodec));
 
-    public MiniaturizationRecipe() {
-        this.requiredTime = 200;
-        this.hasFixedFootprint = true;
-        this.layers = new TreeMap<>();
-        this.catalyst = null;
-        this.outputs = new ItemStack[0];
-        this.dimensions = AABB.ofSize(Vec3.ZERO, 0, 0, 0);
-        this.components = new MiniaturizationRecipeComponents();
-    }
+    public static final StreamCodec<RegistryFriendlyByteBuf, MiniaturizationRecipe> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT, MiniaturizationRecipe::requiredTime,
+            ByteBufCodecs.INT, MiniaturizationRecipe::codecRecipeSize,
+            ByteBufCodecs.fromCodec(LAYER_CODEC).apply(ByteBufCodecs.list()), MiniaturizationRecipe::codecLayerList,
+            MiniaturizationRecipeComponents.STREAM_CODEC, MiniaturizationRecipe::components,
+            ItemStack.LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
+            ByteBufCodecs.fromCodecWithRegistries(ItemPredicate.CODEC), MiniaturizationRecipe::catalystMatcher,
+            MiniaturizationRecipe::fromCodec
+    );
 
-    public MiniaturizationRecipe(int craftTime, int recipeSize, List<IRecipeLayer> layers,
-                                 MiniaturizationRecipeComponents components, List<ItemStack> outputs,
-                                 ICatalystMatcher catalyst) {
-        this.layers = new TreeMap<>();
-        this.outputs = outputs.toArray(new ItemStack[0]);
-        this.catalyst = catalyst;
-        this.components = components;
-        this.requiredTime = craftTime;
+    public static MiniaturizationRecipe fromCodec(int craftTime, int recipeSize, List<IRecipeLayer> layers,
+                                                  MiniaturizationRecipeComponents components, List<ItemStack> outputs,
+                                                  ItemPredicate catalyst) {
+        var layers1 = new TreeMap<Integer, IRecipeLayer>();
 
         // region Layers
         ArrayList<IRecipeLayer> rev = new ArrayList<>(layers);
         Collections.reverse(rev);
         for (int y = 0; y < rev.size(); y++)
-            this.layers.put(y, rev.get(y));
+            layers1.put(y, rev.get(y));
         // endregion
 
-        // region Missing components
         final var tempUnknownKeys = layers.stream()
                 .map(IRecipeLayer::getComponents)
                 .flatMap(Set::stream)
@@ -133,23 +129,22 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 }
             }
         }
-        // endregion
 
-        // region Recalculate Dimensions
-        int height = this.layers.size();
+        int height = layers1.size();
         int x = 0;
         int z = 0;
 
-        this.hasFixedFootprint = this.layers.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
+        boolean hasFixedFootprint = layers1.values().stream().anyMatch(l -> l instanceof IFixedSizedRecipeLayer);
+        AABB recipeDims;
         if (!hasFixedFootprint) {
             if (recipeSize < 1) {
                 CompactCrafting.RECIPE_LOGGER.warn("Warning: recipe dimensions are not strictly defined but recipeSize is not set. Forcing it to 1.");
                 recipeSize = 1;
             }
 
-            this.dimensions = new AABB(0, 0, 0, recipeSize, height, recipeSize);
+            recipeDims = new AABB(0, 0, 0, recipeSize, height, recipeSize);
         } else {
-            for (IRecipeLayer l : this.layers.values()) {
+            for (var l : layers1.values()) {
                 // We only need to worry about fixed-dimension layers; the fluid layers will adapt
                 if (l instanceof IFixedSizedRecipeLayer) {
                     AABB dimensions = ((IFixedSizedRecipeLayer) l).getDimensions();
@@ -161,11 +156,21 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
                 }
             }
 
-            this.dimensions = new AABB(Vec3.ZERO, new Vec3(x, height, z));
+            recipeDims = new AABB(Vec3.ZERO, new Vec3(x, height, z));
         }
 
-        this.updateFluidLayerDimensions();
-        // endregion
+        HashMap<String, Integer> componentTotals = new HashMap<>();
+        components.getAllComponents().keySet().forEach(comp -> {
+            int count = getComponentRequiredCount(comp, components, layers1);
+            componentTotals.put(comp, count);
+        });
+
+        var recipe = new MiniaturizationRecipe(layers1, catalyst, outputs.toArray(new ItemStack[0]),
+                recipeDims, craftTime, hasFixedFootprint,
+                componentTotals, components);
+
+        recipe.updateFluidLayerDimensions();
+        return recipe;
     }
 
     private void updateFluidLayerDimensions() {
@@ -191,11 +196,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public boolean matches(IRecipeBlocks blocks) {
-        final boolean matchLogging = ServerConfig.RECIPE_MATCHING.get();
-
         if (!BlockSpaceUtil.boundsFitsInside(blocks.getFilledBounds(), dimensions)) {
-            if (matchLogging)
-                CompactCrafting.LOGGER.debug("Failing recipe {} for being too large to fit in field.", this.id);
             return false;
         }
 
@@ -224,8 +225,7 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
             // We could clean this up by doing 180 flips but extra math, we can fallback for now
             if (layer instanceof ISymmetricalLayer && (dimensions.getXsize() == dimensions.getZsize())) {
                 if (!firstMatched) {
-                    if (matchLogging)
-                        CompactCrafting.RECIPE_LOGGER.debug("[{}] Failing recipe layer {}; marked symmetrical and does not match its first rotation attempt.", this.id, entry.getKey());
+                    CompactCrafting.RECIPE_LOGGER.debug("Failing recipe layer {}; marked symmetrical and does not match its first rotation attempt.", entry.getKey());
 
                     // Immediate fail of recipe - no other matches are possible here
                     return false;
@@ -266,26 +266,20 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
     }
 
     public Map<String, Integer> getComponentTotals() {
-        if (this.cachedComponentTotals != null)
-            return this.cachedComponentTotals;
-
-        HashMap<String, Integer> totals = new HashMap<>();
-        components.getAllComponents().keySet().forEach(comp -> {
-            int count = this.getComponentRequiredCount(comp);
-            totals.put(comp, count);
-        });
-
-        this.cachedComponentTotals = totals;
-        return totals;
+        return this.cachedComponentTotals;
     }
 
     public int getComponentRequiredCount(String i) {
-        if (!this.components.hasBlock(i))
+        return getComponentRequiredCount(i, this.components, this.layers);
+    }
+
+    private static int getComponentRequiredCount(String key, IRecipeComponents components, TreeMap<Integer, IRecipeLayer> layers) {
+        if (!components.hasBlock(key))
             return 0;
 
         return layers.values().stream()
                 .map(IRecipeLayer::getComponentTotals)
-                .map(totals -> Optional.ofNullable(totals.get(i)).orElse(0))
+                .map(totals -> Optional.ofNullable(totals.get(key)).orElse(0))
                 .mapToInt(Integer::intValue)
                 .sum();
     }
@@ -314,22 +308,12 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         return this.components;
     }
 
-    public ICatalystMatcher getCatalyst() {
-        return this.catalyst;
+    public ItemPredicate catalystTest() {
+        return this.catalystMatcher;
     }
 
     public int getCraftingTime() {
         return this.requiredTime;
-    }
-
-    @Override
-    public ResourceLocation getRecipeIdentifier() {
-        return this.id;
-    }
-
-    @Override
-    public void setId(ResourceLocation recipeId) {
-        this.id = recipeId;
     }
 
     @Override
@@ -357,4 +341,35 @@ public class MiniaturizationRecipe extends RecipeBase implements IMiniaturizatio
         // TODO: Change recipeSize to take an X/Z
         return (int) Math.max(dimensions.getXsize(), dimensions.getZsize());
     }
+
+    // FIXME
+//    CompoundTag clientData() {
+//        CompoundTag data = new CompoundTag();
+//        data.putLong("center", getCenter().asLong());
+//        data.putString("size", getFieldSize().name());
+//        data.putString("state", getCraftingState().name());
+//
+//        Optional<IMiniaturizationRecipe> currentRecipe = currentRecipe();
+//        currentRecipe.ifPresent(r -> {
+//            CompoundTag recipe = new CompoundTag();
+//            recipe.putString("id", this.currentRecipe());
+//            recipe.putInt("progress", getProgress());
+//
+//            data.put("recipe", recipe);
+//        });
+//
+//        return data;
+//    }
+//
+//    void loadClientData(CompoundTag nbt) {
+//        this.setCenter(BlockPos.of(nbt.getLong("center")));
+//        this.setSize(MiniaturizationFieldSize.valueOf(nbt.getString("size")));
+//        this.setCraftingState(EnumCraftingState.valueOf(nbt.getString("state")));
+//
+//        if (nbt.contains("recipe")) {
+//            CompoundTag recipe = nbt.getCompound("recipe");
+//            this.setRecipe(ResourceLocation.parse(recipe.getString("id")));
+//            this.setProgress(recipe.getInt("progress"));
+//        }
+//    }
 }

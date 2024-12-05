@@ -17,6 +17,10 @@ import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class MiniaturizationRecipeComponents implements IRecipeComponents {
@@ -24,6 +28,9 @@ public class MiniaturizationRecipeComponents implements IRecipeComponents {
     public static final Codec<MiniaturizationRecipeComponents> CODEC = new MiniaturizationRecipeComponentsCodec();
 
     public static final MiniaturizationRecipeComponents EMPTY = new MiniaturizationRecipeComponents();
+
+    // TODO
+    public static final StreamCodec<RegistryFriendlyByteBuf, MiniaturizationRecipeComponents> STREAM_CODEC = ByteBufCodecs.fromCodecWithRegistries(CODEC);
 
     /**
      * Contains a mapping of all known components in the recipe.
@@ -130,7 +137,7 @@ public class MiniaturizationRecipeComponents implements IRecipeComponents {
         public <T> DataResult<Pair<MiniaturizationRecipeComponents, T>> decode(DynamicOps<T> ops, T input) {
             final var components = Codec.unboundedMap(Codec.STRING, MiniaturizationRecipe.COMPONENT_CODEC)
                     .parse(ops, input)
-                    .getOrThrow(true, CompactCrafting.LOGGER::error);
+                    .getOrThrow();
 
             final var inst = new MiniaturizationRecipeComponents();
             components.forEach((key, comp) -> {

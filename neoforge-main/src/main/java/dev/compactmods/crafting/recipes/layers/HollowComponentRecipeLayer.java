@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -26,7 +27,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
     private AABB recipeDimensions;
     private Set<BlockPos> filledPositions;
 
-    public static final Codec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
+    public static final MapCodec<HollowComponentRecipeLayer> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.STRING.fieldOf("wall").forGetter(HollowComponentRecipeLayer::getComponent)
     ).apply(i, HollowComponentRecipeLayer::new));
 

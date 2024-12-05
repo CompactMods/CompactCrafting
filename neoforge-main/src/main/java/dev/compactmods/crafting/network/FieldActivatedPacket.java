@@ -1,7 +1,6 @@
 package dev.compactmods.crafting.network;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.ClientPacketHandler;
@@ -9,54 +8,38 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.NetworkEvent;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
-public class FieldActivatedPacket {
+public record FieldActivatedPacket(IMiniaturizationField field, CompoundTag clientData) implements CustomPacketPayload {
 
-    private IMiniaturizationField field;
+    public static final Type<FieldActivatedPacket> TYPE = new Type<>(CompactCrafting.modRL("field_activated"));
 
-    @Nullable
-    protected CompoundTag clientData;
+    static final StreamCodec<FriendlyByteBuf, FieldActivatedPacket> STREAM_CODEC = StreamCodec.composite(
+            MiniaturizationFieldSize.STREAM_CODEC, pkt -> pkt.field.getFieldSize(),
+            BlockPos.STREAM_CODEC, pkt -> pkt.field.getCenter(),
+            ByteBufCodecs.COMPOUND_TAG, FieldActivatedPacket::clientData,
+            FieldActivatedPacket::client
+    );
 
-    protected static final Codec<FieldActivatedPacket> CODEC = RecordCodecBuilder.create(i -> i.group(
-            Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, Enum::name)
-                    .fieldOf("size").forGetter(x -> x.field.getFieldSize()),
-
-            BlockPos.CODEC.fieldOf("center").forGetter(x -> x.field.getCenter()),
-
-            CompoundTag.CODEC.fieldOf("clientData").forGetter(x -> x.clientData)
-    ).apply(i, FieldActivatedPacket::new));
-
-    public FieldActivatedPacket(IMiniaturizationField field) {
-        this.field = field;
-        this.clientData = field.clientData();
+    private static FieldActivatedPacket client(MiniaturizationFieldSize fieldSize, BlockPos center, CompoundTag clientData) {
+        var field = MiniaturizationField.fromSizeAndCenter(fieldSize, center);
+        return new FieldActivatedPacket(field, clientData);
     }
 
-    private FieldActivatedPacket(MiniaturizationFieldSize fieldSize, BlockPos center, CompoundTag clientData) {
-        this.field = new MiniaturizationField();
-        field.setSize(fieldSize);
-        field.setCenter(center);
-        this.clientData = clientData;
-    }
+    public static final IPayloadHandler<FieldActivatedPacket> HANDLER = (pkt, ctx) -> {
+        ctx.enqueueWork(() -> {
+            if (FMLEnvironment.dist.isClient()) {
+                ClientPacketHandler.handleFieldActivation(pkt.field, pkt.clientData);
+            }
+        });
+    };
 
-    public FieldActivatedPacket(FriendlyByteBuf buf) {
-        FieldActivatedPacket base = buf.readJsonWithCodec(CODEC);
-        this.field = base.field;
-        this.clientData = base.clientData;
-    }
-
-    public static void handle(FieldActivatedPacket message, NetworkEvent.Context ctx) {
-
-        if(FMLEnvironment.dist.isClient()) {
-            ClientPacketHandler.handleFieldActivation(message.field, message.clientData);
-        }
-
-        ctx.setPacketHandled(true);
-    }
-
-    public static void encode(FieldActivatedPacket pkt, FriendlyByteBuf buf) {
-        buf.writeJsonWithCodec(CODEC, pkt);
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

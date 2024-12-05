@@ -19,7 +19,8 @@ public abstract class ClientPacketHandler {
                 return;
 
             field.setLevel(cw);
-            field.loadClientData(fieldClientData);
+            // FIXME
+//            field.loadClientData(fieldClientData);
 
 //            mc.level.getCapability(CCCapabilities.FIELDS)
 //                    .ifPresent(fields -> fields.registerField(field));
@@ -47,7 +48,7 @@ public abstract class ClientPacketHandler {
 
         MiniaturizationField field = new MiniaturizationField();
         field.setLevel(mc.level);
-        field.loadClientData(fieldData);
+        // FIXME field.loadClientData(fieldData);
 
 //        mc.level.getCapability(CCCapabilities.FIELDS)
 //                .ifPresent(fields -> {

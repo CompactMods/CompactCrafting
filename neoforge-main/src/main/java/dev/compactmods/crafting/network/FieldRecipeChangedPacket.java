@@ -1,43 +1,35 @@
 package dev.compactmods.crafting.network;
 
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.NetworkEvent;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadHandler;
 
-public class FieldRecipeChangedPacket {
+import java.util.Optional;
 
-    private final BlockPos fieldCenter;
+public record FieldRecipeChangedPacket(BlockPos fieldCenter, Optional<ResourceLocation> recipe) implements CustomPacketPayload {
 
-    @Nullable
-    private final ResourceLocation recipe;
+    public static final Type<FieldRecipeChangedPacket> TYPE = new Type<>(CompactCrafting.modRL("field_recipe_changed"));
 
-    public FieldRecipeChangedPacket(IMiniaturizationField field) {
-        this.fieldCenter = field.getCenter();
-        this.recipe = field.getCurrentRecipe().map(IMiniaturizationRecipe::getRecipeIdentifier).orElse(null);
-    }
+    static final StreamCodec<RegistryFriendlyByteBuf, FieldRecipeChangedPacket> STREAM_CODEC = StreamCodec.composite(
+            BlockPos.STREAM_CODEC, FieldRecipeChangedPacket::fieldCenter,
+            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), FieldRecipeChangedPacket::recipe,
+            FieldRecipeChangedPacket::new
+    );
 
-    public FieldRecipeChangedPacket(FriendlyByteBuf buf) {
-        this.fieldCenter = buf.readBlockPos();
-        if(buf.readBoolean())
-            this.recipe = ResourceLocation.tryParse(buf.readUtf());
-        else
-            this.recipe = null;
-    }
+    public static final IPayloadHandler<FieldRecipeChangedPacket> HANDLER = (pkt, ctx) -> {
+        ClientPacketHandler.handleRecipeChanged(pkt.fieldCenter, pkt.recipe.orElse(null));
+    };
 
-    public static void encode(FieldRecipeChangedPacket pkt, FriendlyByteBuf buf) {
-        buf.writeBlockPos(pkt.fieldCenter);
-        buf.writeBoolean(pkt.recipe != null);
-        if(pkt.recipe != null)
-            buf.writeUtf(pkt.recipe.toString());
-    }
-
-    public static boolean handle(FieldRecipeChangedPacket pkt, NetworkEvent.Context context) {
-        ClientPacketHandler.handleRecipeChanged(pkt.fieldCenter, pkt.recipe);
-        return true;
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
 }

@@ -7,14 +7,14 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.event.TickEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.ChunkWatchEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @SuppressWarnings("unused")
-@Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class WorldEventHandler {
 
     public static final Subject<ChunkEvent> CHUNK_CHANGES;
@@ -41,9 +41,7 @@ public class WorldEventHandler {
     }
 
     @SubscribeEvent
-    public static void onWorldTick(final TickEvent.LevelTickEvent evt) {
-        if (evt.phase != TickEvent.Phase.START) return;
-
+    public static void onWorldTick(final LevelTickEvent.Pre evt) {
         // FIXME
 //        evt.level.getCapability(CCCapabilities.FIELDS)
 //                .ifPresent(IActiveWorldFields::tickFields);

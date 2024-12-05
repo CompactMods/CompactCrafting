@@ -10,10 +10,9 @@ import net.minecraft.world.phys.Vec3;
 
 public abstract class CubeRenderHelper {
     public static void addColoredVertex(VertexConsumer renderer, PoseStack stack, int color, Vec3 position) {
-        renderer.vertex(stack.last().pose(), (float) position.x(), (float) position.y(), (float) position.z())
-                .color(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), FastColor.ARGB32.alpha(color))
-                .normal(stack.last().normal(), 0, 0, 0)
-                .endVertex();
+        renderer.addVertex(stack.last().pose(), (float) position.x(), (float) position.y(), (float) position.z())
+                .setColor(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), FastColor.ARGB32.alpha(color))
+                .setNormal(stack.last(), 0, 0, 0);
     }
 
     public static void drawCubeFace(VertexConsumer builder, PoseStack mx, AABB cube, int color, Direction face) {
@@ -44,26 +43,10 @@ public abstract class CubeRenderHelper {
         final int b = FastColor.ARGB32.blue(color);
         final int a = 50; // FastColor.ARGB32.alpha(color);
 
-        builder.vertex(mx.last().pose(), (float) BOTTOM_LEFT.x(), (float) BOTTOM_LEFT.y(), (float) BOTTOM_LEFT.z())
-                .color(r, g, b, a)
-                .normal(mx.last().normal(), normal.getX(), normal.getY(), normal.getZ())
-                .endVertex();
-
-        builder.vertex(mx.last().pose(), (float) BOTTOM_RIGHT.x(), (float) BOTTOM_RIGHT.y(), (float) BOTTOM_RIGHT.z())
-                .color(r, g, b, a)
-                .normal(mx.last().normal(), normal.getX(), normal.getY(), normal.getZ())
-                .endVertex();
-
-        builder.vertex(mx.last().pose(), (float) TOP_RIGHT.x(), (float) TOP_RIGHT.y(), (float) TOP_RIGHT.z())
-                .color(r, g, b, a)
-                .normal(mx.last().normal(), normal.getX(), normal.getY(), normal.getZ())
-                .endVertex();
-
-        builder.vertex(mx.last().pose(), (float) TOP_LEFT.x(), (float) TOP_LEFT.y(), (float) TOP_LEFT.z())
-                .color(r, g, b, a)
-                .normal(mx.last().normal(), normal.getX(), normal.getY(), normal.getZ())
-                .endVertex();
-
+        addColoredVertex(builder, mx, color, BOTTOM_LEFT);
+        addColoredVertex(builder, mx, color, BOTTOM_RIGHT);
+        addColoredVertex(builder, mx, color, TOP_RIGHT);
+        addColoredVertex(builder, mx, color, TOP_LEFT);
     }
 
     public static Vec3 getCubeFacePoint(AABB cube, Direction face, EnumCubeFaceCorner corner) {

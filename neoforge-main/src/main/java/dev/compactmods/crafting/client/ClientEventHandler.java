@@ -9,19 +9,17 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.event.TickEvent;
 
 import javax.annotation.Nonnull;
 
-@Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public class ClientEventHandler {
 
     @SubscribeEvent
-    public static void onTick(final TickEvent.ClientTickEvent evt) {
-        if (evt.phase != TickEvent.Phase.START) return;
-
+    public static void onTick(final ClientTickEvent.Post evt) {
         GhostProjectorPlacementRenderer.tick();
 
         ClientLevel level = Minecraft.getInstance().level;

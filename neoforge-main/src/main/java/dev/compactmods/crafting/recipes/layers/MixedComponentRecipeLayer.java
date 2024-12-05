@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
@@ -30,7 +31,7 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
     private final AABB dimensions;
     private final ComponentPositionLookup componentLookup;
 
-    public static final Codec<MixedComponentRecipeLayer> CODEC = RecordCodecBuilder.create(i -> i.group(
+    public static final MapCodec<MixedComponentRecipeLayer> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             ComponentPositionLookup.CODEC
                     .fieldOf("pattern")
                     .forGetter(x -> x.componentLookup)

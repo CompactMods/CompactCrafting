@@ -4,11 +4,12 @@ import com.electronwill.nightconfig.core.EnumGetMethod;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.FieldDestabilizeHandling;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-@Mod.EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ServerConfig {
 
     public static ModConfigSpec CONFIG;

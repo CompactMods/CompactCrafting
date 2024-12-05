@@ -1,0 +1,7 @@
+[versions.spatial]
+require = "[0.2.0, 0.3)"
+prefer = "0.2.1"
+
+[libraries.spatial]
+module = "dev.compactmods:spatial"
+version.ref = "spatial"
