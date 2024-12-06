@@ -1,37 +1,27 @@
 package dev.compactmods.crafting.test.gametests.recipes.layers;
 
-import javax.annotation.Nonnull;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import dev.compactmods.crafting.CompactCrafting;
+
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
+import dev.compactmods.crafting.test.gametests.CMTestStructures;
 import dev.compactmods.crafting.test.testers.TestHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Rotation;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
 
-@PrefixGameTestTemplate(false)
-@GameTestHolder(CompactCrafting.MOD_ID)
+@ForEachTest(groups = "layers")
 public class RecipeLayerUtilTests {
 
-    @Nonnull
-    private static Optional<MiniaturizationRecipe> getRecipeByName(final GameTestHelper helper, String name) {
-        return helper.getLevel().getRecipeManager()
-                .byKey(CompactCrafting.modRL(name))
-                .map(r -> (MiniaturizationRecipe) r.value());
-    }
-
-    @GameTest(template = "medium_glass_walls_obsidian_center")
-    public static void CanRotate(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS_OBSIDIAN_CENTER)
+    public void CanRotate(final GameTestHelper test) {
         final var testHelper = TestHelper.forTest(test)
                 .forComponents("components/glass_and_obsidian.json")
                 .forSingleLayer(MiniaturizationFieldSize.MEDIUM);
@@ -62,8 +52,9 @@ public class RecipeLayerUtilTests {
         test.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls_obsidian_center")
-    public static void NonRotationCreatesCopiedInstance(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS_OBSIDIAN_CENTER)
+    public void NonRotationCreatesCopiedInstance(final GameTestHelper test) {
         final var testHelper = TestHelper.forTest(test)
                 .forRecipe("medium_glass_walls_obsidian_center")
                 .forSingleLayerOfSize(MiniaturizationFieldSize.MEDIUM);

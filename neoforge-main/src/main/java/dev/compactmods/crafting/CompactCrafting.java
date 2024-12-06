@@ -43,4 +43,8 @@ public class CompactCrafting {
     public static ResourceLocation modRL(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
+
+    public static String rlPrefix(String path) {
+        return CompactCrafting.MOD_ID + ":" + path;
+    }
 }

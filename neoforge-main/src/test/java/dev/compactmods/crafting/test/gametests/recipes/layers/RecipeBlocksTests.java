@@ -1,36 +1,35 @@
 package dev.compactmods.crafting.test.gametests.recipes.layers;
 
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
-import dev.compactmods.crafting.test.gametests.util.RecipeTestUtil;
+import dev.compactmods.crafting.test.gametests.util.CompactGameTestHelper;
 import dev.compactmods.crafting.test.junit.recipes.util.JUnitTestHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
-import net.minecraft.gametest.framework.GameTestHelper;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
 
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@PrefixGameTestTemplate(false)
-@GameTestHolder(CompactCrafting.MOD_ID)
+@ForEachTest(groups = "recipe_blocks")
 public class RecipeBlocksTests {
 
+    @TestHolder
+
     @GameTest(template = "recipes/ender_crystal")
-    public static void CanCreateBlocksInstance(final GameTestHelper test) {
+    public static void CanCreateBlocksInstance(final CompactGameTestHelper test) {
         IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal")
                 .map(MiniaturizationRecipe::getComponents)
                 .orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, test.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM));
 
         final int compCount = blocks.getNumberKnownComponents();
 
@@ -40,11 +39,14 @@ public class RecipeBlocksTests {
         test.succeed();
     }
 
+    @TestHolder
     @GameTest(template = "recipes/ender_crystal")
-    public static void CanRebuildTotals(final GameTestHelper test) {
-        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal").<IRecipeComponents>map(MiniaturizationRecipe::getComponents).orElse(null);
+    public static void CanRebuildTotals(final CompactGameTestHelper test) {
+        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElse(null);
 
-        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test));
+        final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, test.getFieldBounds(MiniaturizationFieldSize.MEDIUM));
 
         try {
             blocks.rebuildComponentTotals();
@@ -54,11 +56,14 @@ public class RecipeBlocksTests {
         }
     }
 
+    @TestHolder
     @GameTest(template = "recipes/ender_crystal")
-    public static void CanSlice(final GameTestHelper helper) {
-        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal").<IRecipeComponents>map(MiniaturizationRecipe::getComponents).orElse(null);
+    public static void CanSlice(final CompactGameTestHelper helper) {
+        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElse(null);
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, helper))
+        final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, helper.getFieldBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.MEDIUM, 0))
@@ -88,11 +93,14 @@ public class RecipeBlocksTests {
         helper.succeed();
     }
 
+    @TestHolder
     @GameTest(template = "recipes/ender_crystal")
-    public static void CanSliceAndOffset(final GameTestHelper test) {
-        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal").<IRecipeComponents>map(MiniaturizationRecipe::getComponents).orElseThrow();
+    public static void CanSliceAndOffset(final CompactGameTestHelper test) {
+        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElseThrow();
 
-        final var fieldBounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var fieldBounds = test.getFieldBounds(MiniaturizationFieldSize.MEDIUM);
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, fieldBounds);
 
         final IRecipeBlocks slice = blocks.slice(BlockSpaceUtil.getLayerBounds(fieldBounds, 2)).normalize();
@@ -117,16 +125,19 @@ public class RecipeBlocksTests {
         test.succeed();
     }
 
+    @TestHolder
     @GameTest(template = "recipes/ender_crystal")
-    public static void CanCreateWithUnknownComponents(final GameTestHelper test) {
+    public static void CanCreateWithUnknownComponents(final CompactGameTestHelper test) {
         // defines G and O as components - "-" should be an unknown position in this recipe
-        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal").<IRecipeComponents>map(MiniaturizationRecipe::getComponents).orElseThrow();
+        IRecipeComponents components = JUnitTestHelper.getRecipeFromFile("ender_crystal")
+                .map(MiniaturizationRecipe::getComponents)
+                .orElseThrow();
 
         final Set<String> keys = components.getBlockComponents().keySet();
         if (2 != keys.size())
             test.fail("Expected exactly 2 registered block components.");
 
-        final var bounds = RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final var bounds = test.getFieldBounds(MiniaturizationFieldSize.MEDIUM);
         final var blocks1 = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         final IRecipeBlocks blocks = blocks1.normalize()

@@ -2,26 +2,30 @@ package dev.compactmods.crafting.test.gametests.recipes.layers;
 
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.recipes.layers.EmptyRecipeLayer;
-import dev.compactmods.crafting.test.gametests.TestFrameworkTemplates;
+import dev.compactmods.crafting.test.gametests.CMTestStructures;
 import dev.compactmods.crafting.test.testers.TestHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
 import net.neoforged.testframework.gametest.EmptyTemplate;
 
 @ForEachTest(groups = "layers")
 public class EmptyLayerTests {
 
-    @GameTest @EmptyTemplate
+    @GameTest
+    @EmptyTemplate
+    @TestHolder
     public static void CanCreateLayerInstance(final GameTestHelper test) {
         final var layer = new EmptyRecipeLayer();
         test.succeed();
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.FIVE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.FIVE_CUBED)
     public static void fails_match_if_any_blocks_present(final GameTestHelper test) {
         final var testHelper = TestHelper.forTest(test)
                 .forComponents()

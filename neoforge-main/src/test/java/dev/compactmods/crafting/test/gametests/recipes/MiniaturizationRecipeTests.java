@@ -5,7 +5,7 @@ import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
-import dev.compactmods.crafting.test.gametests.util.RecipeTestUtil;
+import dev.compactmods.crafting.test.gametests.util.CompactGameTestHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -31,10 +31,10 @@ public class MiniaturizationRecipeTests {
     }
 
     @GameTest(template = "recipes/ender_crystal")
-    public void MatchesExactStructure(final GameTestHelper test) {
+    public void MatchesExactStructure(final CompactGameTestHelper test) {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), enderCrystal.getComponents(), test.getFieldBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         try {
@@ -52,7 +52,7 @@ public class MiniaturizationRecipeTests {
     }
 
     @GameTest(template = "recipes/ender_crystal")
-    public void RecipeFailsIfUnidentifiedBlock(final GameTestHelper test) {
+    public void RecipeFailsIfUnidentifiedBlock(final CompactGameTestHelper test) {
         final MiniaturizationRecipe enderCrystal = getRecipe(test, "ender_crystal");
         Objects.requireNonNull(enderCrystal);
 
@@ -60,7 +60,7 @@ public class MiniaturizationRecipeTests {
         test.setBlock(new BlockPos(2, 2, 2), Blocks.GOLD_BLOCK.defaultBlockState());
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), enderCrystal.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), enderCrystal.getComponents(), test.getFieldBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         try {
@@ -77,12 +77,12 @@ public class MiniaturizationRecipeTests {
     }
 
     @GameTest(template = "recipes/ender_crystal")
-    public void RecipeFailsIfDifferentDimensions(final GameTestHelper test) {
+    public void RecipeFailsIfDifferentDimensions(final CompactGameTestHelper test) {
         final MiniaturizationRecipe recipe = getRecipe(test, "compact_walls");
         Objects.requireNonNull(recipe);
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), recipe.getComponents(), test.getFieldBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         final boolean matched = recipe.matches(blocks);
@@ -93,7 +93,7 @@ public class MiniaturizationRecipeTests {
     }
 
     @GameTest(template = "recipes/empty_medium")
-    public void RecipeFailsIfNoRotationsMatched(final GameTestHelper test) {
+    public void RecipeFailsIfNoRotationsMatched(final CompactGameTestHelper test) {
         final MiniaturizationRecipe recipe = getRecipe(test, "ender_crystal");
         Objects.requireNonNull(recipe);
 
@@ -102,7 +102,7 @@ public class MiniaturizationRecipeTests {
         BlockSpaceUtil.getCornersOfBounds(MiniaturizationFieldSize.MEDIUM).forEach(p -> test.setBlock(p, glass));
 
         final IRecipeBlocks blocks = RecipeBlocks
-                .create(test.getLevel(), recipe.getComponents(), RecipeTestUtil.getFieldBounds(MiniaturizationFieldSize.MEDIUM, test))
+                .create(test.getLevel(), recipe.getComponents(), test.getFieldBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         final boolean matched = recipe.matches(blocks);

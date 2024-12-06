@@ -19,6 +19,6 @@ public class JUnitTestHelper {
 
     @Nonnull
     public static Optional<MiniaturizationRecipe> getRecipeFromTestRecipes(String name) {
-        return getRecipeFromFile("test_data/data/compactcrafting/recipe/" + name);
+        return getRecipeFromFile("test_datapacks/test_data/data/compactcrafting/recipe/" + name);
     }
 }

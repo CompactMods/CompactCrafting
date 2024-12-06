@@ -25,7 +25,7 @@ public class MiniaturizationRecipeCodecTests {
 
     @Test
     public void LoadsRecipeFromJson(final MinecraftServer server) {
-        JsonElement json = FileHelper.getJsonFromFile("test_data/data/compactcrafting/recipe/compact_walls.json");
+        JsonElement json = FileHelper.getJsonFromFile("test_datapacks/test_data/data/compactcrafting/recipe/compact_walls.json");
 
         MiniaturizationRecipe.CODEC.codec()
                 .parse(JsonOps.INSTANCE, json)

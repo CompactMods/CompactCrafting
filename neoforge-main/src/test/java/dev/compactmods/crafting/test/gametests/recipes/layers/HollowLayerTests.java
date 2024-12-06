@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.test.gametests.recipes.layers;
 
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
@@ -9,17 +8,16 @@ import dev.compactmods.crafting.recipes.components.EmptyBlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.test.gametests.GameTestAssertions;
-import dev.compactmods.crafting.test.gametests.TestFrameworkTemplates;
-import dev.compactmods.crafting.test.gametests.util.RecipeTestUtil;
+import dev.compactmods.crafting.test.gametests.CMTestStructures;
+import dev.compactmods.crafting.test.gametests.util.CompactGameTestHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
 import net.neoforged.testframework.gametest.EmptyTemplate;
 
 import java.util.*;
@@ -30,18 +28,18 @@ import java.util.stream.Stream;
 public class HollowLayerTests {
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void CanCreateHollowLayerWithConstructor(final GameTestHelper test) {
-        HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        GameTestAssertions.assertNotNull(layer);
+        new HollowComponentRecipeLayer("A");
         test.succeed();
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void HollowComponentCountsAreCorrectForFieldSize(final GameTestHelper test) {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        GameTestAssertions.assertNotNull(layer);
 
         HashMap<MiniaturizationFieldSize, Integer> counts = new HashMap<>();
         for (MiniaturizationFieldSize size : MiniaturizationFieldSize.VALID_SIZES) {
@@ -52,12 +50,12 @@ public class HollowLayerTests {
 
             // Make sure we can set a layer size for the initialization check below
             layer.setRecipeDimensions(size);
-            if(!Objects.equals(expected, layer.getNumberFilledPositions()))
+            if (!Objects.equals(expected, layer.getNumberFilledPositions()))
                 test.fail("Filled position count did not match for size: " + size);
 
             final Map<String, Integer> totals = layer.getComponentTotals();
             test.assertTrue(totals.containsKey("A"), "Component list did not contain wall.");
-            if(!Objects.equals(expected, totals.get("A")))
+            if (!Objects.equals(expected, totals.get("A")))
                 test.fail("Outer totals did not match for size: " + size);
 
             test.succeed();
@@ -65,10 +63,10 @@ public class HollowLayerTests {
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void HollowPositionalInquiries(final GameTestHelper test) {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
-        GameTestAssertions.assertNotNull(layer);
 
         // Make sure we can set a layer size for the initialization check below
         layer.setRecipeDimensions(MiniaturizationFieldSize.SMALL);
@@ -77,7 +75,7 @@ public class HollowLayerTests {
         final Optional<String> comp = layer.getComponentForPosition(BlockPos.ZERO);
         test.assertTrue(comp.isPresent(), "component exists");
         comp.ifPresent(c -> {
-            GameTestAssertions.assertEquals("A", c);
+            test.assertValueEqual(c, "A", "Component did not match.");
         });
 
         // Center position should be considered empty
@@ -86,38 +84,39 @@ public class HollowLayerTests {
 
         // Bad component keys just return empty streams
         final Stream<BlockPos> xPositions = layer.getPositionsForComponent("X");
-        GameTestAssertions.assertNotNull(xPositions);
-        if(xPositions.findAny().isPresent())
+        if (xPositions.findAny().isPresent())
             test.fail("Expected no positions to be found for component.");
 
         test.succeed();
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void returns_component_positions(final GameTestHelper test) {
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
 
         // Make sure we can set a layer size for the initialization check below
         layer.setRecipeDimensions(MiniaturizationFieldSize.SMALL);
 
-        final Stream<BlockPos> list = layer.getPositionsForComponent("A");
-        GameTestAssertions.assertNotNull(list);
+        final Set<BlockPos> positionSet = layer.getPositionsForComponent("A")
+                .map(BlockPos::immutable)
+                .collect(Collectors.toSet());
 
-        final Set<BlockPos> positionSet = list.map(BlockPos::immutable).collect(Collectors.toSet());
-
-        GameTestAssertions.assertEquals(8, positionSet.size());
+        test.assertValueEqual(positionSet.size(), 8, "Position count should be equal to 8");
 
         final Set<BlockPos> wallPositions = BlockSpaceUtil.getWallPositions(BlockSpaceUtil.getLayerBounds(MiniaturizationFieldSize.SMALL, 0))
                 .map(BlockPos::immutable)
                 .collect(Collectors.toSet());
 
-        GameTestAssertions.assertEquals(wallPositions, positionSet);
+        test.assertValueEqual(positionSet, wallPositions, "Matched wall positions did not match expected value.");
 
         test.succeed();
     }
 
-    @GameTest(template = "empty_medium")
+    @GameTest
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.FIVE_CUBED)
     public static void HollowFailsIfPrimaryComponentMissing(final GameTestHelper test) {
         final BlockPos zeroPoint = test.relativePos(BlockPos.ZERO);
         test.setBlock(BlockPos.ZERO, Blocks.AIR.defaultBlockState());
@@ -141,12 +140,13 @@ public class HollowLayerTests {
         test.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls")
-    public static void HollowMatchesWorldDefinitionExactly(final GameTestHelper helper) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS)
+    public static void HollowMatchesWorldDefinitionExactly(final CompactGameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final AABB bounds = helper.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
@@ -162,11 +162,12 @@ public class HollowLayerTests {
         helper.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls")
-    public static void HollowFailsIfAnyComponentsUnidentified(final GameTestHelper helper) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS)
+    public static void HollowFailsIfAnyComponentsUnidentified(final CompactGameTestHelper helper) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, helper);
+        final AABB bounds = helper.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM);
 
         final IRecipeBlocks blocks = RecipeBlocks.create(helper.getLevel(), components, bounds).normalize();
 
@@ -181,8 +182,9 @@ public class HollowLayerTests {
         helper.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls")
-    public static void HollowFailsIfWorldHasBadWallBlock(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS)
+    public static void HollowFailsIfWorldHasBadWallBlock(final CompactGameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("A", new BlockComponent(Blocks.GLASS));
 
@@ -191,7 +193,7 @@ public class HollowLayerTests {
 
         test.setBlock(BlockPos.ZERO.above(), Blocks.GOLD_BLOCK.defaultBlockState());
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, test.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("A");
@@ -205,8 +207,9 @@ public class HollowLayerTests {
         test.succeed();
     }
 
-    @GameTest(template = "medium_glass_walls_obsidian_center")
-    public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS_OBSIDIAN_CENTER)
+    public static void HollowFailsIfMoreThanOneComponentAndCenterNotEmpty(final CompactGameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("W", new BlockComponent(Blocks.GLASS));
 
@@ -214,7 +217,7 @@ public class HollowLayerTests {
         // since otherwise, the center block will be unmatched
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
 
-        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test))
+        final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, test.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM))
                 .normalize();
 
         HollowComponentRecipeLayer layer = new HollowComponentRecipeLayer("W");

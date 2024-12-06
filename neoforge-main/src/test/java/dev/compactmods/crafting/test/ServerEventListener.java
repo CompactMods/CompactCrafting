@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.test;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.ExecutionException;
 import com.google.common.collect.ImmutableSet;
 import dev.compactmods.crafting.CompactCrafting;
@@ -30,7 +31,7 @@ public class ServerEventListener {
 
         final String cc_test_resources = System.getenv("CC_TEST_RESOURCES");
         if(cc_test_resources != null) {
-            final var testPack = new FolderRepositorySource(new File(cc_test_resources).toPath(),
+            final var testPack = new FolderRepositorySource(Path.of(cc_test_resources).resolve("test_datapacks"),
                     PackType.SERVER_DATA,
                     PackSource.BUILT_IN,
                     new DirectoryValidator(path -> true));

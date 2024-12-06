@@ -3,7 +3,7 @@ package dev.compactmods.crafting.test.gametests.recipes.layers;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import dev.compactmods.crafting.test.gametests.TestFrameworkTemplates;
+import dev.compactmods.crafting.test.gametests.CMTestStructures;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.neoforged.testframework.annotation.ForEachTest;
@@ -13,7 +13,7 @@ import net.neoforged.testframework.gametest.EmptyTemplate;
 public class RecipeLayerCodecTests {
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void HandlesBadTypeIdentifier(final GameTestHelper test) {
         JsonObject el = new JsonObject();
         el.addProperty("type", "compactcrafting:unknown_123");

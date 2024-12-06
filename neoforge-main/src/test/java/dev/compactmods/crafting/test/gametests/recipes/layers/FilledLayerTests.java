@@ -2,7 +2,6 @@ package dev.compactmods.crafting.test.gametests.recipes.layers;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
-import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
@@ -11,17 +10,16 @@ import dev.compactmods.crafting.recipes.components.BlockComponent;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
 import dev.compactmods.crafting.test.FileHelper;
-import dev.compactmods.crafting.test.gametests.TestFrameworkTemplates;
-import dev.compactmods.crafting.test.gametests.util.RecipeTestUtil;
+import dev.compactmods.crafting.test.gametests.CMTestStructures;
+import dev.compactmods.crafting.test.gametests.util.CompactGameTestHelper;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.testframework.annotation.ForEachTest;
+import net.neoforged.testframework.annotation.TestHolder;
 import net.neoforged.testframework.gametest.EmptyTemplate;
 
 import java.util.Objects;
@@ -32,18 +30,15 @@ import java.util.stream.Collectors;
 @ForEachTest(groups = "layers")
 public class FilledLayerTests {
 
-    private static FilledComponentRecipeLayer getLayerFromFile(GameTestHelper test, String filename) {
-        JsonElement layerJson = FileHelper.getJsonFromFile(filename);
+    @GameTest
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
+    public static void null_dimensions_have_zero_blocks_filled(final GameTestHelper test) {
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
 
-        return FilledComponentRecipeLayer.CODEC.codec()
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
                 .parse(JsonOps.INSTANCE, layerJson)
                 .getOrThrow();
-    }
-
-    @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
-    public static void null_dimensions_have_zero_blocks_filled(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test,"layers/filled/basic.json");
 
         // We force the dimensions null here
         layer.setRecipeDimensions((AABB) null);
@@ -55,9 +50,14 @@ public class FilledLayerTests {
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void CanUpdateDimensions(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
+
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
+                .parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow();
 
         int filledBefore = layer.getNumberFilledPositions();
 
@@ -72,9 +72,14 @@ public class FilledLayerTests {
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void ComponentPositionsAreCorrect(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
+
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
+                .parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow();
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         test.assertValueEqual(layer.getNumberFilledPositions(), 25, "filled positions");
@@ -92,9 +97,14 @@ public class FilledLayerTests {
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void CanFetchComponentByPosition(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
+
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
+                .parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow();
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         final Optional<String> componentForPosition = layer.getComponentForPosition(BlockPos.ZERO);
@@ -107,9 +117,14 @@ public class FilledLayerTests {
     }
 
     @GameTest
-    @EmptyTemplate(TestFrameworkTemplates.ONE_CUBED)
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.ONE_CUBED)
     public static void oob_position_returns_empty(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
+
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
+                .parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow();
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         // Y = 1 should never happen, in any layer, ever
@@ -119,11 +134,15 @@ public class FilledLayerTests {
         test.succeed();
     }
 
-    // note - we use the empty medium here just to let the gametest system run our test
-    // we create an actual blocks instance inside the test
-    @GameTest(template = "empty_medium")
+    @GameTest
+    @TestHolder
+    @EmptyTemplate(CMTestStructures.FIVE_CUBED)
     public static void FilledFailsMatchWithEmptyBlockList(final GameTestHelper test) {
-        final FilledComponentRecipeLayer layer = getLayerFromFile(test, "layers/filled/basic.json");
+        JsonElement layerJson = FileHelper.getJsonFromFile("layers/filled/basic.json");
+
+        final FilledComponentRecipeLayer layer = FilledComponentRecipeLayer.CODEC.codec()
+                .parse(JsonOps.INSTANCE, layerJson)
+                .getOrThrow();
         layer.setRecipeDimensions(MiniaturizationFieldSize.MEDIUM);
 
         MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
@@ -136,13 +155,13 @@ public class FilledLayerTests {
         test.succeed();
     }
 
-
-    @GameTest(template = "medium_glass_filled")
-    public static void FilledLayerMatchesWorldInExactMatchScenario(GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_FILLED)
+    public static void FilledLayerMatchesWorldInExactMatchScenario(CompactGameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final AABB bounds = test.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM);
         final IRecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds).normalize();
 
         // Set up a 5x5x1 filled layer, using "G" component
@@ -162,8 +181,8 @@ public class FilledLayerTests {
         test.succeed();
     }
 
-
-    @GameTest(template = "medium_glass_walls_obsidian_center")
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS_OBSIDIAN_CENTER)
     public static void FailsMatchIfAllBlocksNotIdentified(final GameTestHelper test) {
         final IRecipeComponents components = new MiniaturizationRecipeComponents();
         // note the lack of a G component here, missing "GLASS"
@@ -183,9 +202,9 @@ public class FilledLayerTests {
         test.succeed();
     }
 
-
-    @GameTest(template = "medium_glass_walls_obsidian_center")
-    public static void FailsMatchIfMoreThanOneBlockFound(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_WALLS_OBSIDIAN_CENTER)
+    public static void FailsMatchIfMoreThanOneBlockFound(GameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
         components.registerBlock("G", new BlockComponent(Blocks.GLASS));
         components.registerBlock("O", new BlockComponent(Blocks.OBSIDIAN));
@@ -203,9 +222,9 @@ public class FilledLayerTests {
         test.succeed();
     }
 
-
-    @GameTest(template = "medium_glass_filled")
-    public static void FailsMatchIfComponentKeyNotFound(final GameTestHelper test) {
+    @TestHolder
+    @GameTest(template = CMTestStructures.MEDIUM_GLASS_FILLED)
+    public static void FailsMatchIfComponentKeyNotFound(CompactGameTestHelper test) {
         final MiniaturizationRecipeComponents components = new MiniaturizationRecipeComponents();
 
         /*
@@ -214,7 +233,7 @@ public class FilledLayerTests {
         */
         components.registerBlock("Gl", new BlockComponent(Blocks.GLASS));
 
-        final AABB bounds = RecipeTestUtil.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM, test);
+        final AABB bounds = test.getFloorLayerBounds(MiniaturizationFieldSize.MEDIUM);
         final RecipeBlocks blocks = RecipeBlocks.create(test.getLevel(), components, bounds);
 
         // Set up a 5x5x1 filled layer, using "G" component
