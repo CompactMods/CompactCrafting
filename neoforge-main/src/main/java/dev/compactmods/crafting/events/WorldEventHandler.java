@@ -1,6 +1,8 @@
 package dev.compactmods.crafting.events;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.data.CCAttachments;
+import dev.compactmods.crafting.field.ActiveWorldFields;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
 import net.minecraft.server.level.ServerLevel;
@@ -42,9 +44,7 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onWorldTick(final LevelTickEvent.Pre evt) {
-        // FIXME
-//        evt.level.getCapability(CCCapabilities.FIELDS)
-//                .ifPresent(IActiveWorldFields::tickFields);
+        evt.getLevel().getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(ActiveWorldFields::tickFields);
     }
 
     @SubscribeEvent

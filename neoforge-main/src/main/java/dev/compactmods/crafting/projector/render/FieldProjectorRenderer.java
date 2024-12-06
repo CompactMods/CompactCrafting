@@ -5,17 +5,13 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.client.ClientConfig;
-import dev.compactmods.crafting.client.render.CCRenderTypes;
-import dev.compactmods.crafting.client.render.CubeRenderHelper;
-import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
 import dev.compactmods.crafting.client.render.RotationSpeed;
+import dev.compactmods.crafting.client.render.field.MiniaturizationFieldRenderer;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -28,11 +24,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.data.ModelData;
-import org.joml.Matrix4f;
 
 public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity> {
 
@@ -47,20 +39,44 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     @Override
     public void render(FieldProjectorEntity tile, float partialTicks, PoseStack matrixStack, MultiBufferSource buffers, int combinedLightIn, int combinedOverlayIn) {
         long gameTime = tile.getLevel().getGameTime();
-
-        renderDish(tile, matrixStack, buffers, combinedLightIn, combinedOverlayIn, gameTime);
-
-        BlockState state = tile.getBlockState();
-        final MiniaturizationFieldSize fieldSize = state.getValue(FieldProjectorBlock.SIZE);
-        final BlockPos center = fieldSize.getCenterFromProjector(tile.getBlockPos(), state.getValue(FieldProjectorBlock.FACING));
-        final AABB bounds = fieldSize.getBoundsAtPosition(center);
+        BlockState state1 = tile.getBlockState();
+        BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
+        VertexConsumer cutoutBlocks = buffers.getBuffer(Sheets.cutoutBlockSheet());
+        BakedModel baked = this.getModel();
 
         matrixStack.pushPose();
+        {
+            matrixStack.translate(.5, 0, .5);
 
-        drawScanLine(tile, matrixStack, buffers, bounds, gameTime);
-        drawFieldFace(tile, matrixStack, buffers, bounds);
-        drawProjectorArcs(tile, matrixStack, buffers, bounds, gameTime);
+            double yaw = Math.sin(Math.toDegrees(gameTime) / RotationSpeed.MEDIUM.getSpeed()) * 10;
 
+            Direction facing = state1.getValue(FieldProjectorBlock.FACING);
+            if (facing != Direction.WEST) {
+                float angle = facing.toYRot() - 90;
+                matrixStack.mulPose(Axis.YN.rotationDegrees(angle));
+            }
+
+            float yDiskOffset = -0.66f;
+            matrixStack.translate(0.0, -yDiskOffset, 0.0);
+            matrixStack.mulPose(Axis.ZP.rotationDegrees((float) yaw));
+            matrixStack.translate(0.0, yDiskOffset, 0.0);
+
+            matrixStack.translate(-.5, 0, -.5);
+
+            int faceColor = MiniaturizationFieldRenderer.getProjectionColor(EnumProjectorColorType.PROJECTOR_FACE);
+            float red = FastColor.ARGB32.red(faceColor) / 255f;
+            float green = FastColor.ARGB32.green(faceColor) / 255f;
+            float blue = FastColor.ARGB32.blue(faceColor) / 255f;
+
+            // TODO - Revisit render types
+            blockRenderer.getModelRenderer()
+                    .renderModel(matrixStack.last(), cutoutBlocks, state1,
+                            baked,
+                            red,
+                            green,
+                            blue,
+                            combinedLightIn, combinedOverlayIn, ModelData.EMPTY, null);
+        }
         matrixStack.popPose();
     }
 
@@ -77,221 +93,6 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         return bakedModelCached;
     }
 
-    private void renderDish(FieldProjectorEntity te, PoseStack mx, MultiBufferSource buffer, int combinedLight, int combinedOverlay, long gameTime) {
-
-        BlockState state = te.getBlockState();
-
-        BlockRenderDispatcher blockRenderer = Minecraft.getInstance().getBlockRenderer();
-
-        VertexConsumer cutoutBlocks = buffer.getBuffer(Sheets.cutoutBlockSheet());
-
-        BakedModel baked = this.getModel();
-
-        mx.pushPose();
-
-        mx.translate(.5, 0, .5);
-
-        double yaw = Math.sin(Math.toDegrees(gameTime) / RotationSpeed.MEDIUM.getSpeed()) * 10;
-
-        Direction facing = state.getValue(FieldProjectorBlock.FACING);
-        if (facing != Direction.WEST) {
-            float angle = facing.toYRot() - 90;
-            mx.mulPose(Axis.YN.rotationDegrees(angle));
-        }
-
-        float yDiskOffset = -0.66f;
-        mx.translate(0.0, -yDiskOffset, 0.0);
-        mx.mulPose(Axis.ZP.rotationDegrees((float) yaw));
-        mx.translate(0.0, yDiskOffset, 0.0);
-
-        mx.translate(-.5, 0, -.5);
-
-        int faceColor = getProjectionColor(EnumProjectorColorType.PROJECTOR_FACE);
-        float red = FastColor.ARGB32.red(faceColor) / 255f;
-        float green = FastColor.ARGB32.green(faceColor) / 255f;
-        float blue = FastColor.ARGB32.blue(faceColor) / 255f;
-
-        // TODO - Revisit render types
-        blockRenderer.getModelRenderer()
-                .renderModel(mx.last(), cutoutBlocks, state,
-                        baked,
-                        red,
-                        green,
-                        blue,
-                        combinedLight, combinedOverlay, ModelData.EMPTY, null);
-
-        mx.popPose();
-    }
-
-    /**
-     * Handles rendering the main projection cube in the center of the projection area.
-     * Should only be called by the main projector (typically the NORTH projector)
-     */
-    private void drawFieldFace(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds) {
-
-        Direction projectorDir = tile.getProjectorSide();
-
-        Vec3 tilePos = new Vec3(
-                tile.getBlockPos().getX(),
-                tile.getBlockPos().getY(),
-                tile.getBlockPos().getZ()
-        );
-
-        boolean hoveringProjector = false;
-
-        HitResult hr = Minecraft.getInstance().hitResult;
-        if (hr instanceof BlockHitResult) {
-            hoveringProjector = ((BlockHitResult) hr).getBlockPos().equals(tile.getBlockPos());
-        }
-
-        if (ClientConfig.doDebugRender() && hoveringProjector) {
-            VertexConsumer lineBuilder = buffers.getBuffer(RenderType.lines());
-
-            Vec3 debugOrigin = new Vec3(.5, .5, .5);
-
-            Vec3 bottomLeft = CubeRenderHelper
-                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_LEFT)
-                    .subtract(tilePos);
-
-            Vec3 bottomRight = CubeRenderHelper
-                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.BOTTOM_RIGHT)
-                    .subtract(tilePos);
-
-            Vec3 topLeft = CubeRenderHelper
-                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_LEFT)
-                    .subtract(tilePos);
-
-            Vec3 topRight = CubeRenderHelper
-                    .getCubeFacePoint(fieldBounds, projectorDir, EnumCubeFaceCorner.TOP_RIGHT)
-                    .subtract(tilePos);
-
-            mx.pushPose();
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, debugOrigin);
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFF0000, bottomLeft);
-
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, debugOrigin);
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF00FF00, bottomRight);
-
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, debugOrigin);
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFF0000FF, topRight);
-
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, debugOrigin);
-            CubeRenderHelper.addColoredVertex(lineBuilder, mx, 0xFFFFFFFF, topLeft);
-            mx.popPose();
-        }
-
-        VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
-
-        double expansion = 0.005;
-        AABB slightlyBiggerBecauseFoxes = fieldBounds
-                .expandTowards(expansion, expansion, expansion)
-                .expandTowards(-expansion, -expansion, -expansion)
-                .move(tilePos.reverse());
-
-        // Each projector renders its face
-        // North and South projectors render the top and bottom faces
-        int color = getProjectionColor(EnumProjectorColorType.FIELD);
-
-        switch (projectorDir) {
-            case NORTH:
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.UP);
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-                break;
-
-            case SOUTH:
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, Direction.DOWN);
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-                break;
-
-            default:
-                CubeRenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, projectorDir);
-                break;
-        }
-    }
-
-    /**
-     * Handles drawing the projection arcs that connect the projector blocks to the main projection
-     * in the center of the crafting area.
-     */
-    private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
-
-        try {
-
-            Direction facing = tile.getProjectorSide();
-
-            Vec3 tilePos = new Vec3(
-                    tile.getBlockPos().getX() + 0.5d,
-                    tile.getBlockPos().getY() + 0.5d,
-                    tile.getBlockPos().getZ() + 0.5d
-            );
-
-            mx.pushPose();
-
-            mx.translate(.5, .5, .5);
-
-            int colorProjectionArc = getProjectionColor(EnumProjectorColorType.FIELD);
-
-            Vec3 scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime).subtract(tilePos);
-            Vec3 scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
-
-            // 0, 0, 0 is now the edge of the projector's space
-            final Matrix4f p = mx.last().pose();
-            final var n = mx.last();
-
-            VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
-
-            builder.addVertex(p, 0, 0.2f, 0)
-                    .setColor(colorProjectionArc)
-                    .setNormal(n, 0, 0, 0);
-
-            builder.addVertex(p, (float) scanLeft.x, (float) scanLeft.y, (float) scanLeft.z)
-                    .setColor(colorProjectionArc)
-                    .setNormal(n, 0, 0, 0);
-
-            builder.addVertex(p, (float) scanRight.x, (float) scanRight.y, (float) scanRight.z)
-                    .setColor(colorProjectionArc)
-                    .setNormal(n, 0, 0, 0);
-
-            builder.addVertex(p, 0, 0.2f, 0)
-                    .setColor(colorProjectionArc)
-                    .setNormal(n, 0, 0, 0);
-
-            mx.popPose();
-        }
-
-        catch(Exception ex) {
-            CompactCrafting.LOGGER.error(ex);
-        }
-    }
-
-    /**
-     * Handles drawing the brighter "scan line" around the main projection cube. These lines show visibly
-     * where the projection arcs meet the main projection cube.
-     */
-    private void drawScanLine(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
-        VertexConsumer builder = buffers.getBuffer(RenderType.lines());
-
-        Vec3 tilePos = new Vec3(
-                tile.getBlockPos().getX() + 0.5d,
-                tile.getBlockPos().getY() + 0.5d,
-                tile.getBlockPos().getZ() + 0.5d
-        );
-
-        mx.pushPose();
-        mx.translate(.5, .5, .5);
-
-        int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
-
-        Direction face = tile.getProjectorSide();
-        Vec3 left = CubeRenderHelper.getScanLineLeft(face, fieldBounds, gameTime).subtract(tilePos);
-        Vec3 right = CubeRenderHelper.getScanLineRight(face, fieldBounds, gameTime).subtract(tilePos);
-
-        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, left);
-        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, right);
-
-        mx.popPose();
-    }
-
     @Override
     public boolean shouldRenderOffScreen(FieldProjectorEntity te) {
         return true;
@@ -301,24 +102,5 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     public AABB getRenderBoundingBox(FieldProjectorEntity blockEntity) {
         final var p = blockEntity.getBlockPos();
         return AABB.encapsulatingFullBlocks(p, p).inflate(20);
-    }
-
-    public int getProjectionColor(EnumProjectorColorType type) {
-        int base = ClientConfig.projectorColor;
-        // Color base = Color.red.brighter();
-        int red = FastColor.ARGB32.red(base);
-        int green = FastColor.ARGB32.green(base);
-        int blue = FastColor.ARGB32.blue(base);
-
-        switch (type) {
-            case FIELD:
-            case SCAN_LINE:
-                return FastColor.ARGB32.color(50, red, green, blue);
-
-            case PROJECTOR_FACE:
-                return FastColor.ARGB32.color(250, red, green, blue);
-        }
-
-        return 0x00FFFFFF;
     }
 }

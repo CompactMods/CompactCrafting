@@ -11,8 +11,6 @@ import net.neoforged.neoforge.common.util.INBTSerializable;
 
 public interface IActiveWorldFields {
 
-    void setLevel(Level level);
-
     Stream<IMiniaturizationField> getFields();
 
     void tickFields();

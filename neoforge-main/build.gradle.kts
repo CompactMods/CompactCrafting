@@ -43,7 +43,6 @@ neoForge {
     this.mods.create(modId) {
         modSourceSets.add(coreApi.sourceSets.main)
         modSourceSets.add(sourceSets.main)
-        modSourceSets.add(sourceSets.test)
     }
 
     unitTest {
@@ -63,12 +62,10 @@ neoForge {
             logLevel.set(org.slf4j.event.Level.DEBUG)
             sourceSet = project.sourceSets.main
 
-            systemProperty("neoforge.enabledGameTestNamespaces", modId)
-
             // JetBrains Runtime Hotswap
-//            if (!System.getenv().containsKey("CI")) {
-//              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
-//            }
+            if (!System.getenv().containsKey("CI")) {
+              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
+            }
         }
 
         create("client") {
@@ -95,6 +92,7 @@ neoForge {
 
             programArgument("nogui")
 
+            systemProperty("neoforge.enabledGameTestNamespaces", modId)
             environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 
             sourceSet = project.sourceSets.test
@@ -104,6 +102,7 @@ neoForge {
             type = "gameTestServer"
             gameDirectory.set(file("runs/gametest"))
 
+            systemProperty("neoforge.enabledGameTestNamespaces", modId)
             environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 
             sourceSet = project.sourceSets.test

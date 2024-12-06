@@ -6,6 +6,7 @@ import dev.compactmods.crafting.core.CCItems;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.core.CreativeTabs;
+import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.network.NetworkHandler;
 import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -36,8 +37,10 @@ public class CompactCrafting {
         ComponentRegistration.init(modBus);
         // ContainerRegistration.init(eventBus);
         CreativeTabs.init(modBus);
+        CCAttachments.ATTACHMENT_TYPES.register(modBus);
 
         modBus.addListener(NetworkHandler::onPacketRegistration);
+
     }
 
     public static ResourceLocation modRL(String path) {

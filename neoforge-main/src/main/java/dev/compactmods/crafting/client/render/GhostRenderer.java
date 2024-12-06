@@ -1,9 +1,13 @@
 package dev.compactmods.crafting.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -14,11 +18,46 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 public class GhostRenderer {
+    public static void render(BlockState state, @Nullable BlockPos pos, PoseStack matrixStack) {
+        final Minecraft mc = Minecraft.getInstance();
+        final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
+        final Camera mainCamera = mc.gameRenderer.getMainCamera();
+        final ClientLevel level = mc.level;
+
+        matrixStack.pushPose();
+        {
+            Vec3 projectedView = mainCamera.getPosition();
+            matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
+
+            matrixStack.pushPose();
+            {
+                matrixStack.translate(
+                        (double) pos.getX() + 0.05,
+                        (double) pos.getY() + 0.05,
+                        (double) pos.getZ() + 0.05
+                );
+
+                matrixStack.scale(.9f, .9f, .9f);
+
+                GhostRenderer.renderTransparentBlock(state, pos, matrixStack, buffers, 100);
+            }
+            matrixStack.popPose();
+        }
+
+        matrixStack.popPose();
+
+        RenderSystem.disableDepthTest();
+        buffers.endBatch(CCRenderTypes.PHANTOM);
+    }
+
     public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix) {
         final var buffers = Minecraft.getInstance().renderBuffers().bufferSource();
         renderTransparentBlock(state, pos, matrix, buffers, 100);
@@ -39,7 +78,7 @@ public class GhostRenderer {
         final BlockRenderDispatcher dispatcher = mc.getBlockRenderer();
         BakedModel model = dispatcher.getBlockModel(state);
         if (model != mc.getModelManager().getMissingModel()) {
-            for(Direction dir : Direction.values())
+            for (Direction dir : Direction.values())
                 model.getQuads(state, dir, mc.level.random, ModelData.EMPTY, null)
                         .forEach(quad -> addQuad(state, pos, matrix, mc, colors, builder, quad, alpha));
 

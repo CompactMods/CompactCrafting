@@ -1,15 +1,22 @@
 package dev.compactmods.crafting.projector;
 
+import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
+import dev.compactmods.crafting.data.CCAttachments;
+import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.network.FieldActivatedPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.InteractionHand;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -22,6 +29,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -201,24 +209,19 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
                 final BlockPos center = getFieldCenter(state, pos);
 
-//                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-//                    if (!fields.hasActiveField(center)) {
-//                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
-//                        field.checkLoaded();
-//                        field.fieldContentsChanged();
-//
-////                            field.getProjectorPositions()
-////                                    .map(level::getBlockEntity)
-////                                    .filter(tile -> tile instanceof FieldProjectorTile)
-////                                    .map(tile -> (FieldProjectorTile) tile)
-////                                    .forEach(tile -> tile.setFieldRef(field.getRef()));
-//
-//                        // Send activation packet to clients
-//                        NetworkHandler.MAIN_CHANNEL.send(
-//                                PacketDistributor.TRACKING_CHUNK.with(() -> level.getChunkAt(field.getCenter())),
-//                                new FieldActivatedPacket(field));
-//                    }
-//                });
+                if(level instanceof ServerLevel sl) {
+                    final var fields = sl.getData(CCAttachments.ACTIVE_FIELDS);
+                    if (!fields.hasActiveField(center)) {
+                        // TODO - Separate client and server field classes
+                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+                        field.checkLoaded();
+                        field.fieldContentsChanged();
+
+                        // Send activation packet to clients
+                        PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(field.getCenter()),
+                                new FieldActivatedPacket(field, new CompoundTag()));
+                    }
+                }
             }
         }
     }
@@ -233,19 +236,18 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
 
             // Remove field registration - this will also update clients
-            // FIXME AAAAAAAAAAAAAAAAAAAA
-//            level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-//                if (fields.hasActiveField(fieldCenter)) {
-//                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
-//                    if (field == null) return;
-//
-//                    if (field.enabled()) {
-//                        fields.unregisterField(fieldCenter);
-//                        field.handleDestabilize();
-//                        field.dispose();
-//                    }
-//                }
-//            });
+            level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
+                if (fields.hasActiveField(fieldCenter)) {
+                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
+                    if (field == null) return;
+
+                    if (field.enabled()) {
+                        fields.unregisterField(fieldCenter);
+                        field.handleDestabilize();
+                        field.dispose();
+                    }
+                }
+            });
         }
     }
 
@@ -256,7 +258,8 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
             return;
 
         // FIXME REDSTONE HANDLING
-//        if (isActive(state)) {
+        if (isActive(state)) {
+            CompactCrafting.LOGGER.debug("redstone check!");
 //            BlockEntity tile = level.getBlockEntity(pos);
 //            if (tile instanceof FieldProjectorEntity) {
 //                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
@@ -276,7 +279,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 //                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
 //                });
 //            });
-//        }
+        }
     }
 
     @Nullable

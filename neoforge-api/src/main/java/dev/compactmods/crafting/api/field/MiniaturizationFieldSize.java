@@ -52,7 +52,7 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
             Codec.STRING.xmap(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::name);
 
     public static final StreamCodec<FriendlyByteBuf, MiniaturizationFieldSize> STREAM_CODEC =
-            ByteBufCodecs.STRING_UTF8.map(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::getSerializedName)
+            ByteBufCodecs.STRING_UTF8.map(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::name)
                     .cast();
 
     public static final MiniaturizationFieldSize[] VALID_SIZES = new MiniaturizationFieldSize[] {

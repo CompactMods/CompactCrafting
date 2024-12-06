@@ -1,13 +1,17 @@
 package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.stream.Stream;
 
 public abstract class ClientPacketHandler {
 
@@ -19,25 +23,25 @@ public abstract class ClientPacketHandler {
                 return;
 
             field.setLevel(cw);
-            // FIXME
-//            field.loadClientData(fieldClientData);
+            // FIXME field.loadClientData(fieldClientData);
 
-//            mc.level.getCapability(CCCapabilities.FIELDS)
-//                    .ifPresent(fields -> fields.registerField(field));
+            mc.level.getData(CCAttachments.ACTIVE_FIELDS).registerField(field);
         });
     }
 
     public static void handleFieldDeactivation(BlockPos center) {
         Minecraft mc = Minecraft.getInstance();
+        if(mc.level == null) return;
+
         mc.submitAsync(() -> {
-            ClientLevel cw = mc.level;
-//            cw.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-//                fields.get(center).map(IMiniaturizationField::getProjectorPositions)
-//                        .orElse(Stream.empty())
-//                        .forEach(proj -> FieldProjectorBlock.deactivateProjector(cw, proj));
-//
-//                fields.unregisterField(center);
-//            });
+            mc.level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
+                fields.get(center)
+                        .map(IMiniaturizationField::getProjectorPositions)
+                        .orElse(Stream.empty())
+                        .forEach(proj -> FieldProjectorBlock.deactivateProjector(mc.level, proj));
+
+                fields.unregisterField(center);
+            });
         });
     }
 

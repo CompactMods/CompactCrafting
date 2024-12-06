@@ -339,7 +339,7 @@ public class MiniaturizationField implements IMiniaturizationField {
          * All the recipes we have registered won't fit in the filled bounds -
          * blocks were placed in a larger space than the max recipe size
          */
-        CompactCrafting.LOGGER.trace("Matched a total of {} possible recipes.", recipes.size());
+        CompactCrafting.LOGGER.debug("Matched a total of {} possible recipes.", recipes.size());
         if (recipes.isEmpty()) {
             clearRecipe();
             return;
@@ -404,7 +404,6 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     public void checkLoaded() {
-        CompactCrafting.LOGGER.debug("Checking loaded state.");
         this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (loaded) {

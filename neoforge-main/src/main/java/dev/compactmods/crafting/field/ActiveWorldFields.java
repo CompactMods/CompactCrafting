@@ -1,5 +1,7 @@
 package dev.compactmods.crafting.field;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
@@ -20,6 +22,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,25 +33,19 @@ import java.util.stream.Stream;
 
 public class ActiveWorldFields implements IActiveWorldFields {
 
-    private Level level;
+    private final Level level;
 
     /**
      * Holds a set of miniaturization fields that are active, referenced by their center point.
      */
-    private final HashMap<BlockPos, IMiniaturizationField> fields;
-    public ActiveWorldFields() {
-        this.fields = new HashMap<>();
-    }
+    private final HashMap<BlockPos, IMiniaturizationField> fields = new HashMap<>();
 
-    public ActiveWorldFields(Level level) {
-        this();
+    private ActiveWorldFields(Level level) {
         this.level = level;
     }
 
-
-    @Override
-    public void setLevel(Level level) {
-        this.level = level;
+    public static ActiveWorldFields create(@NotNull Level level) {
+        return new ActiveWorldFields(level);
     }
 
     @Override
