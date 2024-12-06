@@ -372,8 +372,9 @@ public class MiniaturizationField implements IMiniaturizationField {
 
         // Send tracking client updates
         if (!level.isClientSide && level instanceof ServerLevel sl) {
+            final var recipe = currentRecipe == null ? null : currentRecipe.id();
             PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center),
-                    new FieldRecipeChangedPacket(this.center, Optional.of(this.currentRecipe.id())));
+                    new FieldRecipeChangedPacket(this.center, Optional.ofNullable(recipe)));
         }
 
         // Update all listeners as well

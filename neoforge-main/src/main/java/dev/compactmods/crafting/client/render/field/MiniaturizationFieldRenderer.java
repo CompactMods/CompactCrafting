@@ -12,12 +12,13 @@ import dev.compactmods.crafting.client.render.GhostRenderer;
 import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
+import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.Direction;
 import net.minecraft.util.FastColor;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -25,27 +26,50 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 
+import java.util.Objects;
+
 public class MiniaturizationFieldRenderer {
 
     public static void onRenderStage(RenderLevelStageEvent evt) {
-        if(evt.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+        if (evt.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
 
             final var mc = Minecraft.getInstance();
             final var level = mc.level;
+
+            if (level == null) return;
 
             final var partialTicks = evt.getPartialTick().getGameTimeDeltaPartialTick(false);
             final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
             level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
                 fields.getFields().forEach(field -> {
-                    render(field, partialTicks, evt.getPoseStack());
+                    render(level, field, partialTicks, evt.getPoseStack(), buffers);
                 });
             });
         }
     }
 
-    public static void render(IMiniaturizationField field, float partialTicks, PoseStack matrixStack) {
-        GhostRenderer.render(Blocks.GREEN_CONCRETE.defaultBlockState(), field.getCenter(), matrixStack);
+    public static void render(Level level, IMiniaturizationField field, float partialTicks, PoseStack matrixStack, MultiBufferSource.BufferSource buffers) {
+        // GhostRenderer.render(Blocks.GREEN_STAINED_GLASS.defaultBlockState(), field.getCenter(), matrixStack);
+        final Minecraft mc = Minecraft.getInstance();
+        final Camera mainCamera = mc.gameRenderer.getMainCamera();
+        Vec3 projectedView = mainCamera.getPosition();
+
+        matrixStack.pushPose();
+        {
+             matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
+            field.getProjectorPositions()
+                    .map(level::getBlockEntity)
+                    .map(be -> be instanceof FieldProjectorEntity fpe ? fpe : null)
+                    .filter(Objects::nonNull)
+                    .forEach(fieldProjectorEntity -> {
+                        drawScanLine(fieldProjectorEntity, matrixStack, buffers, field.getBounds(), level.getGameTime());
+                        drawProjectorArcs(fieldProjectorEntity, matrixStack, buffers, field.getBounds(), level.getGameTime());
+                    });
+
+            buffers.endBatch(RenderType.lines());
+        }
+        matrixStack.popPose();
     }
 
     public static int getProjectionColor(EnumProjectorColorType type) {
@@ -67,24 +91,15 @@ public class MiniaturizationFieldRenderer {
     private static void drawScanLine(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
         VertexConsumer builder = buffers.getBuffer(RenderType.lines());
 
-        Vec3 tilePos = new Vec3(
-                tile.getBlockPos().getX() + 0.5d,
-                tile.getBlockPos().getY() + 0.5d,
-                tile.getBlockPos().getZ() + 0.5d
-        );
-
         mx.pushPose();
-        mx.translate(.5, .5, .5);
 
         int colorScanLine = getProjectionColor(EnumProjectorColorType.SCAN_LINE);
 
         Direction face = tile.getProjectorSide();
-        Vec3 left = CubeRenderHelper.getScanLineLeft(face, fieldBounds, gameTime).subtract(tilePos);
-        Vec3 right = CubeRenderHelper.getScanLineRight(face, fieldBounds, gameTime).subtract(tilePos);
+        Vec3 left = CubeRenderHelper.getScanLineLeft(face, fieldBounds, gameTime);
+        Vec3 right = CubeRenderHelper.getScanLineRight(face, fieldBounds, gameTime);
 
-        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, left);
-        CubeRenderHelper.addColoredVertex(builder, mx, colorScanLine, right);
-
+        CubeRenderHelper.drawLine(builder, mx, colorScanLine, left, right);
         mx.popPose();
     }
 
@@ -92,26 +107,18 @@ public class MiniaturizationFieldRenderer {
      * Handles drawing the projection arcs that connect the projector blocks to the main projection
      * in the center of the crafting area.
      */
-    private void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
+    private static void drawProjectorArcs(FieldProjectorEntity tile, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
 
         try {
 
             Direction facing = tile.getProjectorSide();
 
-            Vec3 tilePos = new Vec3(
-                    tile.getBlockPos().getX() + 0.5d,
-                    tile.getBlockPos().getY() + 0.5d,
-                    tile.getBlockPos().getZ() + 0.5d
-            );
-
             mx.pushPose();
-
-            mx.translate(.5, .5, .5);
 
             int colorProjectionArc = getProjectionColor(EnumProjectorColorType.FIELD);
 
-            Vec3 scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime).subtract(tilePos);
-            Vec3 scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime).subtract(tilePos);
+            Vec3 scanLeft = CubeRenderHelper.getScanLineRight(facing, fieldBounds, gameTime);
+            Vec3 scanRight = CubeRenderHelper.getScanLineLeft(facing, fieldBounds, gameTime);
 
             // 0, 0, 0 is now the edge of the projector's space
             final Matrix4f p = mx.last().pose();
@@ -136,9 +143,7 @@ public class MiniaturizationFieldRenderer {
                     .setNormal(n, 0, 0, 0);
 
             mx.popPose();
-        }
-
-        catch(Exception ex) {
+        } catch (Exception ex) {
             CompactCrafting.LOGGER.error(ex);
         }
     }

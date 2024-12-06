@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -14,6 +15,28 @@ public abstract class CubeRenderHelper {
                 .setColor(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), FastColor.ARGB32.alpha(color))
                 .setNormal(stack.last(), 0, 0, 0);
     }
+
+    public static void drawLine(VertexConsumer builder, PoseStack poseStack, int color, Vec3 start, Vec3 end)
+    {
+        float nX = (float) (end.x - start.x);
+        float nY = (float) (end.y - start.y);
+        float nZ = (float) (end.z - start.z);
+        float nLen = Mth.sqrt(nX * nX + nY * nY + nZ * nZ);
+
+        nX = nX / nLen;
+        nY = nY / nLen;
+        nZ = nZ / nLen;
+
+        var pose = poseStack.last();
+        builder.addVertex(pose, (float) start.x, (float) start.y, (float) start.z)
+                .setColor(color)
+                .setNormal(pose, nX, nY, nZ);
+
+        builder.addVertex(pose, (float) end.x, (float) end.y, (float) end.z)
+                .setColor(color)
+                .setNormal(pose, nX, nY, nZ);
+    }
+
 
     public static void drawCubeFace(VertexConsumer builder, PoseStack mx, AABB cube, int color, Direction face) {
         Vec3 TOP_LEFT = getCubeFacePoint(cube, face, EnumCubeFaceCorner.TOP_LEFT);
@@ -119,47 +142,28 @@ public abstract class CubeRenderHelper {
     public static double getScanLineHeight(AABB cube, double gameTime) {
         // Get the height of the scan line
         double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -RotationSpeed.MEDIUM.getSpeed()) + 1.0d) / 2) * (cube.getYsize());
-        double scanHeight = (cube.minY + zAngle);
-
-        return scanHeight;
+        return cube.minY + zAngle;
     }
 
     public static Vec3 getScanLineRight(Direction face, AABB cube, double gameTime) {
         double scanHeight = getScanLineHeight(cube, gameTime);
-        switch (face) {
-            case NORTH:
-                return new Vec3(cube.minX, scanHeight, cube.minZ);
-
-            case SOUTH:
-                return new Vec3(cube.maxX, scanHeight, cube.maxZ);
-
-            case WEST:
-                return new Vec3(cube.minX, scanHeight, cube.maxZ);
-
-            case EAST:
-                return new Vec3(cube.maxX, scanHeight, cube.minZ);
-        }
-
-        return Vec3.ZERO;
+        return switch (face) {
+            case NORTH -> new Vec3(cube.minX, scanHeight, cube.minZ);
+            case SOUTH -> new Vec3(cube.maxX, scanHeight, cube.maxZ);
+            case WEST -> new Vec3(cube.minX, scanHeight, cube.maxZ);
+            case EAST -> new Vec3(cube.maxX, scanHeight, cube.minZ);
+            default -> Vec3.ZERO;
+        };
     }
 
     public static Vec3 getScanLineLeft(Direction face, AABB cube, double gameTime) {
         double scanHeight = getScanLineHeight(cube, gameTime);
-        switch (face) {
-            case NORTH:
-                return new Vec3(cube.maxX, scanHeight, cube.minZ);
-
-            case SOUTH:
-                return new Vec3(cube.minX, scanHeight, cube.maxZ);
-
-            case WEST:
-                return new Vec3(cube.minX, scanHeight, cube.minZ);
-
-            case EAST:
-                return new Vec3(cube.maxX, scanHeight, cube.maxZ);
-        }
-
-        return Vec3.ZERO;
+        return switch (face) {
+            case NORTH -> new Vec3(cube.maxX, scanHeight, cube.minZ);
+            case SOUTH -> new Vec3(cube.minX, scanHeight, cube.maxZ);
+            case WEST -> new Vec3(cube.minX, scanHeight, cube.minZ);
+            case EAST -> new Vec3(cube.maxX, scanHeight, cube.maxZ);
+            default -> Vec3.ZERO;
+        };
     }
-
 }
