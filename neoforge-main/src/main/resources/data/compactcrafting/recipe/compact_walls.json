@@ -1,0 +1,32 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "version": 1,
+  "recipeSize": 1,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "R"
+    },
+    {
+      "type": "compactcrafting:filled",
+      "component": "I"
+    }
+  ],
+  "catalyst": {
+    "id": "minecraft:ender_pearl"
+  },
+  "components": {
+    "R": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:redstone_wire"
+    },
+    "I": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:iron_block"
+    }
+  },
+  "outputs": [{
+    "id": "minecraft:diamond",
+    "Count": 1
+  }]
+}

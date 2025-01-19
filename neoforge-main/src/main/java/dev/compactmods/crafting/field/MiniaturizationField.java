@@ -3,15 +3,15 @@ package dev.compactmods.crafting.field;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
+import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.projector.FieldProjectorSet;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.crafting.CraftingHelper;
 import dev.compactmods.crafting.events.WorldEventHandler;
-import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
-import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
@@ -21,13 +21,11 @@ import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -37,14 +35,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -52,33 +50,43 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MiniaturizationField implements IMiniaturizationField {
+public class MiniaturizationField implements IMiniaturizationField<MiniaturizationRecipe>,
+        IMutableMiniaturizationField, ITickingMiniaturizationField {
 
-    private MiniaturizationFieldSize size;
-    private BlockPos center;
-    private boolean loaded;
+    private final Level level;
+    private final MiniaturizationFieldSize size;
+    private final BlockPos center;
+    private final FieldProjectorSet projectors;
 
+    private boolean areaLoaded;
+
+    @Deprecated(forRemoval = true)
+    private boolean disabled = false;
+
+    // TODO - Create MatchedMiniaturizationRecipe
     private RecipeHolder<MiniaturizationRecipe> currentRecipe = null;
     private StructureTemplate matchedBlocks;
     private Set<Item> matchedCatalysts;
+    private int craftingProgress = 0;
 
+    // Crafting State
     private EnumCraftingState craftingState;
     private long rescanTime;
 
-    private Level level;
-    private int craftingProgress = 0;
-
-    private boolean disabled = false;
-
     private static Disposable CHUNK_LISTENER;
 
-    public MiniaturizationField() {
-    }
+    // Metallic Orange
+    public static final DustParticleOptions RECIPE_MATCHED_PARTICLE_OPTS = new DustParticleOptions(Vec3.fromRGB24(FastColor.ARGB32.color(210, 226, 99, 16)).toVector3f(), 1);
 
-    private MiniaturizationField(MiniaturizationFieldSize size, BlockPos center) {
+    // Eucalyptus (Turquiose Green)
+    public static final DustParticleOptions RECIPE_FINISHED_PARTICLE_OPTS = new DustParticleOptions(Vec3.fromRGB24(FastColor.ARGB32.color(210, 68, 215, 168)).toVector3f(), 1);
+
+    public MiniaturizationField(Level level, MiniaturizationFieldSize size, BlockPos center) {
+        this.level = level;
         this.center = center;
         this.size = size;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
+        this.projectors = new FieldProjectorSet(new WeakReference<>(level), this.size.getProjectorLocations(this.center).collect(Collectors.toSet()), this.size);
 
         setupChunkListener();
     }
@@ -110,7 +118,12 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     private void setupChunkListener() {
         // add projector and central chunks
-        final Set<ChunkPos> insideChunks = getProjectorPositions().map(ChunkPos::new).collect(Collectors.toSet());
+        final Set<ChunkPos> insideChunks = this.projectors
+                .locations()
+                .stream()
+                .map(ChunkPos::new)
+                .collect(Collectors.toSet());
+
         insideChunks.add(new ChunkPos(center));
 
         CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {
@@ -126,10 +139,6 @@ public class MiniaturizationField implements IMiniaturizationField {
             CHUNK_LISTENER.dispose();
     }
 
-    public static MiniaturizationField fromSizeAndCenter(MiniaturizationFieldSize fieldSize, BlockPos center) {
-        return new MiniaturizationField(fieldSize, center);
-    }
-
     public MiniaturizationFieldSize getFieldSize() {
         return this.size;
     }
@@ -139,27 +148,11 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setCenter(BlockPos center) {
-        this.center = center;
-    }
-
-    @Override
-    public void setSize(MiniaturizationFieldSize size) {
-        this.size = size;
-    }
-
-    @Override
     public int getProgress() {
         if (craftingState != EnumCraftingState.CRAFTING)
             return 0;
 
         return craftingProgress;
-    }
-
-    @Override
-    public void setLevel(Level level) {
-        this.level = level;
-//        getRecipeFromId();
     }
 
 //    private void getRecipeFromId() {
@@ -173,18 +166,18 @@ public class MiniaturizationField implements IMiniaturizationField {
 //                if (craftingState == EnumCraftingState.NOT_MATCHED)
 //                    setCraftingState(EnumCraftingState.MATCHED);
 //
-////                this.listeners.forEach(li -> li.ifPresent(l -> {
-////                    l.onRecipeChanged(this, this.currentRecipe);
-////                    l.onRecipeMatched(this, this.currentRecipe);
-////                }));
+
+    /// /                this.listeners.forEach(li -> li.ifPresent(l -> {
+    /// /                    l.onRecipeChanged(this, this.currentRecipe);
+    /// /                    l.onRecipeMatched(this, this.currentRecipe);
+    /// /                }));
 //
 //            }, this::clearRecipe);
 //        }
 //    }
-
     @Override
-    public Stream<BlockPos> getProjectorPositions() {
-        return this.size.getProjectorLocations(center);
+    public FieldProjectorSet getProjectors() {
+        return this.projectors;
     }
 
     public AABB getBounds() {
@@ -218,6 +211,20 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
+    public void setRecipe(RecipeHolder<MiniaturizationRecipe> recipe) {
+        this.currentRecipe = recipe;
+        this.craftingProgress = 0;
+
+        if (craftingState == EnumCraftingState.NOT_MATCHED)
+            setCraftingState(EnumCraftingState.MATCHED);
+
+//        this.listeners.forEach(li -> li.ifPresent(l -> {
+//            l.onRecipeChanged(this, this.currentRecipe);
+//            l.onRecipeMatched(this, this.currentRecipe);
+//        }));
+    }
+
+    @Override
     public void clearRecipe() {
         this.currentRecipe = null;
         this.craftingProgress = 0;
@@ -236,67 +243,92 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void tick() {
-        if (level == null || this.disabled)
+        if (this.disabled || !areaLoaded)
             return;
 
-        // Set in a block update handler to mark that the field has changed
-        if (rescanTime > 0 && level.getGameTime() >= rescanTime) {
-            doRecipeScan();
-            this.rescanTime = 0;
-            return;
-        }
-
-        if (getProjectorPositions().allMatch(level::isLoaded))
-            tickCrafting();
-    }
-
-    private void tickCrafting() {
-        AABB fieldBounds = getBounds();
-
-        if (level == null || this.currentRecipe == null)
-            return;
-
-
-        switch (craftingState) {
-            case MATCHED:
-
-                // We grow the bounds check here a little to support patterns that are exactly the size of the field
-                List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.value().catalystTest());
-                if (!catalystEntities.isEmpty()) {
-
-                    matchedCatalysts = catalystEntities.stream()
-                            .map((ItemEntity t) -> t.getItem().getItem())
-                            .collect(Collectors.toSet());
-
-                    // Only remove items and clear the field on servers
-                    if (!level.isClientSide) {
-                        CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
-
-                        // We know the "recipe" in the field is an exact match already, so wipe the field
-                        clearBlocks();
-                    }
-
-                    setCraftingState(EnumCraftingState.CRAFTING);
+        switch (this.craftingState) {
+            case NOT_MATCHED:
+                // Set in a block update handler to mark that the field has changed
+                if (rescanTime > 0 && level.getGameTime() >= rescanTime) {
+                    doRecipeScan();
+                    this.rescanTime = 0;
+                    break;
                 }
+                break;
 
+            case MATCHED:
+                AABB fieldBounds = getBounds();
+                searchAndConsumeCatalysts(fieldBounds);
                 break;
 
             case CRAFTING:
-                craftingProgress++;
-                if (craftingProgress >= currentRecipe.value().getCraftingTime()) {
-                    for (ItemStack is : currentRecipe.value().getOutputs()) {
-                        ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
-                        level.addFreshEntity(itemEntity);
-                    }
-
-                    IMiniaturizationRecipe completed = this.currentRecipe.value();
-                    clearRecipe();
-
-//                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
-                }
-
+                tickCrafting();
                 break;
         }
+    }
+
+    private void searchAndConsumeCatalysts(AABB fieldBounds) {
+        // We grow the bounds check here a little to support patterns that are exactly the size of the field
+        List<ItemEntity> catalystEntities = getCatalystsInField(level, fieldBounds.inflate(0.25), currentRecipe.value().catalystTest());
+        if (!catalystEntities.isEmpty()) {
+
+            matchedCatalysts = catalystEntities.stream()
+                    .map((ItemEntity t) -> t.getItem().getItem())
+                    .collect(Collectors.toSet());
+
+            var foundPosition = catalystEntities.getFirst().position();
+
+            // Only remove items and clear the field on servers
+            if (!level.isClientSide) {
+                CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
+
+                // We know the "recipe" in the field is an exact match already, so wipe the field
+                clearBlocks();
+            } else {
+                for (int i = 0; i < 5; i++) {
+                    level.addParticle(ParticleTypes.LARGE_SMOKE,
+                            foundPosition.x + level.random.nextDouble(),
+                            foundPosition.y + level.random.nextDouble(),
+                            foundPosition.z + level.random.nextDouble(),
+                            0.0, 0.0, 0.0);
+                }
+            }
+
+            setCraftingState(EnumCraftingState.CRAFTING);
+        }
+    }
+
+    private void tickCrafting() {
+        if (this.currentRecipe == null)
+            return;
+
+        craftingProgress++;
+        if (craftingProgress >= currentRecipe.value().getCraftingTime()) {
+            for (ItemStack is : currentRecipe.value().getOutputs()) {
+                ItemEntity itemEntity = new ItemEntity(level, center.getX() + 0.5f, center.getY() + 0.5f, center.getZ() + 0.5f, is);
+                level.addFreshEntity(itemEntity);
+            }
+
+            spawnParticlesAtProjectors(RECIPE_FINISHED_PARTICLE_OPTS);
+
+            IMiniaturizationRecipe completed = this.currentRecipe.value();
+            clearRecipe();
+
+//                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
+        }
+    }
+
+    public void spawnParticlesAtProjectors(ParticleOptions opts) {
+        projectors.locations().forEach(proj -> {
+            var center = Vec3.atCenterOf(proj);
+            for (int i = 0; i < 10; i++) {
+                level.addParticle(opts,
+                        center.x + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
+                        center.y + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
+                        center.z + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
+                        0.0, 0.0, 0.0);
+            }
+        });
     }
 
     /**
@@ -369,12 +401,13 @@ public class MiniaturizationField implements IMiniaturizationField {
         }
 
         setCraftingState(currentRecipe != null ? EnumCraftingState.MATCHED : EnumCraftingState.NOT_MATCHED);
+        if (currentRecipe != null)
+            spawnParticlesAtProjectors(RECIPE_MATCHED_PARTICLE_OPTS);
 
         // Send tracking client updates
         if (!level.isClientSide && level instanceof ServerLevel sl) {
-            final var recipe = currentRecipe == null ? null : currentRecipe.id();
             PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center),
-                    new FieldRecipeChangedPacket(this.center, Optional.ofNullable(recipe)));
+                    new FieldRecipeChangedPacket(this.center, Optional.ofNullable(this.currentRecipe)));
         }
 
         // Update all listeners as well
@@ -400,14 +433,14 @@ public class MiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public boolean isLoaded() {
-        return loaded || level.isClientSide;
+    public boolean isAreaLoaded() {
+        return areaLoaded || level.isClientSide;
     }
 
     public void checkLoaded() {
-        this.loaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
+        this.areaLoaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
-        if (loaded) {
+        if (areaLoaded) {
 //            listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
         }
     }
@@ -451,11 +484,6 @@ public class MiniaturizationField implements IMiniaturizationField {
 //
 //        return nbt;
 //    }
-
-    @Override
-    public void setProgress(int progress) {
-        this.craftingProgress = progress;
-    }
 
     @Override
     public void handleDestabilize() {
@@ -519,12 +547,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         if (this.craftingState != EnumCraftingState.NOT_MATCHED)
             handleDestabilize();
 
-        getProjectorPositions().forEach(proj -> {
-            FieldProjectorBlock.deactivateProjector(level, proj);
-        });
+        getProjectors().disableAll();
 
-        if(this.level instanceof ServerLevel sl) {
-            FieldDeactivatedPacket update = new FieldDeactivatedPacket(size, center, getProjectorPositions().toList());
+        if (this.level instanceof ServerLevel sl) {
+            FieldDeactivatedPacket update = new FieldDeactivatedPacket(size, center, getProjectors().locations().stream().toList());
             PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center), update);
         }
     }
@@ -533,12 +559,9 @@ public class MiniaturizationField implements IMiniaturizationField {
     public void enable() {
         this.disabled = false;
         fieldContentsChanged();
-        getProjectorPositions().forEach(proj -> {
-            FieldProjectorBlock.activateProjector(level, proj, this.size);
-            BlockEntity projTile = level.getBlockEntity(proj);
-        });
+        this.projectors.enableAll();
 
-        if(this.level instanceof ServerLevel sl) {
+        if (this.level instanceof ServerLevel sl) {
             // FIXME
             // FieldDeactivatedPacket update = new FieldActivatedPacket(this, this.clientData());
             // PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center), update);
@@ -547,7 +570,9 @@ public class MiniaturizationField implements IMiniaturizationField {
 
     @Override
     public void checkRedstone() {
-        this.disabled = getProjectorPositions()
+        this.disabled = getProjectors()
+                .locations()
+                .stream()
                 .anyMatch(proj -> level.getBestNeighborSignal(proj) > 0);
 
         if (disabled) disable();
@@ -557,6 +582,16 @@ public class MiniaturizationField implements IMiniaturizationField {
     @Override
     public boolean enabled() {
         return !this.disabled;
+    }
+
+    @Override
+    public RecipeHolder<MiniaturizationRecipe> recipeHolder() {
+        return currentRecipe;
+    }
+
+    @Override
+    public MiniaturizationRecipe currentRecipe() {
+        return currentRecipe.value();
     }
 
     // FIXME

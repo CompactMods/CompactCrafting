@@ -3,10 +3,12 @@ package dev.compactmods.crafting.projector;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
 import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -38,8 +40,8 @@ import java.util.stream.Stream;
 
 public class FieldProjectorBlock extends Block implements EntityBlock {
 
-    public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
-    public static final EnumProperty<MiniaturizationFieldSize> SIZE = EnumProperty.create("field", MiniaturizationFieldSize.class);
+    public static final DirectionProperty FACING = FieldProjectorProperties.FACING;
+    public static final EnumProperty<MiniaturizationFieldSize> SIZE = FieldProjectorProperties.SIZE;
 
     private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
 
@@ -213,7 +215,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                     final var fields = sl.getData(CCAttachments.ACTIVE_FIELDS);
                     if (!fields.hasActiveField(center)) {
                         // TODO - Separate client and server field classes
-                        final IMiniaturizationField field = fields.registerField(MiniaturizationField.fromSizeAndCenter(fieldSize, center));
+                        final IMiniaturizationField<MiniaturizationRecipe> field = fields.registerField(new MiniaturizationField(sl, fieldSize, center));
                         field.checkLoaded();
                         field.fieldContentsChanged();
 

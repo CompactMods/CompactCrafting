@@ -37,7 +37,7 @@ public class BlockEventHandler {
                 }
 
             } catch (MissingFieldsException e) {
-                CompactCrafting.LOGGER.error("Missing the active miniaturization fields capability in the level. Report this!");
+                CompactCrafting.LOGGER.error("Missing the active miniaturization fields capability in the level. Report this!", e);
             }
         }
     }

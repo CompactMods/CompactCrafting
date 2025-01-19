@@ -29,8 +29,10 @@ import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Rotation;
@@ -97,6 +99,12 @@ public record MiniaturizationRecipe(
             ItemStack.LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
             ByteBufCodecs.fromCodecWithRegistries(ItemPredicate.CODEC), MiniaturizationRecipe::catalystMatcher,
             MiniaturizationRecipe::fromCodec
+    );
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, RecipeHolder<MiniaturizationRecipe>> MINI_RECIPE_HOLDER_STREAM_CODEC = StreamCodec.composite(
+            ResourceLocation.STREAM_CODEC, RecipeHolder::id,
+            MiniaturizationRecipe.STREAM_CODEC, RecipeHolder::value,
+            RecipeHolder::new
     );
 
     public static MiniaturizationRecipe fromCodec(int craftTime, int recipeSize, List<IRecipeLayer> layers,

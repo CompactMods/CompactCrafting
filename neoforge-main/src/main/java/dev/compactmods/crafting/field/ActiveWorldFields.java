@@ -1,44 +1,35 @@
 package dev.compactmods.crafting.field;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IActiveWorldFields;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.data.NbtListCollector;
+import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
-import dev.compactmods.crafting.network.NetworkHandler;
-import dev.compactmods.crafting.projector.FieldProjectorBlock;
-import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import dev.compactmods.crafting.projector.ProjectorHelper;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.common.util.INBTSerializable;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class ActiveWorldFields implements IActiveWorldFields {
+public class ActiveWorldFields {
 
     private final Level level;
 
     /**
      * Holds a set of miniaturization fields that are active, referenced by their center point.
      */
-    private final HashMap<BlockPos, IMiniaturizationField> fields = new HashMap<>();
+    private final HashMap<BlockPos, IMiniaturizationField<MiniaturizationRecipe>> fields = new HashMap<>();
 
     private ActiveWorldFields(Level level) {
         this.level = level;
@@ -48,27 +39,25 @@ public class ActiveWorldFields implements IActiveWorldFields {
         return new ActiveWorldFields(level);
     }
 
-    @Override
-    public Stream<IMiniaturizationField> getFields() {
+    public Stream<IMiniaturizationField<MiniaturizationRecipe>> getFields() {
         return fields.values().stream();
     }
 
     public void tickFields() {
-        Set<IMiniaturizationField> loaded = fields.values().stream()
-                .filter(IMiniaturizationField::isLoaded)
+        Set<ITickingMiniaturizationField> loaded = fields.values().stream()
+                .filter(IMiniaturizationField::isAreaLoaded)
+                .filter(field -> field instanceof ITickingMiniaturizationField)
+                .map(ITickingMiniaturizationField.class::cast)
                 .collect(Collectors.toSet());
 
         if (loaded.isEmpty())
             return;
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
-        loaded.forEach(IMiniaturizationField::tick);
+        loaded.forEach(ITickingMiniaturizationField::tick);
     }
 
-    @Override
-    public void addFieldInstance(IMiniaturizationField field) {
-        field.setLevel(level);
-
+    public void addFieldInstance(IMiniaturizationField<MiniaturizationRecipe> field) {
         BlockPos center = field.getCenter();
         fields.put(center, field);
 
@@ -82,7 +71,7 @@ public class ActiveWorldFields implements IActiveWorldFields {
 //        });
     }
 
-    public IMiniaturizationField registerField(IMiniaturizationField field) {
+    public IMiniaturizationField<MiniaturizationRecipe> registerField(IMiniaturizationField<MiniaturizationRecipe> field) {
         final Optional<BlockPos> anyMissing = ProjectorHelper
                 .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
                 .findFirst();
@@ -93,72 +82,72 @@ public class ActiveWorldFields implements IActiveWorldFields {
         }
 
         addFieldInstance(field);
-        field.getProjectorPositions().forEach(pos -> {
-            BlockState stateAt = level.getBlockState(pos);
-            if (!(stateAt.getBlock() instanceof FieldProjectorBlock))
-                return;
 
-            if (stateAt.hasBlockEntity()) {
-                BlockEntity tileAt = level.getBlockEntity(pos);
-                if (tileAt instanceof FieldProjectorEntity) {
-                    // ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
-                }
-            }
-        });
+        // FIXME - Set projector back-references to field
+        //        field.getProjectors().locations().forEach(pos -> {
+//            BlockState stateAt = level.getBlockState(pos);
+//            if (!(stateAt.getBlock() instanceof FieldProjectorBlock))
+//                return;
+//
+//            if (stateAt.hasBlockEntity()) {
+//                BlockEntity tileAt = level.getBlockEntity(pos);
+//                if (tileAt instanceof FieldProjectorEntity) {
+//                    // ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
+//                }
+//            }
+//        });
 
         return field;
     }
 
     public void unregisterField(BlockPos center) {
         if (fields.containsKey(center)) {
-            IMiniaturizationField removedField = fields.remove(center);
+            var removedField = fields.remove(center);
 //            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
 //            removed.invalidate();
 
             if (!level.isClientSide && removedField != null && level instanceof ServerLevel sl) {
                 // Send deactivation packet to clients
                 PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(removedField.getCenter()),
-                        new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter(), removedField.getProjectorPositions().toList()));
+                        new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter(), List.copyOf(removedField.getProjectors().locations())));
             }
         }
     }
 
-    public void unregisterField(IMiniaturizationField field) {
+    public void unregisterField(IMiniaturizationField<MiniaturizationRecipe> field) {
         BlockPos center = field.getCenter();
         unregisterField(center);
     }
 
-    @Override
-    public Optional<IMiniaturizationField> get(BlockPos center) {
+    public Optional<IMiniaturizationField<MiniaturizationRecipe>> get(BlockPos center) {
         return Optional.ofNullable(fields.getOrDefault(center, null));
     }
 
-    @Override
     public boolean hasActiveField(BlockPos center) {
         return fields.containsKey(center);
     }
 
-    @Override
-    public Stream<IMiniaturizationField> getFields(ChunkPos chunk) {
+    public Stream<IMiniaturizationField<MiniaturizationRecipe>> getFields(ChunkPos chunk) {
         return fields.entrySet()
                 .stream()
                 .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
                 .map(Map.Entry::getValue);
     }
 
-    @Override
     public ResourceKey<Level> getLevel() {
         return level.dimension();
     }
 
-//    @Override
+
+
 //    public ListTag serializeNBT() {
 //        return getFields()
 //                .map(IMiniaturizationField::serverData)
 //                .collect(NbtListCollector.toNbtList());
 //    }
 //
-//    @Override
+
+
 //    public void deserializeNBT(ListTag nbt) {
 //        nbt.forEach(item -> {
 //            if (item instanceof CompoundTag ct) {
