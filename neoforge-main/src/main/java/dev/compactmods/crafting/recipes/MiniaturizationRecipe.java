@@ -186,6 +186,12 @@ public record MiniaturizationRecipe(
             recipeDims = new AABB(Vec3.ZERO, new Vec3(x, height, z));
         }
 
+        final AABB footprint = BlockSpaceUtil.getLayerBounds(recipeDims, 0);
+        layers1.values()
+                .stream()
+                .filter(l -> l instanceof IDynamicSizedRecipeLayer)
+                .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(footprint));
+
         HashMap<String, Integer> componentTotals = new HashMap<>();
         components.getAllComponents().keySet().forEach(comp -> {
             int count = getComponentRequiredCount(comp, components, layers1);
@@ -196,7 +202,6 @@ public record MiniaturizationRecipe(
                 recipeDims, craftTime, hasFixedFootprint,
                 componentTotals, components);
 
-        recipe.updateFluidLayerDimensions();
         return recipe;
     }
 
