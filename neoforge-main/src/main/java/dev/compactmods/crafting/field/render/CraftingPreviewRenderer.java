@@ -5,6 +5,8 @@ import com.mojang.math.Axis;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
+import dev.compactmods.crafting.client.render.GhostRenderer;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.client.Minecraft;
@@ -13,6 +15,9 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -25,6 +30,10 @@ public class CraftingPreviewRenderer {
 
         if(recipe == null)
             return;
+        
+        if(progress >= recipe.getCraftingTime()) {
+            return;
+        }
 
         stack.pushPose();
 
@@ -63,7 +72,7 @@ public class CraftingPreviewRenderer {
                         BlockPos zeroedPos = filledPos.below(finalY);
                         l.getComponentForPosition(zeroedPos)
                                 .flatMap(recipe.getComponents()::getBlock)
-                                .ifPresent(comp -> renderSingleBlock(stack, buffers, blockRenderer, comp));
+                                .ifPresent(comp -> renderSingleBlock(stack, buffers, blockRenderer, comp, craftProgress, recipe.getCraftingTime()));
 
                         stack.popPose();
                     });
@@ -80,11 +89,63 @@ public class CraftingPreviewRenderer {
         stack.popPose();
     }
 
-    private static void renderSingleBlock(PoseStack stack, MultiBufferSource buffers, BlockRenderDispatcher blockRenderer, IRecipeBlockComponent comp) {
-        // TODO - Render switching
-        BlockState state1 = comp.getRenderState();
+    private static void renderSingleBlock(PoseStack stack, MultiBufferSource buffers, BlockRenderDispatcher blockRenderer, IRecipeBlockComponent comp, double progress, double craftingTime) {
+        BlockState state = comp.getRenderState();
+        
+        double progressPercent = Math.min(progress / craftingTime, 1.0);
+        
+        stack.pushPose();
+        
+        stack.translate(0.5, 0.5, 0.5);
+        
+        long gameTime = Minecraft.getInstance().level.getGameTime();
+        double spinSpeed = 2.0d + (progressPercent * 8.0d);
+        double blockAngle = (gameTime % 360.0) * spinSpeed;
+        stack.mulPose(Axis.YP.rotationDegrees((float) blockAngle));
+        
+        double individualScale = 1.0 - (progressPercent * 0.3);
+        stack.scale((float) individualScale, (float) individualScale, (float) individualScale);
+        
+        stack.translate(-0.5, -0.5, -0.5);
 
-        // TODO - Revisit render type
-        blockRenderer.renderSingleBlock(state1, stack, buffers, LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, ModelData.EMPTY, null);
+        final var mc = Minecraft.getInstance();
+        final var colors = mc.getBlockColors();
+        final var builder = buffers.getBuffer(CCRenderTypes.PHANTOM);
+        final var dispatcher = mc.getBlockRenderer();
+        final var model = dispatcher.getBlockModel(state);
+        
+        if (model != mc.getModelManager().getMissingModel()) {
+            final float alpha = 0.9f;
+            for (var dir : Direction.values()) {
+                model.getQuads(state, dir, mc.level.random, ModelData.EMPTY, null)
+                    .forEach(quad -> {
+                        int color = quad.isTinted() ? colors.getColor(state, mc.level, BlockPos.ZERO, quad.getTintIndex()) :
+                                FastColor.ARGB32.color(255, 255, 255, 255);
+                        
+                        final float red = FastColor.ARGB32.red(color) / 255f;
+                        final float green = FastColor.ARGB32.green(color) / 255f;
+                        final float blue = FastColor.ARGB32.blue(color) / 255f;
+                        final float trueAlpha = Mth.clamp(0.01f, alpha, 0.9f);
+                        
+                        builder.putBulkData(stack.last(), quad, red, green, blue, trueAlpha, 
+                            LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, false);
+                    });
+            }
+            
+            model.getQuads(state, null, mc.level.random, ModelData.EMPTY, null)
+                .forEach(quad -> {
+                    int color = quad.isTinted() ? colors.getColor(state, mc.level, BlockPos.ZERO, quad.getTintIndex()) :
+                            FastColor.ARGB32.color(255, 255, 255, 255);
+                    
+                    final float red = FastColor.ARGB32.red(color) / 255f;
+                    final float green = FastColor.ARGB32.green(color) / 255f;
+                    final float blue = FastColor.ARGB32.blue(color) / 255f;
+                    final float trueAlpha = Mth.clamp(0.01f, alpha, 0.9f);
+                    
+                    builder.putBulkData(stack.last(), quad, red, green, blue, trueAlpha, 
+                        LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, false);
+                });
+        }
+        stack.popPose();
     }
 }

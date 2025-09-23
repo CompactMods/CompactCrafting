@@ -63,7 +63,7 @@ public class MiniaturizationFieldRenderer {
         pose.pushPose();
         {
             pose.translate(-projectedView.x, -projectedView.y, -projectedView.z);
-            if(field.getCraftingState() == EnumCraftingState.CRAFTING) {
+            if(field.getCraftingState() == EnumCraftingState.CRAFTING && field.currentRecipe() != null) {
                 CraftingPreviewRenderer.render(field.currentRecipe(), field.getProgress(), pose, buffers, 0, 0);
             }
 

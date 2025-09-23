@@ -118,6 +118,12 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
                 }
             });
         }
+        
+        // if we're in CRAFTING/MATCHED state but have no recipe, reset to NOT_MATCHED
+        if ((this.craftingState == EnumCraftingState.CRAFTING || this.craftingState == EnumCraftingState.MATCHED) && this.currentRecipe == null) {
+            this.craftingState = EnumCraftingState.NOT_MATCHED;
+            this.craftingProgress = 0;
+        }
 
         if (nbt.contains("matchedBlocks")) {
             StructureTemplate t = new StructureTemplate();

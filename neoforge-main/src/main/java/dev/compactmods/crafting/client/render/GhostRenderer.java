@@ -68,6 +68,7 @@ public class GhostRenderer {
     }
 
     public static void renderTransparentBlock(BlockState state, @Nullable BlockPos pos, PoseStack matrix, MultiBufferSource buffer, int ticksLeft) {
+        System.out.println("Rendering ghost block: " + state);
         final Minecraft mc = Minecraft.getInstance();
         final BlockColors colors = mc.getBlockColors();
 

@@ -221,8 +221,9 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                         field.fieldContentsChanged();
 
                         // Send activation packet to clients
+                        CompoundTag fieldData = field instanceof MiniaturizationField mf ? mf.serverData() : new CompoundTag();
                         PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(field.getCenter()),
-                                new FieldActivatedPacket(field, new CompoundTag()));
+                                new FieldActivatedPacket(field, fieldData));
                     }
                 }
             }
