@@ -139,6 +139,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("curse.maven:jei-238222:7024953")
+    implementation("curse.maven:the-one-probe-245211:5836106")
 
     jarJar(libs.rxjava)
     jarJar(libs.reactivestreams)

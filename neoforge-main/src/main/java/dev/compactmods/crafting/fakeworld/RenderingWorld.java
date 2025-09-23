@@ -1,4 +1,4 @@
-//package dev.compactmods.crafting.client.fakeworld;
+package dev.compactmods.crafting.fakeworld;
 //
 //import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 //import net.minecraft.client.Minecraft;

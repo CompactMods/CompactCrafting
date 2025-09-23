@@ -1,0 +1,30 @@
+{
+  "type": "compactcrafting:miniaturization",
+  "version": 1,
+  "recipeSize": 1,
+  "layers": [
+    {
+      "type": "compactcrafting:filled",
+      "component": "P"
+    },
+    {
+      "type": "compactcrafting:filled",
+      "component": "P"
+    }
+  ],
+  "catalyst": {
+    "id": "minecraft:iron_ingot"
+  },
+  "components": {
+    "P": {
+      "type": "compactcrafting:block",
+      "block": "minecraft:oak_planks"
+    }
+  },
+  "outputs": [
+    {
+      "id": "minecraft:oak_door",
+      "Count": 1
+    }
+  ]
+}
