@@ -11,8 +11,8 @@ public class NetworkHandler {
         main.playToClient(FieldDeactivatedPacket.TYPE, FieldDeactivatedPacket.STREAM_CODEC, FieldDeactivatedPacket.HANDLER);
         main.playToClient(FieldActivatedPacket.TYPE, FieldActivatedPacket.STREAM_CODEC, FieldActivatedPacket.HANDLER);
 
-//        main.playToClient(ClientFieldWatchPacket.TYPE, ClientFieldWatchPacket.CODEC, ClientFieldWatchPacket.HANDLER);
-//        main.playToClient(ClientFieldUnwatchPacket.TYPE, ClientFieldUnwatchPacket.CODEC, ClientFieldUnwatchPacket.HANDLER);
+        main.playToClient(ClientFieldWatchPacket.TYPE, ClientFieldWatchPacket.STREAM_CODEC, ClientFieldWatchPacket.HANDLER);
+        main.playToClient(ClientFieldUnwatchPacket.TYPE, ClientFieldUnwatchPacket.STREAM_CODEC, ClientFieldUnwatchPacket.HANDLER);
 
         main.playToClient(FieldRecipeChangedPacket.TYPE, FieldRecipeChangedPacket.STREAM_CODEC, FieldRecipeChangedPacket.HANDLER);
     }

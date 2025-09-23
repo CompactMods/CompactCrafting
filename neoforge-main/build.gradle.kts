@@ -62,10 +62,10 @@ neoForge {
             logLevel.set(org.slf4j.event.Level.DEBUG)
             sourceSet = project.sourceSets.main
 
-            // JetBrains Runtime Hotswap
-            if (!System.getenv().containsKey("CI")) {
-              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
-            }
+//            // JetBrains Runtime Hotswap
+//            if (!System.getenv().containsKey("CI")) {
+//              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
+//            }
         }
 
         create("client") {
@@ -121,6 +121,9 @@ repositories {
             password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
         }
     }
+    maven("https://cursemaven.com"){
+        name = "CurseMaven"
+    }
 }
 
 dependencies {
@@ -134,6 +137,8 @@ dependencies {
     testImplementation(neoforged.testframework)
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    implementation("curse.maven:jei-238222:7024953")
 
     jarJar(libs.rxjava)
     jarJar(libs.reactivestreams)

@@ -3,10 +3,13 @@ package dev.compactmods.crafting.field;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
+import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.projector.ProjectorHelper;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -60,15 +63,6 @@ public class ActiveWorldFields {
     public void addFieldInstance(IMiniaturizationField<MiniaturizationRecipe> field) {
         BlockPos center = field.getCenter();
         fields.put(center, field);
-
-        // TODO: Attachment for field invalidation
-//        LazyOptional<IMiniaturizationField> lazy = LazyOptional.of(() -> field);
-//        laziness.put(center, lazy);
-//        field.setRef(lazy);
-//
-//        lazy.addListener(lo -> {
-//            lo.ifPresent(this::unregisterField);
-//        });
     }
 
     public IMiniaturizationField<MiniaturizationRecipe> registerField(IMiniaturizationField<MiniaturizationRecipe> field) {
@@ -83,19 +77,8 @@ public class ActiveWorldFields {
 
         addFieldInstance(field);
 
-        // FIXME - Set projector back-references to field
-        //        field.getProjectors().locations().forEach(pos -> {
-//            BlockState stateAt = level.getBlockState(pos);
-//            if (!(stateAt.getBlock() instanceof FieldProjectorBlock))
-//                return;
-//
-//            if (stateAt.hasBlockEntity()) {
-//                BlockEntity tileAt = level.getBlockEntity(pos);
-//                if (tileAt instanceof FieldProjectorEntity) {
-//                    // ((FieldProjectorEntity) tileAt).setFieldRef(field.getRef());
-//                }
-//            }
-//        });
+        // Projectors can find their field through the ActiveWorldFields attachment
+        // using the field center position, so no need to store back-references
 
         return field;
     }
@@ -138,22 +121,23 @@ public class ActiveWorldFields {
         return level.dimension();
     }
 
+    public ListTag serializeNBT() {
+        return getFields()
+                .map(field -> {
+                    if (field instanceof MiniaturizationField mf) {
+                        return mf.serverData();
+                    }
+                    return new CompoundTag();
+                })
+                .collect(NbtListCollector.toNbtList());
+    }
 
-
-//    public ListTag serializeNBT() {
-//        return getFields()
-//                .map(IMiniaturizationField::serverData)
-//                .collect(NbtListCollector.toNbtList());
-//    }
-//
-
-
-//    public void deserializeNBT(ListTag nbt) {
-//        nbt.forEach(item -> {
-//            if (item instanceof CompoundTag ct) {
-//                MiniaturizationField field = new MiniaturizationField(ct);
-//                addFieldInstance(field);
-//            }
-//        });
-//    }
+    public void deserializeNBT(ListTag nbt) {
+        nbt.forEach(item -> {
+            if (item instanceof CompoundTag ct) {
+                MiniaturizationField field = MiniaturizationField.fromNBT(level, ct);
+                addFieldInstance(field);
+            }
+        });
+    }
 }

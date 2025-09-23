@@ -25,8 +25,7 @@ public abstract class ClientPacketHandler {
             if (cw == null)
                 return;
 
-            // FIXME field.loadClientData(fieldClientData);
-
+            // Field data is already loaded in the field creation
             mc.level.getData(CCAttachments.ACTIVE_FIELDS).registerField(field);
         });
     }
@@ -47,33 +46,14 @@ public abstract class ClientPacketHandler {
         });
     }
 
-//    public static void handleFieldData(CompoundTag fieldData) {
-//        Minecraft mc = Minecraft.getInstance();
-//        if (mc.level == null)
-//            return;
-//
-//        MiniaturizationField field = new MiniaturizationField();
-//        field.setLevel(mc.level);
-//        // FIXME field.loadClientData(fieldData);
-//
-////        mc.level.getCapability(CCCapabilities.FIELDS)
-////                .ifPresent(fields -> {
-////                    fields.setLevel(mc.level);
-////                    CompactCrafting.LOGGER.debug("Registering field on client");
-////                    final IMiniaturizationField fieldRegistered = fields.registerField(field);
-////
-////                    CompactCrafting.LOGGER.debug("Setting field references");
-////
-////                    field.getProjectorPositions()
-////                            .map(mc.level::getBlockEntity)
-////                            .map(tile -> (FieldProjectorEntity) tile)
-////                            .filter(Objects::nonNull)
-////                            .forEach(tile -> {
-////                                final BlockState state = tile.getBlockState();
-////                                tile.setFieldRef(fieldRegistered.getRef());
-////                            });
-////                });
-//    }
+    public static void handleFieldData(CompoundTag fieldData) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.level == null)
+            return;
+
+        MiniaturizationField field = MiniaturizationField.fromNBT(mc.level, fieldData);
+        mc.level.getData(CCAttachments.ACTIVE_FIELDS).registerField(field);
+    }
 
     public static void removeField(BlockPos fieldCenter) {
         Minecraft mc = Minecraft.getInstance();
@@ -112,7 +92,8 @@ public abstract class ClientPacketHandler {
     }
 
     public static FieldActivatedPacket createFieldActivationPacket(MiniaturizationFieldSize fieldSize, BlockPos center, CompoundTag clientData) {
-        var field = new MiniaturizationField(Minecraft.getInstance().level, fieldSize, center);
+        // Reconstruct the field from the NBT data on the client side
+        var field = MiniaturizationField.fromNBT(Minecraft.getInstance().level, clientData);
         return new FieldActivatedPacket(field, clientData);
     }
 }

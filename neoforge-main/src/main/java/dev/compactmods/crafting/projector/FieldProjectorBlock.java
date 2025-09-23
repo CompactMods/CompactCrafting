@@ -6,6 +6,7 @@ import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
 import dev.compactmods.crafting.data.CCAttachments;
+import dev.compactmods.crafting.field.IMutableMiniaturizationField;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
@@ -259,28 +260,34 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         if (level.isClientSide)
             return;
 
-        // FIXME REDSTONE HANDLING
+        // Redstone handling
         if (isActive(state)) {
             CompactCrafting.LOGGER.debug("redstone check!");
-//            BlockEntity tile = level.getBlockEntity(pos);
-//            if (tile instanceof FieldProjectorEntity) {
-//                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
-//                if (level.getBestNeighborSignal(pos) > 0) {
-//                    // receiving power from some side, turn off rendering
-//                    fpt.getField().ifPresent(IMiniaturizationField::disable);
-//                } else {
-//                    // check other projectors, if there's a redstone signal anywhere, we disable the field
-//                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
-//                }
-//            }
-//        } else {
-//            // not active, but we may be re-enabling a disabled field
-//            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
-//                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
-//                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-//                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
-//                });
-//            });
+            BlockEntity tile = level.getBlockEntity(pos);
+            if (tile instanceof FieldProjectorEntity fpt) {
+                // Find the field this projector belongs to
+                ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
+                    final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
+                    level.getData(CCAttachments.ACTIVE_FIELDS).get(center).ifPresent(field -> {
+                        if (level.getBestNeighborSignal(pos) > 0) {
+                            // receiving power from some side, turn off rendering
+                            if (field instanceof IMutableMiniaturizationField mutable) {
+                                mutable.disable();
+                            }
+                        } else {
+                            // check other projectors, if there's a redstone signal anywhere, we disable the field
+                            field.checkRedstone();
+                        }
+                    });
+                });
+            }
+        } else {
+            // not active, but we may be re-enabling a disabled field
+            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
+                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
+                level.getData(CCAttachments.ACTIVE_FIELDS).get(center)
+                        .ifPresent(IMiniaturizationField::checkRedstone);
+            });
         }
     }
 
