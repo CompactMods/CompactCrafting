@@ -14,6 +14,7 @@ import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
@@ -173,7 +174,17 @@ public class RenderingWorld extends Level {
 
     @Override
     public float getShade(Direction p_230487_1_, boolean p_230487_2_) {
-        return 0;
+        return 1.0f;
+    }
+
+    @Override
+    public int getBrightness(LightLayer lightType, BlockPos blockPos) {
+        return 15;
+    }
+
+    @Override
+    public int getRawBrightness(BlockPos pos, int maxValue) {
+        return 15;
     }
 
     @Override

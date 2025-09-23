@@ -384,13 +384,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             float previewScale = (float) ((3 + Math.exp(3 - (recipeAvgDim / 5))) / explodeMulti);
             mx.scale(previewScale, -previewScale, previewScale);
 
-            Vector3f light0 = new Vector3f(0.2f, 1.0f, -0.7f);
-            Vector3f light1 = new Vector3f(-0.2f, 1.0f, 0.7f);
-            light0.normalize();
-            light1.normalize();
-            
-            RenderSystem.setShaderLights(light0, light1);
-
             drawActualRecipe(recipe, mx, dims, buffers);
 
             mx.popPose();
@@ -514,7 +507,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             blocks.renderSingleBlock(state1,
                     mx,
                     buffers,
-                    0xF000F0,
+                    LightTexture.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY,
                     data, null);
         } catch (Exception e) {
