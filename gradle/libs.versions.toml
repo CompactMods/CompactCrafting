@@ -7,5 +7,5 @@ module = "io.reactivex.rxjava3:rxjava"
 version = "3.1.5"
 
 [libraries.reactivestreams]
-module = "io.reactivex.rxjava3:reactive-streams"
-version = "[1.0.4,)"
+module = "org.reactivestreams:reactive-streams"
+version = "1.0.4"

@@ -7,7 +7,6 @@ import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.network.ClientFieldWatchPacket;
 import dev.compactmods.crafting.network.ClientFieldUnwatchPacket;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
-import dev.compactmods.crafting.network.NetworkHandler;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
 import net.minecraft.server.level.ServerLevel;
