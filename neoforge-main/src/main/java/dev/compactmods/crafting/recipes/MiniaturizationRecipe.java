@@ -26,12 +26,10 @@ import dev.compactmods.crafting.recipes.setup.RecipeBase;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import dev.compactmods.crafting.util.CodecExtensions;
 import net.minecraft.advancements.critereon.ItemPredicate;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -56,7 +54,7 @@ import java.util.stream.Stream;
 public record MiniaturizationRecipe(
         TreeMap<Integer, IRecipeLayer> layers,
         ItemPredicate catalystMatcher,
-        List<ItemStack> catalystItems,
+        ItemStack catalyst,
         ItemStack[] outputs,
         AABB dimensions,
         int requiredTime,
@@ -73,21 +71,6 @@ public record MiniaturizationRecipe(
     public static final Codec<IRecipeComponent> COMPONENT_CODEC =
             RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
-    private record CatalystData(ItemPredicate predicate, List<ItemStack> items) {}
-    
-    private static final Codec<CatalystData> CATALYST_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-        ResourceLocation.CODEC.listOf().fieldOf("items").forGetter(data -> data.items.stream().map(stack -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())).toList())
-    ).apply(instance, itemIds -> {
-        List<ItemStack> itemStacks = itemIds.stream()
-            .map(id -> new ItemStack(BuiltInRegistries.ITEM.get(id)))
-            .toList();
-
-        ItemPredicate predicate = ItemPredicate.Builder.item()
-            .of(itemStacks.stream().map(ItemStack::getItem).toArray(Item[]::new))
-            .build();
-            
-        return new CatalystData(predicate, itemStacks);
-    }));
 
     public static final MapCodec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.INT.optionalFieldOf("craftingTime", 200)
@@ -105,8 +88,8 @@ public record MiniaturizationRecipe(
             ItemStack.STRICT_CODEC.listOf().fieldOf("outputs")
                     .forGetter(MiniaturizationRecipe::codecOutputs),
 
-            CATALYST_CODEC.fieldOf("catalyst")
-                    .forGetter(recipe -> new CatalystData(recipe.catalystTest(), recipe.catalystItems()))
+            ItemStack.STRICT_CODEC.fieldOf("catalyst")
+                    .forGetter(MiniaturizationRecipe::catalyst)
 
     ).apply(i, MiniaturizationRecipe::fromCodec));
 
@@ -116,7 +99,7 @@ public record MiniaturizationRecipe(
             ByteBufCodecs.fromCodec(LAYER_CODEC).apply(ByteBufCodecs.list()), MiniaturizationRecipe::codecLayerList,
             MiniaturizationRecipeComponents.STREAM_CODEC, MiniaturizationRecipe::components,
             ItemStack.LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
-            ByteBufCodecs.fromCodecWithRegistries(CATALYST_CODEC), recipe -> new CatalystData(recipe.catalystMatcher, recipe.catalystItems),
+            ItemStack.STREAM_CODEC, MiniaturizationRecipe::catalyst,
             MiniaturizationRecipe::fromCodec
     );
 
@@ -130,7 +113,7 @@ public record MiniaturizationRecipe(
 
     public static MiniaturizationRecipe fromCodec(int craftTime, int recipeSize, List<IRecipeLayer> layers,
                                                   MiniaturizationRecipeComponents components, List<ItemStack> outputs,
-                                                  CatalystData catalystData) {
+                                                  ItemStack catalyst) {
         var layers1 = new TreeMap<Integer, IRecipeLayer>();
 
         // region Layers
@@ -196,7 +179,11 @@ public record MiniaturizationRecipe(
             componentTotals.put(comp, count);
         });
 
-        var recipe = new MiniaturizationRecipe(layers1, catalystData.predicate(), catalystData.items(), outputs.toArray(new ItemStack[0]),
+        ItemPredicate catalystPredicate = ItemPredicate.Builder.item()
+                .of(catalyst.getItem())
+                .build();
+        
+        var recipe = new MiniaturizationRecipe(layers1, catalystPredicate, catalyst, outputs.toArray(new ItemStack[0]),
                 recipeDims, craftTime, hasFixedFootprint,
                 componentTotals, components);
 

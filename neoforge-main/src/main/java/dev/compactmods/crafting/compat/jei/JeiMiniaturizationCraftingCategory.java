@@ -159,9 +159,9 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         final var catalystSlot = layout.addSlot(RecipeIngredientRole.CATALYST, 1, 1)
                 .setBackground(slotDrawable, -1, -1);
 
-        List<ItemStack> catalystItems = recipe.catalystItems();
-        if (!catalystItems.isEmpty()) {
-            catalystSlot.addItemStacks(catalystItems).addTooltipCallback((slots, c) -> c.add(CATALYST));
+        ItemStack catalyst = recipe.catalyst();
+        if (!catalyst.isEmpty()) {
+            catalystSlot.addItemStack(catalyst).addTooltipCallback((slots, c) -> c.add(CATALYST));
         }
 
         return catalystSlot;
