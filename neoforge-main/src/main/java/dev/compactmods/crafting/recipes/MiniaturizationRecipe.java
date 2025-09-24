@@ -126,6 +126,8 @@ public record MiniaturizationRecipe(
             RecipeHolder::new
     );
 
+
+
     public static MiniaturizationRecipe fromCodec(int craftTime, int recipeSize, List<IRecipeLayer> layers,
                                                   MiniaturizationRecipeComponents components, List<ItemStack> outputs,
                                                   CatalystData catalystData) {
@@ -186,11 +188,7 @@ public record MiniaturizationRecipe(
             recipeDims = new AABB(Vec3.ZERO, new Vec3(x, height, z));
         }
 
-        final AABB footprint = BlockSpaceUtil.getLayerBounds(recipeDims, 0);
-        layers1.values()
-                .stream()
-                .filter(l -> l instanceof IDynamicSizedRecipeLayer)
-                .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(footprint));
+        updateFluidLayerDimensions(layers1, recipeDims);
 
         HashMap<String, Integer> componentTotals = new HashMap<>();
         components.getAllComponents().keySet().forEach(comp -> {
@@ -205,10 +203,9 @@ public record MiniaturizationRecipe(
         return recipe;
     }
 
-    private void updateFluidLayerDimensions() {
-        // Update all the dynamic recipe layers
+    private static void updateFluidLayerDimensions(TreeMap<Integer, IRecipeLayer> layers, AABB dimensions) {
         final AABB footprint = BlockSpaceUtil.getLayerBounds(dimensions, 0);
-        this.layers.values()
+        layers.values()
                 .stream()
                 .filter(l -> l instanceof IDynamicSizedRecipeLayer)
                 .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(footprint));
