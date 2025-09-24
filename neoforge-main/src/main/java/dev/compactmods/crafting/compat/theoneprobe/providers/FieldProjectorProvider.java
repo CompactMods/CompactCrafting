@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class FieldProjectorProvider implements IProbeInfoProvider {
 
-    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(CompactCrafting.MOD_ID, "field_projector");
+    private static final ResourceLocation ID = CompactCrafting.modRL("field_projector");
     @Override
     public ResourceLocation getID() {
         return ID;
@@ -64,7 +64,7 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
                         group.item(new ItemStack(Items.REDSTONE)); // placeholder
 
                         group.icon(
-                                ResourceLocation.fromNamespaceAndPath(CompactCrafting.MOD_ID, "textures/gui/jei-arrow-outputs.png"),
+                                CompactCrafting.modRL( "textures/gui/jei-arrow-outputs.png"),
                                 0, 0, 24, 19, info.defaultIconStyle().textureHeight(19)
                                         .textureWidth(24)
                                         .height(19).width(24));

@@ -19,7 +19,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 public class JeiMiniaturizationPlugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
-        return ResourceLocation.fromNamespaceAndPath(CompactCrafting.MOD_ID, "miniaturization_crafting");
+        return CompactCrafting.modRL("miniaturization_crafting");
     }
 
     @Override
