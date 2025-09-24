@@ -28,5 +28,8 @@ public class CCRenderTypes {
                 .setLightmapState(RenderStateShard.LIGHTMAP)
                 .setTextureState(RenderStateShard.BLOCK_SHEET_MIPPED)
                 .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                .setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST)
+                .setCullState(RenderStateShard.NO_CULL)
+                .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
                 .createCompositeState(true));
 }

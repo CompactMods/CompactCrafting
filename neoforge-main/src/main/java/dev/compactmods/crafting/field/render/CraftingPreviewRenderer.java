@@ -115,7 +115,8 @@ public class CraftingPreviewRenderer {
         final var model = dispatcher.getBlockModel(state);
         
         if (model != mc.getModelManager().getMissingModel()) {
-            final float alpha = 0.9f;
+            final float alpha = 0.9f; // 90% opaque (10% transparent)
+            
             for (var dir : Direction.values()) {
                 model.getQuads(state, dir, mc.level.random, ModelData.EMPTY, null)
                     .forEach(quad -> {
@@ -125,10 +126,9 @@ public class CraftingPreviewRenderer {
                         final float red = FastColor.ARGB32.red(color) / 255f;
                         final float green = FastColor.ARGB32.green(color) / 255f;
                         final float blue = FastColor.ARGB32.blue(color) / 255f;
-                        final float trueAlpha = Mth.clamp(0.01f, alpha, 0.9f);
                         
-                        builder.putBulkData(stack.last(), quad, red, green, blue, trueAlpha, 
-                            LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, false);
+                        builder.putBulkData(stack.last(), quad, red, green, blue, alpha, 
+                            LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, false);
                     });
             }
             
@@ -140,10 +140,9 @@ public class CraftingPreviewRenderer {
                     final float red = FastColor.ARGB32.red(color) / 255f;
                     final float green = FastColor.ARGB32.green(color) / 255f;
                     final float blue = FastColor.ARGB32.blue(color) / 255f;
-                    final float trueAlpha = Mth.clamp(0.01f, alpha, 0.9f);
                     
-                    builder.putBulkData(stack.last(), quad, red, green, blue, trueAlpha, 
-                        LightTexture.FULL_SKY, OverlayTexture.NO_OVERLAY, false);
+                    builder.putBulkData(stack.last(), quad, red, green, blue, alpha, 
+                        LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, false);
                 });
         }
         stack.popPose();
