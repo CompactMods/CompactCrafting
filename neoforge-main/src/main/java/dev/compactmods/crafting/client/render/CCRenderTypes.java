@@ -6,6 +6,8 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 
+import java.util.OptionalDouble;
+
 public class CCRenderTypes {
 
     protected static final RenderStateShard.ShaderStateShard BLOCK_SHADER =
@@ -32,4 +34,14 @@ public class CCRenderTypes {
                 .setCullState(RenderStateShard.NO_CULL)
                 .setWriteMaskState(RenderStateShard.COLOR_DEPTH_WRITE)
                 .createCompositeState(true));
+
+    public static final RenderType PROJECTOR_HIGHLIGHT = RenderType.create("projector_highlight",
+            DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256,
+            RenderType.CompositeState.builder()
+                    .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
+                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)
+                    .setDepthTestState(RenderStateShard.NO_DEPTH_TEST)
+                    .setCullState(RenderStateShard.NO_CULL)
+                    .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                    .createCompositeState(false));
 }

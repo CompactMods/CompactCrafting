@@ -15,5 +15,7 @@ public class NetworkHandler {
         main.playToClient(ClientFieldUnwatchPacket.TYPE, ClientFieldUnwatchPacket.STREAM_CODEC, ClientFieldUnwatchPacket.HANDLER);
 
         main.playToClient(FieldRecipeChangedPacket.TYPE, FieldRecipeChangedPacket.STREAM_CODEC, FieldRecipeChangedPacket.HANDLER);
+        main.playToServer(RequestProxyDataPacket.TYPE, RequestProxyDataPacket.STREAM_CODEC, RequestProxyDataPacket::handle);
+        main.playToClient(ProxyDataResponsePacket.TYPE, ProxyDataResponsePacket.STREAM_CODEC, ProxyDataResponsePacket::handle);
     }
 }

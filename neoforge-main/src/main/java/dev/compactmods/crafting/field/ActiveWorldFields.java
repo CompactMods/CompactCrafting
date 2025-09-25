@@ -6,6 +6,7 @@ import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
 import dev.compactmods.crafting.data.NbtListCollector;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.projector.ProjectorHelper;
+import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +19,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,10 +31,11 @@ public class ActiveWorldFields {
 
     private final Level level;
 
-    /**
-     * Holds a set of miniaturization fields that are active, referenced by their center point.
-     */
     private final HashMap<BlockPos, IMiniaturizationField<MiniaturizationRecipe>> fields = new HashMap<>();
+    private final HashMap<BlockPos, IMiniaturizationField<MiniaturizationRecipe>> pendingFields = new HashMap<>();
+    private final Set<BaseFieldProxyEntity> disconnectedProxies = new HashSet<>();
+    private final Map<BlockPos, BlockPos> proxyToFieldMap = new HashMap<>();
+    private int retryTicker = 0;
 
     private ActiveWorldFields(Level level) {
         this.level = level;
@@ -47,6 +50,12 @@ public class ActiveWorldFields {
     }
 
     public void tickFields() {
+        retryTicker++;
+        
+        if (retryTicker % 20 == 0 && !pendingFields.isEmpty()) {
+            retryPendingFields();
+        }
+        
         Set<ITickingMiniaturizationField> loaded = fields.values().stream()
                 .filter(IMiniaturizationField::isAreaLoaded)
                 .filter(field -> field instanceof ITickingMiniaturizationField)
@@ -58,6 +67,46 @@ public class ActiveWorldFields {
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
         loaded.forEach(ITickingMiniaturizationField::tick);
+    }
+    
+    private void retryPendingFields() {
+        var iterator = pendingFields.entrySet().iterator();
+        while (iterator.hasNext()) {
+            var entry = iterator.next();
+            BlockPos center = entry.getKey();
+            IMiniaturizationField<MiniaturizationRecipe> field = entry.getValue();
+            
+            final Optional<BlockPos> anyMissing = ProjectorHelper
+                    .getMissingProjectors(level, field.getFieldSize(), field.getCenter())
+                    .findFirst();
+            
+            if (anyMissing.isEmpty()) {
+                addFieldInstance(field);
+                iterator.remove();
+                CompactCrafting.LOGGER.debug("Successfully registered delayed field at center {}", center);
+            }
+        }
+        
+        retryProxyConnections();
+    }
+    
+    private void retryProxyConnections() {
+        var iterator = disconnectedProxies.iterator();
+        while (iterator.hasNext()) {
+            var proxy = iterator.next();
+            if (proxy.isRemoved()) {
+                iterator.remove();
+                continue;
+            }
+            
+            if (proxy.tryReconnectToField()) {
+                iterator.remove();
+            }
+        }
+    }
+    
+    public void registerDisconnectedProxy(BaseFieldProxyEntity proxy) {
+        disconnectedProxies.add(proxy);
     }
 
     public void addFieldInstance(IMiniaturizationField<MiniaturizationRecipe> field) {
@@ -71,30 +120,29 @@ public class ActiveWorldFields {
                 .findFirst();
 
         if (anyMissing.isPresent()) {
-            CompactCrafting.LOGGER.warn("Trying to register an active field with missing projector at {}; real state: {}", anyMissing.get(), level.getBlockState(anyMissing.get()));
+            BlockPos center = field.getCenter();
+            if (!pendingFields.containsKey(center)) {
+                pendingFields.put(center, field);
+                CompactCrafting.LOGGER.debug("Field registration delayed for center {} - projector at {} not ready yet", center, anyMissing.get());
+            }
             return field;
         }
 
         addFieldInstance(field);
-
-        // Projectors can find their field through the ActiveWorldFields attachment
-        // using the field center position, so no need to store back-references
-
         return field;
     }
 
     public void unregisterField(BlockPos center) {
         if (fields.containsKey(center)) {
             var removedField = fields.remove(center);
-//            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
-//            removed.invalidate();
 
             if (!level.isClientSide && removedField != null && level instanceof ServerLevel sl) {
-                // Send deactivation packet to clients
                 PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(removedField.getCenter()),
                         new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter(), List.copyOf(removedField.getProjectors().locations())));
             }
         }
+        
+        pendingFields.remove(center);
     }
 
     public void unregisterField(IMiniaturizationField<MiniaturizationRecipe> field) {

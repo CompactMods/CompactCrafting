@@ -32,9 +32,34 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
         super.onLoad();
         
         if(fieldCenter != null && level != null) {
-            var fields = level.getData(CCAttachments.ACTIVE_FIELDS);
-            fields.get(fieldCenter).ifPresent(this::fieldChanged);
+            reconnectToField();
         }
+    }
+    
+    private void reconnectToField() {
+        if (fieldCenter == null || level == null) return;
+        
+        var fields = level.getData(CCAttachments.ACTIVE_FIELDS);
+        var fieldOpt = fields.get(fieldCenter);
+
+        if (fieldOpt.isPresent()) {
+            fieldChanged(fieldOpt.get());
+        } else {
+            fields.registerDisconnectedProxy(this);
+        }
+    }
+    
+    public boolean tryReconnectToField() {
+        if (field == null && fieldCenter != null) {
+            var fields = level.getData(CCAttachments.ACTIVE_FIELDS);
+            var fieldOpt = fields.get(fieldCenter);
+            
+            if (fieldOpt.isPresent()) {
+                fieldChanged(fieldOpt.get());
+                return true;
+            }
+        }
+        return false;
     }
 
     public void updateField(BlockPos fieldCenter) {
@@ -68,8 +93,9 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
     protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
 
-        if(this.fieldCenter != null)
+        if(this.fieldCenter != null) {
             tag.put("center", NbtUtils.writeBlockPos(this.fieldCenter));
+        }
     }
     
     @Override

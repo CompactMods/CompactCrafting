@@ -14,9 +14,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public abstract class ClientPacketHandler {
+    
+    private static final Map<BlockPos, BlockPos> clientProxyToFieldMap = new ConcurrentHashMap<>();
 
     public static void handleFieldActivation(IMiniaturizationField<MiniaturizationRecipe> field, CompoundTag fieldClientData) {
         Minecraft mc = Minecraft.getInstance();
@@ -25,7 +29,6 @@ public abstract class ClientPacketHandler {
             if (cw == null)
                 return;
 
-            // Field data is already loaded in the field creation
             mc.level.getData(CCAttachments.ACTIVE_FIELDS).registerField(field);
         });
     }
@@ -92,8 +95,16 @@ public abstract class ClientPacketHandler {
     }
 
     public static FieldActivatedPacket createFieldActivationPacket(MiniaturizationFieldSize fieldSize, BlockPos center, CompoundTag clientData) {
-        // Reconstruct the field from the NBT data on the client side
         var field = MiniaturizationField.fromNBT(Minecraft.getInstance().level, clientData);
         return new FieldActivatedPacket(field, clientData);
+    }
+    
+    public static void handleProxyData(BlockPos proxyPos, BlockPos fieldCenter) {
+        clientProxyToFieldMap.put(proxyPos, fieldCenter);
+        System.out.println("Cached proxy data: " + proxyPos + " -> " + fieldCenter);
+    }
+    
+    public static BlockPos getProxyFieldCenter(BlockPos proxyPos) {
+        return clientProxyToFieldMap.get(proxyPos);
     }
 }
