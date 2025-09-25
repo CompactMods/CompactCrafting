@@ -22,11 +22,33 @@ public class MatchModeProxyFieldListener implements IFieldListener {
 
     @Override
     public void onRecipeChanged(IMiniaturizationField field, @Nullable IMiniaturizationRecipe recipe) {
-        if (level != null) {
+        updateProxySignal(recipe != null);
+    }
+
+    @Override
+    public void onRecipeMatched(IMiniaturizationField field, IMiniaturizationRecipe recipe) {
+        updateProxySignal(true);
+    }
+
+    @Override
+    public void onRecipeCleared(IMiniaturizationField field) {
+        updateProxySignal(false);
+    }
+
+    @Override
+    public void onRecipeCompleted(IMiniaturizationField field, IMiniaturizationRecipe recipe) {
+        updateProxySignal(false);
+    }
+
+    @Override
+    public void onFieldActivated(IMiniaturizationField field) {
+        updateProxySignal(field.currentRecipe() != null);
+    }
+
+    private void updateProxySignal(boolean hasRecipe) {
+        if (level != null && !level.isClientSide) {
             BlockState currentState = level.getBlockState(location);
             if (currentState.getBlock() instanceof FieldProxyBlock) {
-                boolean hasRecipe = recipe != null;
-
                 int newPower = hasRecipe ? 15 : 0;
 
                 if (currentState.getValue(FieldProxyBlock.SIGNAL) != newPower) {

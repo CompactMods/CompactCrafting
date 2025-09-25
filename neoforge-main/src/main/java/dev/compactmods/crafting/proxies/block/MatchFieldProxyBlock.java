@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.proxies.block;
 
 import org.jetbrains.annotations.Nullable;
-import dev.compactmods.crafting.core.CCCapabilities;
+import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -23,12 +23,12 @@ public class MatchFieldProxyBlock extends FieldProxyBlock implements EntityBlock
         super.onPlace(currState, level, placedAt, prevState, update);
 
         MatchFieldProxyEntity tile = (MatchFieldProxyEntity) level.getBlockEntity(placedAt);
-        if (tile != null) {
-            tile.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
-                    .ifPresent(field -> {
-                        int signal = field.getCurrentRecipe().isPresent() ? 15 : 0;
-                        level.setBlock(placedAt, currState.setValue(SIGNAL, signal), Block.UPDATE_ALL);
-                    });
+        if (tile != null && tile.fieldCenter != null && !level.isClientSide) {
+            var fields = level.getData(CCAttachments.ACTIVE_FIELDS);
+            fields.get(tile.fieldCenter).ifPresent(field -> {
+                int signal = field.currentRecipe() != null ? 15 : 0;
+                level.setBlock(placedAt, currState.setValue(SIGNAL, signal), Block.UPDATE_ALL);
+            });
         }
     }
 
@@ -52,4 +52,5 @@ public class MatchFieldProxyBlock extends FieldProxyBlock implements EntityBlock
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new MatchFieldProxyEntity(pos, state);
     }
+    
 }

@@ -18,6 +18,10 @@ public interface CreativeTabs {
             .title(Component.translatable("itemGroup.compactcrafting"))
             .displayItems((params, out) -> {
                 out.accept(CCItems.FIELD_PROJECTOR_ITEM.get());
+                out.accept(CCItems.RESCAN_PROXY_ITEM.get());
+                out.accept(CCItems.MATCH_PROXY_ITEM.get());
+                out.accept(CCItems.PROJECTOR_DISH_ITEM.get());
+                out.accept(CCItems.BASE_ITEM.get());
             })
             .build());
 

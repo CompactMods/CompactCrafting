@@ -1,11 +1,10 @@
 package dev.compactmods.crafting.proxies.block;
 
 import org.jetbrains.annotations.Nullable;
+import dev.compactmods.crafting.core.CCDataComponents;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -28,6 +27,7 @@ public abstract class FieldProxyBlock extends Block {
 
     public FieldProxyBlock(Properties props) {
         super(props);
+        this.registerDefaultState(this.stateDefinition.any().setValue(SIGNAL, 0));
     }
 
     @Override
@@ -47,41 +47,15 @@ public abstract class FieldProxyBlock extends Block {
         builder.add(SIGNAL);
     }
 
-    // TODO - Proxy pick block
-//    @Override
-//    public ItemStack getPickBlock(BlockState state, HitResult target, BlockGetter level, BlockPos pos, Player player) {
-//        ItemStack stack = new ItemStack(this);
-//
-//        BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(pos);
-//        if (tile != null) {
-//            tile.getCapability(CapabilityMiniaturizationField.MINIATURIZATION_FIELD)
-//                    .ifPresent(field -> {
-//                        CompoundTag fieldInfo = stack.getOrCreateTagElement("field");
-//                        fieldInfo.put("center", NbtUtils.writeBlockPos(field.getCenter()));
-//                    });
-//        }
-//
-//        return stack;
-//    }
-
     @Override
     public void setPlacedBy(Level level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         super.setPlacedBy(level, placedAt, state, entity, stack);
 
         BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(placedAt);
 
-        if (stack.hasTag()) {
-            CompoundTag nbt = stack.getTag();
-
-            if (nbt != null && nbt.contains("field")) {
-                CompoundTag fieldData = nbt.getCompound("field");
-                if (fieldData.contains("center")) {
-                    BlockPos center = NbtUtils.readBlockPos(fieldData.getCompound("center"));
-
-                    if (tile != null)
-                        tile.updateField(center);
-                }
-            }
+        var fieldCenter = stack.get(CCDataComponents.FIELD_CENTER.get());
+        if (fieldCenter != null && tile != null) {
+            tile.updateField(fieldCenter.center());
         }
     }
 

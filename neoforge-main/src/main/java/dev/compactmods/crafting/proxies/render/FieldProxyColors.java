@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 public class FieldProxyColors {
     private static final int MATCH = 0xFF319a3b;
     private static final int RESCAN = 0xFFf062de;
+    
     public static class MatchBlock implements BlockColor {
         @Override
         public int getColor(BlockState state, @Nullable BlockAndTintGetter level, @Nullable BlockPos pos, int tintIndex) {
@@ -21,7 +22,7 @@ public class FieldProxyColors {
 
     public static class MatchItem implements ItemColor {
         @Override
-        public int getColor(ItemStack p_getColor_1_, int p_getColor_2_) {
+        public int getColor(ItemStack stack, int tintIndex) {
             return MATCH;
         }
     }
@@ -35,7 +36,7 @@ public class FieldProxyColors {
 
     public static class RescanItem implements ItemColor {
         @Override
-        public int getColor(ItemStack p_getColor_1_, int p_getColor_2_) {
+        public int getColor(ItemStack stack, int tintIndex) {
             return RESCAN;
         }
     }

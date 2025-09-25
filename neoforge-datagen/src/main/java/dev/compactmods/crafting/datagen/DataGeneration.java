@@ -42,6 +42,6 @@ public class DataGeneration {
 
         generator.addProvider(event.includeClient(), new SharedStateGenerator(pack, event.getExistingFileHelper()));
         generator.addProvider(event.includeClient(), new ProjectorStateGenerator(pack, event.getExistingFileHelper()));
-//        generator.addProvider(event.includeClient(), new ProxyStateGenerator(generator, event.getExistingFileHelper()));
+        generator.addProvider(event.includeClient(), new ProxyStateGenerator(pack, event.getExistingFileHelper()));
     }
 }

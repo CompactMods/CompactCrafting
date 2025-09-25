@@ -2,6 +2,7 @@ package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.items.FieldProjectorItem;
+import dev.compactmods.crafting.proxies.item.FieldProxyItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -26,11 +27,11 @@ public class CCItems {
     public static final DeferredItem<Item> BASE_ITEM = ITEMS.register("base", () ->
             new Item(BASE_ITEM_PROPS.get()));
 
-//    public static final DeferredItem<Item> RESCAN_PROXY_ITEM = ITEMS.register("rescan_proxy", () ->
-//            new FieldProxyItem(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
-//
-//    public static final DeferredItem<Item> MATCH_PROXY_ITEM = ITEMS.register("match_proxy", () ->
-//            new FieldProxyItem(CCBlocks.MATCH_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
+    public static final DeferredItem<Item> RESCAN_PROXY_ITEM = ITEMS.register("rescan_proxy", () ->
+            new FieldProxyItem(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
+
+    public static final DeferredItem<Item> MATCH_PROXY_ITEM = ITEMS.register("match_proxy", () ->
+            new FieldProxyItem(CCBlocks.MATCH_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));
 
     // ================================================================================================================
 

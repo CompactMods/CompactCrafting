@@ -2,6 +2,7 @@ package dev.compactmods.crafting;
 
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.core.CCDataComponents;
 import dev.compactmods.crafting.core.CCItems;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
@@ -32,6 +33,7 @@ public class CompactCrafting {
 
         CCBlocks.init(modBus);
         CCItems.init(modBus);
+        CCDataComponents.init(modBus);
         CCLayerTypes.init(modBus);
         CCMiniaturizationRecipes.init(modBus);
         ComponentRegistration.init(modBus);

@@ -24,9 +24,9 @@ public class BlockLootGenerator extends BlockLootSubProvider {
     @Override
     protected Iterable<Block> getKnownBlocks() {
         return ImmutableList.of(
-                CCBlocks.FIELD_PROJECTOR_BLOCK.get()
-//                CCBlocks.MATCH_FIELD_PROXY_BLOCK.get(),
-//                CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get()
+                CCBlocks.FIELD_PROJECTOR_BLOCK.get(),
+                CCBlocks.MATCH_FIELD_PROXY_BLOCK.get(),
+                CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get()
         );
     }
 
@@ -38,5 +38,18 @@ public class BlockLootGenerator extends BlockLootSubProvider {
                 .setRolls(ConstantValue.exactly(1))
                 .when(ExplosionCondition.survivesExplosion())
                 .add(LootItem.lootTableItem(CCItems.FIELD_PROJECTOR_ITEM.get()))));
+
+        this.add(CCBlocks.MATCH_FIELD_PROXY_BLOCK.get(), LootTable.lootTable().withPool(LootPool
+                .lootPool()
+                .name(CCBlocks.MATCH_FIELD_PROXY_BLOCK.getId().toString())
+                .setRolls(ConstantValue.exactly(1))
+                .when(ExplosionCondition.survivesExplosion())
+                .add(LootItem.lootTableItem(CCItems.MATCH_PROXY_ITEM.get()))));
+        this.add(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get(), LootTable.lootTable().withPool(LootPool
+                .lootPool()
+                .name(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.getId().toString())
+                .setRolls(ConstantValue.exactly(1))
+                .when(ExplosionCondition.survivesExplosion())
+                .add(LootItem.lootTableItem(CCItems.RESCAN_PROXY_ITEM.get()))));
     }
 }

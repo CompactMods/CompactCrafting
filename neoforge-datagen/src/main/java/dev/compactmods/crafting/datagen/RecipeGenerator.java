@@ -47,16 +47,17 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("got_ender_eye", has(Items.ENDER_EYE))
                 .save(output);
 
-//        ShapelessRecipeBuilder.shapeless(CCItems.MATCH_PROXY_ITEM.get())
-//                .requires(CCItems.BASE_ITEM.get())
-//                .requires(Items.REDSTONE)
-//                .unlockedBy("got_redstone", has(Items.REDSTONE))
-//                .save(consumer);
-//
-//        ShapelessRecipeBuilder.shapeless(CCItems.RESCAN_PROXY_ITEM.get())
-//                .requires(CCItems.BASE_ITEM.get())
-//                .requires(Items.CRAFTING_TABLE)
-//                .unlockedBy("got_crafting_table", has(Items.CRAFTING_TABLE))
-//                .save(consumer);
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC,CCItems.MATCH_PROXY_ITEM.get())
+                .requires(CCItems.BASE_ITEM.get())
+                .requires(Items.REDSTONE)
+                .unlockedBy("got_redstone", has(Items.REDSTONE))
+                .save(output);
+
+
+        ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC,CCItems.RESCAN_PROXY_ITEM.get())
+                .requires(CCItems.BASE_ITEM.get())
+                .requires(Items.CRAFTING_TABLE)
+                .unlockedBy("got_crafting_table", has(Items.CRAFTING_TABLE))
+                .save(output);
     }
 }

@@ -25,7 +25,6 @@ import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.drawable.IDrawableStatic;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.gui.widgets.IRecipeExtrasBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -34,7 +33,6 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -53,7 +51,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -247,11 +244,6 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
             if (singleLayerOffset > 0)
                 tooltip.add(Component.translatable("compactcrafting.jei.layer_down"));
         }
-    }
-
-    @Override
-    public void createRecipeExtras(IRecipeExtrasBuilder builder, MiniaturizationRecipe recipe, IFocusGroup focuses) {
-        // Input handling moved to new system - will be implemented separately if needed
     }
 
     @Override

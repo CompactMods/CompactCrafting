@@ -2,6 +2,7 @@ package dev.compactmods.crafting.field;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.field.IFieldListener;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
@@ -49,9 +50,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.lang.ref.WeakReference;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,6 +80,9 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
     // Crafting State
     private EnumCraftingState craftingState;
     private long rescanTime;
+    
+    // Listeners
+    private final Set<IFieldListener> listeners = new CopyOnWriteArraySet<>();
 
     private static Disposable CHUNK_LISTENER;
 
@@ -242,10 +248,10 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         if (craftingState == EnumCraftingState.NOT_MATCHED)
             setCraftingState(EnumCraftingState.MATCHED);
 
-//        this.listeners.forEach(li -> li.ifPresent(l -> {
-//            l.onRecipeChanged(this, this.currentRecipe);
-//            l.onRecipeMatched(this, this.currentRecipe);
-//        }));
+            this.listeners.forEach(l -> {
+                l.onRecipeChanged(this, this.currentRecipe.value());
+                l.onRecipeMatched(this, this.currentRecipe.value());
+            });
     }
 
     @Override
@@ -254,10 +260,10 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         this.craftingProgress = 0;
         setCraftingState(EnumCraftingState.NOT_MATCHED);
 
-//        listeners.forEach(l -> l.ifPresent(listener -> {
-//            listener.onRecipeChanged(this, this.currentRecipe);
-//            listener.onRecipeCleared(this);
-//        }));
+        listeners.forEach(listener -> {
+            listener.onRecipeChanged(this, null);
+            listener.onRecipeCleared(this);
+        });
     }
 
     @Override
@@ -338,7 +344,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
             IMiniaturizationRecipe completed = this.currentRecipe.value();
             clearRecipe();
 
-//                    listeners.forEach(l -> l.ifPresent(listener -> listener.onRecipeCompleted(this, completed)));
+            listeners.forEach(listener -> listener.onRecipeCompleted(this, completed));
         }
     }
 
@@ -436,12 +442,12 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 
         // Update all listeners as well
         final var finalMatchedRecipe = this.currentRecipe;
-//        listeners.forEach(l -> l.ifPresent(fl -> {
-//            fl.onRecipeChanged(this, finalMatchedRecipe);
-//
-//            if (craftingState == EnumCraftingState.MATCHED)
-//                fl.onRecipeMatched(this, finalMatchedRecipe);
-//        }));
+        listeners.forEach(fl -> {
+            fl.onRecipeChanged(this, finalMatchedRecipe != null ? finalMatchedRecipe.value() : null);
+
+            if (craftingState == EnumCraftingState.MATCHED && finalMatchedRecipe != null)
+                fl.onRecipeMatched(this, finalMatchedRecipe.value());
+        });
     }
 
     @Override
@@ -465,7 +471,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         this.areaLoaded = level.isAreaLoaded(center, size.getProjectorDistance() + 3);
 
         if (areaLoaded) {
-//            listeners.forEach(l -> l.ifPresent(fl -> fl.onFieldActivated(this)));
+            listeners.forEach(fl -> fl.onFieldActivated(this));
         }
     }
 
@@ -476,6 +482,16 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 
         // set a distant rescan duration to make the field revalidate itself after a second or two
         this.rescanTime = level.getGameTime() + 30;
+    }
+    
+    public void registerListener(IFieldListener listener) {
+        this.listeners.add(listener);
+        CompactCrafting.LOGGER.debug("Registered field listener: {}", listener);
+    }
+    
+    public void unregisterListener(IFieldListener listener) {
+        this.listeners.remove(listener);
+        CompactCrafting.LOGGER.debug("Unregistered field listener: {}", listener);
     }
 
 //    @Override
@@ -614,7 +630,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 
     @Override
     public MiniaturizationRecipe currentRecipe() {
-        return currentRecipe.value();
+        return currentRecipe != null ? currentRecipe.value() : null;
     }
 
     public CompoundTag serverData() {

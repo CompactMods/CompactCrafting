@@ -1,19 +1,19 @@
 package dev.compactmods.crafting.proxies.item;
 
 import java.util.List;
-import dev.compactmods.crafting.core.CCCapabilities;
+import dev.compactmods.crafting.core.CCDataComponents;
+import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
@@ -28,18 +28,15 @@ public class FieldProxyItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> text, TooltipFlag flags) {
+    public void appendHoverText(ItemStack stack, Item.@Nullable TooltipContext context, List<Component> text, TooltipFlag flags) {
 
-        boolean isLinked = false;
-        if(stack.hasTag()) {
-            CompoundTag field = stack.getOrCreateTagElement("field");
-            if(field.contains("center")) {
-                isLinked = true;
-
-                BlockPos linkedCenter = NbtUtils.readBlockPos(field.getCompound("center"));
-                text.add(Component.translatable("tooltip.compactcrafting.proxy_bound", linkedCenter)
-                    .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.AQUA));
-            }
+        var fieldCenter = stack.get(CCDataComponents.FIELD_CENTER.get());
+        boolean isLinked = fieldCenter != null;
+        
+        if(isLinked) {
+            BlockPos linkedCenter = fieldCenter.center();
+            text.add(Component.translatable("tooltip.compactcrafting.proxy_bound", linkedCenter.toString())
+                .withStyle(ChatFormatting.ITALIC).withStyle(ChatFormatting.AQUA));
         }
 
         if(!isLinked) {
@@ -52,18 +49,16 @@ public class FieldProxyItem extends BlockItem {
 
         text.add(Component.translatable("tooltip.compactcrafting.proxy_hint").withStyle(ChatFormatting.DARK_GRAY));
 
-        super.appendHoverText(stack, level, text, flags);
+        super.appendHoverText(stack, context, text, flags);
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if(player.isDiscrete() && hand == InteractionHand.MAIN_HAND) {
-            // used in the air while sneaking
-            player.displayClientMessage(Component.literal("clearing field data"), true);
+            player.displayClientMessage(Component.translatable("compactcrafting.unbinding_proxy"), true);
 
-            // clear field position
-            stack.removeTagKey("field");
+            stack.remove(CCDataComponents.FIELD_CENTER.get());
 
             return InteractionResultHolder.success(stack);
         }
@@ -83,20 +78,23 @@ public class FieldProxyItem extends BlockItem {
             BlockPos usedAt = context.getClickedPos();
             BlockState usedState = level.getBlockState(usedAt);
 
-            // if used on a projector while sneaking
             if (usedState.getBlock() instanceof FieldProjectorBlock) {
-                player.displayClientMessage(Component.literal("copying field position"), true);
+
+                player.displayClientMessage(Component.translatable("compactcrafting.binding_proxy", usedAt.toString()), true);
 
                 FieldProjectorEntity tile = (FieldProjectorEntity) level.getBlockEntity(usedAt);
                 if (tile != null) {
-                    tile.getCapability(CCCapabilities.MINIATURIZATION_FIELD)
-                            .ifPresent(field -> {
-                                BlockPos fieldCenter = field.getCenter();
+                    var fields = level.getData(CCAttachments.ACTIVE_FIELDS);
+                    
+                    // Search through all fields to find one whose projectors include this position
+                    fields.getFields()
+                        .filter(field -> field.getProjectors().locations().contains(usedAt))
+                        .findFirst()
+                        .ifPresent(field -> {
+                            BlockPos fieldCenter = field.getCenter();
 
-                                // write field center
-                                stack.getOrCreateTagElement("field")
-                                        .put("center", NbtUtils.writeBlockPos(fieldCenter));
-                            });
+                            stack.set(CCDataComponents.FIELD_CENTER.get(), new CCDataComponents.FieldCenter(fieldCenter));
+                        });
                 }
 
                 return InteractionResult.sidedSuccess(level.isClientSide);

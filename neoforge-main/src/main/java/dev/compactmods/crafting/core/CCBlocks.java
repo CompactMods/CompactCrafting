@@ -3,6 +3,10 @@ package dev.compactmods.crafting.core;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
+import dev.compactmods.crafting.proxies.block.MatchFieldProxyBlock;
+import dev.compactmods.crafting.proxies.block.RescanFieldProxyBlock;
+import dev.compactmods.crafting.proxies.data.MatchFieldProxyEntity;
+import dev.compactmods.crafting.proxies.data.RescanFieldProxyEntity;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -23,13 +27,29 @@ public class CCBlocks {
                     .requiresCorrectToolForDrops()
             ));
 
-//    static final Supplier<BlockBehaviour.Properties> PROXY_PROPS = () -> BlockBehaviour.Properties.of()
-//            .strength(8, 20)
-//            .requiresCorrectToolForDrops();
+    public static final DeferredBlock<RescanFieldProxyBlock> RESCAN_FIELD_PROXY_BLOCK = BLOCKS.register("rescan_proxy", () ->
+            new RescanFieldProxyBlock(BlockBehaviour.Properties.of()
+                    .strength(8, 20)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<MatchFieldProxyBlock> MATCH_FIELD_PROXY_BLOCK = BLOCKS.register("match_proxy", () ->
+            new MatchFieldProxyBlock(BlockBehaviour.Properties.of()
+                    .strength(8, 20)
+                    .requiresCorrectToolForDrops()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldProjectorEntity>> FIELD_PROJECTOR_TILE = BLOCK_ENTITIES.register("field_projector", () ->
             BlockEntityType.Builder
                     .of(FieldProjectorEntity::new, FIELD_PROJECTOR_BLOCK.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RescanFieldProxyEntity>> RESCAN_PROXY_ENTITY = BLOCK_ENTITIES.register("rescan_proxy", () ->
+            BlockEntityType.Builder
+                    .of(RescanFieldProxyEntity::new, RESCAN_FIELD_PROXY_BLOCK.get())
+                    .build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MatchFieldProxyEntity>> MATCH_PROXY_ENTITY = BLOCK_ENTITIES.register("match_proxy", () ->
+            BlockEntityType.Builder
+                    .of(MatchFieldProxyEntity::new, MATCH_FIELD_PROXY_BLOCK.get())
                     .build(null));
 
     public static void init(IEventBus bus) {
