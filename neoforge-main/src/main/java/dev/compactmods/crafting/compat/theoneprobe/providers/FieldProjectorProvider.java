@@ -58,10 +58,7 @@ public class FieldProjectorProvider implements IProbeInfoProvider {
                     if(recipe != null) {
                         int progress = field.getProgress();
 
-                        // Get catalyst from recipe
-                        var catalystTest = recipe.catalystTest();
-                        // For display, show the first possible catalyst (simplified)
-                        group.item(new ItemStack(Items.REDSTONE)); // placeholder
+                        group.item(recipe.catalyst());
 
                         group.icon(
                                 CompactCrafting.modRL( "textures/gui/jei-arrow-outputs.png"),
