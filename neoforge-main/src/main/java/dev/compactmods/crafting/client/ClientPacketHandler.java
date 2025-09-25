@@ -101,10 +101,13 @@ public abstract class ClientPacketHandler {
     
     public static void handleProxyData(BlockPos proxyPos, BlockPos fieldCenter) {
         clientProxyToFieldMap.put(proxyPos, fieldCenter);
-        System.out.println("Cached proxy data: " + proxyPos + " -> " + fieldCenter);
     }
     
     public static BlockPos getProxyFieldCenter(BlockPos proxyPos) {
         return clientProxyToFieldMap.get(proxyPos);
+    }
+    
+    public static void removeProxyData(BlockPos proxyPos) {
+        clientProxyToFieldMap.remove(proxyPos);
     }
 }

@@ -1,6 +1,9 @@
 package dev.compactmods.crafting.proxies.block;
 
+import dev.compactmods.crafting.CompactCrafting;
+import net.neoforged.fml.loading.FMLLoader;
 import org.jetbrains.annotations.Nullable;
+import dev.compactmods.crafting.client.ClientPacketHandler;
 import dev.compactmods.crafting.core.CCDataComponents;
 import dev.compactmods.crafting.proxies.data.BaseFieldProxyEntity;
 import net.minecraft.core.BlockPos;
@@ -62,5 +65,14 @@ public abstract class FieldProxyBlock extends Block {
     @Override
     public boolean canConnectRedstone(BlockState state, BlockGetter world, BlockPos pos, @Nullable Direction side) {
         return true;
+    }
+    
+    @Override
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+        if (level.isClientSide && !state.is(newState.getBlock())) {
+            ClientPacketHandler.removeProxyData(pos);
+            if(!FMLLoader.isProduction())CompactCrafting.LOGGER.debug("Removed proxy data for {}", pos);
+        }
+        super.onRemove(state, level, pos, newState, isMoving);
     }
 }
