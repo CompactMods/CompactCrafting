@@ -43,9 +43,17 @@ public class ProxyProjectorHighlighter {
     public static void renderProjectorHighlight(PoseStack poseStack, MultiBufferSource buffers, BlockPos proxyPos, Level level) {
         if (level == null) return;
         
+        var blockEntity = level.getBlockEntity(proxyPos);
+        if (blockEntity instanceof BaseFieldProxyEntity proxy) {
+            ClientPacketHandler.validateAndGetProxyData(proxyPos, proxy.getProxyId());
+        }
+        
+        if (ClientPacketHandler.isProxyDataStale(proxyPos)) {
+            PacketDistributor.sendToServer(new RequestProxyDataPacket(proxyPos));
+        }
+        
         BlockPos fieldCenter = ClientPacketHandler.getProxyFieldCenter(proxyPos);
         if (fieldCenter == null) {
-            PacketDistributor.sendToServer(new RequestProxyDataPacket(proxyPos));
             return;
         }
         

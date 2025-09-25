@@ -103,24 +103,6 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onBlockHighlight(final RenderHighlightEvent.Block event) {
-        final Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null) return;
-
-        BlockPos pos = event.getTarget().getBlockPos();
-        Block block = mc.level.getBlockState(pos).getBlock();
-        
-        if (block == CCBlocks.MATCH_FIELD_PROXY_BLOCK.get() || block == CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get()) {
-            ProxyProjectorHighlighter.renderProjectorHighlight(
-                event.getPoseStack(), 
-                event.getMultiBufferSource(), 
-                pos, 
-                mc.level
-            );
-        }
-    }
-
-    @SubscribeEvent
     public static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
         if (!event.getLevel().isClientSide) return;
         if (event.getHand() != InteractionHand.MAIN_HAND) return;

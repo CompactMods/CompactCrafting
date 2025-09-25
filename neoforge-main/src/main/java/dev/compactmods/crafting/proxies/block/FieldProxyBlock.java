@@ -54,6 +54,10 @@ public abstract class FieldProxyBlock extends Block {
     public void setPlacedBy(Level level, BlockPos placedAt, BlockState state, @Nullable LivingEntity entity, ItemStack stack) {
         super.setPlacedBy(level, placedAt, state, entity, stack);
 
+        if (level.isClientSide) {
+            ClientPacketHandler.removeProxyData(placedAt);
+        }
+
         BaseFieldProxyEntity tile = (BaseFieldProxyEntity) level.getBlockEntity(placedAt);
 
         var fieldCenter = stack.get(CCDataComponents.FIELD_CENTER.get());

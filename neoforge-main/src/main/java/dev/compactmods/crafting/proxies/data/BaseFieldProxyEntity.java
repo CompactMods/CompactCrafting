@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public abstract class BaseFieldProxyEntity extends BlockEntity {
 
@@ -22,6 +23,8 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
     
     @Nullable
     protected IMiniaturizationField<MiniaturizationRecipe> field = null;
+    
+    private UUID proxyId = UUID.randomUUID();
 
     public BaseFieldProxyEntity(BlockEntityType<? extends BaseFieldProxyEntity> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -96,6 +99,7 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
         if(this.fieldCenter != null) {
             tag.put("center", NbtUtils.writeBlockPos(this.fieldCenter));
         }
+        tag.putUUID("proxyId", proxyId);
     }
     
     @Override
@@ -105,5 +109,12 @@ public abstract class BaseFieldProxyEntity extends BlockEntity {
         if(tag.contains("center")) {
             this.fieldCenter = NbtUtils.readBlockPos(tag, "center").orElse(null);
         }
+        if(tag.hasUUID("proxyId")) {
+            this.proxyId = tag.getUUID("proxyId");
+        }
+    }
+    
+    public UUID getProxyId() {
+        return proxyId;
     }
 }

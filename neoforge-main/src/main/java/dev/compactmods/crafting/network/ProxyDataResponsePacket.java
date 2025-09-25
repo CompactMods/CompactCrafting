@@ -8,15 +8,32 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public record ProxyDataResponsePacket(BlockPos proxyPos, BlockPos fieldCenter) implements CustomPacketPayload {
+import java.util.UUID;
+import org.jetbrains.annotations.Nullable;
+
+public record ProxyDataResponsePacket(BlockPos proxyPos, @Nullable BlockPos fieldCenter, UUID proxyId) implements CustomPacketPayload {
 
     public static final CustomPacketPayload.Type<ProxyDataResponsePacket> TYPE = new CustomPacketPayload.Type<>(CompactCrafting.modRL("proxy_data_response"));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, ProxyDataResponsePacket> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, ProxyDataResponsePacket::proxyPos,
-            BlockPos.STREAM_CODEC, ProxyDataResponsePacket::fieldCenter,
-            ProxyDataResponsePacket::new
-    );
+    public static final StreamCodec<RegistryFriendlyByteBuf, ProxyDataResponsePacket> STREAM_CODEC = new StreamCodec<RegistryFriendlyByteBuf, ProxyDataResponsePacket>() {
+        @Override
+        public ProxyDataResponsePacket decode(RegistryFriendlyByteBuf buf) {
+            BlockPos proxyPos = BlockPos.STREAM_CODEC.decode(buf);
+            BlockPos fieldCenter = buf.readBoolean() ? BlockPos.STREAM_CODEC.decode(buf) : null;
+            UUID proxyId = buf.readUUID();
+            return new ProxyDataResponsePacket(proxyPos, fieldCenter, proxyId);
+        }
+
+        @Override
+        public void encode(RegistryFriendlyByteBuf buf, ProxyDataResponsePacket packet) {
+            BlockPos.STREAM_CODEC.encode(buf, packet.proxyPos);
+            buf.writeBoolean(packet.fieldCenter != null);
+            if (packet.fieldCenter != null) {
+                BlockPos.STREAM_CODEC.encode(buf, packet.fieldCenter);
+            }
+            buf.writeUUID(packet.proxyId);
+        }
+    };
 
     @Override
     public Type<? extends CustomPacketPayload> type() {
@@ -24,6 +41,6 @@ public record ProxyDataResponsePacket(BlockPos proxyPos, BlockPos fieldCenter) i
     }
 
     public static void handle(ProxyDataResponsePacket packet, IPayloadContext context) {
-        ClientPacketHandler.handleProxyData(packet.proxyPos, packet.fieldCenter);
+        ClientPacketHandler.handleProxyData(packet.proxyPos, packet.fieldCenter, packet.proxyId);
     }
 }

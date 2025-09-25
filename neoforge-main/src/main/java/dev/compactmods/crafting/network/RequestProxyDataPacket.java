@@ -27,8 +27,8 @@ public record RequestProxyDataPacket(BlockPos proxyPos) implements CustomPacketP
     public static void handle(RequestProxyDataPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer serverPlayer) {
             var blockEntity = serverPlayer.level().getBlockEntity(packet.proxyPos);
-            if (blockEntity instanceof BaseFieldProxyEntity proxy && proxy.fieldCenter != null) {
-                PacketDistributor.sendToPlayer(serverPlayer, new ProxyDataResponsePacket(packet.proxyPos, proxy.fieldCenter));
+            if (blockEntity instanceof BaseFieldProxyEntity proxy) {
+                PacketDistributor.sendToPlayer(serverPlayer, new ProxyDataResponsePacket(packet.proxyPos, proxy.fieldCenter, proxy.getProxyId()));
             }
         }
     }

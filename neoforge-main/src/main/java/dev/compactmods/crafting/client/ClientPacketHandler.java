@@ -6,21 +6,24 @@ import dev.compactmods.crafting.data.CCAttachments;
 import dev.compactmods.crafting.field.IMutableMiniaturizationField;
 import dev.compactmods.crafting.field.MiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
-import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 public abstract class ClientPacketHandler {
     
-    private static final Map<BlockPos, BlockPos> clientProxyToFieldMap = new ConcurrentHashMap<>();
+    private static final Map<BlockPos, ProxyData> clientProxyDataMap = new ConcurrentHashMap<>();
+    private static final long CACHE_DURATION = 1000;
+    
+    private static record ProxyData(@Nullable BlockPos fieldCenter, UUID proxyId, long timestamp) {}
 
     public static void handleFieldActivation(IMiniaturizationField<MiniaturizationRecipe> field, CompoundTag fieldClientData) {
         Minecraft mc = Minecraft.getInstance();
@@ -99,15 +102,29 @@ public abstract class ClientPacketHandler {
         return new FieldActivatedPacket(field, clientData);
     }
     
-    public static void handleProxyData(BlockPos proxyPos, BlockPos fieldCenter) {
-        clientProxyToFieldMap.put(proxyPos, fieldCenter);
+    public static void handleProxyData(BlockPos proxyPos, @Nullable BlockPos fieldCenter, UUID proxyId) {
+        clientProxyDataMap.put(proxyPos, new ProxyData(fieldCenter, proxyId, System.currentTimeMillis()));
     }
     
     public static BlockPos getProxyFieldCenter(BlockPos proxyPos) {
-        return clientProxyToFieldMap.get(proxyPos);
+        ProxyData data = clientProxyDataMap.get(proxyPos);
+        return data != null ? data.fieldCenter : null;
+    }
+    
+    public static boolean isProxyDataStale(BlockPos proxyPos) {
+        ProxyData data = clientProxyDataMap.get(proxyPos);
+        if (data == null) return true;
+        return System.currentTimeMillis() - data.timestamp > CACHE_DURATION;
     }
     
     public static void removeProxyData(BlockPos proxyPos) {
-        clientProxyToFieldMap.remove(proxyPos);
+        clientProxyDataMap.remove(proxyPos);
+    }
+    
+    public static void validateAndGetProxyData(BlockPos proxyPos, UUID currentProxyId) {
+        ProxyData data = clientProxyDataMap.get(proxyPos);
+        if (data != null && !data.proxyId.equals(currentProxyId)) {
+            clientProxyDataMap.remove(proxyPos);
+        }
     }
 }

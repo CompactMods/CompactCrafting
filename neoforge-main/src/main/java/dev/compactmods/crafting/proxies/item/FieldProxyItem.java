@@ -48,6 +48,7 @@ public class FieldProxyItem extends BlockItem {
         }
 
         text.add(Component.translatable("tooltip.compactcrafting.proxy_hint").withStyle(ChatFormatting.DARK_GRAY));
+        text.add(Component.translatable("tooltip.compactcrafting.proxy_highlight_hint").withStyle(ChatFormatting.DARK_GRAY));
 
         super.appendHoverText(stack, context, text, flags);
     }
