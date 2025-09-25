@@ -22,6 +22,7 @@
   "compactcrafting.top.proxy_has_recipe": "Found valid recipe",
   "compactcrafting.top.proxy_bound": "Bound to: %s",
 
+  "tooltip.compactcrafting.proxy_bound": "Bound to field at %s",
   "tooltip.compactcrafting.proxy_hint": "Use proxies for field automation with redstone.",
   "tooltip.compactcrafting.proxy_bind_hint": "Shift-use on a projector to bind to a field.",
   "tooltip.compactcrafting.proxy_unbind_hint": "Shift-use in the air to unbind from field.",

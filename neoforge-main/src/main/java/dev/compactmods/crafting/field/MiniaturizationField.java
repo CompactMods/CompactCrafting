@@ -110,10 +110,12 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         this.size = MiniaturizationFieldSize.valueOf(nbt.getString("size"));
         this.projectors = new FieldProjectorSet(new WeakReference<>(level), this.size.getProjectorLocations(this.center).collect(Collectors.toSet()), this.size);
 
-        setupChunkListener();
+        if (level != null) {
+            setupChunkListener();
+        }
 
         // temp load recipe
-        if (nbt.contains("recipe")) {
+        if (nbt.contains("recipe") && level != null) {
             ResourceLocation recipeId = ResourceLocation.parse(nbt.getString("recipe"));
             this.craftingProgress = nbt.getInt("progress");
             
