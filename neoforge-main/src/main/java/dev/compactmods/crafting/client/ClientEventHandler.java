@@ -113,7 +113,7 @@ public class ClientEventHandler {
         if (block == CCBlocks.MATCH_FIELD_PROXY_BLOCK.get() || block == CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get()) {
             BlockPos fieldCenter = ClientPacketHandler.getProxyFieldCenter(pos);
             if (fieldCenter == null) {
-                event.getEntity().sendSystemMessage(Component.literal("Proxy data not loaded yet, try again"));
+                event.getEntity().displayClientMessage(Component.literal("Proxy is not bound to any fields !"), true);
                 return;
             }
             
