@@ -34,6 +34,7 @@ public class DataGeneration {
         ));
 
         generator.addProvider(event.includeServer(), new RecipeGenerator(pack, lookup));
+        generator.addProvider(event.includeServer(), new BlockTagGenerator(pack, lookup, event.getExistingFileHelper()));
     }
 
     private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {

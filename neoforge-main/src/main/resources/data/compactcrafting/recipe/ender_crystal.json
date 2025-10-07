@@ -32,7 +32,7 @@
   ],
 
   "catalyst": {
-    "items": ["minecraft:ender_pearl"]
+    "id": "minecraft:ender_pearl"
   },
 
   "components": {

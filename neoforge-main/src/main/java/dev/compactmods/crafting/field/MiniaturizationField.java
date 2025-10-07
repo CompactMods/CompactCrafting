@@ -286,6 +286,11 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
                     this.rescanTime = 0;
                     break;
                 }
+                
+                // Rescan every 5 seconds because tools like the Advanced Swapper don't trigger the field contents changed
+                if (level.getGameTime() % 100 == 0) {
+                    doRecipeScan();
+                }
                 break;
 
             case MATCHED:

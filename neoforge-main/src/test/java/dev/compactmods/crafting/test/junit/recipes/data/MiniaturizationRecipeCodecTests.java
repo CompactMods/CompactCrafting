@@ -13,7 +13,6 @@ import dev.compactmods.crafting.test.junit.recipes.util.JUnitTestHelper;
 import dev.compactmods.crafting.test.FileHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.testframework.junit.EphemeralTestServerProvider;
 import org.junit.jupiter.api.Assertions;
@@ -37,11 +36,11 @@ public class MiniaturizationRecipeCodecTests {
     public void DoesNotFailIfNoComponentsDefined(final MinecraftServer server) {
         JsonElement json = FileHelper.getJsonFromFile("recipe_tests/warn_no_components.json");
 
-        final var ops = RegistryOps.create(JsonOps.INSTANCE, server.registryAccess());
         final var result = MiniaturizationRecipe.CODEC
                 .codec()
-                .parse(ops, json)
-                .getOrThrow();
+                .parse(JsonOps.INSTANCE, json)
+                .resultOrPartial(Assertions::fail)
+                .orElseThrow();
 
         final IRecipeComponents components = result.getComponents();
         if (components == null) {
