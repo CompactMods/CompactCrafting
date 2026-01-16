@@ -10,7 +10,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
-public interface IMiniaturizationField<T extends IMiniaturizationRecipe & Recipe<?>> {
+public interface IMiniaturizationField<T extends IMiniaturizationRecipe> {
 
     default void dispose() {}
 

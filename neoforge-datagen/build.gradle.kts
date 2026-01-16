@@ -20,7 +20,7 @@ java {
 }
 
 neoForge {
-    version = neoforged.versions.neoforge
+    version = neoforged.versions.neoforge.get()
 
     mods.create(modId) {
         this.sourceSet(projectApi.sourceSets.main.get())
@@ -51,5 +51,5 @@ dependencies {
     compileOnly(projectApi)
     compileOnly(projectMain)
 
-    additionalRuntimeClasspath(libs.rxjava)
+    "additionalRuntimeClasspath"(libs.rxjava)
 }

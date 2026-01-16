@@ -22,16 +22,14 @@ import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
-import dev.compactmods.crafting.recipes.setup.RecipeBase;
+import dev.compactmods.crafting.api.recipe.setup.RecipeBase;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import dev.compactmods.crafting.util.CodecExtensions;
 import net.minecraft.advancements.critereon.ItemPredicate;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -60,7 +58,7 @@ public record MiniaturizationRecipe(
         boolean hasFixedFootprint,
         Map<String, Integer> cachedComponentTotals,
         MiniaturizationRecipeComponents components
-) implements RecipeBase, IMiniaturizationRecipe {
+) implements IMiniaturizationRecipe {
 
     public static final Codec<IRecipeLayer> LAYER_CODEC = Codec.lazyInitialized(() -> {
         final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.byNameCodec();

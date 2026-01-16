@@ -3,6 +3,7 @@ package dev.compactmods.crafting.recipes;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import io.netty.handler.codec.EncoderException;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;

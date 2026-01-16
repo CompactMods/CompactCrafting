@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.core;
 
 import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
 import net.minecraft.core.registries.BuiltInRegistries;

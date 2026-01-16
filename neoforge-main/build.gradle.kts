@@ -38,7 +38,7 @@ sourceSets.main {
 }
 
 neoForge {
-    version = neoforged.versions.neoforge
+    version = neoforged.versions.neoforge.get()
 
     this.mods.create(modId) {
         modSourceSets.add(coreApi.sourceSets.main)
@@ -55,58 +55,57 @@ neoForge {
         mappingsVersion = libs.versions.parchment
         minecraftVersion = libs.versions.parchmentMC
     }
+}
 
-    runs {
-        // applies to all the run configs below
-        configureEach {
-            logLevel.set(org.slf4j.event.Level.DEBUG)
-            sourceSet = project.sourceSets.main
+neoForge.runs {
+    configureEach {
+        logLevel.set(org.slf4j.event.Level.DEBUG)
+        sourceSet = project.sourceSets.main
 
-            // JetBrains Runtime Hotswap
-            if (!System.getenv().containsKey("CI")) {
-              jvmArgument("-XX:+AllowEnhancedClassRedefinition")
-            }
+        // JetBrains Runtime Hotswap
+        if (!System.getenv().containsKey("CI")) {
+            jvmArgument("-XX:+AllowEnhancedClassRedefinition")
         }
+    }
 
-        create("client") {
-            client()
-            gameDirectory.set(file("runs/client"))
+    register("client") {
+        client()
+        gameDirectory.set(file("runs/client"))
 
-            programArguments.addAll("--username", "Nano")
-            programArguments.addAll("--width", "1920")
-            programArguments.addAll("--height", "1080")
-        }
+        programArguments.addAll("--username", "Nano")
+        programArguments.addAll("--width", "1920")
+        programArguments.addAll("--height", "1080")
+    }
 
-        create("client2") {
-            client()
-            gameDirectory.set(file("runs/client"))
+    register("client2") {
+        client()
+        gameDirectory.set(file("runs/client"))
 
-            programArguments.addAll("--username", "Nano2")
-            programArguments.addAll("--width", "1920")
-            programArguments.addAll("--height", "1080")
-        }
+        programArguments.addAll("--username", "Nano2")
+        programArguments.addAll("--width", "1920")
+        programArguments.addAll("--height", "1080")
+    }
 
-        create("server") {
-            server()
-            gameDirectory.set(file("runs/server"))
+    register("server") {
+        server()
+        gameDirectory.set(file("runs/server"))
 
-            programArgument("nogui")
+        programArgument("nogui")
 
-            systemProperty("neoforge.enabledGameTestNamespaces", modId)
-            environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
+        systemProperty("neoforge.enabledGameTestNamespaces", modId)
+        environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 
-            sourceSet = project.sourceSets.test
-        }
+        sourceSet = sourceSets.test
+    }
 
-        create("gameTestServer") {
-            type = "gameTestServer"
-            gameDirectory.set(file("runs/gametest"))
+    register("GameTests") {
+        this.type.set("gameTestServer")
+        gameDirectory.set(file("runs/gametest"))
 
-            systemProperty("neoforge.enabledGameTestNamespaces", modId)
-            environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
+        systemProperty("neoforge.enabledGameTestNamespaces", modId)
+        environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 
-            sourceSet = project.sourceSets.test
-        }
+        sourceSet = sourceSets.test
     }
 }
 
@@ -114,11 +113,44 @@ repositories {
     mavenLocal()
     mavenCentral()
 
-    maven("https://maven.pkg.github.com/compactmods/compactcrafting") {
+    maven("https://maven.blamejared.com/") {
+        // location of the maven that hosts JEI files since January 2023
+        name = "Jared's maven"
+    }
+
+    maven("https://www.cursemaven.com") {
+        content {
+            includeGroup("curse.maven")
+        }
+    }
+
+    maven("https://modmaven.dev") {
+        // location of a maven mirror for JEI files, as a fallback
+        name = "ModMaven"
+    }
+
+    maven("https://maven.pkg.github.com/compactmods/spatial") {
         name = "Github PKG Core"
         credentials {
             username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
             password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+
+        content {
+            val m = compactmods.spatial.get().module
+            includeModule(m.group, m.name)
+        }
+    }
+
+    maven("https://maven.pkg.github.com/compactmods/gander") {
+        name = "Github PKG Core"
+        credentials {
+            username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.token") as String? ?: System.getenv("GITHUB_TOKEN")
+        }
+
+        content {
+            includeGroup("dev.compactmods.gander")
         }
     }
 }
@@ -129,14 +161,20 @@ dependencies {
     jarJar(coreApi)
 
     implementation(libs.rxjava)
-    additionalRuntimeClasspath(libs.rxjava)
+    "additionalRuntimeClasspath"(libs.rxjava)
+    jarJar(libs.rxjava)
+    jarJar(libs.reactivestreams)
 
     testImplementation(neoforged.testframework)
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    jarJar(libs.rxjava)
-    jarJar(libs.reactivestreams)
+    jarJar(compactmods.bundles.gander)
+    implementation(compactmods.bundles.gander)
+    accessTransformers(compactmods.ganderRendering)
+
+    // ADDITIONAL COMPAT
+    compileOnly(mods.bundles.jei)
 }
 
 tasks.withType<Test> {
@@ -144,9 +182,53 @@ tasks.withType<Test> {
     environment.put("CC_TEST_RESOURCES", file("src/test/resources").path)
 }
 
-tasks.withType<ProcessResources>().configureEach {
+var additionalAccessTransformerFiles = mutableListOf<File>()
+fun additionalAccessTransformersToModsToml(): String {
+    val sb = StringBuilder()
+    additionalAccessTransformerFiles.forEach {
+        sb.appendLine("[[accessTransformers]]");
+        sb.appendLine("file = \"META-INF/additional-ats/${it.name}\"")
+        sb.appendLine()
+    }
 
+    var t = sb.toString();
+    return t.substring(0, t.lastIndexOf("\n"));
+}
+
+var calculateAdditionalAccessTransformerFiles = tasks.create<Task>("calculateAdditionalAccessTransformerFiles") {
+    var included = listOf(compactmods.ganderRendering.get())
+        .map { it.group + ":" + it.name }
+
+    val t1 = configurations.accessTransformers.get()
+    var t2 = t1.resolvedConfiguration.resolvedArtifacts
+        .filter { f -> included.contains(f.moduleVersion.id.module.toString()) }
+
+    t2.forEach {
+        println("Including: ${it.moduleVersion.id.module} (version: ${it.moduleVersion.id.version})")
+        println(it.file.absoluteFile)
+        additionalAccessTransformerFiles.add(it.file.absoluteFile)
+    }
+}
+
+val copyAdditionalAccessTransformers = tasks.create<Copy>("copyAdditionalAccessTransformers") {
+    dependsOn(calculateAdditionalAccessTransformerFiles)
+
+    val targetDir = layout.buildDirectory.get().dir("resources/main/META-INF/additional-ats")
+
+    doLast { println("Copying additional AT files to: $targetDir") }
+    from(additionalAccessTransformerFiles.map { it.absoluteFile })
+    into(targetDir)
+}
+
+tasks.build {
+    finalizedBy(copyAdditionalAccessTransformers)
+}
+
+tasks.withType<ProcessResources>().configureEach {
+    dependsOn(calculateAdditionalAccessTransformerFiles)
     duplicatesStrategy = DuplicatesStrategy.WARN
+
+    val additionalATs = additionalAccessTransformersToModsToml()
 
     val replaceProperties: Map<String, Any> = mapOf(
         "minecraft_version" to mojang.versions.minecraft.get(),
@@ -155,7 +237,8 @@ tasks.withType<ProcessResources>().configureEach {
         "neo_version_range" to neoforged.versions.neoforgeRange.get(),
         "loader_version_range" to "[1,)",
         "mod_id" to modId,
-        "mod_version" to envVersion
+        "mod_version" to version,
+        "additional_access_transformers" to additionalATs
     )
 
     inputs.properties(replaceProperties)
@@ -167,7 +250,8 @@ tasks.withType<ProcessResources>().configureEach {
 tasks.withType<Jar> {
     manifest {
         val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
-        attributes(mapOf(
+        attributes(
+            mapOf(
                 "Specification-Title" to "Compact Crafting",
                 "Specification-Vendor" to "",
                 "Specification-Version" to "1",
@@ -175,7 +259,8 @@ tasks.withType<Jar> {
                 "Implementation-Version" to archiveVersion,
                 "Implementation-Vendor" to "",
                 "Implementation-Timestamp" to now
-        ))
+            )
+        )
     }
 }
 
@@ -188,7 +273,7 @@ publishing {
     }
 
     repositories {
-        // GitHub Packages
+// GitHub Packages
         maven(PACKAGES_URL) {
             name = "GitHubPackages"
             credentials {

@@ -2,9 +2,8 @@ package dev.compactmods.crafting.test.junit.recipes.setup;
 
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
-import dev.compactmods.crafting.recipes.setup.FakeInventory;
+import dev.compactmods.crafting.api.recipe.setup.FakeInventory;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.testframework.annotation.ForEachTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

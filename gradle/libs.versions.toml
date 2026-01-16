@@ -1,11 +1,12 @@
 [versions]
-parchmentMC = "1.21"
-parchment = "2024.07.28"
+# Get versions from https://parchmentmc.org/docs/getting-started
+parchmentMC = "1.21.1"
+parchment = "2024.11.17"
 
 [libraries.rxjava]
 module = "io.reactivex.rxjava3:rxjava"
-version = "3.1.5"
+version = "3.1.12"
 
 [libraries.reactivestreams]
-module = "io.reactivex.rxjava3:reactive-streams"
-version = "[1.0.4,)"
+module = "io.reactivex:rxjava-reactive-streams"
+version = "[1.2.1,)"

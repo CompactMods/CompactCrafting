@@ -1,3 +1,7 @@
+[versions.gander]
+require = "[0.2.32]"
+prefer = "0.2.32"
+
 [versions.spatial]
 require = "[0.2.0, 0.3)"
 prefer = "0.2.1"
@@ -5,3 +9,22 @@ prefer = "0.2.1"
 [libraries.spatial]
 module = "dev.compactmods:spatial"
 version.ref = "spatial"
+
+[libraries.ganderCore]
+module = "dev.compactmods.gander:core"
+version.ref = "gander"
+
+[libraries.ganderLevels]
+module = "dev.compactmods.gander:levels"
+version.ref = "gander"
+
+[libraries.ganderRendering]
+module = "dev.compactmods.gander:rendering"
+version.ref = "gander"
+
+[libraries.ganderUI]
+module = "dev.compactmods.gander:ui"
+version.ref = "gander"
+
+[bundles]
+gander = ["ganderCore", "ganderLevels", "ganderRendering", "ganderUI"]

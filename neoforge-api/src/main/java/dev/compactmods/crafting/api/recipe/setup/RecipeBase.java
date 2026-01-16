@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.recipes.setup;
+package dev.compactmods.crafting.api.recipe.setup;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;

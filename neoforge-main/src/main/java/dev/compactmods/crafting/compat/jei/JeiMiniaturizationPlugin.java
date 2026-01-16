@@ -13,18 +13,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 
 @JeiPlugin
 public class JeiMiniaturizationPlugin implements IModPlugin {
     @Override
     public ResourceLocation getPluginUid() {
-        return new ResourceLocation(CompactCrafting.MOD_ID, "miniaturization_crafting");
+        return CompactCrafting.modRL("miniaturization_crafting");
     }
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
-        registration.addRecipeCategories(new JeiMiniaturizationCraftingCategory(registration.getJeiHelpers().getGuiHelper()));
+        ClientLevel w = Minecraft.getInstance().level;
+        registration.addRecipeCategories(new JeiMiniaturizationCraftingCategory(registration.getJeiHelpers().getGuiHelper(), w.registryAccess()));
     }
 
     @Override
@@ -44,7 +46,11 @@ public class JeiMiniaturizationPlugin implements IModPlugin {
         ClientLevel w = Minecraft.getInstance().level;
         RecipeManager rm = w == null ? null : w.getRecipeManager();
         if(rm != null) {
-            final var miniRecipes = rm.getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get());
+            final var miniRecipes = rm.getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
+                    .stream()
+                    .map(RecipeHolder::value)
+                    .toList();
+            
             registration.addRecipes(JeiMiniaturizationCraftingCategory.RECIPE_TYPE, miniRecipes);
         }
     }

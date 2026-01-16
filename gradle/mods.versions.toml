@@ -1,0 +1,23 @@
+[versions]
+jei = "19.22.1.316"
+
+# Just Enough Items
+[libraries.jeiCommon]
+module = "mezz.jei:jei-1.21.1-common-api"
+version.ref = "jei"
+
+[libraries.jeiNeo]
+module = "mezz.jei:jei-1.21.1-neoforge-api"
+version.ref = "jei"
+
+[bundles]
+jei = ["jeiCommon", "jeiNeo"]
+
+# Kube JS
+[libraries.kubeJS]
+module = "dev.latvian.mods:kubejs-neoforge"
+version = "2101.7.2-build.247"
+
+[libraries.rhino]
+module = "dev.latvian.mods:rhino"
+version = "2101.2.6-build.66"

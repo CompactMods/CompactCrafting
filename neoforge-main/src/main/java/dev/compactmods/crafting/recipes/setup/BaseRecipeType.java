@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.recipes.setup;
 
+import dev.compactmods.crafting.api.recipe.setup.RecipeBase;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.resources.ResourceLocation;
