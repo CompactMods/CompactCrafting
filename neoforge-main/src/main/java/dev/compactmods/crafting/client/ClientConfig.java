@@ -1,15 +1,15 @@
 package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.CompactCrafting;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-@EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT)
 public class ClientConfig {
 
     public static ModConfigSpec CONFIG;
@@ -20,8 +20,8 @@ public class ClientConfig {
 
     public static ModConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
 
-    public static int projectorColor = FastColor.ARGB32.color(255, 255, 106, 0);
-    public static int projectorOffColor = FastColor.ARGB32.color(255, 137, 137, 137);
+    public static int projectorColor = ARGB.color(255, 255, 106, 0);
+    public static int projectorOffColor = ARGB.color(255, 137, 137, 137);
     public static int placementTime = 160;
 
     static {

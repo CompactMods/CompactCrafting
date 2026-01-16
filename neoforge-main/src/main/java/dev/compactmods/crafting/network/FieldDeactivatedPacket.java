@@ -26,7 +26,7 @@ public record FieldDeactivatedPacket(MiniaturizationFieldSize fieldSize, BlockPo
 
     public static final IPayloadHandler<FieldDeactivatedPacket> HANDLER = (pkt, ctx) -> {
         ctx.enqueueWork(() -> {
-            if (FMLEnvironment.dist.isClient()) {
+            if (FMLEnvironment.getDist().isClient()) {
                 ClientPacketHandler.handleFieldDeactivation(pkt.fieldCenter);
             }
         });

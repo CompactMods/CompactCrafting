@@ -10,16 +10,16 @@ import mcjty.theoneprobe.api.IProbeInfoProvider;
 import mcjty.theoneprobe.api.ProbeMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class FieldProxyProvider implements IProbeInfoProvider {
-    private static final ResourceLocation ID = new ResourceLocation(CompactCrafting.MOD_ID, "field_proxy");
+    private static final Identifier ID = new Identifier(CompactCrafting.MOD_ID, "field_proxy");
 
     @Override
-    public ResourceLocation getID() {
+    public Identifier getID() {
         return ID;
     }
 

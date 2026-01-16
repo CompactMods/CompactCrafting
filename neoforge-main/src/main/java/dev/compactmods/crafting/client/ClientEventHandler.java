@@ -13,9 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
-import javax.annotation.Nonnull;
-
-@EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT)
 public class ClientEventHandler {
 
     @SubscribeEvent
@@ -30,19 +28,16 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public static void onWorldRender(final RenderLevelStageEvent event) {
+    public static void onWorldRender(final RenderLevelStageEvent.AfterParticles event) {
         final Minecraft mc = Minecraft.getInstance();
         if (mc.level == null)
             return;
 
-        if (event.getStage().equals(RenderLevelStageEvent.Stage.AFTER_PARTICLES)) {
-            GhostProjectorPlacementRenderer.render(event.getPoseStack());
-            doFieldPreviewRender(event, mc);
-        }
+        GhostProjectorPlacementRenderer.render(event.getPoseStack());
+        doFieldPreviewRender(mc);
     }
 
-    @Nonnull
-    private static void doFieldPreviewRender(RenderLevelStageEvent event, Minecraft mc) {
+    private static void doFieldPreviewRender(Minecraft mc) {
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final HitResult hitResult = mc.hitResult;
 

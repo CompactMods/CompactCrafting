@@ -25,19 +25,13 @@ base {
 
 java {
 //    toolchain.vendor.set(JvmVendorSpec.JETBRAINS)
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
     withJavadocJar()
     withSourcesJar()
 }
 
 neoForge {
     version = neoforged.versions.neoforge.get()
-
-    parchment {
-        enabled = true
-        mappingsVersion = libs.versions.parchment
-        minecraftVersion = libs.versions.parchmentMC
-    }
 }
 
 tasks.withType<Jar> {

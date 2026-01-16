@@ -5,7 +5,7 @@ import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInfo;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.phys.AABB;
@@ -26,7 +26,7 @@ public class CompactGameTestHelper extends GameTestHelper {
         return BlockSpaceUtil.getLayerBounds(getFieldBounds(fieldSize), 0);
     }
 
-    public void loadStructureIntoTestArea(ResourceLocation structure, BlockPos location) {
+    public void loadStructureIntoTestArea(Identifier structure, BlockPos location) {
         final var structures = testInfo.getLevel().getStructureManager();
         final var ender = structures.get(structure);
         if(ender.isEmpty())

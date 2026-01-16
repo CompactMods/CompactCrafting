@@ -25,14 +25,16 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -40,7 +42,7 @@ import java.util.stream.Stream;
 
 public class FieldProjectorBlock extends Block implements EntityBlock {
 
-    public static final DirectionProperty FACING = FieldProjectorProperties.FACING;
+    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<MiniaturizationFieldSize> SIZE = FieldProjectorProperties.SIZE;
 
     private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
@@ -101,8 +103,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public VoxelShape getOcclusionShape(BlockState state, BlockGetter worldIn, BlockPos pos) {
+    protected @NonNull VoxelShape getOcclusionShape(BlockState state) {
         return Shapes.empty();
     }
 
@@ -146,17 +147,15 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             final boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING)).findAny().isPresent();
             if (hasMissing) {
                 GhostProjectorPlacementRenderer.resetRenderTime();
                 GhostProjectorPlacementRenderer.setOriginProjector(level, pos);
             }
-
-            return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {
@@ -211,7 +210,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
 
                 final BlockPos center = getFieldCenter(state, pos);
 
-                if(level instanceof ServerLevel sl) {
+                if (level instanceof ServerLevel sl) {
                     final var fields = sl.getData(CCAttachments.ACTIVE_FIELDS);
                     if (!fields.hasActiveField(center)) {
                         // TODO - Separate client and server field classes
@@ -220,7 +219,7 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
                         field.fieldContentsChanged();
 
                         // Send activation packet to clients
-                        PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(field.getCenter()),
+                        PacketDistributor.sendToPlayersTrackingChunk(sl, ChunkPos.containing(field.getCenter()),
                                 new FieldActivatedPacket(field, new CompoundTag()));
                     }
                 }
@@ -228,35 +227,10 @@ public class FieldProjectorBlock extends Block implements EntityBlock {
         }
     }
 
-    // only called on the server
     @Override
-    public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean p_196243_5_) {
-        final BlockPos fieldCenter = getFieldCenter(oldState, pos);
-        final MiniaturizationFieldSize fieldSize = oldState.getValue(SIZE);
-
-        if (isActive(oldState)) {
-            fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> deactivateProjector(level, proj));
-
-            // Remove field registration - this will also update clients
-            level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
-                if (fields.hasActiveField(fieldCenter)) {
-                    final IMiniaturizationField field = fields.get(fieldCenter).orElse(null);
-                    if (field == null) return;
-
-                    if (field.enabled()) {
-                        fields.unregisterField(fieldCenter);
-                        field.handleDestabilize();
-                        field.dispose();
-                    }
-                }
-            });
-        }
-    }
-
-    @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block changer, BlockPos changedPos, boolean update) {
-        super.neighborChanged(state, level, pos, changer, changedPos, update);
-        if (level.isClientSide)
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+        if (level.isClientSide())
             return;
 
         // FIXME REDSTONE HANDLING

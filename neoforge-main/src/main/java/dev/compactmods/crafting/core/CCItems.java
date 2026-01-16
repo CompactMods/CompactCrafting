@@ -14,17 +14,12 @@ public class CCItems {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(CompactCrafting.MOD_ID);
 
     // ================================================================================================================
+    public static final DeferredItem<Item> FIELD_PROJECTOR_ITEM = ITEMS.registerItem("field_projector", props ->
+            new FieldProjectorItem(CCBlocks.FIELD_PROJECTOR_BLOCK.get(), props));
 
-    static final Supplier<Item.Properties> BASE_ITEM_PROPS = Item.Properties::new;
+    public static final DeferredItem<Item> PROJECTOR_DISH_ITEM = ITEMS.registerSimpleItem("projector_dish");
 
-    public static final DeferredItem<Item> FIELD_PROJECTOR_ITEM = ITEMS.register("field_projector", () ->
-            new FieldProjectorItem(CCBlocks.FIELD_PROJECTOR_BLOCK.get(), BASE_ITEM_PROPS.get()));
-
-    public static final DeferredItem<Item> PROJECTOR_DISH_ITEM = ITEMS.register("projector_dish", () ->
-            new Item(BASE_ITEM_PROPS.get()));
-
-    public static final DeferredItem<Item> BASE_ITEM = ITEMS.register("base", () ->
-            new Item(BASE_ITEM_PROPS.get()));
+    public static final DeferredItem<Item> BASE_ITEM = ITEMS.registerSimpleItem("base");
 
 //    public static final DeferredItem<Item> RESCAN_PROXY_ITEM = ITEMS.register("rescan_proxy", () ->
 //            new FieldProxyItem(CCBlocks.RESCAN_FIELD_PROXY_BLOCK.get(), BASE_ITEM_PROPS.get()));

@@ -12,7 +12,6 @@ import dev.compactmods.crafting.client.render.CubeRenderHelper;
 import dev.compactmods.crafting.client.render.EnumCubeFaceCorner;
 import dev.compactmods.crafting.core.CCBlocks;
 import dev.compactmods.crafting.data.CCAttachments;
-import dev.compactmods.crafting.field.render.CraftingPreviewRenderer;
 import dev.compactmods.crafting.projector.EnumProjectorColorType;
 import dev.compactmods.crafting.projector.FieldProjectorBlock;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
@@ -20,9 +19,9 @@ import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.Direction;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
@@ -35,36 +34,33 @@ import java.util.Objects;
 
 public class MiniaturizationFieldRenderer {
 
-    public static void onRenderStage(RenderLevelStageEvent evt) {
-        if (evt.getStage() == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
+    public static void onRenderStage(RenderLevelStageEvent.AfterTranslucentBlocks evt) {
+        final var mc = Minecraft.getInstance();
+        final var level = mc.level;
 
-            final var mc = Minecraft.getInstance();
-            final var level = mc.level;
+        if (level == null) return;
 
-            if (level == null) return;
+        final var partialTicks = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+        final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
-            final var partialTicks = evt.getPartialTick().getGameTimeDeltaPartialTick(false);
-            final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-
-            level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
-                fields.getFields().forEach(field -> {
-                    render(level, field, partialTicks, evt.getPoseStack(), buffers);
-                });
+        level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
+            fields.getFields().forEach(field -> {
+                render(level, field, partialTicks, evt.getPoseStack(), buffers);
             });
-        }
+        });
     }
 
     public static void render(Level level, IMiniaturizationField<MiniaturizationRecipe> field, float partialTicks, PoseStack pose, MultiBufferSource.BufferSource buffers) {
         // GhostRenderer.render(Blocks.GREEN_STAINED_GLASS.defaultBlockState(), field.getCenter(), matrixStack);
         final Minecraft mc = Minecraft.getInstance();
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
-        Vec3 projectedView = mainCamera.getPosition();
+        Vec3 projectedView = mainCamera.position();
 
         pose.pushPose();
         {
             pose.translate(-projectedView.x, -projectedView.y, -projectedView.z);
             if(field.getCraftingState() == EnumCraftingState.CRAFTING) {
-                CraftingPreviewRenderer.render(field.currentRecipe(), field.getProgress(), pose, buffers, 0, 0);
+//                CraftingPreviewRenderer.render(field.currentRecipe(), field.getProgress(), pose, buffers, 0, 0);
             }
 
             drawMainField(level, pose, buffers, field);
@@ -81,20 +77,20 @@ public class MiniaturizationFieldRenderer {
                     });
 
             buffers.endBatch(CCRenderTypes.FIELD_RENDER_TYPE);
-            buffers.endBatch(RenderType.lines());
+            buffers.endBatch(RenderTypes.lines());
         }
         pose.popPose();
     }
 
     public static int getProjectionColor(EnumProjectorColorType type) {
         int base = ClientConfig.projectorColor;
-        int red = FastColor.ARGB32.red(base);
-        int green = FastColor.ARGB32.green(base);
-        int blue = FastColor.ARGB32.blue(base);
+        int red = ARGB.red(base);
+        int green = ARGB.green(base);
+        int blue = ARGB.blue(base);
 
         return switch (type) {
-            case FIELD, SCAN_LINE -> FastColor.ARGB32.color(50, red, green, blue);
-            case PROJECTOR_FACE -> FastColor.ARGB32.color(250, red, green, blue);
+            case FIELD, SCAN_LINE -> ARGB.color(50, red, green, blue);
+            case PROJECTOR_FACE -> ARGB.color(250, red, green, blue);
         };
     }
 
@@ -103,7 +99,7 @@ public class MiniaturizationFieldRenderer {
      * where the projection arcs meet the main projection cube.
      */
     private static void drawScanLine(Direction side, PoseStack mx, MultiBufferSource buffers, AABB fieldBounds, double gameTime) {
-        VertexConsumer builder = buffers.getBuffer(RenderType.lines());
+        VertexConsumer builder = buffers.getBuffer(RenderTypes.lines());
 
         mx.pushPose();
 
@@ -204,7 +200,7 @@ public class MiniaturizationFieldRenderer {
                 .orElse(Direction.DOWN)
                 .getOpposite();
 
-        VertexConsumer lineBuilder = buffers.getBuffer(RenderType.lines());
+        VertexConsumer lineBuilder = buffers.getBuffer(RenderTypes.lines());
 
         Vec3 hoveredProjectorPos = Vec3.atCenterOf(bhr.getBlockPos());
         Vec3 debugOrigin = new Vec3(.5, .5, .5)
@@ -231,6 +227,6 @@ public class MiniaturizationFieldRenderer {
         }
         mx.popPose();
 
-        buffers.endBatch(RenderType.lines());
+        buffers.endBatch(RenderTypes.lines());
     }
 }

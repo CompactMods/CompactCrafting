@@ -10,7 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RedstoneLampBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -58,7 +58,7 @@ public class ProxyLinkingTests {
         });
 
         RecipeTestUtil.loadStructureIntoTestArea(test,
-                new ResourceLocation("compactcrafting", "recipes/ender_crystal"),
+                new Identifier("compactcrafting", "recipes/ender_crystal"),
                 new BlockPos(4, 1, 4));
 
         proxy.getCapability(CCCapabilities.MINIATURIZATION_FIELD)

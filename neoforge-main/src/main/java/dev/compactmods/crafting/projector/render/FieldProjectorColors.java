@@ -3,7 +3,6 @@ package dev.compactmods.crafting.projector.render;
 import dev.compactmods.crafting.client.ClientConfig;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.color.block.BlockColor;
-import net.minecraft.client.color.item.ItemColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
@@ -27,8 +26,8 @@ public class FieldProjectorColors {
         }
     }
 
-    public static class Item implements ItemColor {
-        @Override
+    public static class Item {
+
         public int getColor(ItemStack stack, int tintIndex) {
             if (tintIndex != 0) return 0;
 

@@ -7,9 +7,9 @@ import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
-import dev.compactmods.crafting.util.CodecExtensions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BlockTypes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -33,9 +33,10 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
     private final HashMap<String, List<String>> allowedValues;
 
     public static final MapCodec<BlockComponent> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
-            CodecExtensions.BLOCK_ID_CODEC.fieldOf("block").forGetter(BlockComponent::getBlock),
+            BuiltInRegistries.BLOCK.byNameCodec().fieldOf("block").forGetter(BlockComponent::getBlock),
             Codec.unboundedMap(Codec.STRING, Codec.STRING.listOf()).optionalFieldOf("properties").forGetter(BlockComponent::getProperties)
     ).apply(i, BlockComponent::new));
+
 
     private Optional<Map<String, List<String>>> getProperties() {
         return Optional.of(allowedValues);

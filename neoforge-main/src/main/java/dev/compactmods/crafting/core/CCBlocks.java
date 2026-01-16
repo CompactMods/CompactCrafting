@@ -16,9 +16,8 @@ public class CCBlocks {
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(CompactCrafting.MOD_ID);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, CompactCrafting.MOD_ID);
 
-    public static final DeferredBlock<FieldProjectorBlock> FIELD_PROJECTOR_BLOCK = BLOCKS.register("field_projector", () ->
-            new FieldProjectorBlock(BlockBehaviour.Properties.of()
-                    .strength(8, 20)
+    public static final DeferredBlock<FieldProjectorBlock> FIELD_PROJECTOR_BLOCK = BLOCKS.registerBlock("field_projector", props ->
+            new FieldProjectorBlock(props.strength(8, 20)
                     .isRedstoneConductor((state, level, pos) -> true)
                     .requiresCorrectToolForDrops()
             ));
@@ -28,9 +27,7 @@ public class CCBlocks {
 //            .requiresCorrectToolForDrops();
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FieldProjectorEntity>> FIELD_PROJECTOR_TILE = BLOCK_ENTITIES.register("field_projector", () ->
-            BlockEntityType.Builder
-                    .of(FieldProjectorEntity::new, FIELD_PROJECTOR_BLOCK.get())
-                    .build(null));
+            new BlockEntityType<>(FieldProjectorEntity::new, FIELD_PROJECTOR_BLOCK.get()));
 
     public static void init(IEventBus bus) {
         BLOCKS.register(bus);

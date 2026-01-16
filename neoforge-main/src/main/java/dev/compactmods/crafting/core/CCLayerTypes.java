@@ -8,14 +8,14 @@ import dev.compactmods.crafting.recipes.layers.HollowComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.MixedComponentRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.SimpleLayerType;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CCLayerTypes {
 
-    public static final ResourceLocation REC_LAYERS = CompactCrafting.modRL("recipe_layers");
+    public static final Identifier REC_LAYERS = CompactCrafting.modRL("recipe_layers");
 
     public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create(REC_LAYERS, CompactCrafting.MOD_ID);
 

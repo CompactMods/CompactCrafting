@@ -64,7 +64,7 @@ public class GhostProjectorPlacementRenderer {
         final ClientLevel level = mc.level;
 
         matrixStack.pushPose();
-        Vec3 projectedView = mainCamera.getPosition();
+        Vec3 projectedView = mainCamera.position();
         matrixStack.translate(-projectedView.x, -projectedView.y, -projectedView.z);
 
         for(BlockPos pos : remainingProjectors.keySet()) {
@@ -100,8 +100,8 @@ public class GhostProjectorPlacementRenderer {
 
         matrixStack.popPose();
 
-        RenderSystem.disableDepthTest();
-        buffers.endBatch(CCRenderTypes.PHANTOM);
+//        RenderSystem.disableDepthTest();
+//        buffers.endBatch(CCRenderTypes.PHANTOM);
     }
 
     public static void tick() {

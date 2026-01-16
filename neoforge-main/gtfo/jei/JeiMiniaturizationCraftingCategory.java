@@ -39,7 +39,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -50,7 +50,7 @@ import org.joml.Vector3f;
 
 public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<MiniaturizationRecipe> {
 
-    public static final ResourceLocation UID = CompactCrafting.modRL("miniaturization");
+    public static final Identifier UID = CompactCrafting.modRL("miniaturization");
     public static final RecipeType<MiniaturizationRecipe> RECIPE_TYPE = new RecipeType<>(UID, MiniaturizationRecipe.class);
 
     private final IDrawable icon;
@@ -292,7 +292,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
     //region Rendering help
     private void drawScaledTexture(
             GuiGraphics guiGraphics,
-            ResourceLocation texture,
+            Identifier texture,
             ScreenRectangle area,
             float u, float v,
             int uWidth, int vHeight,
@@ -334,7 +334,7 @@ public class JeiMiniaturizationCraftingCategory implements IRecipeCategory<Minia
         mx.pushPose();
         mx.translate(0, 0, 10);
 
-        ResourceLocation sprites = CompactCrafting.modRL("textures/gui/jei-sprites.png");
+        Identifier sprites = CompactCrafting.modRL("textures/gui/jei-sprites.png");
 
         if (exploded) {
             drawScaledTexture(guiGraphics, sprites, explodeToggle, 20, 0, 20, 20, 120, 20);

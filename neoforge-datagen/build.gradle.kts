@@ -15,8 +15,8 @@ project.evaluationDependsOn(projectApi.path)
 project.evaluationDependsOn(projectMain.path)
 
 java {
-    toolchain.vendor.set(JvmVendorSpec.JETBRAINS)
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+//    toolchain.vendor.set(JvmVendorSpec.JETBRAINS)
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 neoForge {
@@ -28,17 +28,15 @@ neoForge {
         this.sourceSet(projectMain.sourceSets.main.get())
     }
 
-    runs {
-        this.create("data") {
-            this.data()
+    runs.register("data") {
+        this.clientData()
 
-            this.gameDirectory.set(file("runs/data"))
+        this.gameDirectory.set(file("runs/data"))
 
-            programArguments.addAll("--mod", modId)
-            programArguments.addAll("--all")
-            programArguments.addAll("--output", projectMain.file("src/generated/resources").absolutePath)
-            programArguments.addAll("--existing", projectMain.file("src/main/resources").absolutePath)
-        }
+        programArguments.addAll("--mod", modId)
+        programArguments.addAll("--all")
+        programArguments.addAll("--output", projectMain.file("src/generated/resources").absolutePath)
+        programArguments.addAll("--existing", projectMain.file("src/main/resources").absolutePath)
     }
 }
 
@@ -51,5 +49,5 @@ dependencies {
     compileOnly(projectApi)
     compileOnly(projectMain)
 
-    "additionalRuntimeClasspath"(libs.rxjava)
+    implementation(libs.rxjava)
 }

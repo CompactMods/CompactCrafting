@@ -19,16 +19,16 @@ import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
 import dev.compactmods.crafting.core.CCLayerTypes;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
+import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
-import dev.compactmods.crafting.recipes.components.RecipeComponentTypeCodec;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
-import dev.compactmods.crafting.api.recipe.setup.RecipeBase;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -65,8 +65,9 @@ public record MiniaturizationRecipe(
         return reg.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
     });
 
-    public static final Codec<IRecipeComponent> COMPONENT_CODEC =
-            RecipeComponentTypeCodec.INSTANCE.dispatchStable(IRecipeComponent::getType, RecipeComponentType::getCodec);
+    public static final Codec<IRecipeComponent> COMPONENT_CODEC = ComponentRegistration.COMPONENTS
+            .byNameCodec()
+            .dispatch(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
     public static final MapCodec<MiniaturizationRecipe> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(
             Codec.INT.optionalFieldOf("craftingTime", 200)
@@ -94,13 +95,13 @@ public record MiniaturizationRecipe(
             ByteBufCodecs.INT, MiniaturizationRecipe::codecRecipeSize,
             ByteBufCodecs.fromCodec(LAYER_CODEC).apply(ByteBufCodecs.list()), MiniaturizationRecipe::codecLayerList,
             MiniaturizationRecipeComponents.STREAM_CODEC, MiniaturizationRecipe::components,
-            ItemStack.LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
+            ItemStack.OPTIONAL_LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
             ByteBufCodecs.fromCodecWithRegistries(ItemPredicate.CODEC), MiniaturizationRecipe::catalystMatcher,
             MiniaturizationRecipe::fromCodec
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RecipeHolder<MiniaturizationRecipe>> MINI_RECIPE_HOLDER_STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, RecipeHolder::id,
+            ResourceKey.streamCodec(Registries.RECIPE), RecipeHolder::id,
             MiniaturizationRecipe.STREAM_CODEC, RecipeHolder::value,
             RecipeHolder::new
     );
@@ -374,7 +375,7 @@ public record MiniaturizationRecipe(
 //
 //        if (nbt.contains("recipe")) {
 //            CompoundTag recipe = nbt.getCompound("recipe");
-//            this.setRecipe(ResourceLocation.parse(recipe.getString("id")));
+//            this.setRecipe(Identifier.parse(recipe.getString("id")));
 //            this.setProgress(recipe.getInt("progress"));
 //        }
 //    }

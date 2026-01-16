@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -12,7 +12,7 @@ import net.minecraft.world.phys.Vec3;
 public abstract class CubeRenderHelper {
     public static void addColoredVertex(VertexConsumer renderer, PoseStack stack, int color, Vec3 position) {
         renderer.addVertex(stack.last().pose(), (float) position.x(), (float) position.y(), (float) position.z())
-                .setColor(FastColor.ARGB32.red(color), FastColor.ARGB32.green(color), FastColor.ARGB32.blue(color), FastColor.ARGB32.alpha(color))
+                .setColor(ARGB.red(color), ARGB.green(color), ARGB.blue(color), ARGB.alpha(color))
                 .setNormal(stack.last(), 0, 0, 0);
     }
 
@@ -61,10 +61,10 @@ public abstract class CubeRenderHelper {
 
         Vec3i oppNormal = normal.multiply(-1);
 
-        final int r = FastColor.ARGB32.red(color);
-        final int g = FastColor.ARGB32.green(color);
-        final int b = FastColor.ARGB32.blue(color);
-        final int a = 50; // FastColor.ARGB32.alpha(color);
+        final int r = ARGB.red(color);
+        final int g = ARGB.green(color);
+        final int b = ARGB.blue(color);
+        final int a = 50; // ARGB.alpha(color);
 
         addColoredVertex(builder, mx, color, BOTTOM_LEFT);
         addColoredVertex(builder, mx, color, BOTTOM_RIGHT);

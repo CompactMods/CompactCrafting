@@ -10,7 +10,7 @@ import dev.compactmods.crafting.test.testers.component.ComponentTestHelper;
 import dev.compactmods.crafting.test.testers.recipe.RecipeTestHelper;
 import dev.compactmods.crafting.test.FileHelper;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class TestHelper implements ITestHelper {
 
@@ -28,7 +28,7 @@ public class TestHelper implements ITestHelper {
         return new RecipeTestHelper(testHelper, recipe);
     }
 
-    public RecipeTestHelper forRecipe(ResourceLocation recipeId) {
+    public RecipeTestHelper forRecipe(Identifier recipeId) {
         final var recipe = testHelper.getLevel()
                 .getRecipeManager()
                 .byKey(recipeId)

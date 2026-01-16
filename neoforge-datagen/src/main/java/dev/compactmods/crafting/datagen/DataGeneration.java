@@ -11,37 +11,28 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import java.util.Collections;
 import java.util.List;
 
-@EventBusSubscriber(modid = CompactCrafting.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class DataGeneration {
 
     @SubscribeEvent
-    public static void gatherData(GatherDataEvent event) {
-        if (event.includeServer())
-            registerServerProviders(event.getGenerator(), event);
+    public static void gatherData(GatherDataEvent.Client event) {
+        final var generator = event.getGenerator();
 
-        if (event.includeClient())
-            registerClientProviders(event.getGenerator(), event);
-    }
+        final var packOutput = generator.getPackOutput();
+        final var holderLookup = event.getLookupProvider();
 
-    private static void registerServerProviders(DataGenerator generator, GatherDataEvent event) {
-        var pack = generator.getPackOutput();
-        var lookup = event.getLookupProvider();
-
-        generator.addProvider(event.includeServer(), new LootTableProvider(pack,
+        event.addProvider(new LootTableProvider(packOutput,
                 Collections.emptySet(),
                 List.of(new LootTableProvider.SubProviderEntry(BlockLootGenerator::new, LootContextParamSets.BLOCK)),
-                lookup
+                holderLookup
         ));
 
-        generator.addProvider(event.includeServer(), new RecipeGenerator(pack, lookup));
-    }
 
-    private static void registerClientProviders(DataGenerator generator, GatherDataEvent event) {
-        var pack = generator.getPackOutput();
-        var lookup = event.getLookupProvider();
+        event.createProvider((output,provider)
+                -> new RecipeGenerator.Runner(CompactCrafting.rlPrefix("base"), output, provider));
 
-        generator.addProvider(event.includeClient(), new SharedStateGenerator(pack, event.getExistingFileHelper()));
-        generator.addProvider(event.includeClient(), new ProjectorStateGenerator(pack, event.getExistingFileHelper()));
+//        generator.addProvider(event.includeClient(), new SharedStateGenerator(pack, event.getExistingFileHelper()));
+//        generator.addProvider(event.includeClient(), new ProjectorStateGenerator(pack, event.getExistingFileHelper()));
 //        generator.addProvider(event.includeClient(), new ProxyStateGenerator(generator, event.getExistingFileHelper()));
     }
 }

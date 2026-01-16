@@ -3,7 +3,7 @@ package dev.compactmods.crafting.test.junit.recipes.setup;
 import dev.compactmods.crafting.CompactCrafting;
 import dev.compactmods.crafting.recipes.setup.BaseRecipeType;
 import dev.compactmods.crafting.api.recipe.setup.FakeInventory;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +11,7 @@ public class RecipeSetupTests {
 
     @Test
     public void BaseRecipeType() {
-        final ResourceLocation testId = CompactCrafting.modRL("test");
+        final Identifier testId = CompactCrafting.modRL("test");
         final var type = new BaseRecipeType<>(testId);
 
         final String typeString = type.toString();

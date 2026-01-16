@@ -53,7 +53,7 @@ public class ActiveWorldFields {
         if (loaded.isEmpty())
             return;
 
-        CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().location(), loaded.size());
+        CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().identifier(), loaded.size());
         loaded.forEach(ITickingMiniaturizationField::tick);
     }
 
@@ -106,9 +106,9 @@ public class ActiveWorldFields {
 //            final LazyOptional<IMiniaturizationField> removed = laziness.remove(center);
 //            removed.invalidate();
 
-            if (!level.isClientSide && removedField != null && level instanceof ServerLevel sl) {
+            if (!level.isClientSide() && removedField != null && level instanceof ServerLevel sl) {
                 // Send deactivation packet to clients
-                PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(removedField.getCenter()),
+                PacketDistributor.sendToPlayersTrackingChunk(sl, ChunkPos.containing(removedField.getCenter()),
                         new FieldDeactivatedPacket(removedField.getFieldSize(), removedField.getCenter(), List.copyOf(removedField.getProjectors().locations())));
             }
         }
@@ -130,7 +130,7 @@ public class ActiveWorldFields {
     public Stream<IMiniaturizationField<MiniaturizationRecipe>> getFields(ChunkPos chunk) {
         return fields.entrySet()
                 .stream()
-                .filter(p -> new ChunkPos(p.getKey()).equals(chunk))
+                .filter(p -> ChunkPos.containing(p.getKey()).equals(chunk))
                 .map(Map.Entry::getValue);
     }
 

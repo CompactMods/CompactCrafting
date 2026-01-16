@@ -32,7 +32,7 @@ public record FieldActivatedPacket(IMiniaturizationField<MiniaturizationRecipe> 
 
     public static final IPayloadHandler<FieldActivatedPacket> HANDLER = (pkt, ctx) -> {
         ctx.enqueueWork(() -> {
-            if (FMLEnvironment.dist.isClient()) {
+            if (FMLEnvironment.getDist().isClient()) {
                 ClientPacketHandler.handleFieldActivation(pkt.field, pkt.clientData);
             }
         });

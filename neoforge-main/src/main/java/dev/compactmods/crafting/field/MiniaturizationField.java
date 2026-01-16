@@ -17,7 +17,7 @@ import dev.compactmods.crafting.recipes.blocks.RecipeBlocks;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import io.reactivex.rxjava3.disposables.Disposable;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
@@ -25,7 +25,8 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -41,6 +42,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.NonNull;
 
 import java.lang.ref.WeakReference;
 import java.util.Comparator;
@@ -76,10 +78,10 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
     private static Disposable CHUNK_LISTENER;
 
     // Metallic Orange
-    public static final DustParticleOptions RECIPE_MATCHED_PARTICLE_OPTS = new DustParticleOptions(Vec3.fromRGB24(FastColor.ARGB32.color(210, 226, 99, 16)).toVector3f(), 1);
+    public static final DustParticleOptions RECIPE_MATCHED_PARTICLE_OPTS = new DustParticleOptions(ARGB.color(210, 226, 99, 16), 1);
 
-    // Eucalyptus (Turquiose Green)
-    public static final DustParticleOptions RECIPE_FINISHED_PARTICLE_OPTS = new DustParticleOptions(Vec3.fromRGB24(FastColor.ARGB32.color(210, 68, 215, 168)).toVector3f(), 1);
+    // Eucalyptus (Turquoise Green)
+    public static final DustParticleOptions RECIPE_FINISHED_PARTICLE_OPTS = new DustParticleOptions(ARGB.color(210, 68, 215, 168), 1);
 
     public MiniaturizationField(Level level, MiniaturizationFieldSize size, BlockPos center) {
         this.level = level;
@@ -101,7 +103,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 //
 //        // temp load recipe
 //        if (nbt.contains("recipe")) {
-//            this.recipeId = ResourceLocation.parse(nbt.getString("recipe"));
+//            this.recipeId = Identifier.parse(nbt.getString("recipe"));
 //            this.craftingProgress = nbt.getInt("progress");
 //        }
 //
@@ -121,10 +123,10 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         final Set<ChunkPos> insideChunks = this.projectors
                 .locations()
                 .stream()
-                .map(ChunkPos::new)
+                .map(ChunkPos::containing)
                 .collect(Collectors.toSet());
 
-        insideChunks.add(new ChunkPos(center));
+        insideChunks.add(ChunkPos.containing(center));
 
         CHUNK_LISTENER = WorldEventHandler.CHUNK_CHANGES.filter(ce -> {
             boolean sameLevel = ((LevelChunk) ce.getChunk()).getLevel().dimension().equals(level.dimension());
@@ -279,17 +281,18 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
             var foundPosition = catalystEntities.getFirst().position();
 
             // Only remove items and clear the field on servers
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 CraftingHelper.consumeCatalystItem(catalystEntities.get(0), 1);
 
                 // We know the "recipe" in the field is an exact match already, so wipe the field
                 clearBlocks();
             } else {
                 for (int i = 0; i < 5; i++) {
+                    RandomSource random = level.getRandom();
                     level.addParticle(ParticleTypes.LARGE_SMOKE,
-                            foundPosition.x + level.random.nextDouble(),
-                            foundPosition.y + level.random.nextDouble(),
-                            foundPosition.z + level.random.nextDouble(),
+                            foundPosition.x + random.nextDouble(),
+                            foundPosition.y + random.nextDouble(),
+                            foundPosition.z + random.nextDouble(),
                             0.0, 0.0, 0.0);
                 }
             }
@@ -322,10 +325,11 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         projectors.locations().forEach(proj -> {
             var center = Vec3.atCenterOf(proj);
             for (int i = 0; i < 10; i++) {
+                RandomSource random = level.getRandom();
                 level.addParticle(opts,
-                        center.x + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
-                        center.y + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
-                        center.z + ((level.random.nextBoolean() ? 1 : -1) * level.random.nextDouble()),
+                        center.x + ((random.nextBoolean() ? 1 : -1) * random.nextDouble()),
+                        center.y + ((random.nextBoolean() ? 1 : -1) * random.nextDouble()),
+                        center.z + ((random.nextBoolean() ? 1 : -1) * random.nextDouble()),
                         0.0, 0.0, 0.0);
             }
         });
@@ -361,8 +365,9 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
          * we remove all the recipes that are definitely larger than the currently
          * filled space.
          */
-        var recipes = level.getRecipeManager()
-                .getAllRecipesFor(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
+        var recipes = level.getServer().getRecipeManager()
+                .recipeMap()
+                .byType(CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
                 .stream()
                 .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.value().getDimensions(), filledBounds))
                 .collect(Collectors.toSet());
@@ -405,8 +410,8 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
             spawnParticlesAtProjectors(RECIPE_MATCHED_PARTICLE_OPTS);
 
         // Send tracking client updates
-        if (!level.isClientSide && level instanceof ServerLevel sl) {
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center),
+        if (!level.isClientSide() && level instanceof ServerLevel sl) {
+            PacketDistributor.sendToPlayersTrackingChunk(sl, ChunkPos.containing(center),
                     new FieldRecipeChangedPacket(this.center, Optional.ofNullable(this.currentRecipe)));
         }
 
@@ -434,7 +439,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 
     @Override
     public boolean isAreaLoaded() {
-        return areaLoaded || level.isClientSide;
+        return areaLoaded || level.isClientSide();
     }
 
     public void checkLoaded() {
@@ -490,7 +495,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
         if (craftingState != EnumCraftingState.CRAFTING || matchedBlocks == null)
             return;
 
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         // TODO - Look at dumping items into an inventory if it's attached to a projector, helps automation (in the weird cases)
         boolean restoreBlocks = false;
@@ -520,7 +525,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
             BlockPos placeAt = BlockPos.containing(bounds.minX, bounds.minY, bounds.minZ);
             // TODO - Check the const here, 2 may be wrong
             matchedBlocks.placeInWorld((ServerLevelAccessor) level, placeAt, placeAt,
-                    new StructurePlaceSettings(), level.random, 2);
+                    new StructurePlaceSettings(), level.getRandom(), 2);
         }
 
         if (currentRecipe != null) {
@@ -551,7 +556,7 @@ public class MiniaturizationField implements IMiniaturizationField<Miniaturizati
 
         if (this.level instanceof ServerLevel sl) {
             FieldDeactivatedPacket update = new FieldDeactivatedPacket(size, center, getProjectors().locations().stream().toList());
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center), update);
+            PacketDistributor.sendToPlayersTrackingChunk(sl, ChunkPos.containing(center), update);
         }
     }
 

@@ -2,7 +2,6 @@ modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="MIT"
 
-${additional_access_transformers}
 [[accessTransformers]]
 file = "META-INF/accesstransformer.cfg"
 

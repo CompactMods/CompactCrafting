@@ -28,7 +28,7 @@ public class BlockEventHandler {
 
         Level w = event.getLevel();
 
-        if(w.isClientSide) {
+        if(w.isClientSide()) {
             final BlockPos placedAt = hitVec.getBlockPos().relative(hitVec.getDirection());
             try {
                 final boolean allowPlace = FieldHelper.checkBlockPlacement(w, placedAt);

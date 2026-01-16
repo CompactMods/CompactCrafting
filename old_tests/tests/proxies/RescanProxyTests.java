@@ -9,7 +9,7 @@ import dev.compactmods.crafting.tests.recipes.util.RecipeTestUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.util.LazyOptional;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -62,7 +62,7 @@ public class RescanProxyTests {
 //        });
 //
         RecipeTestUtil.loadStructureIntoTestArea(test,
-                new ResourceLocation("compactcrafting", "recipes/ender_crystal"),
+                new Identifier("compactcrafting", "recipes/ender_crystal"),
                 new BlockPos(4, 2, 4));
 
         test.pulseRedstone(proxy.getBlockPos().below().north(), 15);

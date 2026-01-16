@@ -1,8 +1,8 @@
 [versions]
-neoforge = "21.1.206"
-mdg = "2.0.115"
-neoforgeRange = { require = "[21.1.206,)", prefer = "21.1.206" }
-neoform = "1.21-20240613.152323"
+neoforge = "26.1.0.0-alpha.5+snapshot-2"
+mdg = "2.0.139"
+neoforgeRange = { require = "[26.1.0.0-alpha.5+snapshot-2,)", prefer = "26.1.0.0-alpha.5+snapshot-2" }
+neoform = "no"
 
 [libraries.testframework]
 module = "net.neoforged:testframework"
@@ -11,4 +11,3 @@ version.ref = "neoforge"
 [plugins.moddev]
 id = "net.neoforged.moddev"
 version.ref = "mdg"
-

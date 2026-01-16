@@ -9,7 +9,7 @@ import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -92,7 +92,7 @@ public class BlankMiniaturizationField implements IMiniaturizationField {
     }
 
     @Override
-    public void setRecipe(ResourceLocation id) {
+    public void setRecipe(Identifier id) {
 
     }
 
