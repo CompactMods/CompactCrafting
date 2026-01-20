@@ -2,7 +2,6 @@ package dev.compactmods.crafting.field;
 
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.world.item.crafting.RecipeHolder;
 

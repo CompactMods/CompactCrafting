@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.recipes.layers;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;

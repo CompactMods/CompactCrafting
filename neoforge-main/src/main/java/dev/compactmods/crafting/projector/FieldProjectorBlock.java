@@ -1,269 +1,51 @@
 package dev.compactmods.crafting.projector;
 
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
-import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
-import dev.compactmods.crafting.data.CCAttachments;
-import dev.compactmods.crafting.field.MiniaturizationField;
-import dev.compactmods.crafting.network.FieldActivatedPacket;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.api.projector.world.ProjectorBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.level.redstone.Orientation;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
+public abstract class FieldProjectorBlock extends Block implements ProjectorBlock {
 
-public class FieldProjectorBlock extends Block implements EntityBlock {
-
-    public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
-    public static final EnumProperty<MiniaturizationFieldSize> SIZE = FieldProjectorProperties.SIZE;
-
-    private static final VoxelShape BASE = Shapes.box(0, 0, 0, 1, 6 / 16d, 1);
-
-    private static final VoxelShape POLE = Shapes.box(7 / 16d, 6 / 16d, 7 / 16d, 9 / 16d, 12 / 16d, 9 / 16d);
-
-    private static final VoxelShape DISH_WEST = Shapes.box(3 / 16d, 0.5d, 3 / 16d,
-            7 / 16d, 1, 13 / 16d);
-
-    private static final VoxelShape DISH_EAST = Shapes.box(9 / 16d, 0.5d, 3 / 16d,
-            13 / 16d, 1, 13 / 16d);
-
-    private static final VoxelShape DISH_NORTH = Shapes.box(3 / 16d, 0.5d, 3 / 16d,
-            13 / 16d, 1, 7 / 16d);
-
-    private static final VoxelShape DISH_SOUTH = Shapes.box(3 / 16d, 0.5d, 9 / 16d,
-            13 / 16d, 1, 13 / 16d);
-
-    public FieldProjectorBlock(Properties properties) {
+    protected FieldProjectorBlock(BlockBehaviour.Properties properties) {
         super(properties);
 
-        registerDefaultState(getStateDefinition().any()
-                .setValue(FACING, Direction.NORTH)
-                .setValue(SIZE, MiniaturizationFieldSize.INACTIVE));
-    }
-
-    public static Optional<Direction> getDirection(BlockGetter world, BlockPos position) {
-        BlockState positionState = world.getBlockState(position);
-
-        // The passed block position was not a field projector, cannot continue
-        if (!(positionState.getBlock() instanceof FieldProjectorBlock))
-            return Optional.empty();
-
-        Direction facing = positionState.getValue(FieldProjectorBlock.FACING);
-        return Optional.of(facing);
+        this.registerDefaultState(getStateDefinition().any()
+                .setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public VoxelShape getShape(BlockState state, BlockGetter levelReader, BlockPos pos, CollisionContext ctx) {
-        Direction dir = state.getValue(FieldProjectorBlock.FACING);
-
-        switch (dir) {
-            case WEST:
-                return Shapes.or(BASE, POLE, DISH_WEST);
-
-            case NORTH:
-                return Shapes.or(BASE, POLE, DISH_NORTH);
-
-            case EAST:
-                return Shapes.or(BASE, POLE, DISH_EAST);
-
-            case SOUTH:
-                return Shapes.or(BASE, POLE, DISH_SOUTH);
-        }
-
-        return Shapes.or(BASE, POLE);
-    }
-
-    @Override
-    protected @NonNull VoxelShape getOcclusionShape(BlockState state) {
-        return Shapes.empty();
-    }
-
-    @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(FACING).add(SIZE);
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        Direction looking = context.getHorizontalDirection();
-
-        // Hold shift to make the projector face you; else face away
-        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown())
-            looking = looking.getOpposite();
-
-        Stream<BlockPos> missing = ProjectorHelper.getMissingProjectors(level, pos, looking);
-        BlockPos[] missingSpots = missing.toArray(BlockPos[]::new);
-        boolean hasMissing = Arrays.stream(missingSpots).anyMatch(p -> !p.equals(pos));
-
-        BlockState state = defaultBlockState().setValue(FACING, looking);
-        if (!hasMissing) {
-            MiniaturizationFieldSize size = ProjectorHelper.getClosestOppositeSize(level, pos, looking)
-                    .orElse(MiniaturizationFieldSize.INACTIVE);
-
-            state = state.setValue(SIZE, size);
-        } else {
-            state = state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
-        }
-
-        return state;
-    }
-
-    public static boolean isActive(BlockState state) {
-        return state.getValue(SIZE) != MiniaturizationFieldSize.INACTIVE;
+        builder.add(BlockStateProperties.HORIZONTAL_FACING);
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (level.isClientSide()) {
-            final boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING)).findAny().isPresent();
-            if (hasMissing) {
-                GhostProjectorPlacementRenderer.resetRenderTime();
-                GhostProjectorPlacementRenderer.setOriginProjector(level, pos);
-            }
-        }
+    public @NonNull VoxelShape getShape(BlockState state, @NonNull BlockGetter levelReader, @NonNull BlockPos pos, @NonNull CollisionContext ctx) {
+        Direction dir = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
 
-        return InteractionResult.SUCCESS;
-    }
-
-    public static BlockPos getFieldCenter(BlockState state, BlockPos projector) {
-        return state.getValue(SIZE).getCenterFromProjector(projector, state.getValue(FACING));
-    }
-
-    public static void deactivateProjector(Level level, BlockPos pos) {
-        BlockState currentState = level.getBlockState(pos);
-        if (currentState.getBlock() instanceof FieldProjectorBlock) {
-            BlockState newState = currentState.setValue(SIZE, MiniaturizationFieldSize.INACTIVE);
-            level.setBlock(pos, newState, Block.UPDATE_ALL);
-            level.removeBlockEntity(pos);
-        }
-    }
-
-    public static void activateProjector(Level level, BlockPos pos, MiniaturizationFieldSize fieldSize) {
-        if (level.isLoaded(pos)) {
-            BlockState currentState = level.getBlockState(pos);
-            if (!(currentState.getBlock() instanceof FieldProjectorBlock)) {
-                return;
-            }
-
-            if (currentState.getValue(SIZE) != fieldSize) {
-                BlockState newState = currentState.setValue(SIZE, fieldSize);
-                level.setBlock(pos, newState, Block.UPDATE_ALL);
-            }
-        }
+        final var north = Shapes.or(BASE, POLE, DISH_NORTH).optimize();
+        final var all = Shapes.rotateAll(north);
+        return switch (dir) {
+            case WEST -> Shapes.or(BASE, POLE, DISH_WEST);
+            case NORTH -> Shapes.or(BASE, POLE, DISH_NORTH);
+            case EAST -> Shapes.or(BASE, POLE, DISH_EAST);
+            case SOUTH -> Shapes.or(BASE, POLE, DISH_SOUTH);
+            default -> Shapes.or(BASE, POLE);
+        };
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean b) {
-        if (!isActive(state))
-            return;
-
-        MiniaturizationFieldSize fieldSize = state.getValue(SIZE);
-        BlockPos fieldCenter = fieldSize.getCenterFromProjector(pos, state.getValue(FACING));
-
-        boolean hasMissing = ProjectorHelper.getMissingProjectors(level, pos, state.getValue(FACING))
-                .findAny().isPresent();
-
-        // If there are missing projectors but the projector is supposed to be active, deactivate
-        if (hasMissing) {
-            level.setBlock(pos, state.setValue(SIZE, MiniaturizationFieldSize.INACTIVE), Block.UPDATE_ALL);
-        } else {
-            final MinecraftServer server = level.getServer();
-            if (server == null)
-                return;
-
-            if (level.isAreaLoaded(fieldCenter, fieldSize.getProjectorDistance())) {
-                fieldSize.getProjectorLocations(fieldCenter).forEach(proj -> activateProjector(level, proj, fieldSize));
-
-                final BlockPos center = getFieldCenter(state, pos);
-
-                if (level instanceof ServerLevel sl) {
-                    final var fields = sl.getData(CCAttachments.ACTIVE_FIELDS);
-                    if (!fields.hasActiveField(center)) {
-                        // TODO - Separate client and server field classes
-                        final IMiniaturizationField<MiniaturizationRecipe> field = fields.registerField(new MiniaturizationField(sl, fieldSize, center));
-                        field.checkLoaded();
-                        field.fieldContentsChanged();
-
-                        // Send activation packet to clients
-                        PacketDistributor.sendToPlayersTrackingChunk(sl, ChunkPos.containing(field.getCenter()),
-                                new FieldActivatedPacket(field, new CompoundTag()));
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
-        if (level.isClientSide())
-            return;
-
-        // FIXME REDSTONE HANDLING
-        if (isActive(state)) {
-            CompactCrafting.LOGGER.debug("redstone check!");
-//            BlockEntity tile = level.getBlockEntity(pos);
-//            if (tile instanceof FieldProjectorEntity) {
-//                FieldProjectorEntity fpt = (FieldProjectorEntity) tile;
-//                if (level.getBestNeighborSignal(pos) > 0) {
-//                    // receiving power from some side, turn off rendering
-//                    fpt.getField().ifPresent(IMiniaturizationField::disable);
-//                } else {
-//                    // check other projectors, if there's a redstone signal anywhere, we disable the field
-//                    fpt.getField().ifPresent(IMiniaturizationField::checkRedstone);
-//                }
-//            }
-//        } else {
-//            // not active, but we may be re-enabling a disabled field
-//            ProjectorHelper.getClosestOppositeSize(level, pos).ifPresent(size -> {
-//                final BlockPos center = size.getCenterFromProjector(pos, state.getValue(FACING));
-//                level.getCapability(CCCapabilities.FIELDS).ifPresent(fields -> {
-//                    fields.get(center).ifPresent(IMiniaturizationField::checkRedstone);
-//                });
-//            });
-        }
-    }
-
-    @Nullable
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        if (isActive(state))
-            return new FieldProjectorEntity(pos, state);
-
-        return null;
+    protected @NonNull VoxelShape getOcclusionShape(@NonNull BlockState state) {
+        return Shapes.empty();
     }
 }

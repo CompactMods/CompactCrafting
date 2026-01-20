@@ -1,0 +1,26 @@
+package dev.compactmods.crafting.client.render;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.AABB;
+import org.joml.Vector3fc;
+import org.jspecify.annotations.NonNull;
+
+public record FacePoints(Vector3fc P1, Vector3fc P2, Vector3fc P3, Vector3fc P4) {
+    public static @NonNull FacePoints from(AABB cube, Direction face) {
+        final var TOP_LEFT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.TOP_LEFT);
+        final var TOP_RIGHT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.TOP_RIGHT);
+        final var BOTTOM_LEFT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.BOTTOM_LEFT);
+        final var BOTTOM_RIGHT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.BOTTOM_RIGHT);
+
+        return new FacePoints(TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT);
+    }
+
+    public void putFacePointVertices(VertexConsumer builder, PoseStack mx, int color) {
+        RenderHelper.addColoredVertex(builder, mx, color, P3);
+        RenderHelper.addColoredVertex(builder, mx, color, P4);
+        RenderHelper.addColoredVertex(builder, mx, color, P2);
+        RenderHelper.addColoredVertex(builder, mx, color, P1);
+    }
+}

@@ -1,28 +1,20 @@
 package dev.compactmods.crafting.api.field;
 
-import java.util.stream.Stream;
 import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.api.projector.FieldProjectorSet;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.Level;
+import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
 import net.minecraft.world.phys.AABB;
 
-public interface IMiniaturizationField<T extends IMiniaturizationRecipe> {
+public interface IMiniaturizationField {
 
     default void dispose() {}
 
     AABB getBounds();
 
-    MiniaturizationFieldSize getFieldSize();
-
-    BlockPos getCenter();
+    MiniaturizationFieldLocation location();
 
     int getProgress();
 
-    FieldProjectorSet getProjectors();
+    FieldProjectorPlacements getProjectors();
 
     EnumCraftingState getCraftingState();
 
@@ -38,7 +30,4 @@ public interface IMiniaturizationField<T extends IMiniaturizationRecipe> {
     void checkRedstone();
 
     boolean enabled();
-
-    RecipeHolder<T> recipeHolder();
-    T currentRecipe();
 }

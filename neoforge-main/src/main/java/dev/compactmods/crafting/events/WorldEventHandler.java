@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.events;
 
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.data.CCAttachments;
+import dev.compactmods.crafting.api.CompactCrafting;
+import dev.compactmods.crafting.core.CCAttachments;
 import dev.compactmods.crafting.field.ActiveWorldFields;
 import io.reactivex.rxjava3.subjects.PublishSubject;
 import io.reactivex.rxjava3.subjects.Subject;
@@ -57,8 +57,8 @@ public class WorldEventHandler {
 //        level.getCapability(CCCapabilities.FIELDS)
 //                .map(f -> f.getFields(pos))
 //                .ifPresent(activeFields -> {
-//                    activeFields.forEach(field -> {
-//                        ClientFieldWatchPacket pkt = new ClientFieldWatchPacket(field);
+//                    activeFields.forEach(projectors -> {
+//                        ClientFieldWatchPacket pkt = new ClientFieldWatchPacket(projectors);
 //
 //                        NetworkHandler.MAIN_CHANNEL.send(
 //                                PacketDistributor.PLAYER.with(() -> player),
@@ -78,8 +78,8 @@ public class WorldEventHandler {
 //        level.getCapability(CCCapabilities.FIELDS)
 //                .map(f -> f.getFields(pos))
 //                .ifPresent(activeFields -> {
-//                    activeFields.forEach(field -> {
-//                        ClientFieldUnwatchPacket pkt = new ClientFieldUnwatchPacket(field.getCenter());
+//                    activeFields.forEach(projectors -> {
+//                        ClientFieldUnwatchPacket pkt = new ClientFieldUnwatchPacket(projectors.getCenter());
 //
 //                        NetworkHandler.MAIN_CHANNEL.send(
 //                                PacketDistributor.PLAYER.with(() -> player),

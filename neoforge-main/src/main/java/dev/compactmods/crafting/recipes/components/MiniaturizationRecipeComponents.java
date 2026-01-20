@@ -1,27 +1,25 @@
 package dev.compactmods.crafting.recipes.components;
 
+import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.Lifecycle;
+import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
+import dev.compactmods.crafting.api.components.IRecipeComponent;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.level.block.state.BlockState;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.Lifecycle;
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.components.IRecipeBlockComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponent;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
-import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class MiniaturizationRecipeComponents implements IRecipeComponents {
 

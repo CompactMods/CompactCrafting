@@ -1,11 +1,10 @@
 package dev.compactmods.crafting.server;
 
 import com.electronwill.nightconfig.core.EnumGetMethod;
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.FieldDestabilizeHandling;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -57,10 +56,10 @@ public class ServerConfig {
 
         builder.pop();
 
-        builder.comment("Field Settings").push("field");
+        builder.comment("Field Settings").push("projectors");
 
         FIELD_DESTABILIZE_HANDLING = builder
-                .comment("Changes how the field handles a destabilization event (such as a projector breaking mid-craft)")
+                .comment("Changes how the projectors handles a destabilization event (such as a projector breaking mid-craft)")
                 .defineEnum("destabilizeHandling", FieldDestabilizeHandling.RESTORE_ALL, EnumGetMethod.NAME_IGNORECASE);
 
         builder.pop();

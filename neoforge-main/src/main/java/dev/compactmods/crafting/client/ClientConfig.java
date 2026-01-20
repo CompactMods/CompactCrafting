@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import net.minecraft.util.ARGB;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -41,13 +41,13 @@ public class ClientConfig {
 
         PROJECTOR_COLOR = builder
                 .comment(
-                        "The color for the projector fields. (HEX format)",
+                        "The fieldBaseColor for the projector fields. (HEX format)",
                         "Examples: Orange - #FF6A00, Violet - #32174D, Green - #00A658, Blue - #3A7FE1"
                 )
                 .define("projectorColor", "#FF6A00");
 
         PROJECTOR_OFF_COLOR = builder
-                .comment("The color for the projectors when not active. (HEX format)")
+                .comment("The fieldBaseColor for the projectors when not active. (HEX format)")
                 .define("projectorOffColor", "#898989");
 
         ENABLE_DEBUG_ON_F3 = builder
@@ -55,7 +55,7 @@ public class ClientConfig {
                 .define("projectorDebugger", false);
 
         PLACEMENT_TIME = builder
-                .comment("How long (ticks) the placement helper will show on right-clicking a projector.")
+                .comment("How long (ticks) the projectorInfo helper will show on right-clicking a projector.")
                 .defineInRange("placementTime", 160, 60, 240);
 
         builder.pop();
@@ -80,7 +80,7 @@ public class ClientConfig {
             else
                 return def;
         } catch (NumberFormatException nfe) {
-            CompactCrafting.LOGGER.warn("Bad config value for projector color: {}", hex);
+            CompactCrafting.LOGGER.warn("Bad config value for projector fieldBaseColor: {}", hex);
             return def;
         }
     }

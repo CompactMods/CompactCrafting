@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.client.render.field.MiniaturizationFieldRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -12,5 +12,10 @@ public class CompactCraftingClient {
 
     public CompactCraftingClient(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener(MiniaturizationFieldRenderer::onRenderStage);
+
+        NeoForge.EVENT_BUS.addListener(ClientEventHandler::onTick);
+        NeoForge.EVENT_BUS.addListener(ClientEventHandler::onLevelRender);
+
+        modBus.addListener(ClientEventHandler::registerRenderPipelines);
     }
 }

@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.core;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.recipes.layers.EmptyRecipeLayer;
 import dev.compactmods.crafting.recipes.layers.FilledComponentRecipeLayer;
@@ -15,7 +15,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class CCLayerTypes {
 
-    public static final Identifier REC_LAYERS = CompactCrafting.modRL("recipe_layers");
+    public static final Identifier REC_LAYERS = CompactCrafting.identifier("recipe_layers");
 
     public static DeferredRegister<RecipeLayerType<?>> RECIPE_LAYERS = DeferredRegister.create(REC_LAYERS, CompactCrafting.MOD_ID);
 

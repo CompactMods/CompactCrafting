@@ -22,7 +22,7 @@ java {
 neoForge {
     version = neoforged.versions.neoforge.get()
 
-    mods.create(modId) {
+    mods.register(modId) {
         this.sourceSet(projectApi.sourceSets.main.get())
         this.sourceSet(sourceSets.main.get())
         this.sourceSet(projectMain.sourceSets.main.get())

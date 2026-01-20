@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.datagen;
 
-import dev.compactmods.crafting.CompactCrafting;
-import net.minecraft.data.DataGenerator;
+import dev.compactmods.crafting.api.CompactCrafting;
+import dev.compactmods.crafting.datagen.models.CCModelProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -21,18 +21,19 @@ public class DataGeneration {
         final var packOutput = generator.getPackOutput();
         final var holderLookup = event.getLookupProvider();
 
+        event.createProvider(BlockTagGenerator::new);
+
         event.addProvider(new LootTableProvider(packOutput,
                 Collections.emptySet(),
                 List.of(new LootTableProvider.SubProviderEntry(BlockLootGenerator::new, LootContextParamSets.BLOCK)),
                 holderLookup
         ));
 
+        event.createProvider(CCModelProvider::new);
 
         event.createProvider((output,provider)
-                -> new RecipeGenerator.Runner(CompactCrafting.rlPrefix("base"), output, provider));
+                -> new RecipeGenerator.Runner(CompactCrafting.identifierString("base"), output, provider));
 
-//        generator.addProvider(event.includeClient(), new SharedStateGenerator(pack, event.getExistingFileHelper()));
-//        generator.addProvider(event.includeClient(), new ProjectorStateGenerator(pack, event.getExistingFileHelper()));
 //        generator.addProvider(event.includeClient(), new ProxyStateGenerator(generator, event.getExistingFileHelper()));
     }
 }

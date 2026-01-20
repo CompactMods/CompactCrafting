@@ -1,17 +1,15 @@
 package dev.compactmods.crafting.datagen;
 
-import java.util.concurrent.CompletableFuture;
-
 import dev.compactmods.crafting.core.CCItems;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.Tags;
+
+import java.util.concurrent.CompletableFuture;
 
 public class RecipeGenerator extends RecipeProvider {
     public static class Runner extends RecipeProvider.Runner {

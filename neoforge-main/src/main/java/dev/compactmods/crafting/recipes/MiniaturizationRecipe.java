@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
 import dev.compactmods.crafting.api.components.IRecipeComponents;
@@ -128,7 +128,7 @@ public record MiniaturizationRecipe(
             CompactCrafting.RECIPE_LOGGER.warn("Got layer-required component '{}' but it was not defined in the recipe; removing.", key);
 
             // Only supports fixed-size layers (particular example is mixed layers, which need to specify gaps)
-            // Fluid dimension layers having unknown components is almost certainly a bug on the recipe author
+            // Fluid level layers having unknown components is almost certainly a bug on the recipe author
             for (IRecipeLayer layer : layers) {
                 if (layer instanceof IFixedSizedRecipeLayer fixedLayer) {
                     IPositionalComponentLookup p = fixedLayer.getComponentLookup();
@@ -152,7 +152,7 @@ public record MiniaturizationRecipe(
             recipeDims = new AABB(0, 0, 0, recipeSize, height, recipeSize);
         } else {
             for (var l : layers1.values()) {
-                // We only need to worry about fixed-dimension layers; the fluid layers will adapt
+                // We only need to worry about fixed-level layers; the fluid layers will adapt
                 if (l instanceof IFixedSizedRecipeLayer) {
                     AABB dimensions = ((IFixedSizedRecipeLayer) l).getDimensions();
                     if (dimensions.getXsize() > x)
@@ -190,7 +190,7 @@ public record MiniaturizationRecipe(
     }
 
     /**
-     * Checks that a given field size can contain this recipe.
+     * Checks that a given projectors size can contain this recipe.
      *
      * @param fieldSize
      * @return
@@ -207,7 +207,7 @@ public record MiniaturizationRecipe(
             return false;
         }
 
-        // We know that the recipe will at least fit inside the current projection field
+        // We know that the recipe will at least fit inside the current projection projectors
         AABB filledBounds = blocks.getFilledBounds();
 
         Rotation[] validRotations = Rotation.values();

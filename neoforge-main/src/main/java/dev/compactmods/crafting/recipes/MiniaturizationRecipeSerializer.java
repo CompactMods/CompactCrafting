@@ -1,15 +1,10 @@
 package dev.compactmods.crafting.recipes;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
-import io.netty.handler.codec.EncoderException;
-import net.minecraft.network.FriendlyByteBuf;
+import dev.compactmods.crafting.api.CompactCrafting;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import org.jetbrains.annotations.NotNull;
 
 public class MiniaturizationRecipeSerializer implements RecipeSerializer<MiniaturizationRecipe> {
 

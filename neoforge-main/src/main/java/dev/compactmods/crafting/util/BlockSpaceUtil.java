@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.util;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -11,7 +10,6 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,20 +17,11 @@ import java.util.stream.Stream;
 
 public abstract class BlockSpaceUtil {
 
-    public static AABB getLayerBounds(MiniaturizationFieldSize fieldSize, int layerOffset) {
-        AABB fieldBounds = fieldSize.getBoundsAtOrigin();
-        return getLayerBounds(fieldBounds, layerOffset);
-    }
-
     public static AABB getLayerBounds(AABB fieldBounds, int layerOffset) {
         return new AABB(
                 new Vec3(fieldBounds.minX, fieldBounds.minY + layerOffset, fieldBounds.minZ),
                 new Vec3(fieldBounds.maxX, (fieldBounds.minY + layerOffset) + 1, fieldBounds.maxZ)
         );
-    }
-
-    public static Map<BlockPos, BlockPos> rotatePositionsInPlace(BlockPos[] positions) {
-        return rotatePositionsInPlace(positions, Rotation.CLOCKWISE_90);
     }
 
     public static Map<BlockPos, BlockPos> rotatePositionsInPlace(BlockPos[] positions, Rotation rot) {
@@ -66,15 +55,7 @@ public abstract class BlockSpaceUtil {
         if (inner.getXsize() > outer.getXsize())
             return false;
 
-        if (inner.getYsize() > outer.getYsize())
-            return false;
-
-        return true;
-    }
-
-    public static Stream<BlockPos> getBlocksIn(MiniaturizationFieldSize fieldSize, int layerOffset) {
-        AABB layerBounds = getLayerBounds(fieldSize, layerOffset);
-        return getBlocksIn(layerBounds);
+        return !(inner.getYsize() > outer.getYsize());
     }
 
     @Nonnull
@@ -82,13 +63,12 @@ public abstract class BlockSpaceUtil {
         return BlockPos.betweenClosedStream(bounds.contract(1, 1, 1));
     }
 
-
     public static AABB getBoundsForBlocks(BlockPos[] filled) {
         return getBoundsForBlocks(Arrays.asList(filled));
     }
 
     public static AABB getBoundsForBlocks(Collection<BlockPos> filled) {
-        if (filled.size() == 0)
+        if (filled.isEmpty())
             return AABB.ofSize(Vec3.ZERO,0, 0, 0);
 
         BoundingBox trimmedBounds = null;
@@ -100,7 +80,7 @@ public abstract class BlockSpaceUtil {
 
             BoundingBox checkPos = BoundingBox.fromCorners(filledPos, filledPos);
             if (!trimmedBounds.intersects(checkPos))
-                trimmedBounds.encapsulate(checkPos);
+                trimmedBounds = BoundingBox.encapsulating(trimmedBounds, checkPos);
         }
 
         return AABB.of(trimmedBounds);
@@ -112,11 +92,10 @@ public abstract class BlockSpaceUtil {
     }
 
     /**
-     * Normalizes world coordinates to relative field coordinates.
+     * Normalizes world coordinates to relative projectors coordinates.
      *
-     * @param fieldBounds The bounds of the field itself.
+     * @param fieldBounds The bounds of the projectors itself.
      * @param pos         The position to normalize.
-     * @return
      */
     public static BlockPos normalizeLayerPosition(AABB fieldBounds, BlockPos pos) {
         return BlockPos.containing(
@@ -127,11 +106,10 @@ public abstract class BlockSpaceUtil {
     }
 
     /**
-     * Converts world-coordinate positions into relative field positions.
+     * Converts world-coordinate positions into relative projectors positions.
      *
-     * @param fieldBounds    The boundaries of the crafting field.
-     * @param fieldPositions The non-air block positions in the field (world coordinates).
-     * @return
+     * @param fieldBounds    The boundaries of the crafting projectors.
+     * @param fieldPositions The non-air block positions in the projectors (world coordinates).
      */
     public static BlockPos[] normalizeLayerPositions(AABB fieldBounds, BlockPos[] fieldPositions) {
         // Normalize the block positions so the recipe can match easier
@@ -193,27 +171,4 @@ public abstract class BlockSpaceUtil {
         return BlockPos.containing(bounds.minX, bounds.minY, bounds.maxZ);
     }
 
-    public static Stream<BlockPos> getCornersOfBounds(AABB bounds) {
-        boolean upperRequired = bounds.maxY > bounds.minY;
-        Set<BlockPos> positions = new HashSet<>(upperRequired ? 8 : 4);
-
-        // Lower corners
-        positions.add(BlockPos.containing(bounds.minX, bounds.minY, bounds.minZ));
-        positions.add(BlockPos.containing(bounds.minX, bounds.minY, bounds.maxZ - 1));
-        positions.add(BlockPos.containing(bounds.maxX - 1, bounds.minY, bounds.minZ));
-        positions.add(BlockPos.containing(bounds.maxX - 1, bounds.minY, bounds.maxZ - 1));
-
-        if(upperRequired) {
-            positions.add(BlockPos.containing(bounds.minX, bounds.maxY - 1, bounds.minZ));
-            positions.add(BlockPos.containing(bounds.minX, bounds.maxY - 1, bounds.maxZ - 1));
-            positions.add(BlockPos.containing(bounds.maxX - 1, bounds.maxY - 1, bounds.minZ));
-            positions.add(BlockPos.containing(bounds.maxX - 1, bounds.maxY - 1, bounds.maxZ - 1));
-        }
-
-        return positions.stream();
-    }
-
-    public static Stream<BlockPos> getCornersOfBounds(MiniaturizationFieldSize fieldSize) {
-        return getCornersOfBounds(fieldSize.getBoundsAtOrigin());
-    }
 }

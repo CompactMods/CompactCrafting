@@ -1,40 +1,63 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
+import dev.compactmods.crafting.core.CCAttachments;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import org.joml.Vector3d;
 
-@EventBusSubscriber(modid = CompactCrafting.MOD_ID, value = Dist.CLIENT)
+import java.util.Collection;
+
 public class ClientEventHandler {
 
-    @SubscribeEvent
     public static void onTick(final ClientTickEvent.Post evt) {
-        GhostProjectorPlacementRenderer.tick();
+        final var mc = Minecraft.getInstance();
+        final var player = mc.player;
 
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level != null && !Minecraft.getInstance().isPaused()) {
-//            level.getCapability(CCCapabilities.FIELDS)
-//                    .ifPresent(IActiveWorldFields::tickFields);
+        if (player == null)
+            return;
+
+        int timer = player.getData(CCAttachments.PLACEMENT_TIMER);
+        if (--timer == 0) {
+            player.removeData(CCAttachments.PLACEMENT_TIMER);
+            player.removeData(CCAttachments.PLACEMENT_HELPERS);
+        } else {
+            player.setData(CCAttachments.PLACEMENT_TIMER, timer);
         }
     }
 
-    @SubscribeEvent
-    public static void onWorldRender(final RenderLevelStageEvent.AfterParticles event) {
+    public static void onLevelRender(final RenderLevelStageEvent.AfterParticles event) {
         final Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null)
+        if (mc.level == null || mc.player == null)
             return;
 
-        GhostProjectorPlacementRenderer.render(event.getPoseStack());
         doFieldPreviewRender(mc);
+
+        // debugRenderSmallFieldAtZero(event, MiniaturizationFieldSize.SMALL);
+
+//        GhostRenderer.render(CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get().defaultBlockState(),
+//                BlockPos.ZERO, event.getPoseStack(), 0.1f);
+
+        mc.player.getExistingData(CCAttachments.PLACEMENT_HELPERS)
+                .stream()
+                .flatMap(Collection::stream)
+                .forEach(p -> p.render(event.getPoseStack()));
+    }
+
+    private static void debugRenderSmallFieldAtZero(RenderLevelStageEvent.AfterParticles event, MiniaturizationFieldSize size) {
+        final var zero = new MiniaturizationFieldLocation(new Vector3d().add(0.5, 0.5, 0.5), size);
+
+        final var zeroGhost = new GhostProjectorPlacementRenderer(zero);
+
+        zeroGhost.render(event.getPoseStack());
     }
 
     private static void doFieldPreviewRender(Minecraft mc) {
@@ -46,12 +69,12 @@ public class ClientEventHandler {
 //        mc.level.getCapability(CCCapabilities.FIELDS)
 //                .ifPresent(fields -> {
 //                    fields.getFields()
-//                            .filter(field -> Vec3.atCenterOf(field.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))
-//                            .filter(field -> field.getCraftingState() == EnumCraftingState.CRAFTING)
-//                            .filter(field -> field.getCurrentRecipe().isPresent())
+//                            .filter(projectors -> Vec3.atCenterOf(projectors.getCenter()).closerThan(mainCamera.getPosition(), viewDistance))
+//                            .filter(projectors -> projectors.getCraftingState() == EnumCraftingState.CRAFTING)
+//                            .filter(projectors -> projectors.getCurrentRecipe().isPresent())
 //                            .filter(IMiniaturizationField::enabled)
-//                            .forEach(field -> {
-//                                BlockPos center = field.getCenter();
+//                            .forEach(projectors -> {
+//                                BlockPos center = projectors.getCenter();
 //
 //                                PoseStack stack = event.getPoseStack();
 //                                stack.pushPose();
@@ -64,8 +87,8 @@ public class ClientEventHandler {
 //                                        (double) center.getZ()
 //                                );
 //
-//                                final IMiniaturizationRecipe rec = field.getCurrentRecipe().get();
-//                                final int prog = field.getProgress();
+//                                final IMiniaturizationRecipe rec = projectors.getCurrentRecipe().get();
+//                                final int prog = projectors.getProgress();
 //
 //                                CraftingPreviewRenderer.render(
 //                                        rec, prog, stack,
@@ -76,5 +99,9 @@ public class ClientEventHandler {
 //                            });
 //                });
         buffers.endBatch();
+    }
+
+    public static void registerRenderPipelines(final RegisterRenderPipelinesEvent event) {
+        event.registerPipeline(CCRenderTypes.FIELD_PIPELINE);
     }
 }

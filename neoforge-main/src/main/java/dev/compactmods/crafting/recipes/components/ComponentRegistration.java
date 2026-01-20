@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.recipes.components;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.components.RecipeComponentType;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
@@ -10,7 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class ComponentRegistration {
 
-    public static final Identifier RECIPE_COMPONENTS_ID = CompactCrafting.modRL("recipe_components");
+    public static final Identifier RECIPE_COMPONENTS_ID = CompactCrafting.identifier("recipe_components");
 
     public static DeferredRegister<RecipeComponentType<?>> RECIPE_COMPONENTS = DeferredRegister.create(RECIPE_COMPONENTS_ID, CompactCrafting.MOD_ID);
 

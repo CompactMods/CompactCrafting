@@ -1,45 +1,44 @@
 package dev.compactmods.crafting.api.field;
 
-import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.stream.Stream;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Mth;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
+import org.jspecify.annotations.NonNull;
+
+import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.Optional;
 
 public enum MiniaturizationFieldSize implements StringRepresentable {
     /**
-     * Inactive field. Does not have dimensions.
-     */
-    INACTIVE("inactive", 0, 0),
-
-    /**
      * 3x3x3 crafting field Size
      */
-    SMALL("small", 1, 3),
+    SMALL("small", 1, 4),
 
     /**
      * 5x5x5 crafting field Size
      */
-    MEDIUM("medium", 2, 5),
+    MEDIUM("medium", 2, 6),
 
     /**
      * 7x7x7 crafting field Size
      */
-    LARGE("large", 3, 7),
+    LARGE("large", 3, 8),
 
     /**
      * 9x9x9 crafting field size.
      */
-    ABSURD("absurd", 4, 9);
+    ABSURD("absurd", 4, 10);
 
-    private final int size;
+    private final int radius;
 
     /**
      * Number of blocks between two projectors.
@@ -55,25 +54,10 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
             ByteBufCodecs.STRING_UTF8.map(MiniaturizationFieldSize::valueOf, MiniaturizationFieldSize::name)
                     .cast();
 
-    public static final MiniaturizationFieldSize[] VALID_SIZES = new MiniaturizationFieldSize[] {
-            SMALL, MEDIUM, LARGE, ABSURD
-    };
-
-    MiniaturizationFieldSize(String name, int size, int distance) {
-        this.size = size;
+    MiniaturizationFieldSize(String name, int radius, int distance) {
+        this.radius = radius;
         this.projectorDistance = distance;
         this.name = name;
-    }
-
-    @Nonnull
-    public static Optional<MiniaturizationFieldSize> fromDimensions(double size) {
-        // smaller than small, larger than max size, or not an odd size
-        if(size < SMALL.getDimensions() || size > maximum().getDimensions() || size % 2 == 0)
-            return Optional.empty();
-
-        return Arrays.stream(values())
-                .filter(s -> s.getDimensions() == size)
-                .findFirst();
     }
 
     public static boolean canFitDimensions(int dims) {
@@ -90,11 +74,11 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
     }
 
     public int getDimensions() {
-        return (this.size * 2) + 1;
+        return (this.radius * 2) + 1;
     }
 
-    public int getSize() {
-        return this.size;
+    public int getRadius() {
+        return this.radius;
     }
 
     public String getName() {
@@ -105,83 +89,32 @@ public enum MiniaturizationFieldSize implements StringRepresentable {
         return ABSURD;
     }
 
-    public BlockPos getCenterFromProjector(BlockPos projector, Direction facing) {
-        return projector.relative(facing, this.getProjectorDistance() + 1);
+    public Vector3dc getOriginCenter() {
+        final var centerBlock = BlockPos.ZERO.offset(radius, radius, radius);
+        return new Vector3d(Vec3.atCenterOf(centerBlock).toVector3f());
     }
 
-    public BlockPos getProjectorLocationForDirection(BlockPos center, Direction direction) {
-        return center.relative(direction, this.getProjectorDistance() + 1);
+    public AABB toAABB(Vector3dc center) {
+        return new AABB(BlockPos.containing(center.x(), center.y(), center.z())).inflate(radius);
     }
 
-    public BlockPos getOriginCenter() {
-        return new BlockPos(BlockPos.ZERO.offset(size, size, size));
-    }
+    @Nonnull
+    public static Optional<MiniaturizationFieldSize> fromDimensions(double size) {
+        // Mth.frac - checks if the decimal value was not an integer
+        if(Mth.frac(size) > 0)
+            return Optional.empty();
 
-    public BlockPos getOriginCenter(int y) {
-        return new BlockPos(0, y, 0).offset(size, size, size);
-    }
+        // smaller than small, larger than max size, or not an odd size
+        if(size < SMALL.getDimensions() || size > maximum().getDimensions() || size % 2 == 0)
+            return Optional.empty();
 
-    public BlockPos getOriginCenterFromCorner() {
-        return getOriginCenter().offset(projectorDistance, 0, projectorDistance);
-    }
-
-    public BlockPos getOriginCenterFromCorner(int y) {
-        return getOriginCenter(y).offset(projectorDistance, 0, projectorDistance);
-    }
-
-    public Stream<BlockPos> getProjectorLocationsAtOrigin() {
-        return Arrays
-                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
-                .filter(d -> d.getAxis().isHorizontal())
-                .map(hor -> getProjectorLocationForDirection(getOriginCenter(), hor));
-    }
-
-    public Stream<BlockPos> getProjectorLocationsAtOrigin(int y) {
-        return Arrays
-                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
-                .filter(d -> d.getAxis().isHorizontal())
-                .map(hor -> getProjectorLocationForDirection(getOriginCenter(y), hor));
-    }
-
-    public Stream<BlockPos> getProjectorLocations(BlockPos center) {
-        return Arrays
-                .stream(new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST})
-                .filter(d -> d.getAxis().isHorizontal())
-                .map(hor -> getProjectorLocationForDirection(center, hor));
-    }
-
-    public Stream<BlockPos> getProjectorLocationsForAxis(BlockPos center, Direction.Axis axis) {
-        Direction posdir = Direction.get(Direction.AxisDirection.POSITIVE, axis);
-        BlockPos posLocation = getProjectorLocationForDirection(center, posdir);
-        BlockPos negLocation = getProjectorLocationForDirection(center, posdir.getOpposite());
-
-        return Stream.of(posLocation, negLocation);
-    }
-
-    public BlockPos getOppositeProjectorPosition(BlockPos projectorPos, Direction projectorFacing) {
-        BlockPos center = getCenterFromProjector(projectorPos, projectorFacing);
-        return getProjectorLocationForDirection(center, projectorFacing);
-    }
-
-    public AABB getBoundsAtOrigin() {
-        return getBoundsAtPosition(getOriginCenter());
-    }
-
-    public AABB getBoundsAtOrigin(int y) {
-        return getBoundsAtPosition(getOriginCenter(y));
-    }
-
-    public AABB getBoundsAtPosition(BlockPos center) {
-        return new AABB(center).inflate(this.size);
+        return Arrays.stream(values())
+                .filter(s -> s.getDimensions() == size)
+                .findFirst();
     }
 
     @Override
-    public String getSerializedName() {
+    public @NonNull String getSerializedName() {
         return name;
-    }
-
-    public BlockPos getBoundsAsBlockPos() {
-        final int dims = getDimensions();
-        return new BlockPos(dims, dims, dims);
     }
 }

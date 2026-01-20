@@ -1,7 +1,6 @@
 //package dev.compactmods.crafting.client.fakeworld;
 //
 //import net.minecraft.world.Difficulty;
-//import net.minecraft.world.level.GameRules;
 //import net.minecraft.world.level.storage.WritableLevelData;
 //
 //public class RenderingSpawnInfo implements WritableLevelData {

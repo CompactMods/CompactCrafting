@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.events;
 
-import dev.compactmods.crafting.CompactCrafting;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.field.FieldHelper;
 import dev.compactmods.crafting.field.MissingFieldsException;
 import net.minecraft.core.BlockPos;
@@ -9,20 +9,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.bus.api.ICancellableEvent;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 
-import static dev.compactmods.crafting.CompactCrafting.MOD_ID;
-
-@SuppressWarnings("unused")
-@EventBusSubscriber(modid = MOD_ID)
 public class BlockEventHandler {
 
-//    @SubscribeEvent
-    static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
+    public static void onRightClickBlock(final PlayerInteractEvent.RightClickBlock event) {
         final LivingEntity entity = event.getEntity();
         final BlockHitResult hitVec = event.getHitVec();
 
@@ -42,22 +34,20 @@ public class BlockEventHandler {
         }
     }
 
-    @SubscribeEvent
     static void onBlockPlaced(final BlockEvent.EntityPlaceEvent blockPlaced) {
         blockHandler(blockPlaced);
     }
 
-    @SubscribeEvent
     static void onBlockDestroyed(final BlockEvent.BreakEvent blockDestroyed) {
         blockHandler(blockDestroyed);
     }
 
     private static void blockHandler(final BlockEvent event) {
-        // Check if block is in or around a projector field
+        // Check if block is in or around a projector projectors
         LevelAccessor world = event.getLevel();
         BlockPos pos = event.getPos();
 
-        // Send the event position over to the field helper, so any nearby projectors can be notified
+        // Send the event position over to the projectors helper, so any nearby projectors can be notified
         if (world instanceof Level) {
             try {
                 boolean allowPlace = FieldHelper.checkBlockPlacement((Level) world, pos);

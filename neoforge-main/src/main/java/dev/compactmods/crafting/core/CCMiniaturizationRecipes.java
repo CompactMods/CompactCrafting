@@ -1,7 +1,6 @@
 package dev.compactmods.crafting.core;
 
-import dev.compactmods.crafting.CompactCrafting;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipeSerializer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,7 +22,7 @@ public class CCMiniaturizationRecipes {
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MiniaturizationRecipe>> MINIATURIZATION_SERIALIZER =
             RECIPES.register("miniaturization", MiniaturizationRecipeSerializer::new);
 
-    public static final Identifier MINIATURIZATION_RECIPE_TYPE_ID = CompactCrafting.modRL("miniaturization_recipe");
+    public static final Identifier MINIATURIZATION_RECIPE_TYPE_ID = CompactCrafting.identifier("miniaturization_recipe");
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<MiniaturizationRecipe>> MINIATURIZATION_RECIPE = RECIPE_TYPES.register(MINIATURIZATION_RECIPE_TYPE_ID.getPath(),
             () -> RecipeType.simple(MINIATURIZATION_RECIPE_TYPE_ID));
