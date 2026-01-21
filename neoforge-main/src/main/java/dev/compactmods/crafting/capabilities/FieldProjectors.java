@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.capabilities;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.ActiveProjectorInfo;
 import dev.compactmods.crafting.api.projector.FieldProjectorPredicates;
 import dev.compactmods.crafting.api.projector.FieldProjectorTags;

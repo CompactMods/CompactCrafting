@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.api.projector.placement;
 
 import dev.compactmods.crafting.api.capability.FieldProjectorCapabilities;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;

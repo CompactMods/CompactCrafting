@@ -23,6 +23,15 @@ public class CCRenderTypes {
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
             .build();
 
+    public static final RenderPipeline FIELD_SCAN_PIPELINE = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
+            .withLocation(CompactCrafting.identifier("projection_scan"))
+            .withVertexShader("core/position_color")
+            .withFragmentShader("core/position_color")
+            .withBlend(BlendFunction.TRANSLUCENT)
+            .withDepthWrite(false)
+            .withVertexFormat(DefaultVertexFormat.POSITION_COLOR_LINE_WIDTH, VertexFormat.Mode.LINES)
+            .build();
+
     public static final RenderType FIELD_RENDER_TYPE = RenderType.create("projection_field", RenderSetup
             .builder(FIELD_PIPELINE)
             .setOutputTarget(OutputTarget.MAIN_TARGET)
@@ -31,6 +40,13 @@ public class CCRenderTypes {
             .sortOnUpload()
             .createRenderSetup());
 
+    public static final RenderType FIELD_SCAN_RENDER_TYPE = RenderType.create("projection_scan", RenderSetup
+            .builder(FIELD_SCAN_PIPELINE)
+            .setOutputTarget(OutputTarget.MAIN_TARGET)
+            .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
+            .setTextureTransform(TextureTransform.DEFAULT_TEXTURING)
+            .sortOnUpload()
+            .createRenderSetup());
 }
 //                    .setShaderState(RenderStateShard.POSITION_COLOR_SHADER)
 //                    .setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY)

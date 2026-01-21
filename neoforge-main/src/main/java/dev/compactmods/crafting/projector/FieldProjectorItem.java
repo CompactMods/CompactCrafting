@@ -1,7 +1,8 @@
 package dev.compactmods.crafting.projector;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
+import dev.compactmods.crafting.api.projector.placement.InvalidProjectorPlacement;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -74,14 +75,25 @@ public class FieldProjectorItem extends Item {
 
         ProjectorPlacement placement = ProjectorPlacement.compute(context);
 
-        return placement.getPossibleFields()
-                .filter(fieldLocation -> fieldLocation.projectors()
-                        .invalidProjectors(level)
-                        .findAny()
-                        .isEmpty())
-                .findFirst()
-                .map(fieldLocation -> activatingFieldState(context, fieldLocation))
-                .orElse(inactiveProjectorState(context))
+        final var possible = placement.getPossibleFields().toList();
+        for (var p : possible) {
+
+            var invalid = new java.util.ArrayList<>(p.projectors()
+                    .invalidProjectors(level)
+                    .toList());
+
+            invalid.removeIf(p1 -> p1.placement().equals(placement) &&
+                    p1.reason().equals(InvalidProjectorPlacement.Reason.Missing));
+
+            BlockState state;
+            if (invalid.isEmpty()) {
+                // Activate field
+                state = activatingFieldState(context, p);
+                return state.setValue(BlockStateProperties.HORIZONTAL_FACING, placement.facing());
+            }
+        }
+
+        return inactiveProjectorState(context)
                 .setValue(BlockStateProperties.HORIZONTAL_FACING, placement.facing());
     }
 

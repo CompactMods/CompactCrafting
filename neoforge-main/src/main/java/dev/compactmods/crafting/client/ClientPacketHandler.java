@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.core.CCAttachments;
 import dev.compactmods.crafting.field.IMutableMiniaturizationField;
 import dev.compactmods.crafting.field.MiniaturizationField;

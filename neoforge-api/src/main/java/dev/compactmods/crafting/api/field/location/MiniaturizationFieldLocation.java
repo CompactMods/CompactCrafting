@@ -1,7 +1,8 @@
-package dev.compactmods.crafting.api.field;
+package dev.compactmods.crafting.api.field.location;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import dev.compactmods.crafting.api.util.CCExtraCodecs;

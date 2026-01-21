@@ -7,7 +7,7 @@ import net.minecraft.world.phys.AABB;
 import org.joml.Vector3fc;
 import org.jspecify.annotations.NonNull;
 
-public record FacePoints(Vector3fc P1, Vector3fc P2, Vector3fc P3, Vector3fc P4) {
+public record FacePoints(Vector3fc TOP_LEFT, Vector3fc TOP_RIGHT, Vector3fc BOTTOM_LEFT, Vector3fc BOTTOM_RIGHT) {
     public static @NonNull FacePoints from(AABB cube, Direction face) {
         final var TOP_LEFT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.TOP_LEFT);
         final var TOP_RIGHT = RenderHelper.getCubeFacePoint(cube, face, EnumCubeFaceCorner.TOP_RIGHT);
@@ -17,10 +17,11 @@ public record FacePoints(Vector3fc P1, Vector3fc P2, Vector3fc P3, Vector3fc P4)
         return new FacePoints(TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT);
     }
 
-    public void putFacePointVertices(VertexConsumer builder, PoseStack mx, int color) {
-        RenderHelper.addColoredVertex(builder, mx, color, P3);
-        RenderHelper.addColoredVertex(builder, mx, color, P4);
-        RenderHelper.addColoredVertex(builder, mx, color, P2);
-        RenderHelper.addColoredVertex(builder, mx, color, P1);
+    public void putVerticesLines(VertexConsumer builder, PoseStack mx, int color, float lineWidth) {
+        // BOTTOM_LEFT, BOTTOM_RIGHT, TOP_RIGHT, TOP_LEFT
+        RenderHelper.drawLine(builder, mx, lineWidth, color, BOTTOM_LEFT, BOTTOM_RIGHT);
+        RenderHelper.drawLine(builder, mx, lineWidth, color, TOP_LEFT, TOP_RIGHT);
+        RenderHelper.drawLine(builder, mx, lineWidth, color, TOP_RIGHT, BOTTOM_RIGHT);
+        RenderHelper.drawLine(builder, mx, lineWidth, color, TOP_LEFT, BOTTOM_LEFT);
     }
 }

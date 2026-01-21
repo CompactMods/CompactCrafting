@@ -2,7 +2,6 @@ package dev.compactmods.crafting.field;
 
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.resources.ResourceKey;
@@ -42,17 +41,15 @@ public class ActiveWorldFields {
     }
 
     public void tickFields() {
-        Set<ITickingMiniaturizationField> loaded = fields.values().stream()
+        Set<IMiniaturizationField> loaded = fields.values().stream()
                 .filter(IMiniaturizationField::isAreaLoaded)
-                .filter(field -> field instanceof ITickingMiniaturizationField)
-                .map(ITickingMiniaturizationField.class::cast)
                 .collect(Collectors.toSet());
 
         if (loaded.isEmpty())
             return;
 
         CompactCrafting.LOGGER.trace("Loaded count ({}): {}", level.dimension().identifier(), loaded.size());
-        loaded.forEach(ITickingMiniaturizationField::tick);
+        loaded.forEach(IMiniaturizationField::tick);
     }
 
     public void addFieldInstance(IMiniaturizationField field) {

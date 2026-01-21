@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.api.field;
+package dev.compactmods.crafting.api.field.location;
 
 import dev.compactmods.crafting.api.projector.placement.InvalidProjectorPlacement;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;

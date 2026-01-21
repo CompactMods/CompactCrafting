@@ -26,7 +26,7 @@ public abstract class RenderHelper {
     }
 
     public static void drawLine(VertexConsumer builder, PoseStack poseStack, float width, int color, Vector3fc start, Vector3fc end) {
-
+        drawLine(builder, poseStack, width, color, new Vector3d(start), new Vector3d(end));
     }
 
     public static void drawLine(VertexConsumer builder, PoseStack poseStack, float width, int color, Vector3dc start, Vector3dc end)

@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.core.CCAttachments;
 import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.client.Minecraft;

@@ -1,6 +1,6 @@
 package dev.compactmods.crafting.api.projector;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.LevelReader;

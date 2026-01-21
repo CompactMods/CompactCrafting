@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.events;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;

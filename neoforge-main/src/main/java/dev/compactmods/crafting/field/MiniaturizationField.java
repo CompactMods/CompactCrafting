@@ -3,8 +3,7 @@ package dev.compactmods.crafting.field;
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
-import dev.compactmods.crafting.api.field.ITickingMiniaturizationField;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
@@ -54,8 +53,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class MiniaturizationField implements IMiniaturizationField,
-        IMutableMiniaturizationField, ITickingMiniaturizationField {
+public class MiniaturizationField implements IMiniaturizationField, IMutableMiniaturizationField {
 
     private final Level level;
     private final FieldProjectorPlacements projectors;
@@ -133,11 +131,6 @@ public class MiniaturizationField implements IMiniaturizationField,
             boolean watchedChunk = insideChunks.contains(ce.getChunk().getPos());
             return sameLevel && watchedChunk;
         }).subscribe((changed) -> this.checkLoaded());
-    }
-
-    public void dispose() {
-        if (!CHUNK_LISTENER.isDisposed())
-            CHUNK_LISTENER.dispose();
     }
 
     public MiniaturizationFieldLocation location() {
@@ -237,7 +230,6 @@ public class MiniaturizationField implements IMiniaturizationField,
         return craftingState;
     }
 
-    @Override
     public void tick() {
         if (this.disabled || !areaLoaded)
             return;
@@ -570,17 +562,6 @@ public class MiniaturizationField implements IMiniaturizationField,
             // FieldDeactivatedPacket update = new FieldActivatedPacket(this, this.clientData());
             // PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(center), update);
         }
-    }
-
-    @Override
-    public void checkRedstone() {
-        this.disabled = getProjectors()
-                .locations()
-                .stream()
-                .anyMatch(proj -> level.getBestNeighborSignal(proj.position()) > 0);
-
-        if (disabled) disable();
-        else enable();
     }
 
     @Override

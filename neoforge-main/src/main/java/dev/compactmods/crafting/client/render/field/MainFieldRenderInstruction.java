@@ -10,13 +10,14 @@ import net.minecraft.util.ARGB;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
-public record MainFieldRenderInstruction(AABB fieldBounds, int color) implements FieldRenderInstruction {
+public record MainFieldRenderInstruction(AABB fieldBounds, int fieldBaseColor) implements FieldRenderInstruction {
     public static MainFieldRenderInstruction create(AABB bounds, int baseColor) {
-        return new MainFieldRenderInstruction(bounds, ARGB.color(0.8f, baseColor));
+        return new MainFieldRenderInstruction(bounds, baseColor);
     }
 
     @Override
     public void draw(Level level, PoseStack mx, MultiBufferSource.BufferSource buffers) {
+        int realColor = ARGB.color(0.2f, fieldBaseColor);
         // TODO: Debug gizmo render in 26.1
 //        HitResult hr = Minecraft.getInstance().hitResult;
 //        if (hr instanceof BlockHitResult bhr && ClientUtilities.isDebugScreenOpen() && fieldProjectors.contains(bhr.getBlockPos())) {
@@ -33,7 +34,7 @@ public record MainFieldRenderInstruction(AABB fieldBounds, int color) implements
         // Each projector renders its face
         // North and South projectors render the top and bottom faces
         for (var dir : Direction.values()) {
-            RenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, color, dir);
+            RenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, realColor, dir);
         }
 
         buffers.endBatch(CCRenderTypes.FIELD_RENDER_TYPE);

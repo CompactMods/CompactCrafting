@@ -1,8 +1,8 @@
 package dev.compactmods.crafting.api.projector;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.field.PotentialMiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.PotentialMiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.InvalidProjectorPlacement;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import net.minecraft.world.level.LevelReader;
@@ -10,9 +10,7 @@ import net.minecraft.world.level.LevelReader;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * Contains utility methods for working with a set of projectors in a given space.
- */
+/// Contains utility methods for working with a set of projectors in a given space.
 public abstract class ProjectorHelper {
 
     /// Given a starting point for a field, do any of the field sizes contain more than one projector

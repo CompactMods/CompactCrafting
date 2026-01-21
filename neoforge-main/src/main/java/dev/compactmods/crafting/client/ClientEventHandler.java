@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
 import dev.compactmods.crafting.core.CCAttachments;
@@ -43,8 +43,11 @@ public class ClientEventHandler {
 
         // debugRenderSmallFieldAtZero(event, MiniaturizationFieldSize.SMALL);
 
-//        GhostRenderer.render(CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get().defaultBlockState(),
-//                BlockPos.ZERO, event.getPoseStack(), 0.1f);
+//        GhostRenderer.render(Blocks.REDSTONE_WIRE.defaultBlockState(),
+//                new BlockPos(4, 58, 8), event.getPoseStack(), 0.3f, 1f);
+//
+//        GhostRenderer.render(Blocks.IRON_BLOCK.defaultBlockState(),
+//                new BlockPos(4, 57, 8), event.getPoseStack(), 0.3f, 1f);
 
         mc.player.getExistingData(CCAttachments.PLACEMENT_HELPERS)
                 .stream()

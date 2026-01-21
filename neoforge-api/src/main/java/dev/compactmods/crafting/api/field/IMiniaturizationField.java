@@ -1,12 +1,11 @@
 package dev.compactmods.crafting.api.field;
 
 import dev.compactmods.crafting.api.EnumCraftingState;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
 import net.minecraft.world.phys.AABB;
 
 public interface IMiniaturizationField {
-
-    default void dispose() {}
 
     AABB getBounds();
 
@@ -27,7 +26,7 @@ public interface IMiniaturizationField {
 
     default void handleDestabilize() {}
 
-    void checkRedstone();
-
     boolean enabled();
+
+    void tick();
 }

@@ -1,7 +1,7 @@
 package dev.compactmods.crafting.network;
 
 import dev.compactmods.crafting.api.CompactCrafting;
-import dev.compactmods.crafting.api.field.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.client.ClientPacketHandler;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.network.RegistryFriendlyByteBuf;
