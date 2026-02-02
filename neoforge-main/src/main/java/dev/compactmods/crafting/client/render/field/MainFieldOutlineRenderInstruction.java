@@ -2,11 +2,10 @@ package dev.compactmods.crafting.client.render.field;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.client.render.FacePoints;
 import dev.compactmods.crafting.client.render.RenderHelper;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.Level;
@@ -31,19 +30,15 @@ public record MainFieldOutlineRenderInstruction(AABB fieldBounds, int fieldBaseC
         FacePoints bottom = FacePoints.from(slightlyBiggerBecauseFoxes, Direction.DOWN);
 
 
-        RenderType scan = RenderTypes.linesTranslucent();
-        VertexConsumer field = buffers.getBuffer(scan);
-        top.putVerticesLines(field, mx, realColor, 2.0f);
-        bottom.putVerticesLines(field, mx, realColor, 2.0f);
-        buffers.endBatch(scan);
+        VertexConsumer fieldOutline = buffers.getBuffer(CCRenderTypes.FIELD_OUTLINE);
+        top.putVerticesLines(fieldOutline, mx, realColor, 2.0f);
+        bottom.putVerticesLines(fieldOutline, mx, realColor, 2.0f);
 
         // Verticals
-        RenderType quads = RenderTypes.linesTranslucent();
-        VertexConsumer outline = buffers.getBuffer(quads);
-        RenderHelper.drawLine(outline, mx, 2.0f, realColor, top.BOTTOM_LEFT(), bottom.TOP_LEFT());
-        RenderHelper.drawLine(outline, mx, 2.0f, realColor, top.BOTTOM_RIGHT(), bottom.TOP_RIGHT());
-        RenderHelper.drawLine(outline, mx, 2.0f, realColor, top.TOP_LEFT(), bottom.BOTTOM_LEFT());
-        RenderHelper.drawLine(outline, mx, 2.0f, realColor, top.TOP_RIGHT(), bottom.BOTTOM_RIGHT());
-        buffers.endBatch(quads);
+        RenderHelper.drawLine(fieldOutline, mx, 2.0f, realColor, top.BOTTOM_LEFT(), bottom.TOP_LEFT());
+        RenderHelper.drawLine(fieldOutline, mx, 2.0f, realColor, top.BOTTOM_RIGHT(), bottom.TOP_RIGHT());
+        RenderHelper.drawLine(fieldOutline, mx, 2.0f, realColor, top.TOP_LEFT(), bottom.BOTTOM_LEFT());
+        RenderHelper.drawLine(fieldOutline, mx, 2.0f, realColor, top.TOP_RIGHT(), bottom.BOTTOM_RIGHT());
+        buffers.endBatch(CCRenderTypes.FIELD);
     }
 }

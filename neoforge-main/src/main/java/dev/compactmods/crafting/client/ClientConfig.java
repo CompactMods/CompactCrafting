@@ -67,8 +67,8 @@ public class ClientConfig {
     public static void onLoad(final ModConfigEvent.Reloading configEvent) {
         final var c = configEvent.getConfig();
         if(c.getModId().equals(CompactCrafting.MOD_ID) && c.getType().equals(ModConfig.Type.CLIENT)) {
-            projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0x00FF6A00);
-            projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0x00898989);
+            projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0xFFFF6A00);
+            projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0xFF898989);
             placementTime = PLACEMENT_TIME.get();
         }
     }

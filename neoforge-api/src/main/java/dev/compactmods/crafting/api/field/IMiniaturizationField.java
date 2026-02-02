@@ -3,6 +3,7 @@ package dev.compactmods.crafting.api.field;
 import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.phys.AABB;
 
 public interface IMiniaturizationField {
@@ -29,4 +30,6 @@ public interface IMiniaturizationField {
     boolean enabled();
 
     void tick();
+
+    GameEventListener blockChangeListener();
 }

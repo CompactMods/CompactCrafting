@@ -1,24 +1,45 @@
 package dev.compactmods.crafting.client;
 
-import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
-import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
-import dev.compactmods.crafting.client.render.CCRenderTypes;
-import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import dev.compactmods.crafting.client.render.CCRenderPipelines;
+import dev.compactmods.crafting.client.render.projector.FieldProjectorColors;
+import dev.compactmods.crafting.client.render.projector.FieldProjectorRenderer;
 import dev.compactmods.crafting.core.CCAttachments;
+import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import org.joml.Vector3d;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class ClientEventHandler {
 
-    public static void onTick(final ClientTickEvent.Post evt) {
+    public static void registerRenderers(final EntityRenderersEvent.RegisterRenderers evt) {
+        evt.registerBlockEntityRenderer(CCBlocks.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+    }
+
+    public static void registerStandaloneModels(final ModelEvent.RegisterStandalone evt) {
+        var unbaked = SimpleUnbakedStandaloneModel.blockStateModel(CompactCraftingClient.PROJECTOR_DISH_MODEL_ID);
+        evt.register(CompactCraftingClient.PROJECTOR_DISH_MODEL_KEY, unbaked);
+    }
+
+    public static void registerBlockColors(final RegisterColorHandlersEvent.Block colors) {
+        colors.register(new FieldProjectorColors.Block(), CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
+        colors.register(new FieldProjectorColors.Block(), CCBlocks.FIELD_PROJECTOR_BLOCK.get());
+    }
+
+    public static void afterClientTick(final ClientTickEvent.Post evt) {
         final var mc = Minecraft.getInstance();
         final var player = mc.player;
 
@@ -34,36 +55,38 @@ public class ClientEventHandler {
         }
     }
 
-    public static void onLevelRender(final RenderLevelStageEvent.AfterParticles event) {
+    public static void afterParticlesRender(final RenderLevelStageEvent.AfterOpaqueBlocks event) {
         final Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null)
             return;
 
-        doFieldPreviewRender(mc);
+        renderActiveMiniaturizationFields(mc);
+        renderPlacementPreviews(event, mc);
+    }
 
-        // debugRenderSmallFieldAtZero(event, MiniaturizationFieldSize.SMALL);
+    private static void renderPlacementPreviews(RenderLevelStageEvent.AfterOpaqueBlocks event, Minecraft mc) {
+        final var renderState = event.getLevelRenderState();
+        final var cameraPos = renderState.cameraRenderState.pos;
 
-//        GhostRenderer.render(Blocks.REDSTONE_WIRE.defaultBlockState(),
-//                new BlockPos(4, 58, 8), event.getPoseStack(), 0.3f, 1f);
-//
-//        GhostRenderer.render(Blocks.IRON_BLOCK.defaultBlockState(),
-//                new BlockPos(4, 57, 8), event.getPoseStack(), 0.3f, 1f);
+        Objects.requireNonNull(mc.player);
+
+        final int timeLeft = mc.player.getData(CCAttachments.PLACEMENT_TIMER);
+        if (timeLeft == 0)
+            return;
+
+        final var alpha = Mth.clamp(timeLeft / 160f, 0.05f, 1f);
+
+        final var pose = new PoseStack();
+        pose.translate(Vec3.ZERO.subtract(cameraPos));
 
         mc.player.getExistingData(CCAttachments.PLACEMENT_HELPERS)
                 .stream()
                 .flatMap(Collection::stream)
-                .forEach(p -> p.render(event.getPoseStack()));
+                .forEach(helper -> helper.render(pose, alpha));
     }
 
-    private static void debugRenderSmallFieldAtZero(RenderLevelStageEvent.AfterParticles event, MiniaturizationFieldSize size) {
-        final var zero = new MiniaturizationFieldLocation(new Vector3d().add(0.5, 0.5, 0.5), size);
-
-        final var zeroGhost = new GhostProjectorPlacementRenderer(zero);
-
-        zeroGhost.render(event.getPoseStack());
-    }
-
-    private static void doFieldPreviewRender(Minecraft mc) {
+    private static void renderActiveMiniaturizationFields(Minecraft mc) {
+        final var nodeStorage = mc.gameRenderer.getSubmitNodeStorage();
         final Camera mainCamera = mc.gameRenderer.getMainCamera();
         final HitResult hitResult = mc.hitResult;
 
@@ -105,6 +128,7 @@ public class ClientEventHandler {
     }
 
     public static void registerRenderPipelines(final RegisterRenderPipelinesEvent event) {
-        event.registerPipeline(CCRenderTypes.FIELD_PIPELINE);
+        event.registerPipeline(CCRenderPipelines.FIELD_OUTLINE_PIPELINE);
+        event.registerPipeline(CCRenderPipelines.FIELD_PIPELINE);
     }
 }

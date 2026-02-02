@@ -4,6 +4,7 @@ import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.util.MathUtil;
+import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
@@ -65,8 +66,17 @@ public class ActiveWorldFields {
 //        });
     }
 
-    public void registerField(IMiniaturizationField field) {
+    public void registerField(MiniaturizationField field) {
         addFieldInstance(field);
+
+        if(!level.isClientSide()) {
+            final var center = field.location().centerBlock();
+            final var section = SectionPos.of(center);
+            final var registry = level.getChunkAt(center)
+                    .getListenerRegistry(section.y());
+
+            registry.register(field.blockChangeListener());
+        }
 
         // FIXME - Set projector back-references to projectors
         //        projectors.getProjectors().locations().forEach(pos -> {
@@ -94,6 +104,13 @@ public class ActiveWorldFields {
                 PacketDistributor.sendToPlayersTrackingChunk(sl,
                         MathUtil.toChunkPosition(removedField.location().center()),
                         new FieldDeactivatedPacket(removedField.location()));
+
+                final var centerBlock = MathUtil.toBlockPosition(center);
+                final var section = SectionPos.of(centerBlock);
+                final var registry = level.getChunkAt(centerBlock)
+                        .getListenerRegistry(section.y());
+
+                registry.register(removedField.blockChangeListener());
             }
         }
     }

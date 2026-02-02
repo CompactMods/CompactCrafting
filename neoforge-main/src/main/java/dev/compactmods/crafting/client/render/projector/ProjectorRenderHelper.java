@@ -5,8 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.joml.Vector3fc;
-import org.jspecify.annotations.Nullable;
 
 public abstract class ProjectorRenderHelper {
     public static double getScanLineHeight(AABB cube, double gameTime) {
@@ -15,11 +13,7 @@ public abstract class ProjectorRenderHelper {
         return cube.minY + zAngle;
     }
 
-    @Nullable
-    public static Vector3fc getScanLineLeft(Direction face, AABB cube, double gameTime) {
-        if(face.getAxis().isVertical())
-            return null;
-
+    public static Vector3f getScanLineLeft(Direction face, AABB cube, double gameTime) {
         double scanHeight = getScanLineHeight(cube, gameTime);
         final var d = switch (face) {
             case NORTH -> new Vector3d(cube.maxX, scanHeight, cube.minZ);
@@ -32,11 +26,7 @@ public abstract class ProjectorRenderHelper {
         return new Vector3f(d);
     }
 
-    @Nullable
-    public static Vector3fc getScanLineRight(Direction face, AABB cube, double gameTime) {
-        if(face.getAxis().isVertical())
-            return null;
-
+    public static Vector3f getScanLineRight(Direction face, AABB cube, double gameTime) {
         double scanHeight = getScanLineHeight(cube, gameTime);
         final var d = switch (face) {
             case NORTH -> new Vector3d(cube.minX, scanHeight, cube.minZ);

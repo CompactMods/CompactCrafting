@@ -24,7 +24,7 @@ public record MainFieldRenderInstruction(AABB fieldBounds, int fieldBaseColor) i
 //            doDebugFieldRender(level, mx, buffers, fieldBounds, bhr);
 //        }
 
-        VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD_RENDER_TYPE);
+        VertexConsumer builder = buffers.getBuffer(CCRenderTypes.FIELD);
 
         double expansion = 0.005;
         AABB slightlyBiggerBecauseFoxes = fieldBounds
@@ -37,6 +37,6 @@ public record MainFieldRenderInstruction(AABB fieldBounds, int fieldBaseColor) i
             RenderHelper.drawCubeFace(builder, mx, slightlyBiggerBecauseFoxes, realColor, dir);
         }
 
-        buffers.endBatch(CCRenderTypes.FIELD_RENDER_TYPE);
+        buffers.endBatch(CCRenderTypes.FIELD);
     }
 }

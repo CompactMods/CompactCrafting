@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 public class MiniaturizationFieldRenderer {
 
-    public static void onRenderStage(RenderLevelStageEvent.AfterTranslucentBlocks evt) {
+    public static void onRenderStage(RenderLevelStageEvent.AfterParticles evt) {
         final var mc = Minecraft.getInstance();
         final var level = mc.level;
 

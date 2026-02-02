@@ -8,6 +8,7 @@ import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
+import dev.compactmods.crafting.events.MiniaturizationFieldBlockChangeListener;
 import dev.compactmods.crafting.events.WorldEventHandler;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.network.FieldRecipeChangedPacket;
@@ -39,6 +40,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.phys.AABB;
@@ -58,6 +60,8 @@ public class MiniaturizationField implements IMiniaturizationField, IMutableMini
     private final Level level;
     private final FieldProjectorPlacements projectors;
     private final MiniaturizationFieldLocation location;
+
+    private final MiniaturizationFieldBlockChangeListener blockChangeListener;
 
     private boolean areaLoaded;
 
@@ -87,6 +91,8 @@ public class MiniaturizationField implements IMiniaturizationField, IMutableMini
         this.location = location;
         this.craftingState = EnumCraftingState.NOT_MATCHED;
         this.projectors = location.projectors();
+
+        this.blockChangeListener = new MiniaturizationFieldBlockChangeListener(this);
         setupChunkListener();
     }
 
@@ -575,6 +581,10 @@ public class MiniaturizationField implements IMiniaturizationField, IMutableMini
 
     public MiniaturizationRecipe currentRecipe() {
         return currentRecipe.value();
+    }
+
+    public GameEventListener blockChangeListener() {
+        return this.blockChangeListener;
     }
 
     // FIXME
