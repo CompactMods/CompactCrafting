@@ -8,6 +8,7 @@ import dev.compactmods.crafting.api.projector.capability.FieldProjectorControlle
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import dev.compactmods.crafting.api.projector.world.ProjectorBlock;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,9 +24,9 @@ public interface FieldProjectors {
         if(!isProjector)
             return null;
 
-        final var placement = ProjectorBlock.placement(pos, state);
+        final var placement = ProjectorBlock.placement(GlobalPos.of(level.dimension(), pos), state);
         if(state.is(FieldProjectorTags.ACTIVE_PROJECTOR_BLOCK, FieldProjectorPredicates.IS_ACTIVE)) {
-            return ActiveProjectorInfo.from(pos, state)
+            return ActiveProjectorInfo.from(placement.position(), state)
                     .map(info -> new ActiveFieldProjector(level, info))
                     .orElse(null);
         }

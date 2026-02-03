@@ -5,8 +5,8 @@ import dev.compactmods.crafting.api.projector.FieldProjectorPredicates;
 import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.api.projector.FieldProjectorTags;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -34,8 +34,8 @@ public interface ProjectorBlock {
         return state.getValueOrElse(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH);
     }
 
-    static ProjectorPlacement placement(BlockPos position, BlockState state) {
-        return new ProjectorPlacement(position.immutable(), facing(state));
+    static ProjectorPlacement placement(GlobalPos position, BlockState state) {
+        return new ProjectorPlacement(position, facing(state));
     }
 
     static MiniaturizationFieldSize fieldSize(BlockState state) {

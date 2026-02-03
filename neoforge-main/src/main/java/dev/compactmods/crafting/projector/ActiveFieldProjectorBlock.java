@@ -10,6 +10,7 @@ import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -41,7 +42,7 @@ public class ActiveFieldProjectorBlock extends FieldProjectorBlock implements Ac
     @Override
     @SuppressWarnings("deprecation")
     public void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-        final var projectorInfo = ActiveProjectorInfo.from(level, pos).orElseThrow();
+        final var projectorInfo = ActiveProjectorInfo.from(level, GlobalPos.of(level.dimension(), pos)).orElseThrow();
 
         final MinecraftServer server = level.getServer();
         if (server == null)

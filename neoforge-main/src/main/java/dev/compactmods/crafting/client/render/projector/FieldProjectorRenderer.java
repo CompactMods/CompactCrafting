@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
@@ -54,9 +55,10 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
         state.projectorColor = ARGB.opaque(ClientConfig.projectorColor);
 
         final var size = state.blockState.getValue(FieldProjectorProperties.SIZE);
-        final var projectorPlacement = ProjectorBlock.placement(state.blockPos, state.blockState);
+        final var projectorGlobalPos = GlobalPos.of(blockEntity.getLevel().dimension(), state.blockPos);
+        final var projectorPlacement = ProjectorBlock.placement(projectorGlobalPos, state.blockState);
         state.fieldLocation = MiniaturizationFieldLocation.compute(
-                size, projectorPlacement
+                projectorGlobalPos.dimension(), size, projectorPlacement
         );
     }
 
@@ -169,9 +171,9 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     @Override
     public AABB getRenderBoundingBox(FieldProjectorEntity blockEntity) {
         var state = blockEntity.getBlockState();
-        var placement = ProjectorBlock.placement(blockEntity.getBlockPos(), state);
+        var placement = ProjectorBlock.placement(GlobalPos.of(blockEntity.getLevel().dimension(), blockEntity.getBlockPos()), state);
         var fieldSize = ProjectorBlock.fieldSize(state);
 
-        return MiniaturizationFieldLocation.compute(fieldSize, placement).bounds().inflate(12);
+        return MiniaturizationFieldLocation.compute(placement.position().dimension(), fieldSize, placement).bounds().inflate(12);
     }
 }

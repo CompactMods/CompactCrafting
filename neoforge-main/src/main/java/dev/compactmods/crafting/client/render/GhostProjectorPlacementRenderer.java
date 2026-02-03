@@ -38,14 +38,14 @@ public record GhostProjectorPlacementRenderer(MiniaturizationFieldLocation field
 
         for (final var pos : field.projectors().locations()) {
 
-            if (level.isEmptyBlock(pos.position())) {
+            if (level.isEmptyBlock(pos.position().pos())) {
                 final var state = baseState.setValue(BlockStateProperties.HORIZONTAL_FACING, pos.facing());
 
                 nodeStorage.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(),
-                        new GhostBlockGeometry(pos.position(), state, alpha, 0.9f));
+                        new GhostBlockGeometry(pos.position().pos(), state, alpha, 0.9f));
 
                 for (int y = 1; y < 10; y++) {
-                    BlockPos realPos = pos.position().below(y);
+                    BlockPos realPos = pos.position().pos().below(y);
 
                     if (!level.isEmptyBlock(realPos))
                         break;

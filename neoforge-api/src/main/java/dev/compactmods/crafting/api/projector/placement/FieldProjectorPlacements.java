@@ -95,7 +95,7 @@ public record FieldProjectorPlacements(MiniaturizationFieldLocation fieldLocatio
     // NeoForge: Wish I had AttachmentHolderHost here, instead of needing a full Level
     public <T extends Level> void enableAll(final T level) {
         locations.forEach((placement) -> {
-            final var projector = level.getCapability(FieldProjectorCapabilities.FIELD_PROJECTOR_CONTROL, placement.position());
+            final var projector = level.getCapability(FieldProjectorCapabilities.FIELD_PROJECTOR_CONTROL, placement.position().pos());
             if (projector != null && !projector.isActive())
                 projector.activate();
         });
@@ -105,7 +105,7 @@ public record FieldProjectorPlacements(MiniaturizationFieldLocation fieldLocatio
     // FUTURE: Mojang why do I need a whole Level to use removeBlockEntity. Make an interface pls
     public <T extends Level> void disableAll(final T level) {
         locations.forEach((placement) -> {
-            final var projector = level.getCapability(FieldProjectorCapabilities.FIELD_PROJECTOR_CONTROL, placement.position());
+            final var projector = level.getCapability(FieldProjectorCapabilities.FIELD_PROJECTOR_CONTROL, placement.position().pos());
             if (projector != null && projector.isActive())
                 projector.deactivate();
         });

@@ -1,8 +1,10 @@
 package dev.compactmods.crafting.field.impl;
 
-import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.Codec;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
+import dev.compactmods.crafting.data.CodecHolder;
+import dev.compactmods.crafting.field.ServerFieldDataManager;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.core.SectionPos;
@@ -11,14 +13,12 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3dc;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ActiveWorldFields {
+public class ActiveWorldFields implements CodecHolder<ActiveWorldFields> {
 
     private final Level level;
 
@@ -31,16 +31,9 @@ public class ActiveWorldFields {
         this.level = level;
     }
 
-    public void save() {
-        List<CraftingState> states = new ArrayList<>();
-        for(var field : fields.values()) {
-            final var state = field.craftingState();
-            states.add(state);
-        }
-
-        final var encoded = CraftingState.CODEC.listOf()
-                .encodeStart(JsonOps.INSTANCE, states)
-                .getOrThrow();
+    public void save(ServerFieldDataManager fieldData) {
+        for(var field : fields.values())
+            fieldData.setData(field.location(), field.craftingState());
     }
 
     public void tickFields() {
@@ -94,5 +87,10 @@ public class ActiveWorldFields {
 
     public boolean hasActiveField(MiniaturizationFieldLocation location) {
         return fields.containsKey(location.center());
+    }
+
+    @Override
+    public Codec<ActiveWorldFields> codec() {
+        return null;
     }
 }

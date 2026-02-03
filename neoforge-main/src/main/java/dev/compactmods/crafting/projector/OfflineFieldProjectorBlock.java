@@ -6,6 +6,7 @@ import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -23,7 +24,7 @@ public class OfflineFieldProjectorBlock extends FieldProjectorBlock implements P
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide()) {
-            final var initial = ProjectorBlock.placement(pos, state);
+            final var initial = ProjectorBlock.placement(GlobalPos.of(level.dimension(), pos), state);
             player.removeData(FieldProjectorsCommon.PLACEMENT_HELPERS);
             final var helpers = new ObjectArrayList<GhostProjectorPlacementRenderer>();
 

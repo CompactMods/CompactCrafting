@@ -9,34 +9,11 @@ import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkWatchEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 @SuppressWarnings("unused")
 @EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class WorldEventHandler {
-
-    @SubscribeEvent
-    public static void onLevelSaved(final LevelEvent.Save evt) {
-
-        if(evt.getLevel() instanceof ServerLevel serverLevel) {
-            final var fields = serverLevel.getExistingData(MiniaturizationFields.ACTIVE_FIELDS);
-            fields.ifPresent(ActiveWorldFields::save);
-        }
-
-//        for (ServerLevel level : evt.getServer().getAllLevels()) {
-//            // FIXME
-////            level.getCapability(CCCapabilities.FIELDS)
-////                    .resolve()
-////                    .ifPresent(fields -> {
-////                        fields.setLevel(level);
-////                        fields.getFields().forEach(f -> {
-////                            f.setLevel(level);
-////                            f.checkLoaded();
-////                        });
-////                    });
-//        }
-    }
 
     @SubscribeEvent
     public static void onWorldTick(final LevelTickEvent.Pre evt) {

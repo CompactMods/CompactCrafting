@@ -13,7 +13,7 @@ public abstract class FieldHelper {
     public static void spawnParticlesAtProjectors(IMiniaturizationField field, LevelAccessor level, ParticleOptions opts) {
         final var projectors = field.getProjectors();
         projectors.locations().forEach(proj -> {
-            var center = Vec3.atCenterOf(proj.position());
+            var center = Vec3.atCenterOf(proj.position().pos());
             for (int i = 0; i < 10; i++) {
                 RandomSource random = level.getRandom();
                 level.addParticle(opts,
