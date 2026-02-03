@@ -1,13 +1,18 @@
 package dev.compactmods.crafting.api.recipe.layers;
 
+import dev.compactmods.crafting.api.CompactCrafting;
+import dev.compactmods.crafting.api.components.IRecipeComponents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
-import dev.compactmods.crafting.api.components.IRecipeComponents;
-import net.minecraft.core.BlockPos;
 
 public interface IRecipeLayer {
+
+    Identifier REGISTRY_ID = CompactCrafting.identifier("recipe_layers");
 
     Set<String> getComponents();
 

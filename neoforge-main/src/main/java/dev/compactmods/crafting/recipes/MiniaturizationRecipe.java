@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.compactmods.crafting.CompactCraftingCommon;
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.components.IPositionalComponentLookup;
 import dev.compactmods.crafting.api.components.IRecipeComponent;
@@ -17,9 +18,6 @@ import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.crafting.core.CCLayerTypes;
-import dev.compactmods.crafting.core.CCMiniaturizationRecipes;
-import dev.compactmods.crafting.recipes.components.ComponentRegistration;
 import dev.compactmods.crafting.recipes.components.MiniaturizationRecipeComponents;
 import dev.compactmods.crafting.recipes.layers.RecipeLayerUtil;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -36,6 +34,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,11 +60,11 @@ public record MiniaturizationRecipe(
 ) implements IMiniaturizationRecipe {
 
     public static final Codec<IRecipeLayer> LAYER_CODEC = Codec.lazyInitialized(() -> {
-        final var reg = CCLayerTypes.RECIPE_LAYER_TYPES.byNameCodec();
+        final var reg = CompactCraftingCommon.RECIPE_LAYER_TYPES_REGISTRY.byNameCodec();
         return reg.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);
     });
 
-    public static final Codec<IRecipeComponent> COMPONENT_CODEC = ComponentRegistration.COMPONENTS
+    public static final Codec<IRecipeComponent> COMPONENT_CODEC = CompactCraftingCommon.RECIPE_COMPONENTS_REGISTRY
             .byNameCodec()
             .dispatch(IRecipeComponent::getType, RecipeComponentType::getCodec);
 
@@ -86,7 +85,7 @@ public record MiniaturizationRecipe(
                     .forGetter(MiniaturizationRecipe::codecOutputs),
 
             ItemPredicate.CODEC.fieldOf("catalyst")
-                    .forGetter(MiniaturizationRecipe::catalystTest)
+                    .forGetter(MiniaturizationRecipe::catalystMatcher)
 
     ).apply(i, MiniaturizationRecipe::fromCodec));
 
@@ -189,12 +188,7 @@ public record MiniaturizationRecipe(
                 .forEach(dl -> ((IDynamicSizedRecipeLayer) dl).setRecipeDimensions(footprint));
     }
 
-    /**
-     * Checks that a given projectors size can contain this recipe.
-     *
-     * @param fieldSize
-     * @return
-     */
+    /// Checks that a given projectors size can contain this recipe.
     public boolean fitsInFieldSize(MiniaturizationFieldSize fieldSize) {
         int dim = fieldSize.getDimensions();
         return (dimensions.getXsize() <= dim) &&
@@ -315,22 +309,18 @@ public record MiniaturizationRecipe(
         return this.components;
     }
 
-    public ItemPredicate catalystTest() {
-        return this.catalystMatcher;
-    }
-
     public int getCraftingTime() {
         return this.requiredTime;
     }
 
     @Override
-    public RecipeSerializer<MiniaturizationRecipe> getSerializer() {
-        return CCMiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
+    public @NonNull RecipeSerializer<MiniaturizationRecipe> getSerializer() {
+        return MiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
     }
 
     @Override
-    public RecipeType<MiniaturizationRecipe> getType() {
-        return CCMiniaturizationRecipes.MINIATURIZATION_RECIPE.get();
+    public @NonNull RecipeType<MiniaturizationRecipe> getType() {
+        return MiniaturizationRecipes.MINIATURIZATION_RECIPE.get();
     }
 
     private List<IRecipeLayer> codecLayerList() {
@@ -348,35 +338,4 @@ public record MiniaturizationRecipe(
         // TODO: Change recipeSize to take an X/Z
         return (int) Math.max(dimensions.getXsize(), dimensions.getZsize());
     }
-
-    // FIXME
-//    CompoundTag clientData() {
-//        CompoundTag data = new CompoundTag();
-//        data.putLong("center", getCenter().asLong());
-//        data.putString("size", getFieldSize().name());
-//        data.putString("state", getCraftingState().name());
-//
-//        Optional<IMiniaturizationRecipe> currentRecipe = currentRecipe();
-//        currentRecipe.ifPresent(r -> {
-//            CompoundTag recipe = new CompoundTag();
-//            recipe.putString("id", this.currentRecipe());
-//            recipe.putInt("progress", getProgress());
-//
-//            data.put("recipe", recipe);
-//        });
-//
-//        return data;
-//    }
-//
-//    void loadClientData(CompoundTag nbt) {
-//        this.setCenter(BlockPos.of(nbt.getLong("center")));
-//        this.setSize(MiniaturizationFieldSize.valueOf(nbt.getString("size")));
-//        this.setCraftingState(EnumCraftingState.valueOf(nbt.getString("state")));
-//
-//        if (nbt.contains("recipe")) {
-//            CompoundTag recipe = nbt.getCompound("recipe");
-//            this.setRecipe(Identifier.parse(recipe.getString("id")));
-//            this.setProgress(recipe.getInt("progress"));
-//        }
-//    }
 }

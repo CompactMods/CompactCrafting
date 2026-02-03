@@ -154,17 +154,13 @@ dependencies {
     testCompileOnly(coreApi)
     jarJar(coreApi)
 
-    implementation(libs.rxjava)
-    jarJar(libs.rxjava)
-    jarJar(libs.reactivestreams)
-
     testImplementation(neoforged.testframework)
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    jarJar(compactmods.bundles.gander)
-    implementation(compactmods.bundles.gander)
-    accessTransformers(compactmods.ganderRendering)
+//    jarJar(compactmods.bundles.gander)
+//    implementation(compactmods.bundles.gander)
+//    accessTransformers(compactmods.ganderRendering)
 
     // ADDITIONAL COMPAT
     compileOnly(mods.bundles.jei)

@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.projector;
 
-import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -9,7 +8,7 @@ import org.jspecify.annotations.NonNull;
 public class FieldProjectorEntity extends BlockEntity {
 
     public FieldProjectorEntity(BlockPos pos, BlockState state) {
-        super(CCBlocks.FIELD_PROJECTOR_TILE.get(), pos, state);
+        super(FieldProjectorsCommon.FIELD_PROJECTOR_TILE.get(), pos, state);
     }
 
     @Override

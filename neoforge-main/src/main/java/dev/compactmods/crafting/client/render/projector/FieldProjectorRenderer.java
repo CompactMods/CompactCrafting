@@ -10,7 +10,6 @@ import dev.compactmods.crafting.api.projector.world.ProjectorBlock;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.CompactCraftingClient;
 import dev.compactmods.crafting.client.render.CCRenderTypes;
-import dev.compactmods.crafting.client.render.RotationSpeed;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
@@ -69,7 +68,7 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
 
         final var yDiskOffset = -0.66f;
 
-        var yaw = Math.sin(Math.toDegrees(renderState.gameTime) / RotationSpeed.MEDIUM.getSpeed()) * 10;
+        var yaw = Math.sin(Math.toDegrees(renderState.gameTime) / 2500) * 10;
         var angle = renderState.facing.toYRot();
         if (renderState.facing.getAxis().equals(Direction.NORTH.getAxis()))
             angle += 180;

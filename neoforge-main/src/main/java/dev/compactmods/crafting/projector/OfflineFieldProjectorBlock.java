@@ -4,7 +4,6 @@ import dev.compactmods.crafting.api.projector.ProjectorHelper;
 import dev.compactmods.crafting.api.projector.world.ProjectorBlock;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.GhostProjectorPlacementRenderer;
-import dev.compactmods.crafting.core.CCAttachments;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
@@ -25,7 +24,7 @@ public class OfflineFieldProjectorBlock extends FieldProjectorBlock implements P
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide()) {
             final var initial = ProjectorBlock.placement(pos, state);
-            player.removeData(CCAttachments.PLACEMENT_HELPERS);
+            player.removeData(FieldProjectorsCommon.PLACEMENT_HELPERS);
             final var helpers = new ObjectArrayList<GhostProjectorPlacementRenderer>();
 
             // TODO: Highlight invalid projectors with a red box
@@ -50,8 +49,8 @@ public class OfflineFieldProjectorBlock extends FieldProjectorBlock implements P
                 });
             }
 
-            player.setData(CCAttachments.PLACEMENT_TIMER, ClientConfig.placementTime);
-            player.setData(CCAttachments.PLACEMENT_HELPERS, helpers);
+            player.setData(FieldProjectorsCommon.PLACEMENT_TIMER, ClientConfig.placementTime);
+            player.setData(FieldProjectorsCommon.PLACEMENT_HELPERS, helpers);
         }
 
         return InteractionResult.SUCCESS;

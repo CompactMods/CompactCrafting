@@ -4,8 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.client.render.CCRenderPipelines;
 import dev.compactmods.crafting.client.render.projector.FieldProjectorColors;
 import dev.compactmods.crafting.client.render.projector.FieldProjectorRenderer;
-import dev.compactmods.crafting.core.CCAttachments;
-import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.projector.FieldProjectorsCommon;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -26,7 +25,7 @@ import java.util.Objects;
 public class ClientEventHandler {
 
     public static void registerRenderers(final EntityRenderersEvent.RegisterRenderers evt) {
-        evt.registerBlockEntityRenderer(CCBlocks.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+        evt.registerBlockEntityRenderer(FieldProjectorsCommon.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
     }
 
     public static void registerStandaloneModels(final ModelEvent.RegisterStandalone evt) {
@@ -35,8 +34,8 @@ public class ClientEventHandler {
     }
 
     public static void registerBlockColors(final RegisterColorHandlersEvent.Block colors) {
-        colors.register(new FieldProjectorColors.Block(), CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
-        colors.register(new FieldProjectorColors.Block(), CCBlocks.FIELD_PROJECTOR_BLOCK.get());
+        colors.register(new FieldProjectorColors.Block(), FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
+        colors.register(new FieldProjectorColors.Block(), FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get());
     }
 
     public static void afterClientTick(final ClientTickEvent.Post evt) {
@@ -46,12 +45,12 @@ public class ClientEventHandler {
         if (player == null)
             return;
 
-        int timer = player.getData(CCAttachments.PLACEMENT_TIMER);
+        int timer = player.getData(FieldProjectorsCommon.PLACEMENT_TIMER);
         if (--timer == 0) {
-            player.removeData(CCAttachments.PLACEMENT_TIMER);
-            player.removeData(CCAttachments.PLACEMENT_HELPERS);
+            player.removeData(FieldProjectorsCommon.PLACEMENT_TIMER);
+            player.removeData(FieldProjectorsCommon.PLACEMENT_HELPERS);
         } else {
-            player.setData(CCAttachments.PLACEMENT_TIMER, timer);
+            player.setData(FieldProjectorsCommon.PLACEMENT_TIMER, timer);
         }
     }
 
@@ -70,7 +69,7 @@ public class ClientEventHandler {
 
         Objects.requireNonNull(mc.player);
 
-        final int timeLeft = mc.player.getData(CCAttachments.PLACEMENT_TIMER);
+        final int timeLeft = mc.player.getData(FieldProjectorsCommon.PLACEMENT_TIMER);
         if (timeLeft == 0)
             return;
 
@@ -79,7 +78,7 @@ public class ClientEventHandler {
         final var pose = new PoseStack();
         pose.translate(Vec3.ZERO.subtract(cameraPos));
 
-        mc.player.getExistingData(CCAttachments.PLACEMENT_HELPERS)
+        mc.player.getExistingData(FieldProjectorsCommon.PLACEMENT_HELPERS)
                 .stream()
                 .flatMap(Collection::stream)
                 .forEach(helper -> helper.render(pose, alpha));

@@ -1,22 +1,16 @@
 package dev.compactmods.crafting.api.field;
 
-import dev.compactmods.crafting.api.EnumCraftingState;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.placement.FieldProjectorPlacements;
-import net.minecraft.world.level.gameevent.GameEventListener;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.Level;
 
 public interface IMiniaturizationField {
 
-    AABB getBounds();
+    Level level();
 
     MiniaturizationFieldLocation location();
 
-    int getProgress();
-
     FieldProjectorPlacements getProjectors();
-
-    EnumCraftingState getCraftingState();
 
     boolean isAreaLoaded();
 
@@ -25,11 +19,5 @@ public interface IMiniaturizationField {
 
     void fieldContentsChanged();
 
-    default void handleDestabilize() {}
-
-    boolean enabled();
-
     void tick();
-
-    GameEventListener blockChangeListener();
 }

@@ -4,8 +4,8 @@ import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
 import dev.compactmods.crafting.api.projector.ActiveProjectorInfo;
 import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.api.projector.world.ActiveProjectorBlock;
-import dev.compactmods.crafting.core.CCAttachments;
-import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.MiniaturizationFields;
+import dev.compactmods.crafting.field.impl.MiniaturizationField;
 import dev.compactmods.crafting.network.FieldActivatedPacket;
 import dev.compactmods.crafting.util.MathUtil;
 import net.minecraft.core.BlockPos;
@@ -53,13 +53,13 @@ public class ActiveFieldProjectorBlock extends FieldProjectorBlock implements Ac
         newField.projectors().enableAll(level);
 
         if (level instanceof ServerLevel sl) {
-            final var fields = sl.getData(CCAttachments.ACTIVE_FIELDS);
-            if (!fields.hasActiveField(newField.center())) {
+            final var fields = sl.getData(MiniaturizationFields.ACTIVE_FIELDS);
+            if (!fields.hasActiveField(newField)) {
                 // TODO - Separate client and server projectors classes
-                final var field1 = new MiniaturizationField(sl, newField);
-                fields.registerField(field1);
-                field1.checkLoaded();
-                field1.fieldContentsChanged();
+                final var field = new MiniaturizationField(sl, newField);
+                fields.registerField(field);
+                field.checkLoaded();
+                field.fieldContentsChanged();
 
                 // Send activation packet to clients
                 PacketDistributor.sendToPlayersTrackingChunk(sl,

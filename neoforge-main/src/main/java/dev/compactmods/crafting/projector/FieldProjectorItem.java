@@ -4,7 +4,6 @@ import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.api.projector.placement.InvalidProjectorPlacement;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
-import dev.compactmods.crafting.core.CCBlocks;
 import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
@@ -99,7 +98,7 @@ public class FieldProjectorItem extends Item {
 
     @NonNull
     private static BlockState activatingFieldState(BlockPlaceContext placeContext, MiniaturizationFieldLocation fieldLocation) {
-        final var activeProjectorBlock = CCBlocks.FIELD_PROJECTOR_BLOCK.get();
+        final var activeProjectorBlock = FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get();
 
         final var baseActive = activeProjectorBlock.getStateForPlacement(placeContext);
         if (baseActive != null)
@@ -110,7 +109,7 @@ public class FieldProjectorItem extends Item {
 
     @NonNull
     private static BlockState inactiveProjectorState(BlockPlaceContext placeContext) {
-        final var offlineFieldProjectorBlock = CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get();
+        final var offlineFieldProjectorBlock = FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get();
         final var offlineBaseState = offlineFieldProjectorBlock.getStateForPlacement(placeContext);
 
         if (offlineBaseState != null)

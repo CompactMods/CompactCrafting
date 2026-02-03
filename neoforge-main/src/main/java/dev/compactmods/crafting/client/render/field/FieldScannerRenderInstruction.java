@@ -9,14 +9,13 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
 /// Handles drawing the brighter "scan lines" around the main projection cube, as well as project scanner arcs.
 /// These lines show visibly where the projection arcs meet the main projection cube.
 public record FieldScannerRenderInstruction(AABB fieldBounds, int fieldBaseColor) implements FieldRenderInstruction {
     @Override
-    public void draw(Level level, PoseStack mx, MultiBufferSource.BufferSource buffers) {
+    public void draw(PoseStack mx, MultiBufferSource.BufferSource buffers) {
 
         final var gameTime = Minecraft.getInstance()
                 .getDeltaTracker()

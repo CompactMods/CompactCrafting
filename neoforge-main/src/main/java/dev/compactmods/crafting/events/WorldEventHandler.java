@@ -1,16 +1,13 @@
 package dev.compactmods.crafting.events;
 
 import dev.compactmods.crafting.api.CompactCrafting;
-import dev.compactmods.crafting.core.CCAttachments;
-import dev.compactmods.crafting.field.ActiveWorldFields;
-import io.reactivex.rxjava3.subjects.PublishSubject;
-import io.reactivex.rxjava3.subjects.Subject;
+import dev.compactmods.crafting.field.MiniaturizationFields;
+import dev.compactmods.crafting.field.impl.ActiveWorldFields;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.ChunkWatchEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
@@ -18,12 +15,6 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 @SuppressWarnings("unused")
 @EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class WorldEventHandler {
-
-    public static final Subject<ChunkEvent> CHUNK_CHANGES;
-
-    static {
-        CHUNK_CHANGES = PublishSubject.create();
-    }
 
     @SubscribeEvent
     public static void onServerStarted(final ServerStartedEvent evt) {
@@ -44,7 +35,7 @@ public class WorldEventHandler {
 
     @SubscribeEvent
     public static void onWorldTick(final LevelTickEvent.Pre evt) {
-        evt.getLevel().getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(ActiveWorldFields::tickFields);
+        evt.getLevel().getExistingData(MiniaturizationFields.ACTIVE_FIELDS).ifPresent(ActiveWorldFields::tickFields);
     }
 
     @SubscribeEvent
@@ -87,15 +78,5 @@ public class WorldEventHandler {
 //                        );
 //                    });
 //                });
-    }
-
-    @SubscribeEvent
-    public static void chunkLoaded(final ChunkEvent.Load cEvent) {
-        CHUNK_CHANGES.onNext(cEvent);
-    }
-
-    @SubscribeEvent
-    public static void chunkUnloaded(final ChunkEvent.Unload cEvent) {
-        CHUNK_CHANGES.onNext(cEvent);
     }
 }

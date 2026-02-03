@@ -1,9 +1,10 @@
 package dev.compactmods.crafting.client.render.debug;
 
-import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.impl.MiniaturizationField;
 import net.minecraft.gizmos.Gizmo;
 import net.minecraft.gizmos.GizmoPrimitives;
 import net.minecraft.gizmos.TextGizmo;
+import net.minecraft.world.phys.Vec3;
 
 // TODO: Debug Rendering
 public record MiniaturizationFieldDebugRenderer(MiniaturizationField field) implements Gizmo {
@@ -49,7 +50,8 @@ public record MiniaturizationFieldDebugRenderer(MiniaturizationField field) impl
 
     @Override
     public void emit(GizmoPrimitives primitives, float alphaMultiplier) {
-        primitives.addText(field.getBounds().getCenter(), String.valueOf(field.enabled()),
+        primitives.addText(Vec3.atCenterOf(field.location().centerBlock()),
+                field.location().center().toString(),
                 TextGizmo.Style.whiteAndCentered());
     }
 }

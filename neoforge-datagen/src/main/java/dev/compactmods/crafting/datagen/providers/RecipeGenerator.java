@@ -1,6 +1,6 @@
-package dev.compactmods.crafting.datagen;
+package dev.compactmods.crafting.datagen.providers;
 
-import dev.compactmods.crafting.core.CCItems;
+import dev.compactmods.crafting.projector.FieldProjectorsCommon;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -51,13 +51,13 @@ public class RecipeGenerator extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
-        shapeless(RecipeCategory.MISC, CCItems.FIELD_PROJECTOR_ITEM.get(), 1)
-                .requires(CCItems.BASE_ITEM.get())
-                .requires(CCItems.PROJECTOR_DISH_ITEM.get())
+        shapeless(RecipeCategory.MISC, FieldProjectorsCommon.FIELD_PROJECTOR_ITEM.get(), 1)
+                .requires(FieldProjectorsCommon.BASE_ITEM.get())
+                .requires(FieldProjectorsCommon.PROJECTOR_DISH_ITEM.get())
                 .unlockedBy("got_ender_eye", has(Items.ENDER_EYE))
                 .save(output);
 
-        shaped(RecipeCategory.MISC, CCItems.BASE_ITEM.get(), 4)
+        shaped(RecipeCategory.MISC, FieldProjectorsCommon.BASE_ITEM.get(), 4)
                 .pattern(" R ")
                 .pattern("DSD")
                 .pattern("PPP")
@@ -68,7 +68,7 @@ public class RecipeGenerator extends RecipeProvider {
                 .unlockedBy("got_ender_eye", has(Items.ENDER_EYE))
                 .save(output);
 
-        shaped(RecipeCategory.MISC, CCItems.PROJECTOR_DISH_ITEM.get(), 4)
+        shaped(RecipeCategory.MISC, FieldProjectorsCommon.PROJECTOR_DISH_ITEM.get(), 4)
                 .pattern("GI ")
                 .pattern("GEI")
                 .pattern("GI ")

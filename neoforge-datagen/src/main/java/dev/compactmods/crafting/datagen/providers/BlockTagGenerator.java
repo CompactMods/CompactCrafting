@@ -1,8 +1,8 @@
-package dev.compactmods.crafting.datagen;
+package dev.compactmods.crafting.datagen.providers;
 
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.projector.FieldProjectorTags;
-import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.projector.FieldProjectorsCommon;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
@@ -22,9 +22,9 @@ public class BlockTagGenerator extends BlockTagsProvider {
                 .addTag(FieldProjectorTags.INACTIVE_PROJECTOR_BLOCK);
 
         tag(FieldProjectorTags.INACTIVE_PROJECTOR_BLOCK)
-                .add(CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
+                .add(FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
 
         tag(FieldProjectorTags.ACTIVE_PROJECTOR_BLOCK)
-                .add(CCBlocks.FIELD_PROJECTOR_BLOCK.get());
+                .add(FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get());
     }
 }

@@ -38,6 +38,6 @@ public class EmptyBlockComponent implements IRecipeComponent, IRecipeBlockCompon
 
     @Override
     public RecipeComponentType<?> getType() {
-        return ComponentRegistration.EMPTY_BLOCK_COMPONENT.get();
+        return RecipeComponents.EMPTY_BLOCK_COMPONENT.get();
     }
 }

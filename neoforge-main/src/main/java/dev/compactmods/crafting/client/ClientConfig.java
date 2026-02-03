@@ -18,18 +18,12 @@ public class ClientConfig {
     private static ModConfigSpec.ConfigValue<String> PROJECTOR_OFF_COLOR;
     private static ModConfigSpec.IntValue PLACEMENT_TIME;
 
-    public static ModConfigSpec.BooleanValue ENABLE_DEBUG_ON_F3;
-
     public static int projectorColor = ARGB.color(255, 255, 106, 0);
     public static int projectorOffColor = ARGB.color(255, 137, 137, 137);
     public static int placementTime = 160;
 
     static {
         generateConfig();
-    }
-
-    public static boolean doDebugRender() {
-        return ClientUtilities.isDebugScreenOpen() && ENABLE_DEBUG_ON_F3.get();
     }
 
     private static void generateConfig() {
@@ -49,10 +43,6 @@ public class ClientConfig {
         PROJECTOR_OFF_COLOR = builder
                 .comment("The fieldBaseColor for the projectors when not active. (HEX format)")
                 .define("projectorOffColor", "#898989");
-
-        ENABLE_DEBUG_ON_F3 = builder
-                .comment("Whether or not activating F3 will enable debug renderers.")
-                .define("projectorDebugger", false);
 
         PLACEMENT_TIME = builder
                 .comment("How long (ticks) the projectorInfo helper will show on right-clicking a projector.")

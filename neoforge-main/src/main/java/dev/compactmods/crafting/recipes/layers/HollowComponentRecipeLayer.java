@@ -1,11 +1,5 @@
 package dev.compactmods.crafting.recipes.layers;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -16,10 +10,17 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.ISymmetricalLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
-import dev.compactmods.crafting.core.CCLayerTypes;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipes;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer, ISymmetricalLayer {
 
@@ -43,7 +44,7 @@ public class HollowComponentRecipeLayer implements IRecipeLayer, IDynamicSizedRe
 
     @Override
     public RecipeLayerType<?> getType() {
-        return CCLayerTypes.HOLLOW_LAYER_TYPE.get();
+        return MiniaturizationRecipes.HOLLOW_LAYER_TYPE.get();
     }
 
     @Override

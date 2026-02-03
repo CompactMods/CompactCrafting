@@ -1,4 +1,4 @@
-package dev.compactmods.crafting.client.render;
+package dev.compactmods.crafting.client.render.geometry;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;

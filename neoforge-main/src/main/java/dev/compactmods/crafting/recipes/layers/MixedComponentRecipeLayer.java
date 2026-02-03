@@ -10,7 +10,7 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IFixedSizedRecipeLayer;
-import dev.compactmods.crafting.core.CCLayerTypes;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipes;
 import dev.compactmods.crafting.recipes.blocks.ComponentPositionLookup;
 import dev.compactmods.crafting.server.ServerConfig;
 import dev.compactmods.crafting.util.BlockSpaceUtil;
@@ -128,6 +128,6 @@ public class MixedComponentRecipeLayer implements IRecipeLayer, IFixedSizedRecip
 
     @Override
     public RecipeLayerType<?> getType() {
-        return CCLayerTypes.MIXED_LAYER_TYPE.get();
+        return MiniaturizationRecipes.MIXED_LAYER_TYPE.get();
     }
 }

@@ -1,10 +1,9 @@
 package dev.compactmods.crafting.datagen.models;
 
 import dev.compactmods.crafting.api.CompactCrafting;
-import dev.compactmods.crafting.core.CCBlocks;
-import dev.compactmods.crafting.core.CCItems;
 import dev.compactmods.crafting.datagen.models.base.EmptyBlockModelGenerators;
 import dev.compactmods.crafting.datagen.models.base.EmptyItemModelGenerators;
+import dev.compactmods.crafting.projector.FieldProjectorsCommon;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.ModelProvider;
@@ -27,17 +26,17 @@ public class CCModelProvider extends ModelProvider {
         ProjectorBaseModels.addBaseTextures(textures);
         ProjectorDishModels.addDishTextures(textures);
 
-        final var inactiveProjectorModel = CCModels.STATIC_PROJECTOR.create(CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get(),
+        final var inactiveProjectorModel = CCModels.STATIC_PROJECTOR.create(FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get(),
                 textures, blocks.modelOutput);
 
         blocks.blockStateOutput.accept(
                 MultiVariantGenerator.dispatch(
-                        CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get(),
+                        FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get(),
                         BlockModelGenerators.plainVariant(inactiveProjectorModel)
                 ).with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
 
         blocks.createSimpleWithTextures(
-                CCBlocks.FIELD_PROJECTOR_BLOCK,
+                FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK,
                 CCModels.PROJECTOR_BASE,
                 textures
         );
@@ -51,12 +50,12 @@ public class CCModelProvider extends ModelProvider {
         // Missing item model definitions for: [compactcrafting:field_projector, compactcrafting:projector_dish]
 //        itemModels.generateFlatItem(CCItems.FIELD_PROJECTOR_ITEM.get(), ModelTemplates.FLAT_ITEM);
 
-        blocks.registerSimpleItemModel(CCItems.FIELD_PROJECTOR_ITEM.get(), inactiveProjectorModel);
+        blocks.registerSimpleItemModel(FieldProjectorsCommon.FIELD_PROJECTOR_ITEM.get(), inactiveProjectorModel);
 
-        var base = blocks.createFlatItemModel(CCItems.BASE_ITEM.get());
-        blocks.registerSimpleItemModel(CCItems.BASE_ITEM.get(), base);
+        var base = blocks.createFlatItemModel(FieldProjectorsCommon.BASE_ITEM.get());
+        blocks.registerSimpleItemModel(FieldProjectorsCommon.BASE_ITEM.get(), base);
 
-        blocks.registerSimpleItemModel(CCItems.PROJECTOR_DISH_ITEM.get(), dishModelId);
+        blocks.registerSimpleItemModel(FieldProjectorsCommon.PROJECTOR_DISH_ITEM.get(), dishModelId);
 
         blocks.run();
         items.run();

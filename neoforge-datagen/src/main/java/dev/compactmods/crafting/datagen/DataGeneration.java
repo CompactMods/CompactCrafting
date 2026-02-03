@@ -2,6 +2,10 @@ package dev.compactmods.crafting.datagen;
 
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.datagen.models.CCModelProvider;
+import dev.compactmods.crafting.datagen.providers.BlockLootGenerator;
+import dev.compactmods.crafting.datagen.providers.BlockTagGenerator;
+import dev.compactmods.crafting.datagen.providers.GameEventTagsProvider;
+import dev.compactmods.crafting.datagen.providers.RecipeGenerator;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -29,6 +33,7 @@ public class DataGeneration {
                 holderLookup
         ));
 
+        event.createProvider(GameEventTagsProvider::new);
         event.createProvider(CCModelProvider::new);
 
         event.createProvider((output,provider)

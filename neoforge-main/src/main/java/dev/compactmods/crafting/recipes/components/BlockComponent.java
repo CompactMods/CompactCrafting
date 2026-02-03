@@ -120,7 +120,7 @@ public class BlockComponent implements IRecipeComponent, IRecipeBlockComponent {
 
     @Override
     public RecipeComponentType<?> getType() {
-        return ComponentRegistration.BLOCK_COMPONENT.get();
+        return RecipeComponents.BLOCK_COMPONENT.get();
     }
 
     public Block getBlock() {

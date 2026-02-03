@@ -6,7 +6,7 @@ import dev.compactmods.crafting.api.recipe.layers.IRecipeBlocks;
 import dev.compactmods.crafting.api.recipe.layers.IRecipeLayer;
 import dev.compactmods.crafting.api.recipe.layers.RecipeLayerType;
 import dev.compactmods.crafting.api.recipe.layers.dim.IDynamicSizedRecipeLayer;
-import dev.compactmods.crafting.core.CCLayerTypes;
+import dev.compactmods.crafting.recipes.MiniaturizationRecipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.AABB;
 
@@ -47,7 +47,7 @@ public class EmptyRecipeLayer implements IRecipeLayer, IDynamicSizedRecipeLayer 
 
     @Override
     public RecipeLayerType<?> getType() {
-        return CCLayerTypes.EMPTY_LAYER_TYPE.get();
+        return MiniaturizationRecipes.EMPTY_LAYER_TYPE.get();
     }
 
     @Override

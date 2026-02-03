@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.client.render.projector;
 
-import dev.compactmods.crafting.client.render.RotationSpeed;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import org.joml.Vector3d;
@@ -9,7 +8,7 @@ import org.joml.Vector3f;
 public abstract class ProjectorRenderHelper {
     public static double getScanLineHeight(AABB cube, double gameTime) {
         // Get the height of the scan line
-        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -RotationSpeed.MEDIUM.getSpeed()) + 1.0d) / 2) * (cube.getYsize());
+        double zAngle = ((Math.sin(Math.toDegrees(gameTime) / -2500) + 1.0d) / 2) * (cube.getYsize());
         return cube.minY + zAngle;
     }
 

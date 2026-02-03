@@ -3,7 +3,6 @@ package dev.compactmods.crafting.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import dev.compactmods.crafting.api.CompactCrafting;
-import io.reactivex.rxjava3.disposables.Disposable;
 import net.minecraft.commands.CommandSourceStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -11,8 +10,6 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
 @EventBusSubscriber(modid = CompactCrafting.MOD_ID)
 public class CraftingCommandRoot {
-
-    static Disposable PREV;
 
     @SubscribeEvent
     public static void onCommandsRegister(final RegisterCommandsEvent event) {

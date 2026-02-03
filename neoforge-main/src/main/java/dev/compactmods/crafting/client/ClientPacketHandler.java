@@ -1,9 +1,8 @@
 package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
-import dev.compactmods.crafting.core.CCAttachments;
-import dev.compactmods.crafting.field.IMutableMiniaturizationField;
-import dev.compactmods.crafting.field.MiniaturizationField;
+import dev.compactmods.crafting.field.MiniaturizationFields;
+import dev.compactmods.crafting.field.impl.MiniaturizationField;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -19,7 +18,7 @@ public abstract class ClientPacketHandler {
                 return;
 
             final var newField = new MiniaturizationField(cw, location);
-            cw.getData(CCAttachments.ACTIVE_FIELDS).registerField(newField);
+            cw.getData(MiniaturizationFields.ACTIVE_FIELDS).registerField(newField);
         });
     }
 
@@ -28,13 +27,13 @@ public abstract class ClientPacketHandler {
         if(mc.level == null) return;
 
         mc.submitAsync(() -> {
-            mc.level.getExistingData(CCAttachments.ACTIVE_FIELDS).ifPresent(fields -> {
-                fields.get(location.center()).ifPresent(field -> {
+            mc.level.getExistingData(MiniaturizationFields.ACTIVE_FIELDS).ifPresent(fields -> {
+                fields.get(location).ifPresent(field -> {
                     final var projectors = field.getProjectors();
                     projectors.disableAll(mc.level);
-                });
 
-                fields.unregisterField(location.center());
+                    fields.unregisterField(location.center());
+                });
             });
         });
     }
@@ -44,11 +43,10 @@ public abstract class ClientPacketHandler {
         if (mc.level == null)
             return;
 
-        mc.level.getData(CCAttachments.ACTIVE_FIELDS)
-                .get(location.center())
-                .filter(field -> field instanceof IMutableMiniaturizationField)
-                .map(IMutableMiniaturizationField.class::cast)
-                .ifPresent(IMutableMiniaturizationField::clearRecipe);
+        // TODO
+//        mc.level.getData(MiniaturizationFields.ACTIVE_FIELDS)
+//                .get(location.center())
+//                .ifPresent(IMiniaturizationField::clearRecipe);
     }
 
     public static void changeFieldRecipe(MiniaturizationFieldLocation location, RecipeHolder<MiniaturizationRecipe> recipe) {
@@ -56,14 +54,15 @@ public abstract class ClientPacketHandler {
         if (mc.level == null)
             return;
 
-        mc.level.getData(CCAttachments.ACTIVE_FIELDS)
-                .get(location.center())
-                .filter(field -> field instanceof IMutableMiniaturizationField)
-                .map(IMutableMiniaturizationField.class::cast)
-                .ifPresent(field -> {
-                    field.setRecipe(recipe);
-                    field.spawnParticlesAtProjectors(MiniaturizationField.RECIPE_MATCHED_PARTICLE_OPTS);
-                });
+        // TODO
+//        mc.level.getData(MiniaturizationFields.ACTIVE_FIELDS)
+//                .get(location.center())
+//                .filter(field -> field instanceof IMutableMiniaturizationField)
+//                .map(IMutableMiniaturizationField.class::cast)
+//                .ifPresent(field -> {
+//                    field.setRecipe(recipe);
+//                    field.spawnParticlesAtProjectors(MiniaturizationField.RECIPE_MATCHED_PARTICLE_OPTS);
+//                });
 
     }
 }

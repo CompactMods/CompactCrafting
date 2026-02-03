@@ -2,7 +2,8 @@ package dev.compactmods.crafting.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
-import dev.compactmods.crafting.core.CCBlocks;
+import dev.compactmods.crafting.client.render.geometry.GhostBlockGeometry;
+import dev.compactmods.crafting.projector.FieldProjectorsCommon;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SubmitNodeStorage;
@@ -21,7 +22,7 @@ public record GhostProjectorPlacementRenderer(MiniaturizationFieldLocation field
         final var mc = Minecraft.getInstance();
         final var level = mc.level;
 
-        final var baseState = CCBlocks.INACTIVE_FIELD_PROJECTOR_BLOCK.get().defaultBlockState();
+        final var baseState = FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get().defaultBlockState();
         final var nodeStore = mc.gameRenderer.getSubmitNodeStorage();
 
         Objects.requireNonNull(level);
