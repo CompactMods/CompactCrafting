@@ -1,5 +1,9 @@
 package dev.compactmods.crafting.api.projector.world;
 
+import dev.compactmods.crafting.api.field.MiniaturizationFieldSize;
+import dev.compactmods.crafting.api.projector.FieldProjectorPredicates;
+import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
+import dev.compactmods.crafting.api.projector.FieldProjectorTags;
 import dev.compactmods.crafting.api.projector.placement.ProjectorPlacement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -32,5 +36,10 @@ public interface ProjectorBlock {
 
     static ProjectorPlacement placement(BlockPos position, BlockState state) {
         return new ProjectorPlacement(position.immutable(), facing(state));
+    }
+
+    static MiniaturizationFieldSize fieldSize(BlockState state) {
+        return state.is(FieldProjectorTags.ACTIVE_PROJECTOR_BLOCK, FieldProjectorPredicates.IS_ACTIVE)
+                ? state.getValue(FieldProjectorProperties.SIZE) : null;
     }
 }

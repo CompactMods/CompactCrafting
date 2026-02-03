@@ -1,11 +1,30 @@
 package dev.compactmods.crafting.recipes;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.AABB;
+
 import java.util.HashMap;
 import java.util.Map;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.core.BlockPos;
+import java.util.Optional;
 
 public abstract class RecipeHelper {
+
+    public static Optional<RecipeHolder<MiniaturizationRecipe>> getRecipe(LevelAccessor levelAccessor, Identifier recipeId) {
+        var recipes = levelAccessor.getServer()
+                .getRecipeManager();
+
+        final var key = ResourceKey.create(Registries.RECIPE, recipeId);
+
+        //noinspection unchecked
+        return recipes.byKey(key)
+                .filter(recipeHolder -> recipeHolder.value() instanceof MiniaturizationRecipe)
+                .map(holder -> (RecipeHolder<MiniaturizationRecipe>) holder);
+    }
 
     /**
      * Assumes an array is on the Z axis; meant to convert a single array to a map for collective

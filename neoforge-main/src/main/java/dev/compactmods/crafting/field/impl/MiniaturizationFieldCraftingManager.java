@@ -1,25 +1,29 @@
 package dev.compactmods.crafting.field.impl;
 
-import dev.compactmods.crafting.api.EnumCraftingState;
-import dev.compactmods.crafting.api.recipe.IMiniaturizationRecipe;
 import dev.compactmods.crafting.field.FieldHelper;
 import dev.compactmods.crafting.recipes.MiniaturizationRecipe;
+import dev.compactmods.crafting.recipes.RecipeHelper;
 import dev.compactmods.crafting.util.CraftingHelper;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.Optional;
 
 public class MiniaturizationFieldCraftingManager {
-    private final MiniaturizationField field;
-    RecipeHolder<MiniaturizationRecipe> currentRecipe = null;
-    private int craftingProgress = 0;
 
-    // Crafting State
-    private StructureTemplate matchedBlocks;
-    EnumCraftingState craftingState;
+    private final MiniaturizationField field;
+
+
+    @Nullable
+    private MatchedMiniaturizationRecipe matchedRecipe;
+    private MiniaturizationRecipe recipe;
+
+    private int craftingProgress;
 
     /// If non-zero, tells how many ticks must pass until the crafting system
     /// performs a new scan of the field for a valid recipe.
@@ -28,38 +32,38 @@ public class MiniaturizationFieldCraftingManager {
     MiniaturizationFieldCraftingManager(MiniaturizationField field) {
         this.field = field;
         this.craftingProgress = 0;
-        this.craftingState = EnumCraftingState.NOT_MATCHED;
         this.rescanTicksRemaining = 0;
     }
 
-    public int getProgress() {
-        if (craftingState != EnumCraftingState.CRAFTING)
-            return 0;
+    public void loadState(CraftingState state) {
+        Objects.requireNonNull(field);
+        this.craftingProgress = state.craftingProgress();
+        this.rescanTicksRemaining = 0;
 
+        state.matchedRecipe().ifPresent(matched -> {
+            this.matchedRecipe = matched;
+            this.recipe = RecipeHelper.getRecipe(this.field.level(), matched.recipe())
+                    .map(RecipeHolder::value)
+                    .orElse(null);
+        });
+    }
+
+    public CraftingState state() {
+        return new CraftingState(Optional.ofNullable(matchedRecipe), this.craftingProgress);
+    }
+
+    public int progress() {
         return craftingProgress;
     }
 
-    public void setRecipe(RecipeHolder<MiniaturizationRecipe> recipe) {
-        this.currentRecipe = recipe;
-        this.craftingProgress = 0;
-
-        if (craftingState == EnumCraftingState.NOT_MATCHED)
-            this.craftingState = EnumCraftingState.MATCHED;
-    }
-
     public void clearRecipe() {
-        this.currentRecipe = null;
+        this.matchedRecipe = null;
         this.craftingProgress = 0;
-        this.craftingState = EnumCraftingState.NOT_MATCHED;
         this.rescanTicksRemaining = 0;
     }
 
-    public EnumCraftingState getCraftingState() {
-        return craftingState;
-    }
-
     public boolean scheduleScan() {
-        if (this.craftingState == EnumCraftingState.NOT_MATCHED) {
+        if (this.matchedRecipe == null) {
             this.rescanTicksRemaining = 60;
             return true;
         }
@@ -68,57 +72,51 @@ public class MiniaturizationFieldCraftingManager {
         return false;
     }
 
-    public void scan() {
+    private void scan() {
         this.rescanTicksRemaining = 0;
 
-        RecipeScanner.doRecipeScan(field.fieldAccess()).ifPresentOrElse(recipeScanResult -> {
-            this.matchedBlocks = recipeScanResult.matchedBlocks();
-            this.currentRecipe = recipeScanResult.recipe();
-            this.craftingState = EnumCraftingState.MATCHED;
+        RecipeScanner.doRecipeScan(field.fieldAccess()).ifPresentOrElse(scanResult -> {
+            this.matchedRecipe = new MatchedMiniaturizationRecipe(scanResult.recipe().id().identifier(), scanResult.matchedBlocks());
+            this.recipe = scanResult.recipe().value();
+            this.craftingProgress = 0;
+
             FieldHelper.spawnParticlesAtProjectors(field, field.level(), MiniaturizationFieldParticles.RECIPE_MATCHED_PARTICLE_OPTS);
-        }, () -> {
-            this.matchedBlocks = null;
-            clearRecipe();
-        });
+        }, this::clearRecipe);
     }
 
     public void tick() {
-        switch (this.craftingState) {
-            case NOT_MATCHED:
-                if (rescanTicksRemaining > 0 && --rescanTicksRemaining == 0)
-                    scan();
+        if (matchedRecipe != null) {
+            // If we haven't started crafting yet, look for catalysts
+            if(craftingProgress == 0) {
+                final var catalysts = RecipeScanner.getCatalystsInField(this.field.fieldAccess(), this.recipe);
 
-                break;
-
-            case MATCHED:
-                final var catalysts = RecipeScanner.getCatalystsInField(this.field.fieldAccess(), this.currentRecipe.value());
-                if (!catalysts.isEmpty()) {
-                    // Only remove items and clear the projectors on servers
-                    CraftingHelper.consumeCatalystItem(catalysts.getFirst(), 1);
-
-                    // We know the "recipe" in the projectors is an exact match already, so wipe the projectors
+                // Found a catalyst - try to consume and kick off crafting process
+                if (!catalysts.isEmpty() && CraftingHelper.consumeCatalystItem(catalysts.getFirst(), 1)) {
                     this.field.fieldAccess().clearBlocks();
-
-                    this.craftingState = EnumCraftingState.CRAFTING;
+                    this.craftingProgress = 1;
                 }
 
-                break;
+                return;
+            }
 
-            case CRAFTING:
-                tickCrafting();
-                break;
+            tickCrafting();
+            return;
         }
+
+        if (rescanTicksRemaining > 0 && --rescanTicksRemaining == 0)
+            scan();
     }
 
     private void tickCrafting() {
-        if (this.currentRecipe == null)
+        if (this.matchedRecipe == null)
             return;
 
-        craftingProgress++;
         final var level = field.level();
-        if (craftingProgress >= currentRecipe.value().getCraftingTime()) {
+
+        if (++craftingProgress >= recipe.getCraftingTime()) {
             final var center = field.location().center();
-            for (ItemStack is : currentRecipe.value().getOutputs()) {
+
+            for (ItemStack is : recipe.getOutputs()) {
                 level.addFreshEntity(new ItemEntity(level, center.x(), center.y(), center.z(), is));
                 level.playLocalSound(center.x(), center.y(), center.z(),
                         SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS,
@@ -128,7 +126,6 @@ public class MiniaturizationFieldCraftingManager {
             FieldHelper.spawnParticlesAtProjectors(field, level,
                     MiniaturizationFieldParticles.RECIPE_FINISHED_PARTICLE_OPTS);
 
-            IMiniaturizationRecipe completed = this.currentRecipe.value();
             clearRecipe();
         }
     }

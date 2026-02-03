@@ -23,6 +23,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
@@ -163,5 +164,14 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
                 CompactCrafting.LOGGER.error(ex);
             }
         }
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(FieldProjectorEntity blockEntity) {
+        var state = blockEntity.getBlockState();
+        var placement = ProjectorBlock.placement(blockEntity.getBlockPos(), state);
+        var fieldSize = ProjectorBlock.fieldSize(state);
+
+        return MiniaturizationFieldLocation.compute(fieldSize, placement).bounds().inflate(12);
     }
 }

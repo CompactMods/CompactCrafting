@@ -51,7 +51,7 @@ public class RecipeScanner {
                 .recipeMap()
                 .byType(MiniaturizationRecipes.MINIATURIZATION_RECIPE.get())
                 .stream()
-                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.value().getDimensions(), filledBounds))
+                .filter(recipe -> BlockSpaceUtil.boundsFitsInside(recipe.value().getDimensions(), fieldAccess.getBounds()))
                 .collect(Collectors.toSet());
 
         /*
@@ -73,7 +73,7 @@ public class RecipeScanner {
 
             final var matchedBlocks = new StructureTemplate();
 
-            BlockPos minPos = BlockPos.containing(filledBounds.getMinPosition());
+            BlockPos minPos = BlockPos.containing(fieldAccess.getBounds().getMinPosition());
 
             matchedBlocks.fillFromWorld(fieldAccess.level(), minPos, fieldAccess.location().boundsVec3i(),
                     false,

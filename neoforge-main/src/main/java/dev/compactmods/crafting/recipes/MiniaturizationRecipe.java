@@ -59,6 +59,8 @@ public record MiniaturizationRecipe(
         MiniaturizationRecipeComponents components
 ) implements IMiniaturizationRecipe {
 
+
+
     public static final Codec<IRecipeLayer> LAYER_CODEC = Codec.lazyInitialized(() -> {
         final var reg = CompactCraftingCommon.RECIPE_LAYER_TYPES_REGISTRY.byNameCodec();
         return reg.dispatchStable(IRecipeLayer::getType, RecipeLayerType::getCodec);

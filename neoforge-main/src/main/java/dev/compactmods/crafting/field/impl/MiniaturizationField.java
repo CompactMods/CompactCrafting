@@ -74,6 +74,10 @@ public class MiniaturizationField implements IMiniaturizationField {
         var scheduled = this.craftingManager.scheduleScan();
     }
 
+    public CraftingState craftingState() {
+        return craftingManager.state();
+    }
+
     // TODO: Reimplement with new game rules
 //    public void handleDestabilize() {
 //        if (craftingManager.getCraftingState() != EnumCraftingState.CRAFTING || craftingManager.matchedBlocks == null)

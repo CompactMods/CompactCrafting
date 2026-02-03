@@ -1,5 +1,6 @@
 package dev.compactmods.crafting.field.impl;
 
+import com.mojang.serialization.JsonOps;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
 import dev.compactmods.crafting.network.FieldDeactivatedPacket;
@@ -10,7 +11,9 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3dc;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,6 +29,18 @@ public class ActiveWorldFields {
 
     public ActiveWorldFields(Level level) {
         this.level = level;
+    }
+
+    public void save() {
+        List<CraftingState> states = new ArrayList<>();
+        for(var field : fields.values()) {
+            final var state = field.craftingState();
+            states.add(state);
+        }
+
+        final var encoded = CraftingState.CODEC.listOf()
+                .encodeStart(JsonOps.INSTANCE, states)
+                .getOrThrow();
     }
 
     public void tickFields() {
