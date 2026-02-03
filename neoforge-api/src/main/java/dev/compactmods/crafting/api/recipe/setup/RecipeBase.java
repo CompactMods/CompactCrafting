@@ -1,6 +1,5 @@
 package dev.compactmods.crafting.api.recipe.setup;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
@@ -22,7 +21,7 @@ public interface RecipeBase extends Recipe<FakeInventory> {
     }
 
     @Override
-    default ItemStack assemble(FakeInventory fakeInventory, HolderLookup.Provider provider) {
+    default ItemStack assemble(FakeInventory fakeInventory) {
         return ItemStack.EMPTY;
     }
 

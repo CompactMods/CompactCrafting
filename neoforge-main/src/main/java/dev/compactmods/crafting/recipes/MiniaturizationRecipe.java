@@ -27,7 +27,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -51,15 +51,13 @@ import java.util.stream.Stream;
 public record MiniaturizationRecipe(
         TreeMap<Integer, IRecipeLayer> layers,
         ItemPredicate catalystMatcher,
-        ItemStack[] outputs,
+        ItemStackTemplate[] outputs,
         AABB dimensions,
         int requiredTime,
         boolean hasFixedFootprint,
         Map<String, Integer> cachedComponentTotals,
         MiniaturizationRecipeComponents components
 ) implements IMiniaturizationRecipe {
-
-
 
     public static final Codec<IRecipeLayer> LAYER_CODEC = Codec.lazyInitialized(() -> {
         final var reg = CompactCraftingCommon.RECIPE_LAYER_TYPES_REGISTRY.byNameCodec();
@@ -83,7 +81,7 @@ public record MiniaturizationRecipe(
             MiniaturizationRecipeComponents.CODEC.optionalFieldOf("components", MiniaturizationRecipeComponents.EMPTY)
                     .forGetter(MiniaturizationRecipe::getComponents),
 
-            ItemStack.STRICT_CODEC.listOf().fieldOf("outputs")
+            ItemStackTemplate.CODEC.listOf().fieldOf("outputs")
                     .forGetter(MiniaturizationRecipe::codecOutputs),
 
             ItemPredicate.CODEC.fieldOf("catalyst")
@@ -96,7 +94,7 @@ public record MiniaturizationRecipe(
             ByteBufCodecs.INT, MiniaturizationRecipe::codecRecipeSize,
             ByteBufCodecs.fromCodec(LAYER_CODEC).apply(ByteBufCodecs.list()), MiniaturizationRecipe::codecLayerList,
             MiniaturizationRecipeComponents.STREAM_CODEC, MiniaturizationRecipe::components,
-            ItemStack.OPTIONAL_LIST_STREAM_CODEC, MiniaturizationRecipe::codecOutputs,
+            ItemStackTemplate.STREAM_CODEC.apply(ByteBufCodecs.list()), MiniaturizationRecipe::codecOutputs,
             ByteBufCodecs.fromCodecWithRegistries(ItemPredicate.CODEC), MiniaturizationRecipe::catalystMatcher,
             MiniaturizationRecipe::fromCodec
     );
@@ -108,7 +106,7 @@ public record MiniaturizationRecipe(
     );
 
     public static MiniaturizationRecipe fromCodec(int craftTime, int recipeSize, List<IRecipeLayer> layers,
-                                                  MiniaturizationRecipeComponents components, List<ItemStack> outputs,
+                                                  MiniaturizationRecipeComponents components, List<ItemStackTemplate> outputs,
                                                   ItemPredicate catalyst) {
         var layers1 = new TreeMap<Integer, IRecipeLayer>();
 
@@ -173,7 +171,7 @@ public record MiniaturizationRecipe(
             componentTotals.put(comp, count);
         });
 
-        var recipe = new MiniaturizationRecipe(layers1, catalyst, outputs.toArray(new ItemStack[0]),
+        var recipe = new MiniaturizationRecipe(layers1, catalyst, outputs.toArray(ItemStackTemplate[]::new),
                 recipeDims, craftTime, hasFixedFootprint,
                 componentTotals, components);
 
@@ -262,10 +260,8 @@ public record MiniaturizationRecipe(
         return firstMatched.isPresent();
     }
 
-    public ItemStack[] getOutputs() {
-        return Stream.of(outputs)
-                .map(ItemStack::copy)
-                .toArray(ItemStack[]::new);
+    public ItemStackTemplate[] getOutputs() {
+        return Stream.of(outputs).toArray(ItemStackTemplate[]::new);
     }
 
     public Map<String, Integer> getComponentTotals() {
@@ -331,7 +327,7 @@ public record MiniaturizationRecipe(
                 .collect(Collectors.toList());
     }
 
-    private List<ItemStack> codecOutputs() {
+    private List<ItemStackTemplate> codecOutputs() {
         return ImmutableList.copyOf(outputs);
     }
 

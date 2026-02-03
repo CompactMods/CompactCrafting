@@ -7,7 +7,6 @@ import dev.compactmods.crafting.util.CraftingHelper;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jspecify.annotations.Nullable;
 
@@ -116,8 +115,8 @@ public class MiniaturizationFieldCraftingManager {
         if (++craftingProgress >= recipe.getCraftingTime()) {
             final var center = field.location().center();
 
-            for (ItemStack is : recipe.getOutputs()) {
-                level.addFreshEntity(new ItemEntity(level, center.x(), center.y(), center.z(), is));
+            for (final var is : recipe.getOutputs()) {
+                level.addFreshEntity(new ItemEntity(level, center.x(), center.y(), center.z(), is.create()));
                 level.playLocalSound(center.x(), center.y(), center.z(),
                         SoundEvents.PLAYER_LEVELUP, SoundSource.BLOCKS,
                         1.0f, 1.0f, false);

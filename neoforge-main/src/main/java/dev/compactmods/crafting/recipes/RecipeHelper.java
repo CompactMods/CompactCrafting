@@ -10,29 +10,24 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public abstract class RecipeHelper {
 
+    @SuppressWarnings("unchecked")
     public static Optional<RecipeHolder<MiniaturizationRecipe>> getRecipe(LevelAccessor levelAccessor, Identifier recipeId) {
-        var recipes = levelAccessor.getServer()
+        var recipes = Objects.requireNonNull(levelAccessor.getServer())
                 .getRecipeManager();
 
         final var key = ResourceKey.create(Registries.RECIPE, recipeId);
 
-        //noinspection unchecked
         return recipes.byKey(key)
                 .filter(recipeHolder -> recipeHolder.value() instanceof MiniaturizationRecipe)
                 .map(holder -> (RecipeHolder<MiniaturizationRecipe>) holder);
     }
 
-    /**
-     * Assumes an array is on the Z axis; meant to convert a single array to a map for collective
-     * adding.
-     *
-     * @param array
-     * @return
-     */
+    /// Assumes an array is on the Z axis; meant to convert a single array to a map for collective adding.
     public static Map<BlockPos, String> convertSingleArrayToMap(String[] array, int x) {
         HashMap<BlockPos, String> map = new HashMap<>();
         for (int z = 0; z < array.length; z++) {

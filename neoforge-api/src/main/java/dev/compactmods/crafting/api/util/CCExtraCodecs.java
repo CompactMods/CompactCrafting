@@ -2,15 +2,12 @@ package dev.compactmods.crafting.api.util;
 
 import com.google.common.primitives.ImmutableDoubleArray;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.Util;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
@@ -42,11 +39,4 @@ public interface CCExtraCodecs {
                 return struct;
             }, template -> template.save(new CompoundTag()));
 
-    static <T extends Recipe<?>> Codec<RecipeHolder<T>> recipeHolderCodec() {
-        //noinspection unchecked
-        return RecordCodecBuilder.create(i -> i.group(
-                Recipe.KEY_CODEC.fieldOf("id").forGetter(RecipeHolder::id),
-                Recipe.CODEC.fieldOf("value").forGetter(RecipeHolder::value)
-        ).apply(i, (key, val) -> (RecipeHolder<T>) new RecipeHolder<>(key, val)));
-    }
 }

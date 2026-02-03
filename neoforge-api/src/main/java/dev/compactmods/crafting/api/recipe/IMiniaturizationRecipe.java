@@ -7,7 +7,7 @@ import dev.compactmods.crafting.api.recipe.setup.FakeInventory;
 import dev.compactmods.crafting.api.recipe.setup.RecipeBase;
 import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.phys.AABB;
 
@@ -20,7 +20,7 @@ public interface IMiniaturizationRecipe extends Recipe<FakeInventory>, RecipeBas
 
     ItemPredicate catalystMatcher();
 
-    ItemStack[] getOutputs();
+    ItemStackTemplate[] getOutputs();
 
     int getCraftingTime();
 

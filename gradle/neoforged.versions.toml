@@ -1,7 +1,7 @@
 [versions]
-neoforge = "26.1.0.0-alpha.5+snapshot-2"
-mdg = "2.0.139"
-neoforgeRange = { require = "[26.1.0.0-alpha.5+snapshot-2,)", prefer = "26.1.0.0-alpha.5+snapshot-2" }
+neoforge = "26.1.0.0-alpha.8+snapshot-4"
+mdg = "2.0.140"
+neoforgeRange = { require = "[26.1.0.0-alpha.8+snapshot-4,)", prefer = "26.1.0.0-alpha.8+snapshot-4" }
 neoform = "no"
 
 [libraries.testframework]
