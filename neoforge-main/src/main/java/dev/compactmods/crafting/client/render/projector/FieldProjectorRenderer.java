@@ -5,40 +5,59 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.api.field.location.MiniaturizationFieldLocation;
-import dev.compactmods.crafting.api.projector.FieldProjectorProperties;
 import dev.compactmods.crafting.api.projector.world.ProjectorBlock;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.CompactCraftingClient;
 import dev.compactmods.crafting.client.render.CCRenderTypes;
 import dev.compactmods.crafting.projector.FieldProjectorEntity;
+import dev.compactmods.crafting.projector.model.FieldProjectorDishModel;
+import dev.compactmods.crafting.projector.model.ProjectorDishRenderState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.Model;
+import net.minecraft.client.model.geom.ModelLayerLocation;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
+import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.util.CommonColors;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+
 public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjectorEntity, FieldProjectorRenderState> {
 
+    private static final BlockDisplayContext DISPLAY_CONTEXT = BlockDisplayContext.create();
+
     private final BlockStateModel model;
+    private final BlockModelResolver blockModelResolver;
 
     public FieldProjectorRenderer(BlockEntityRendererProvider.Context ctx) {
-        this.model = ctx.blockRenderDispatcher()
-                .getBlockModelShaper()
-                .getModelManager()
-                .getStandaloneModel(CompactCraftingClient.PROJECTOR_DISH_MODEL_KEY);
+        this.blockModelResolver = ctx.blockModelResolver();
+        final var manager = Minecraft.getInstance()
+                .getModelManager();
+
+        model = manager.getStandaloneModel(CompactCraftingClient.PROJECTOR_DISH_MODEL_KEY);
     }
 
     @Override
@@ -50,24 +69,31 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
     public void extractRenderState(FieldProjectorEntity blockEntity, FieldProjectorRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
         BlockEntityRenderState.extractBase(blockEntity, state, breakProgress);
 
-        state.facing = state.blockState.getValue(BlockStateProperties.HORIZONTAL_FACING);
-        state.gameTime = blockEntity.getLevel().getGameTime();
+        final var currBlockState = blockEntity.getBlockState();
+        final var level = blockEntity.getLevel();
+
+        state.facing = ProjectorBlock.facing(currBlockState);
+        state.gameTime = level.getGameTime();
         state.projectorColor = ARGB.opaque(ClientConfig.projectorColor);
 
-        final var size = state.blockState.getValue(FieldProjectorProperties.SIZE);
+        final var size = ProjectorBlock.fieldSize(currBlockState);
         final var projectorGlobalPos = GlobalPos.of(blockEntity.getLevel().dimension(), state.blockPos);
-        final var projectorPlacement = ProjectorBlock.placement(projectorGlobalPos, state.blockState);
+        final var projectorPlacement = ProjectorBlock.placement(projectorGlobalPos, currBlockState);
         state.fieldLocation = MiniaturizationFieldLocation.compute(
                 projectorGlobalPos.dimension(), size, projectorPlacement
         );
+
+        if(level instanceof ClientLevel cl) {
+            var parts = new ArrayList<BlockStateModelPart>();
+            model.collectParts(cl, projectorGlobalPos.pos(), currBlockState,
+                    level.getRandom(), parts);
+
+            state.dishModelParts = parts;
+        }
     }
 
     @Override
     public void submit(FieldProjectorRenderState renderState, PoseStack poseStack, @NonNull SubmitNodeCollector submitNodeCollector, @NonNull CameraRenderState camera) {
-
-        final var red = ARGB.redFloat(renderState.projectorColor);
-        final var green = ARGB.greenFloat(renderState.projectorColor);
-        final var blue = ARGB.blueFloat(renderState.projectorColor);
 
         final var yDiskOffset = -0.66f;
 
@@ -85,8 +111,9 @@ public class FieldProjectorRenderer implements BlockEntityRenderer<FieldProjecto
             poseStack.translate(0.0, yDiskOffset, 0.0);
             poseStack.translate(-.5, 0, -.5);
 
-            submitNodeCollector.submitBlockModel(poseStack, RenderTypes.cutoutMovingBlock(), model,
-                    red, green, blue,
+            submitNodeCollector.submitBlockModel(poseStack, RenderTypes.cutoutMovingBlock(),
+                    renderState.dishModelParts,
+                    new int[] { 0, 1 },
                     renderState.lightCoords, OverlayTexture.NO_OVERLAY,
                     0);
         }

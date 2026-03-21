@@ -1,8 +1,10 @@
 package dev.compactmods.crafting.datagen.models;
 
 import dev.compactmods.crafting.api.CompactCrafting;
+import dev.compactmods.crafting.client.CompactCraftingClient;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
 
@@ -12,11 +14,11 @@ public abstract class ProjectorDishModels {
 
     public static TextureMapping addDishTextures(TextureMapping mapping) {
         return mapping
-                .put(TextureSlot.PARTICLE, CompactCrafting.identifier("block/projector_dish_back"))
-                .put(CCModels.DISH_TINT, CompactCrafting.identifier("block/projector_dish_tint"))
-                .put(CCModels.DISH_FRONT_SIDES, CompactCrafting.identifier("block/projector_dish_front_sides"))
-                .put(CCModels.DISH_BACK, CompactCrafting.identifier("block/projector_dish_back"))
-                .put(CCModels.DISH_CONNECTOR, CompactCrafting.identifier("block/projector_dish_connector"));
+                .put(TextureSlot.PARTICLE, CompactCraftingClient.material("block/projector_dish_back"))
+                .put(CCModels.DISH_TINT, CompactCraftingClient.material("block/projector_dish_tint"))
+                .put(CCModels.DISH_FRONT_SIDES, CompactCraftingClient.material("block/projector_dish_front_sides"))
+                .put(CCModels.DISH_BACK, CompactCraftingClient.material("block/projector_dish_back"))
+                .put(CCModels.DISH_CONNECTOR, CompactCraftingClient.material("block/projector_dish_connector"));
     }
 
     public static void addDishGeometry(ExtendedModelTemplateBuilder builder) {

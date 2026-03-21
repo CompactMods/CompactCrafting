@@ -2,11 +2,18 @@ package dev.compactmods.crafting.client;
 
 import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.client.render.field.MiniaturizationFieldRenderer;
-import net.minecraft.client.renderer.block.model.BlockStateModel;
+import dev.compactmods.crafting.projector.model.FieldProjectorDishModel;
+import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
+import net.minecraft.client.renderer.block.model.BlockModel;
+import net.minecraft.client.resources.model.geometry.QuadCollection;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.resources.Identifier;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
 import net.neoforged.neoforge.client.model.standalone.StandaloneModelKey;
 import net.neoforged.neoforge.common.NeoForge;
 
@@ -24,9 +31,15 @@ public class CompactCraftingClient {
         NeoForge.EVENT_BUS.addListener(ClientEventHandler::afterClientTick);
         NeoForge.EVENT_BUS.addListener(ClientEventHandler::afterParticlesRender);
 
-        modBus.addListener(ClientEventHandler::registerBlockColors);
+        modBus.addListener(ClientEventHandler::registerSpecialRenderers);
+        modBus.addListener(ClientEventHandler::registerBlockTintSources);
+        modBus.addListener(ClientEventHandler::registerBlockModels);
         modBus.addListener(ClientEventHandler::registerRenderers);
         modBus.addListener(ClientEventHandler::registerRenderPipelines);
         modBus.addListener(ClientEventHandler::registerStandaloneModels);
+    }
+
+    public static Material material(String id) {
+        return new Material(CompactCrafting.identifier(id));
     }
 }

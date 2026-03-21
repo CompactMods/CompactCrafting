@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import dev.compactmods.crafting.api.field.IMiniaturizationField;
 import dev.compactmods.crafting.client.ClientConfig;
 import dev.compactmods.crafting.client.render.MiniaturizationFieldRenderBuilder;
+import dev.compactmods.crafting.field.MiniaturizationFields;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -12,7 +13,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 public class MiniaturizationFieldRenderer {
 
-    public static void onRenderStage(RenderLevelStageEvent.AfterParticles evt) {
+    public static void onRenderStage(RenderLevelStageEvent.AfterTranslucentFeatures evt) {
         final var mc = Minecraft.getInstance();
         final var level = mc.level;
 
@@ -21,11 +22,11 @@ public class MiniaturizationFieldRenderer {
         final MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
 
         // FIXME: Field rendering
-//        level.getExistingData(MiniaturizationFields.ACTIVE_FIELDS).ifPresent(fields -> {
-//            fields.stream().forEach(field -> {
-//                render(field, evt.getPoseStack(), buffers);
-//            });
-//        });
+        level.getExistingData(MiniaturizationFields.ACTIVE_FIELDS).ifPresent(fields -> {
+            fields.forEach(field -> {
+                render(field, evt.getPoseStack(), buffers);
+            });
+        });
     }
 
     public static void render(IMiniaturizationField field, PoseStack pose, MultiBufferSource.BufferSource buffers) {

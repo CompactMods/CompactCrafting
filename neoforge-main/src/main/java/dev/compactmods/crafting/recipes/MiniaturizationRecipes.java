@@ -35,7 +35,7 @@ public interface MiniaturizationRecipes {
     // endregion ======================================================================================================
 
     DeferredHolder<RecipeSerializer<?>, RecipeSerializer<MiniaturizationRecipe>> MINIATURIZATION_SERIALIZER =
-            RECIPES.register("miniaturization", MiniaturizationRecipeSerializer::new);
+            RECIPES.register("miniaturization", () -> new RecipeSerializer<>(MiniaturizationRecipe.CODEC, MiniaturizationRecipe.STREAM_CODEC));
 
     DeferredHolder<RecipeType<?>, RecipeType<MiniaturizationRecipe>> MINIATURIZATION_RECIPE = RECIPE_TYPES.register(IMiniaturizationRecipe.RECIPE_TYPE_ID.getPath(),
             () -> RecipeType.simple(IMiniaturizationRecipe.RECIPE_TYPE_ID));

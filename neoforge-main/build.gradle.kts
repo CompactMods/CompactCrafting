@@ -1,7 +1,6 @@
 @file:Suppress("SpellCheckingInspection")
 
 import java.text.SimpleDateFormat
-import java.util.*
 
 var envVersion: String = System.getenv("VERSION") ?: "9.9.9"
 if (envVersion.startsWith("v"))
@@ -59,6 +58,10 @@ neoForge.runs {
         // JetBrains Runtime Hotswap
         if (!System.getenv().containsKey("CI")) {
             jvmArgument("-XX:+AllowEnhancedClassRedefinition")
+        }
+
+        if(org.gradle.internal.os.OperatingSystem.current().isLinux) {
+            systemProperty("MESA_LOADER_DRIVER_OVERRIDE", "zink")
         }
     }
 
@@ -192,7 +195,7 @@ tasks.withType<ProcessResources>().configureEach {
 
 tasks.withType<Jar> {
     manifest {
-        val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(Date())
+        val now = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(`java.util`.Date())
         attributes(
             mapOf(
                 "Specification-Title" to "Compact Crafting",

@@ -1,41 +1,66 @@
 package dev.compactmods.crafting.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Transformation;
+import dev.compactmods.crafting.api.CompactCrafting;
 import dev.compactmods.crafting.client.render.CCRenderPipelines;
 import dev.compactmods.crafting.client.render.projector.FieldProjectorColors;
 import dev.compactmods.crafting.client.render.projector.FieldProjectorRenderer;
 import dev.compactmods.crafting.projector.FieldProjectorsCommon;
+import dev.compactmods.crafting.projector.model.ActiveProjectorSpecialRenderer;
+import dev.compactmods.crafting.projector.model.FieldProjectorDishModel;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.model.SpecialBlockModelWrapper;
 import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterBlockModelsEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterRenderPipelinesEvent;
+import net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
+import net.neoforged.neoforge.client.model.standalone.StandaloneModelLoader;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class ClientEventHandler {
 
     public static void registerRenderers(final EntityRenderersEvent.RegisterRenderers evt) {
-        evt.registerBlockEntityRenderer(FieldProjectorsCommon.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+         evt.registerBlockEntityRenderer(FieldProjectorsCommon.FIELD_PROJECTOR_TILE.get(), FieldProjectorRenderer::new);
+    }
+
+    public static void registerSpecialRenderers(final RegisterSpecialModelRendererEvent special) {
+        special.register(CompactCrafting.identifier("projector_dish"), ActiveProjectorSpecialRenderer.Unbaked.MAP_CODEC);
+    }
+
+    public static void registerBlockModels(final RegisterBlockModelsEvent models) {
+        final var wrapper = new SpecialBlockModelWrapper.Unbaked<>(
+                new ActiveProjectorSpecialRenderer.Unbaked(),
+                Optional.empty()
+        );
+
+        models.register(wrapper, FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get());
     }
 
     public static void registerStandaloneModels(final ModelEvent.RegisterStandalone evt) {
-        var unbaked = SimpleUnbakedStandaloneModel.blockStateModel(CompactCraftingClient.PROJECTOR_DISH_MODEL_ID);
+        var unbaked = SimpleUnbakedStandaloneModel
+                .blockStateModel(CompactCraftingClient.PROJECTOR_DISH_MODEL_ID);
+
         evt.register(CompactCraftingClient.PROJECTOR_DISH_MODEL_KEY, unbaked);
     }
 
-    public static void registerBlockColors(final RegisterColorHandlersEvent.Block colors) {
-        colors.register(new FieldProjectorColors.Block(), FieldProjectorsCommon.INACTIVE_FIELD_PROJECTOR_BLOCK.get());
-        colors.register(new FieldProjectorColors.Block(), FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get());
+    public static void registerBlockTintSources(final RegisterColorHandlersEvent.BlockTintSources colors) {
+        colors.register(List.of(new FieldProjectorColors.Block()), FieldProjectorsCommon.FIELD_PROJECTOR_BLOCK.get());
     }
 
     public static void afterClientTick(final ClientTickEvent.Post evt) {

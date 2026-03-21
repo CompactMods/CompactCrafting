@@ -1,6 +1,7 @@
 package dev.compactmods.crafting.datagen.models;
 
 import dev.compactmods.crafting.api.CompactCrafting;
+import dev.compactmods.crafting.client.CompactCraftingClient;
 import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
@@ -15,12 +16,12 @@ public class ProjectorBaseModels {
 
     public static TextureMapping addBaseTextures(TextureMapping textureMapping) {
         return textureMapping
-                .put(TextureSlot.PARTICLE, CompactCrafting.identifier("block/projector_base_bottom"))
-                .put(CCModels.BASE_TOP, CompactCrafting.identifier("block/projector_base_top"))
-                .put(CCModels.BASE_TOP_CUTOUT, CompactCrafting.identifier("block/projector_base_top_cutout"))
-                .put(CCModels.BASE_BOTTOM, CompactCrafting.identifier("block/projector_base_bottom"))
-                .put(CCModels.BASE_SIDE, CompactCrafting.identifier("block/projector_base_side"))
-                .put(CCModels.BASE_POLE, CompactCrafting.identifier("block/projector_pole"));
+                .put(TextureSlot.PARTICLE, CompactCraftingClient.material("block/projector_base_bottom"))
+                .put(CCModels.BASE_TOP, CompactCraftingClient.material("block/projector_base_top"))
+                .put(CCModels.BASE_TOP_CUTOUT, CompactCraftingClient.material("block/projector_base_top_cutout"))
+                .put(CCModels.BASE_BOTTOM, CompactCraftingClient.material("block/projector_base_bottom"))
+                .put(CCModels.BASE_SIDE, CompactCraftingClient.material("block/projector_base_side"))
+                .put(CCModels.BASE_POLE, CompactCraftingClient.material("block/projector_pole"));
     }
 
     public static ModelTemplate makeBaseModel() {
@@ -32,8 +33,7 @@ public class ProjectorBaseModels {
                         CCModels.BASE_SIDE,
                         CCModels.BASE_POLE)
                 .extend()
-                .parent(Identifier.withDefaultNamespace("block/block"))
-                .renderType("cutout");
+                .parent(Identifier.withDefaultNamespace("block/block"));
 
         // Base
         addBaseGeometry(builder);

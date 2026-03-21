@@ -1,7 +1,10 @@
 package dev.compactmods.crafting.client;
 
+import com.mojang.serialization.JavaOps;
 import dev.compactmods.crafting.api.CompactCrafting;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.ColorRGBA;
+import net.minecraft.util.ExtraCodecs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -57,7 +60,21 @@ public class ClientConfig {
     public static void onLoad(final ModConfigEvent.Reloading configEvent) {
         final var c = configEvent.getConfig();
         if(c.getModId().equals(CompactCrafting.MOD_ID) && c.getType().equals(ModConfig.Type.CLIENT)) {
-            projectorColor = extractHexColor(PROJECTOR_COLOR.get(), 0xFFFF6A00);
+            var onColor = PROJECTOR_COLOR.get();
+
+            int test;
+            switch (onColor.length()) {
+                case 6 -> test = ExtraCodecs.STRING_RGB_COLOR
+                        .parse(JavaOps.INSTANCE, onColor)
+                        .result()
+                        .orElse(0);
+                case 8 -> test = ExtraCodecs.STRING_ARGB_COLOR
+                        .parse(JavaOps.INSTANCE, onColor)
+                        .result()
+                        .orElse(0);
+            }
+
+            projectorColor = extractHexColor(onColor, 0xFFFF6A00);
             projectorOffColor = extractHexColor(PROJECTOR_OFF_COLOR.get(), 0xFF898989);
             placementTime = PLACEMENT_TIME.get();
         }

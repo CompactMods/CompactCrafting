@@ -65,8 +65,7 @@ public class CCModels {
                         CompactCrafting.identifierString("static_projector"),
                         STATIC_PROJECTOR_TEXTURE_SLOTS)
                 .extend()
-                .parent(Identifier.withDefaultNamespace("block/block"))
-                .renderType("cutout");
+                .parent(Identifier.withDefaultNamespace("block/block"));
 
         ProjectorBaseModels.addBaseGeometry(builder);
         ProjectorDishModels.addDishGeometry(builder);
@@ -79,8 +78,7 @@ public class CCModels {
                         CompactCrafting.identifierString("projector_dish"),
                         DISH_TEXTURE_SLOTS)
                 .extend()
-                .parent(Identifier.withDefaultNamespace("block/block"))
-                .renderType("cutout");
+                .parent(Identifier.withDefaultNamespace("block/block"));
 
         ProjectorDishModels.addDishGeometry(builder);
 

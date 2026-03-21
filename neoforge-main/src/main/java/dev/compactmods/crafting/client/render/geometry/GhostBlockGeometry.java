@@ -1,14 +1,15 @@
 package dev.compactmods.crafting.client.render.geometry;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockColors;
 import net.minecraft.client.renderer.SubmitNodeCollector;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ARGB;
@@ -16,9 +17,9 @@ import net.minecraft.util.CommonColors;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.EmptyBlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.model.quad.MutableQuad;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -30,10 +31,13 @@ public record GhostBlockGeometry(BlockPos position, BlockState state, float alph
     @Override
     public void render(PoseStack.Pose pose, @NonNull VertexConsumer builder) {
         final var mc = Minecraft.getInstance();
-        final BlockRenderDispatcher dispatcher = mc.getBlockRenderer();
+        final var dispatcher = mc.gameRenderer.getFeatureRenderDispatcher();
         final BlockColors colors = mc.getBlockColors();
 
-        final var model = dispatcher.getBlockModel(state);
+        var model = mc.getModelManager()
+                .getBlockStateModelSet()
+                .get(state);
+
 
         float offset = (1 - scale) / 2f;
 
@@ -41,9 +45,10 @@ public record GhostBlockGeometry(BlockPos position, BlockState state, float alph
         pose.translate(realPosition.x, realPosition.y, realPosition.z);
         pose.scale(scale, scale, scale);
 
-        List<BlockModelPart> parts = new ArrayList<>();
-        model.collectParts(EmptyBlockAndTintGetter.INSTANCE, BlockPos.ZERO, state, RandomSource.create(), parts);
+        List<BlockStateModelPart> parts = new ArrayList<>();
+        model.collectParts(BlockAndTintGetter.EMPTY, BlockPos.ZERO, state, RandomSource.create(), parts);
 
+        final var quadInstance = new QuadInstance();
         parts.forEach(part -> {
             for (var dir : Direction.values()) {
                 for (var quad : part.getQuads(dir)) {
@@ -57,9 +62,16 @@ public record GhostBlockGeometry(BlockPos position, BlockState state, float alph
         });
     }
 
-    private static void addQuad(BlockState state, PoseStack.Pose pose, BlockColors colors, VertexConsumer builder, BakedQuad quad, float alpha) {
-        int color = quad.isTinted() ? colors.getColor(state, EmptyBlockAndTintGetter.INSTANCE, null, quad.tintIndex()) :
-                CommonColors.WHITE;
+    private static void addQuad(BlockState state, PoseStack.Pose pose, BlockColors colors, VertexConsumer builder,
+                                BakedQuad quad, float alpha) {
+
+        final var material = quad.materialInfo();
+        int color = CommonColors.WHITE;
+        if(material.isTinted()){
+            var tintSource = colors.getTintSource(state, material.tintIndex());
+            if(tintSource != null)
+                color = tintSource.color(state);
+        }
 
         final float red = ARGB.redFloat(color);
         final float green = ARGB.greenFloat(color);
@@ -67,6 +79,7 @@ public record GhostBlockGeometry(BlockPos position, BlockState state, float alph
 
         final float trueAlpha = Mth.clamp(alpha, 0.1f, 1f);
 
-        builder.putBulkData(pose, quad, red, green, blue, trueAlpha, LightCoordsUtil.FULL_SKY, OverlayTexture.NO_OVERLAY);
+        var mutable = new MutableQuad().setFrom(quad);
+        builder.putBulkData(pose, mutable, red, green, blue, trueAlpha, LightCoordsUtil.FULL_SKY, OverlayTexture.NO_OVERLAY);
     }
 }

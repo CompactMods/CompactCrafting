@@ -312,6 +312,16 @@ public record MiniaturizationRecipe(
     }
 
     @Override
+    public boolean showNotification() {
+        return false;
+    }
+
+    @Override
+    public @NonNull String group() {
+        return "";
+    }
+
+    @Override
     public @NonNull RecipeSerializer<MiniaturizationRecipe> getSerializer() {
         return MiniaturizationRecipes.MINIATURIZATION_SERIALIZER.get();
     }

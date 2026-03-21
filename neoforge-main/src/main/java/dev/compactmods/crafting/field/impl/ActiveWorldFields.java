@@ -16,6 +16,7 @@ import org.joml.Vector3dc;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ActiveWorldFields implements CodecHolder<ActiveWorldFields> {
@@ -92,5 +93,9 @@ public class ActiveWorldFields implements CodecHolder<ActiveWorldFields> {
     @Override
     public Codec<ActiveWorldFields> codec() {
         return null;
+    }
+
+    public void forEach(Consumer<MiniaturizationField> action) {
+        fields.values().forEach(action);
     }
 }
